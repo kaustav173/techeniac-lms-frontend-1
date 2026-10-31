@@ -147,7 +147,11 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     setIsUpdatingProfile(true);
     try {
       const msg = await updateProfile(result.data.name);
-      await refreshUser();
+      try {
+        await refreshUser();
+      } catch {
+        // Non-blocking: profile update succeeded on server; session refresh can retry later
+      }
       setProfileSuccessMessage(msg || 'Profile name updated successfully.');
     } catch (err) {
       const message =
@@ -320,7 +324,9 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                   onChange={(e) => {
                     setProfileName(e.target.value);
                     if (profileSuccessMessage) setProfileSuccessMessage(null);
-                    if (profileErrors.name) setProfileErrors((prev) => ({ ...prev, name: '' }));
+                    if (profileErrors.name || profileErrors.general) {
+                      setProfileErrors({});
+                    }
                   }}
                   placeholder="Enter your full name"
                   hasError={Boolean(profileErrors.name)}
@@ -344,10 +350,13 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                   name="email"
                   type="email"
                   value={user.email}
+                  readOnly
                   disabled
+                  aria-readonly="true"
+                  aria-describedby="profile-email-desc"
                   className="cursor-not-allowed bg-slate-50 text-slate-500"
                 />
-                <P className="text-xs text-[#667085]">
+                <P id="profile-email-desc" className="text-xs text-[#667085]">
                   Email address is linked to your authentication credentials and cannot be edited.
                 </P>
               </div>
@@ -358,7 +367,11 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                   type="submit"
                   variant="primary"
                   size="md"
-                  disabled={isUpdatingProfile || profileName.trim() === user.name}
+                  disabled={
+                    isUpdatingProfile ||
+                    !profileName.trim() ||
+                    profileName.trim() === user.name.trim()
+                  }
                   isLoading={isUpdatingProfile}
                   className="rounded-full bg-[#0044D3] px-6 text-sm font-semibold shadow-sm hover:bg-[#0036ab]"
                 >
