@@ -73,7 +73,7 @@ export const usersService = {
     total: number;
     counts?: UserDirectoryCounts;
   }> {
-    const params: Record<string, string | number | undefined> = {};
+    const params: Record<string, string | number | boolean | undefined> = {};
     if (filters.page) params.page = filters.page;
     if (filters.limit) params.limit = filters.limit;
     if (filters.role && filters.role !== 'ALL') params.role = filters.role;
@@ -86,7 +86,7 @@ export const usersService = {
     if (filters.sortBy) params.sortBy = filters.sortBy;
     if (filters.sortOrder) params.sortOrder = filters.sortOrder;
     if (filters.withoutActiveBatch !== undefined) {
-      params.withoutActiveBatch = String(filters.withoutActiveBatch);
+      params.withoutActiveBatch = filters.withoutActiveBatch;
     }
 
     const res = await apiClient<
