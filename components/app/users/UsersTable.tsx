@@ -306,18 +306,29 @@ export function UsersTable() {
   }, [mentorRoster, selectedMentorIds]);
 
   const users: UserItem[] = useMemo(() => {
-    let list = apiUsers.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
-      batch: userBatchMap.get(u.id) || '—',
-      mentorName: userMentorMap.get(u.id) || '—',
-      hasLoggedIn: u.lastLoginAt !== null,
-      mustChangePassword: u.mustChangePassword,
-      isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
-    }));
+    const singleFilteredMentor =
+      selectedMentorIds.length === 1
+        ? mentorRoster.find((m) => m.id === selectedMentorIds[0])
+        : null;
+
+    let list = apiUsers.map((u) => {
+      const mappedMentorName = userMentorMap.get(u.id);
+      const resolvedMentorName =
+        mappedMentorName || (singleFilteredMentor ? singleFilteredMentor.name : undefined) || '—';
+
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
+        batch: userBatchMap.get(u.id) || '—',
+        mentorName: resolvedMentorName,
+        hasLoggedIn: u.lastLoginAt !== null,
+        mustChangePassword: u.mustChangePassword,
+        isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
+      };
+    });
 
     if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
       list = list.filter((u) => {
@@ -328,7 +339,7 @@ export function UsersTable() {
       });
     }
 
-    if (selectedMentorIds.length > 0) {
+    if (selectedMentorIds.length > 1) {
       list = list.filter((u) => {
         const assignedMentor = (u.mentorName || '').toLowerCase();
         return selectedMentorNames.some((name) => assignedMentor.includes(name));
@@ -350,6 +361,7 @@ export function UsersTable() {
     activeAdminsCount,
     userBatchMap,
     userMentorMap,
+    mentorRoster,
     selectedStatuses,
     selectedMentorIds,
     selectedMentorNames,
@@ -365,7 +377,7 @@ export function UsersTable() {
     );
 
   const effectiveTotal =
-    hasLocalStatusFilter || selectedMentorIds.length > 0 ? users.length : totalCount;
+    hasLocalStatusFilter || selectedMentorIds.length > 1 ? users.length : totalCount;
 
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
