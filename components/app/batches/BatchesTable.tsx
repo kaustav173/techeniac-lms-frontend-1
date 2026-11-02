@@ -6,7 +6,6 @@ import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
@@ -58,11 +57,12 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
       }}
       className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
-      <TableCell className="font-semibold text-slate-900">
+      <TableCell className="max-w-[240px] font-semibold text-slate-900 sm:max-w-xs md:max-w-sm">
         <Link
           href={`/admin/batches/${batch.id}`}
           onClick={(e) => e.stopPropagation()}
-          className="transition-colors hover:text-[#0044D3]"
+          title={batch.name}
+          className="block truncate transition-colors hover:text-[#0044D3]"
         >
           {batch.name}
         </Link>
@@ -111,7 +111,7 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
     <>
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={`batch-skel-${idx}`} className="h-14">
-          <TableCell>
+          <TableCell className="max-w-[240px] sm:max-w-xs md:max-w-sm">
             <Skeleton className="h-4 w-44 rounded-md" />
           </TableCell>
           <TableCell>
@@ -141,14 +141,13 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
 export function BatchesPageSkeleton() {
   return (
     <div className="animate-in fade-in space-y-4 duration-150">
-      {/* Top Header Skeleton */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Skeleton className="h-9 w-36 rounded-xl" />
+      {/* Top Action Skeleton */}
+      <div className="flex items-center justify-end pt-2">
         <Skeleton className="h-10 w-32 rounded-full" />
       </div>
 
       {/* Filter Row Skeleton */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         <Skeleton className="h-11 w-full max-w-md rounded-xl" />
         <Skeleton className="h-11 w-48 rounded-xl" />
       </div>
@@ -294,25 +293,22 @@ export function BatchesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header via Global PageHeader with no breadcrumbs */}
-      <PageHeader
-        title="Batches"
-        actions={
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-          >
-            <Span className="text-base font-bold">+</Span>
-            <Span>Create Batch</Span>
-          </Button>
-        }
-      />
+      {/* Top Header Action Toolbar without redundant h1 header */}
+      <div className="flex items-center justify-end pt-2">
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => setIsCreateOpen(true)}
+          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+        >
+          <Span className="text-base font-bold">+</Span>
+          <Span>Create Batch</Span>
+        </Button>
+      </div>
 
       {/* Filter Row with Search Input and Status MultiSelect Filter */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
             value={search}
@@ -378,8 +374,8 @@ export function BatchesTable() {
                 onSort={handleSort}
                 tooltip="Sort by Timeline"
               />
-              <TableHead>Members</TableHead>
-              <TableHead className="text-right">Overall Progress</TableHead>
+              <TableHead className="font-semibold text-slate-700">Members</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

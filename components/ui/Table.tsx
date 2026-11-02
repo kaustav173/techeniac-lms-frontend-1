@@ -48,7 +48,7 @@ export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeader
     <thead
       ref={ref}
       className={cn(
-        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-[#667085]',
+        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-slate-700',
         className,
       )}
       {...props}
@@ -115,7 +115,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
       ref={ref}
       scope={scope}
       className={cn(
-        'px-4 py-2.5 text-sm font-semibold text-[#667085] sm:px-5 sm:py-3 sm:text-base',
+        'px-4 py-2.5 text-sm font-semibold text-slate-700 sm:px-5 sm:py-3 sm:text-base',
         className,
       )}
       {...props}
