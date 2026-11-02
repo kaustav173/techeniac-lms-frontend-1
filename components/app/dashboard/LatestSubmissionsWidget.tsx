@@ -7,10 +7,13 @@ import { SubmissionReviewModal } from '@/components/app/submissions/SubmissionRe
 import { SubmissionStatusBadge } from '@/components/app/submissions/SubmissionStatusBadge';
 import { Button } from '@/components/ui/Button';
 import { H2, Muted, P, Span } from '@/components/ui/Typography';
-import { useSubmissionQueue } from '@/hooks/useGrading';
+import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
+import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { formatDateIST } from '@/lib/date';
 
 export function LatestSubmissionsWidget() {
+  const prefetchReview = usePrefetchSubmissionReview();
+  const { getHoverHandlers } = useHoverPrefetch();
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
 
   // Top 10 newest first submissions (FR-10.1, REV-01)
@@ -93,6 +96,7 @@ export function LatestSubmissionsWidget() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  {...getHoverHandlers(() => prefetchReview(sub.id))}
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedSubmissionId(sub.id);

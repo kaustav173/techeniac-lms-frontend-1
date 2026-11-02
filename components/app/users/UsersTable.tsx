@@ -232,7 +232,7 @@ export function UsersTable() {
     changeRole,
     toggleStatus,
     resendInvite,
-  } = useUsers();
+  } = useUsers({ page: 1, limit: 10 });
 
   const { userBatchMap, userMentorMap } = useAllBatchMembers();
 

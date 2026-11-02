@@ -1,4 +1,9 @@
-import { auditLogFilterSchema, type AuditLogsResponse, type AuditType } from '@/lib/validation';
+import {
+  auditLogFilterSchema,
+  type AuditLogsResponse,
+  type AuditPagination,
+  type AuditType,
+} from '@/lib/validation';
 import { apiClient } from '@/services/api.client';
 
 export interface AuditQueryFilters {
@@ -10,6 +15,44 @@ export interface AuditQueryFilters {
   action?: string | undefined;
   startDate?: string | undefined;
   endDate?: string | undefined;
+}
+
+function buildFallbackPagination(
+  validated: { page: number; limit: number },
+  dataLength: number,
+): AuditPagination {
+  const minKnownTotal = (validated.page - 1) * validated.limit + dataLength;
+  return {
+    page: validated.page,
+    limit: validated.limit,
+    total: minKnownTotal,
+    totalPages: Math.max(1, Math.ceil(minKnownTotal / validated.limit)),
+  };
+}
+
+function resolvePagination(
+  res: AuditLogsResponse,
+  validated: { page: number; limit: number },
+): AuditPagination {
+  const dataLength = res.data?.length ?? 0;
+
+  if (res.meta) {
+    const page = res.meta.page ?? validated.page;
+    const limit = res.meta.limit ?? validated.limit;
+    const total = res.meta.total ?? dataLength;
+    const totalPages = res.meta.totalPages ?? (Math.ceil(total / limit) || 1);
+    return { page, limit, total, totalPages };
+  }
+
+  if (res.pagination) {
+    const page = res.pagination.page ?? validated.page;
+    const limit = res.pagination.limit ?? validated.limit;
+    const total = res.pagination.total ?? dataLength;
+    const totalPages = res.pagination.totalPages ?? (Math.ceil(total / limit) || 1);
+    return { page, limit, total, totalPages };
+  }
+
+  return buildFallbackPagination(validated, dataLength);
 }
 
 export const auditService = {
@@ -41,6 +84,12 @@ export const auditService = {
       params,
     });
 
-    return res;
+    const pagination = resolvePagination(res, validated);
+
+    return {
+      success: res.success,
+      data: res.data ?? [],
+      pagination,
+    };
   },
 };

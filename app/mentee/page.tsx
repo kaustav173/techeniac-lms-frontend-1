@@ -8,6 +8,7 @@ import { PortalSessionState } from '@/components/app/navigation/PortalSessionSta
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
+import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import {
@@ -16,7 +17,9 @@ import {
   useAllocationsList,
 } from '@/hooks/useAllocations';
 import { useMenteeBatch } from '@/hooks/useBatches';
+import { useMenteeDashboard } from '@/hooks/useDashboard';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { formatDateIST } from '@/lib/date';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
 function formatDate(dateInput?: string | null): string {
@@ -212,6 +215,16 @@ export default function MenteePage() {
     menteeId: user?.id,
     limit: 100,
   });
+  // Mentee dashboard payload provides overall progress aggregates and upcoming deadlines.
+  // Currently, MenteeProgressOverviewCard computes progress from allocations list;
+  // remaining dashboard aggregate fields (activeCoursesCount, overallProgressPercent) are reserved for future widget parity.
+  const {
+    data: menteeDashboard,
+    isLoading: isLoadingDashboard,
+    isError: isErrorDashboard,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useMenteeDashboard({ enabled: isAuthorized });
 
   const allocations = useMemo<readonly CourseAllocation[]>(
     () => allocationsData?.items ?? [],
@@ -367,6 +380,84 @@ export default function MenteePage() {
             </div>
           </Link>
         </div>
+
+        {/* Upcoming Deadlines Widget */}
+        {isLoadingDashboard ? (
+          <div className="mt-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="mt-1 h-3 w-72" />
+            <div className="mt-4 space-y-3">
+              <Skeleton className="h-16 w-full rounded-xl" />
+              <Skeleton className="h-16 w-full rounded-xl" />
+            </div>
+          </div>
+        ) : isErrorDashboard ? (
+          <div className="mt-8">
+            <Alert
+              variant="error"
+              title="Error Loading Deadlines"
+              message={
+                dashboardError?.message ||
+                'Failed to load upcoming milestones and deadlines. Please retry.'
+              }
+            >
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void refetchDashboard()}
+                  className="h-8 rounded-lg text-xs"
+                >
+                  Retry
+                </Button>
+              </div>
+            </Alert>
+          </div>
+        ) : menteeDashboard?.upcomingDeadlines && menteeDashboard.upcomingDeadlines.length > 0 ? (
+          <div className="mt-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <H2 className="text-base font-bold text-[#111827]">
+                  Upcoming Milestones & Deadlines
+                </H2>
+                <P className="text-xs text-[#667085]">
+                  Scheduled completion dates for your active curriculum allocations
+                </P>
+              </div>
+              <Link
+                href="/mentee/courses"
+                className="text-xs font-semibold text-[#0044D3] hover:underline"
+              >
+                View All Courses →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {menteeDashboard.upcomingDeadlines.map((item) => (
+                <div
+                  key={item.allocationId}
+                  className="flex items-center justify-between rounded-xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5"
+                >
+                  <div>
+                    <P className="text-sm font-bold text-[#111827]">{item.courseName}</P>
+                    <Span className="text-xs text-[#667085]">
+                      Progress: {item.progressPercent}%
+                    </Span>
+                  </div>
+                  <div className="text-right">
+                    <Span
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        item.isOverdue ? 'bg-rose-100 text-rose-700' : 'bg-blue-50 text-blue-700'
+                      }`}
+                    >
+                      {item.isOverdue ? 'Overdue: ' : 'Due: '}
+                      {formatDateIST(item.dueDate)}
+                    </Span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </DashboardContent>
     </div>
   );
