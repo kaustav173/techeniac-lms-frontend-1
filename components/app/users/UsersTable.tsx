@@ -27,7 +27,7 @@ import {
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
-import { useMultiMentorMentees, useUsers } from '@/hooks/useUsers';
+import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/cn';
 import { compareStrings } from '@/lib/sort';
 import {
@@ -236,10 +236,7 @@ export function UsersTable() {
 
   const { userBatchMap, userMentorMap } = useAllBatchMembers();
 
-  const { mentees: multiMentorMentees, isLoading: isMultiMentorLoading } =
-    useMultiMentorMentees(selectedMentorIds);
-
-  const isTableLoading = selectedMentorIds.length > 1 ? isMultiMentorLoading : isLoading;
+  const isTableLoading = isLoading;
 
   const handleSort = (field: 'name' | 'email') => {
     let nextField: 'name' | 'email' | null = field;
@@ -309,7 +306,7 @@ export function UsersTable() {
       (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
     );
 
-  const isClientPaginated = multiMentorMentees !== null || hasLocalStatusFilter;
+  const isClientPaginated = hasLocalStatusFilter;
 
   const users: UserItem[] = useMemo(() => {
     const singleFilteredMentor =
@@ -317,9 +314,7 @@ export function UsersTable() {
         ? mentorRoster.find((m) => m.id === selectedMentorIds[0])
         : null;
 
-    const sourceUsers = multiMentorMentees !== null ? multiMentorMentees : apiUsers;
-
-    let list = sourceUsers.map((u) => {
+    let list = apiUsers.map((u) => {
       const mappedMentorName = userMentorMap.get(u.id);
       const resolvedMentorName =
         mappedMentorName || (singleFilteredMentor ? singleFilteredMentor.name : undefined) || '—';
@@ -337,17 +332,6 @@ export function UsersTable() {
         isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
       };
     });
-
-    if (multiMentorMentees !== null && selectedRole !== 'ALL') {
-      list = list.filter((u) => u.role === selectedRole);
-    }
-
-    if (multiMentorMentees !== null && search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
-      );
-    }
 
     if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
       list = list.filter((u) => {
@@ -368,14 +352,11 @@ export function UsersTable() {
 
     return list;
   }, [
-    multiMentorMentees,
     apiUsers,
     activeAdminsCount,
     userBatchMap,
     userMentorMap,
     mentorRoster,
-    selectedRole,
-    search,
     selectedStatuses,
     selectedMentorIds,
     sortField,
@@ -419,7 +400,7 @@ export function UsersTable() {
       statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE')
         ? statuses[0]
         : undefined;
-    const backendMentorId = mentorIds.length === 1 ? mentorIds[0] : undefined;
+    const backendMentorId = mentorIds.length > 0 ? mentorIds.join(',') : undefined;
 
     const hasLocalStatus =
       !statuses.includes('ALL') &&
