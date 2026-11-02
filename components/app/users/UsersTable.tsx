@@ -93,7 +93,6 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
 }
 
 const STATUS_OPTIONS: MultiSelectOption[] = [
-  { value: 'ALL', label: 'All Users' },
   { value: 'ACTIVE', label: 'Active Users' },
   { value: 'PENDING', label: 'Pending Users' },
   { value: 'INACTIVE', label: 'Inactive Users' },
@@ -157,7 +156,7 @@ export function UsersTable() {
 
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['ALL']);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -300,7 +299,7 @@ export function UsersTable() {
   );
 
   const hasLocalStatusFilter =
-    !selectedStatuses.includes('ALL') &&
+    selectedStatuses.length > 0 &&
     !(
       selectedStatuses.length === 1 &&
       (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
@@ -333,7 +332,7 @@ export function UsersTable() {
       };
     });
 
-    if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
+    if (selectedStatuses.length > 0) {
       list = list.filter((u) => {
         if (selectedStatuses.includes('PENDING') && !u.hasLoggedIn) return true;
         if (selectedStatuses.includes('ACTIVE') && u.status === 'ACTIVE') return true;
@@ -403,7 +402,7 @@ export function UsersTable() {
     const backendMentorId = mentorIds.length > 0 ? mentorIds.join(',') : undefined;
 
     const hasLocalStatus =
-      !statuses.includes('ALL') &&
+      statuses.length > 0 &&
       !(statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE'));
 
     const effectiveLimit = hasLocalStatus ? 100 : newLimit;
@@ -422,21 +421,11 @@ export function UsersTable() {
   };
 
   const handleStatusesChange = (vals: string[]) => {
-    let next = vals;
-    if (vals.length === 0) {
-      next = ['ALL'];
-    } else if (vals.includes('ALL') && vals.length > 1) {
-      if (selectedStatuses.includes('ALL')) {
-        next = vals.filter((v) => v !== 'ALL');
-      } else {
-        next = ['ALL'];
-      }
-    }
-    setSelectedStatuses(next);
+    setSelectedStatuses(vals);
     setPage(1);
 
     handleFilterUpdate({
-      statuses: next,
+      statuses: vals,
       page: 1,
     });
   };
@@ -615,51 +604,19 @@ export function UsersTable() {
         </Button>
       </div>
 
-      {/* Role-Based Navigation Tabs */}
-      <div className="flex [scrollbar-width:none] items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-[#E1E6EC] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {[
-          { label: 'All', value: 'ALL' },
-          { label: 'Mentees', value: 'MENTEE' },
-          { label: 'Mentors', value: 'MENTOR' },
-          { label: 'Super Admin', value: 'SUPER_ADMIN' },
-        ].map((tab) => {
-          const isActive = selectedRole === tab.value;
-          return (
-            <Button
-              key={tab.value}
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSelectedRole(tab.value);
-                setPage(1);
-                handleFilterUpdate({ role: tab.value, page: 1 });
-              }}
-              className={`-mb-px flex h-10 items-center rounded-none border-b-2 px-1 pb-2.5 text-sm transition-colors hover:bg-transparent ${
-                isActive
-                  ? 'border-[#0044D3] font-bold text-[#0044D3]'
-                  : 'border-transparent font-medium text-[#667085] hover:text-slate-900'
-              }`}
-            >
-              <Span>{tab.label}</Span>
-            </Button>
-          );
-        })}
-      </div>
+      {/* Filter Row with Search Input, Status Dropdown, Mentor Dropdown, and Role Pills */}
+      <div className="flex flex-col gap-3 py-1 lg:flex-row lg:items-center lg:justify-between">
+        {/* Search Input & Dropdowns */}
+        <div className="flex flex-1 flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Search Input */}
+          <div className="w-full sm:w-72 lg:w-80">
+            <DebouncedSearchInput
+              value={search}
+              onSearchChange={handleSearchChange}
+              placeholder="Search by name or email..."
+            />
+          </div>
 
-      {/* Filter Row with Search Input, Status Dropdown, and Mentor Dropdown */}
-      <div className="flex flex-wrap items-center gap-3 py-1">
-        {/* Search Input */}
-        <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
-          <DebouncedSearchInput
-            value={search}
-            onSearchChange={handleSearchChange}
-            placeholder="Search by name or email..."
-          />
-        </div>
-
-        {/* Dropdowns aligned cleanly beside Search */}
-        <div className="flex w-full flex-wrap items-center gap-2.5 sm:w-auto">
           {/* Status MultiSelect Dropdown */}
           <MultiSelectDropdown
             label="Status"
@@ -683,6 +640,39 @@ export function UsersTable() {
               align="left"
             />
           ) : null}
+        </div>
+
+        {/* Role-Based Pill Filters */}
+        <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {[
+            { label: 'All', value: 'ALL' },
+            { label: 'Mentees', value: 'MENTEE' },
+            { label: 'Mentors', value: 'MENTOR' },
+            { label: 'Super Admin', value: 'SUPER_ADMIN' },
+          ].map((tab) => {
+            const isActive = selectedRole === tab.value;
+            return (
+              <Button
+                key={tab.value}
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedRole(tab.value);
+                  setPage(1);
+                  handleFilterUpdate({ role: tab.value, page: 1 });
+                }}
+                className={cn(
+                  'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
+                  isActive
+                    ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
+                    : 'text-slate-600 hover:bg-white hover:text-slate-900',
+                )}
+              >
+                <Span>{tab.label}</Span>
+              </Button>
+            );
+          })}
         </div>
       </div>
 
