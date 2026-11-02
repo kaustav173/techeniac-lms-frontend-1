@@ -90,10 +90,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     limit: 1,
   });
 
-  if (pagination.totalPages > 0 && page > pagination.totalPages) {
-    setPage(pagination.totalPages);
-  }
-
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');

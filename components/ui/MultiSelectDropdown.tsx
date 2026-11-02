@@ -242,10 +242,17 @@ export function MultiSelectDropdown<T extends string = string>({
                   <div
                     key={opt.value}
                     role="option"
+                    tabIndex={0}
                     aria-selected={isChecked}
                     onClick={() => toggleOption(opt.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleOption(opt.value);
+                      }
+                    }}
                     className={cn(
-                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50',
+                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >

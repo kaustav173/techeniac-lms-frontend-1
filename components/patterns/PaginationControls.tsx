@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
 export interface PaginationControlsProps {
@@ -92,9 +93,9 @@ export function PaginationControls({
 
         {pageNumbers.map((p, idx) =>
           p === 'ellipsis' ? (
-            <span key={`ellipsis-${idx}`} className="px-1 text-slate-400">
+            <Span key={`ellipsis-${idx}`} className="px-1 text-slate-400">
               …
-            </span>
+            </Span>
           ) : (
             <Button
               key={p}
