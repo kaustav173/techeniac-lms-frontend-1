@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
@@ -13,10 +13,10 @@ export interface PaginationControlsProps {
   totalPages: number;
   onPageChange: (newPage: number) => void;
   onLimitChange: (newLimit: number) => void;
-  itemLabel?: string;
-  pageSizeOptions?: readonly number[] | number[];
+  itemLabel?: string | undefined;
+  pageSizeOptions?: readonly number[] | number[] | undefined;
   isLoading?: boolean | undefined;
-  className?: string;
+  className?: string | undefined;
 }
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
@@ -35,9 +35,11 @@ function getPageNumbers(currentPage: number, totalPages: number): (number | 'ell
 export function PaginationControls({
   page,
   limit,
+  total,
   totalPages,
   onPageChange,
   onLimitChange,
+  itemLabel = 'entries',
   pageSizeOptions = [10, 20, 50],
   isLoading = false,
   className,
@@ -50,17 +52,27 @@ export function PaginationControls({
           className,
         )}
       >
-        <div className="flex items-center gap-1.5">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <Skeleton className="h-9 w-9 rounded-full" />
+        <Skeleton className="h-5 w-48 rounded-md" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-28 rounded-xl" />
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+          </div>
         </div>
-        <Skeleton className="h-9 w-32 rounded-xl" />
       </div>
     );
   }
 
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
   const pageNumbers = getPageNumbers(page, totalPages);
+
+  const selectOptions = pageSizeOptions.map((opt) => ({
+    value: opt,
+    label: `${opt} / page`,
+  }));
 
   return (
     <div
@@ -69,91 +81,105 @@ export function PaginationControls({
         className,
       )}
     >
-      {/* Navigation Buttons with Numbered Page Pills (Left-aligned) */}
-      <div className="flex w-full flex-wrap items-center justify-start gap-1.5 sm:w-auto">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
-          className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
-          aria-label="Previous page"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </Button>
-
-        {pageNumbers.map((p, idx) =>
-          p === 'ellipsis' ? (
-            <Span key={`ellipsis-${idx}`} className="px-1 text-slate-400">
-              …
-            </Span>
-          ) : (
-            <Button
-              key={p}
-              type="button"
-              variant={p === page ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => onPageChange(p)}
-              className={`h-9 min-w-9 rounded-full px-3 text-sm font-semibold transition-all ${
-                p === page
-                  ? 'bg-[#0044D3] text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-              aria-current={p === page ? 'page' : undefined}
-            >
-              {p}
-            </Button>
-          ),
-        )}
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
-          className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
-          aria-label="Next page"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </Button>
+      {/* Informative Items Counter (Left-aligned) */}
+      <div
+        className="flex items-center gap-1.5 text-sm font-medium text-slate-500"
+        role="status"
+        aria-live="polite"
+      >
+        <Span>Showing</Span>
+        <Span className="font-semibold text-slate-900">{startItem}</Span>
+        <Span>to</Span>
+        <Span className="font-semibold text-slate-900">{endItem}</Span>
+        <Span>of</Span>
+        <Span className="font-semibold text-slate-900">{total}</Span>
+        <Span>{itemLabel}</Span>
       </div>
 
-      {/* Page Size Selector (Right-aligned, matching filter button theme without checkboxes or intrusive popovers) */}
-      <div className="w-32">
-        <Select
-          value={limit}
-          onChange={(e) => onLimitChange(Number(e.target.value))}
-          aria-label="Entries per page"
-          className="h-9 w-full rounded-xl border border-[#E1E6EC] bg-white pr-8 pl-3 text-xs font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:border-[#0044D3] focus:ring-2 focus:ring-[#0044D3]/15"
+      {/* Right-aligned Controls: Page Size Selector + Page Navigation Buttons */}
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+        {/* Page Size Selector (Opens upward to prevent clipping below table) */}
+        <div className="w-32">
+          <SingleSelectDropdown
+            value={limit}
+            onChange={(newLimit) => onLimitChange(Number(newLimit))}
+            options={selectOptions}
+            direction="up"
+            size="sm"
+            aria-label="Entries per page"
+          />
+        </div>
+
+        {/* Numbered Page Navigation Pills */}
+        <div
+          className="flex items-center gap-1.5"
+          role="navigation"
+          aria-label="Pagination Navigation"
         >
-          {pageSizeOptions.map((opt) => (
-            <option
-              key={opt}
-              value={opt}
-              className="bg-white py-1.5 text-xs font-medium text-slate-800"
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
+            aria-label="Previous page"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
             >
-              {opt} / page
-            </option>
-          ))}
-        </Select>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </Button>
+
+          {pageNumbers.map((p, idx) =>
+            p === 'ellipsis' ? (
+              <Span key={`ellipsis-${idx}`} className="px-1 text-slate-400 select-none">
+                …
+              </Span>
+            ) : (
+              <Button
+                key={p}
+                type="button"
+                variant={p === page ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => onPageChange(p)}
+                className={`h-9 min-w-9 rounded-full px-3 text-sm font-semibold transition-all ${
+                  p === page
+                    ? 'bg-[#0044D3] text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+                aria-current={p === page ? 'page' : undefined}
+              >
+                {p}
+              </Button>
+            ),
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
+            aria-label="Next page"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Button>
+        </div>
       </div>
     </div>
   );

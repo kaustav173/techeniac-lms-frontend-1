@@ -168,13 +168,13 @@ export function MultiSelectDropdown<T extends string = string>({
         <div
           role="listbox"
           className={cn(
-            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 min-w-[240px] rounded-2xl border border-[#E1E6EC] bg-white p-2.5 shadow-xl duration-100',
+            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-lg duration-100',
             align === 'left' ? 'left-0' : 'right-0',
           )}
         >
           {/* Header Row: Title & Optional Clear */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-2">
-            <Span className="text-sm font-bold text-slate-800">{label}</Span>
+          <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-1.5">
+            <Span className="text-xs font-bold text-slate-700">{label}</Span>
             {selectedValues.length > 0 ? (
               <button
                 type="button"

@@ -7,10 +7,19 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { H2, Span } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
+
+const ROLE_OPTIONS: readonly SingleSelectOption<UserRole>[] = [
+  { value: 'MENTEE', label: 'Mentee (Learner)' },
+  { value: 'MENTOR', label: 'Mentor (Instructor / Reviewer)' },
+  { value: 'SUPER_ADMIN', label: 'Super Admin (Administrator)' },
+];
 
 export interface CreateUserDrawerProps {
   isOpen: boolean;
@@ -192,17 +201,15 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 <Span>Role Assignment</Span>
                 <Span className="text-sm font-bold text-red-500">*</Span>
               </Label>
-              <Select
+              <SingleSelectDropdown<UserRole>
                 id="create-role"
                 value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
+                onChange={(val) => setRole(val)}
+                options={ROLE_OPTIONS}
                 disabled={isSubmitting}
-                className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold shadow-xs focus:border-[#0044D3]"
-              >
-                <option value="MENTEE">Mentee (Learner)</option>
-                <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
-                <option value="SUPER_ADMIN">Super Admin (Administrator)</option>
-              </Select>
+                size="md"
+                aria-label="Role Assignment"
+              />
             </div>
 
             {/* Bottom Action Button */}

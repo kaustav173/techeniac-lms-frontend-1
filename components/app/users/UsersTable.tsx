@@ -642,9 +642,9 @@ export function UsersTable() {
         })}
       </div>
 
-      {/* Filter Row with Expanded Search Input, Status Dropdown, and Mentor Dropdown */}
-      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
-        {/* Expanded Search Input */}
+      {/* Filter Row with Search Input, Status Dropdown, and Mentor Dropdown */}
+      <div className="flex flex-wrap items-center gap-3 py-1">
+        {/* Search Input */}
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
             value={search}
@@ -653,14 +653,15 @@ export function UsersTable() {
           />
         </div>
 
-        {/* Dropdowns */}
-        <div className="flex w-full flex-wrap items-center gap-2.5 sm:ml-auto sm:w-auto">
+        {/* Dropdowns aligned cleanly beside Search */}
+        <div className="flex w-full flex-wrap items-center gap-2.5 sm:w-auto">
           {/* Status MultiSelect Dropdown */}
           <MultiSelectDropdown
             label="Status"
             options={STATUS_OPTIONS}
             selectedValues={selectedStatuses}
             onChange={handleStatusesChange}
+            align="left"
           />
 
           {/* Mentor Dropdown with Multi-select and Search */}
@@ -674,6 +675,7 @@ export function UsersTable() {
                 setPage(1);
                 handleFilterUpdate({ mentorIds: vals, page: 1 });
               }}
+              align="left"
             />
           ) : null}
         </div>
