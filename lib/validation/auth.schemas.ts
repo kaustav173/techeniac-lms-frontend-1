@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { emailSchema, passwordSchema } from './common.schemas';
+import { createTrimmedStringSchema, emailSchema, passwordSchema } from './common.schemas';
 
 export const loginSchema = z.object({
   email: emailSchema,
@@ -45,3 +45,9 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+
+export const updateProfileSchema = z.object({
+  name: createTrimmedStringSchema('Name', 2, 100),
+});
+
+export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
