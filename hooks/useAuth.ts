@@ -10,7 +10,6 @@ export interface UseAuthReturn extends AuthContextValue {
   resetPassword: (token: string, newPassword: string) => Promise<string>;
   verifyResetToken: (token: string) => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
-  updateProfile: (name: string) => Promise<string>;
 }
 
 const forgotPassword = (email: string): Promise<string> => authService.forgotPassword(email);
@@ -19,7 +18,6 @@ const resetPassword = (token: string, newPassword: string): Promise<string> =>
 const verifyResetToken = (token: string): Promise<boolean> => authService.verifyResetToken(token);
 const changePassword = (currentPassword: string, newPassword: string): Promise<string> =>
   authService.changePassword(currentPassword, newPassword);
-const updateProfile = (name: string): Promise<string> => authService.updateProfile(name);
 
 export function useAuth(): UseAuthReturn {
   const context = useContext(AuthContext);
@@ -34,7 +32,6 @@ export function useAuth(): UseAuthReturn {
       resetPassword,
       verifyResetToken,
       changePassword,
-      updateProfile,
     }),
     [context],
   );

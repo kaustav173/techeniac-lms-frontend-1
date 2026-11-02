@@ -13,6 +13,7 @@ export interface AuthContextValue {
   readonly login: (credentials: { email: string; password: string }) => Promise<AuthUser>;
   readonly logout: () => Promise<void>;
   readonly refreshUser: () => Promise<void>;
+  readonly updateProfile: (name: string) => Promise<AuthUser>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

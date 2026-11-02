@@ -74,6 +74,12 @@ export function useAuthProvider(): AuthContextValue {
     setSessionError(null);
   }, []);
 
+  const updateProfile = useCallback(async (name: string): Promise<AuthUser> => {
+    const updatedUser = await authService.updateProfile(name);
+    setUser(updatedUser);
+    return updatedUser;
+  }, []);
+
   return useMemo(
     () => ({
       user,
@@ -83,7 +89,8 @@ export function useAuthProvider(): AuthContextValue {
       login,
       logout,
       refreshUser,
+      updateProfile,
     }),
-    [user, isLoading, sessionError, login, logout, refreshUser],
+    [user, isLoading, sessionError, login, logout, refreshUser, updateProfile],
   );
 }

@@ -96,6 +96,8 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const [profileSuccessMessage, setProfileSuccessMessage] = useState<string | null>(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
+  // Adjust state during render when prop changes (React recommended pattern for state mirroring)
+  // to avoid cascading re-renders or effect delays when the authenticated user's name is updated.
   if (prevUserName !== user.name) {
     setPrevUserName(user.name);
     setProfileName(user.name);
@@ -144,15 +146,12 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       return;
     }
 
+    if (result.data.name === user.name.trim()) return;
+
     setIsUpdatingProfile(true);
     try {
-      const msg = await updateProfile(result.data.name);
-      try {
-        await refreshUser();
-      } catch {
-        // Non-blocking: profile update succeeded on server; session refresh can retry later
-      }
-      setProfileSuccessMessage(msg || 'Profile name updated successfully.');
+      await updateProfile(result.data.name);
+      setProfileSuccessMessage('Profile name updated successfully.');
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
@@ -351,7 +350,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                   type="email"
                   value={user.email}
                   readOnly
-                  disabled
                   aria-readonly="true"
                   aria-describedby="profile-email-desc"
                   className="cursor-not-allowed bg-slate-50 text-slate-500"

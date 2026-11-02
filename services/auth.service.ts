@@ -135,7 +135,7 @@ export const authService = {
     return response.message;
   },
 
-  async updateProfile(name: string): Promise<string> {
+  async updateProfile(name: string): Promise<AuthUser> {
     const response = await apiClient<UpdateProfileResponse>('/auth/profile', {
       method: 'PATCH',
       body: JSON.stringify({ name }),
@@ -143,6 +143,6 @@ export const authService = {
     if (!response?.success || !response?.data?.user) {
       throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
     }
-    return response.message || 'Profile updated successfully';
+    return response.data.user;
   },
 };

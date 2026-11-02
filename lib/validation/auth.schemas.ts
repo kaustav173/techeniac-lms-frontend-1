@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { emailSchema, passwordSchema } from './common.schemas';
+import { createTrimmedStringSchema, emailSchema, passwordSchema } from './common.schemas';
 
 export const loginSchema = z.object({
   email: emailSchema,
@@ -47,12 +47,7 @@ export const changePasswordSchema = z
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 export const updateProfileSchema = z.object({
-  name: z
-    .string({ required_error: 'Name is required' })
-    .trim()
-    .min(1, 'Name is required')
-    .min(2, 'Name must be at least 2 characters long')
-    .max(100, 'Name must not exceed 100 characters'),
+  name: createTrimmedStringSchema('Name', 2, 100),
 });
 
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
