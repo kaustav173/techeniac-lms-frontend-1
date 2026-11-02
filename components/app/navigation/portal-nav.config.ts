@@ -12,7 +12,7 @@ export const ADMIN_PORTAL_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: true },
+    { label: 'Dashboard', href: '/admin', active: true },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -28,7 +28,7 @@ export const ADMIN_USERS_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: true },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -44,7 +44,7 @@ export const ADMIN_BATCHES_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: true },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -60,7 +60,7 @@ export const ADMIN_COURSES_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: true },
@@ -76,7 +76,7 @@ export const ADMIN_ALLOCATIONS_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -92,7 +92,7 @@ export const ADMIN_PROGRESS_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -108,7 +108,7 @@ export const ADMIN_PERFORMANCE_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Courses', href: '/admin/courses', active: false },
@@ -124,7 +124,7 @@ export const ADMIN_AUDIT_LOGS_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Curriculum', href: '/admin/courses', active: false },
@@ -337,7 +337,7 @@ export const ADMIN_PROFILE_NAV: PortalNavConfig = {
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
   nav: [
-    { label: 'Overview', href: '/admin', active: false },
+    { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
     { label: 'Curriculum', href: '/admin/courses', active: false },

@@ -60,7 +60,7 @@ export function useAllocationProgress(allocationId: string | undefined) {
       return progressService.getAllocationProgress(allocationId);
     },
     enabled: isValidUuid,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -73,7 +73,7 @@ export function usePrefetchAllocationProgress() {
         .query({
           queryKey: progressKeys.allocation(allocationId),
           queryFn: () => progressService.getAllocationProgress(allocationId),
-          staleTime: 30 * 1000,
+          staleTime: 5 * 60 * 1000,
         })
         .catch(noop);
     },

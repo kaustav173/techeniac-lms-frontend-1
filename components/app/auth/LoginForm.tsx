@@ -69,19 +69,19 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       }}
     >
       {errors.general ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700">
           {errors.general}
         </div>
       ) : null}
 
       {/* Email Field with Mail Icon */}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label
           htmlFor="email"
-          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
+          className="flex items-center gap-2 text-base font-semibold text-[#111827] sm:text-lg"
         >
           <svg
-            className="h-4 w-4 text-[#0044D3]"
+            className="h-5 w-5 text-[#0044D3]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -122,19 +122,19 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isFormLocked}
-          className="rounded-2xl bg-slate-50 text-base focus:bg-white"
+          className="h-14 rounded-2xl bg-slate-50 text-base focus:bg-white sm:h-15 sm:text-lg"
         />
         <FieldError id="email-error" error={errors.email} />
       </div>
 
       {/* Password Field with Lock Icon */}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label
           htmlFor="password"
-          className="flex items-center gap-2 text-sm font-semibold text-[#111827]"
+          className="flex items-center gap-2 text-base font-semibold text-[#111827] sm:text-lg"
         >
           <svg
-            className="h-4 w-4 text-[#0044D3]"
+            className="h-5 w-5 text-[#0044D3]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -176,7 +176,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             autoComplete="current-password"
             hasError={Boolean(errors.password)}
             disabled={isFormLocked}
-            className="rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white"
+            className="h-14 rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white sm:h-15 sm:text-lg"
           />
           <PasswordVisibilityToggle
             visible={showPassword}
@@ -191,7 +191,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           <div className="ml-auto shrink-0 pt-1">
             <Link
               href="/forgot-password"
-              className="text-sm font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
+              className="text-base font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
             >
               Forgot Password?
             </Link>
@@ -200,14 +200,14 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       </div>
 
       {/* Submit Button: Solid #0044D3 Full Pill per DESIGN_SYSTEM.md */}
-      <div className="pt-2">
+      <div className="pt-3">
         <Button
           type="submit"
           variant="primary"
           size="lg"
           disabled={isFormLocked}
           isLoading={isSubmitting}
-          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
+          className="h-14 w-full rounded-full bg-[#0044D3] text-lg font-bold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
         >
           {isSubmitting ? 'Signing in...' : 'Sign In'}
         </Button>

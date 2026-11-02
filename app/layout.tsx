@@ -3,6 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
+import { AgentationToolbar } from '@/components/layout/AgentationToolbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { QueryProvider } from '@/context/QueryProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
@@ -20,8 +21,8 @@ const plusJakartaSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Techeniac LMS',
-  description: 'Techeniac Learning Management System',
+  title: 'TechEniac LMS',
+  description: 'TechEniac Learning Management System',
 };
 
 export default function RootLayout({
@@ -32,12 +33,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} ${plusJakartaSans.className} h-full font-sans antialiased`}
+      className={`${plusJakartaSans.variable} ${plusJakartaSans.className} light h-full font-sans antialiased`}
+      style={{ colorScheme: 'light' }}
     >
-      <body className={`${plusJakartaSans.className} flex min-h-full flex-col font-sans`}>
+      <body
+        className={`${plusJakartaSans.className} flex min-h-full flex-col bg-white font-sans text-slate-900`}
+      >
         <QueryProvider>
           <AuthProvider>
             <SidebarProvider>{children}</SidebarProvider>
+            <AgentationToolbar />
           </AuthProvider>
         </QueryProvider>
       </body>

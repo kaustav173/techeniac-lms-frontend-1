@@ -5,11 +5,13 @@ import React, { useCallback, useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
-import { H1, H3, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
   isTerminalAllocationStatus,
@@ -68,7 +70,7 @@ export function MenteeCoursesView() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Top Header & Search Area (Stitch Screen 11570786783180349238) */}
         <div className="border-b border-slate-200 pb-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
@@ -77,17 +79,17 @@ export function MenteeCoursesView() {
                 <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
                   📚
                 </Span>
-                <Span className="font-mono text-xs font-bold tracking-wider text-blue-600 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                   Cohort Curricula
                 </Span>
               </div>
-              <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              <PageTitle className="text-2xl font-extrabold tracking-tight sm:text-3xl">
                 My Courses
-              </H1>
-              <P className="mt-1 max-w-2xl text-sm text-slate-500">
+              </PageTitle>
+              <SubText className="mt-1 max-w-2xl">
                 Track ongoing curriculum modules, verify milestone progress, and reference archived
                 materials with deliberate focus (M7, M8).
-              </P>
+              </SubText>
             </div>
 
             {/* Search Input */}
@@ -151,7 +153,7 @@ export function MenteeCoursesView() {
                 }`}
               >
                 <Span>Closed</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-700">
                   {closedCount}
                 </Span>
               </Button>
@@ -168,13 +170,13 @@ export function MenteeCoursesView() {
                 }`}
               >
                 <Span>All Tracks</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-700">
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-700">
                   {allocations.length}
                 </Span>
               </Button>
             </div>
 
-            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-mono text-xs text-slate-600 sm:flex">
+            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 sm:flex">
               <Span className="h-2 w-2 rounded-full bg-emerald-500" />
               <Span>Enrolled Curriculum Telemetry Active</Span>
             </div>
@@ -184,11 +186,29 @@ export function MenteeCoursesView() {
         {/* Course Cards Grid (Stitch 3-Col Design) */}
         <div className="mt-8">
           {isLoading ? (
-            <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((idx) => (
+                <div
+                  key={`mentee-skel-${idx}`}
+                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-12 w-12 rounded-xl" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-2">
+                    <Skeleton className="h-5 w-48 rounded-md" />
+                    <Skeleton className="h-3 w-full rounded-md" />
+                  </div>
+                  <Skeleton className="mt-6 h-10 w-full rounded-xl" />
+                </div>
+              ))}
             </div>
           ) : isError ? (
-            <div className="rounded-2xl border border-rose-200 bg-white p-6">
+            <div className="rounded-3xl border border-rose-200 bg-white p-6">
               <ErrorMessage
                 error={error}
                 onRetry={() => {
@@ -197,7 +217,7 @@ export function MenteeCoursesView() {
               />
             </div>
           ) : filteredAllocations.length === 0 ? (
-            <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+            <div className="flex h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <Span className="text-3xl">📚</Span>
               <H3 className="mt-3 text-base font-bold text-slate-800">
                 No allocated courses found
@@ -216,7 +236,7 @@ export function MenteeCoursesView() {
             </div>
           )}
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }
@@ -241,7 +261,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
   return (
     <div
-      className={`relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
+      className={`relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
         isOverdue
           ? 'border-2 border-rose-300'
           : isCompleted
@@ -265,10 +285,10 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
               📖
             </div>
             <div className="flex flex-col">
-              <Span className="max-w-[160px] truncate font-mono text-[11px] font-bold tracking-wide text-blue-600 uppercase">
+              <Span className="max-w-[160px] truncate text-xs font-bold tracking-wide text-blue-600 uppercase">
                 {allocation.batch ? allocation.batch.name : 'Individual Track'}
               </Span>
-              <Span className="font-mono text-xs text-slate-400">
+              <Span className="text-xs text-slate-400">
                 {allocation.batch?.code ?? 'Core Curriculum'}
               </Span>
             </div>
@@ -292,7 +312,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
             <Span className="text-slate-700">Course Pace</Span>
             <Span
-              className={`font-mono ${
+              className={`${
                 isCompleted
                   ? 'font-bold text-emerald-600'
                   : isOverdue
@@ -317,7 +337,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
           <div className="flex items-center gap-1.5 text-slate-500">
             <Span className="text-slate-400">⏱</Span>
-            <Span className="font-mono text-[11px]">
+            <Span className="text-xs">
               {allocation.estimatedMinutes != null
                 ? `${Math.floor(allocation.estimatedMinutes / 60)}h ${allocation.estimatedMinutes % 60}m est.`
                 : 'Paced track'}
@@ -326,7 +346,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
           <div className="flex items-center justify-end gap-1.5 text-right font-medium text-slate-700">
             <Span className="text-slate-400">📅</Span>
-            <Span className="truncate font-mono text-[11px]">Due {formattedDueDate}</Span>
+            <Span className="truncate text-xs">Due {formattedDueDate}</Span>
           </div>
         </div>
       </div>

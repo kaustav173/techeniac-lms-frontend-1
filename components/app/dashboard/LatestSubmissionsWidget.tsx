@@ -34,7 +34,7 @@ export function LatestSubmissionsWidget() {
         </div>
         <Link
           href="/mentor/submissions"
-          className="font-mono text-xs font-semibold text-blue-600 hover:text-blue-800"
+          className="text-xs font-semibold text-[#0044D3] hover:text-[#0036ab]"
         >
           View Full Queue →
         </Link>
@@ -61,12 +61,21 @@ export function LatestSubmissionsWidget() {
           submissions.map((sub) => (
             <div
               key={sub.id}
-              className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-slate-50/70"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedSubmissionId(sub.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedSubmissionId(sub.id);
+                }
+              }}
+              className="flex cursor-pointer items-center justify-between gap-4 p-4 transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <P className="truncate text-xs font-bold text-slate-900">{sub.assignmentTitle}</P>
-                  <Span className="py-0.2 rounded bg-slate-100 px-1.5 font-mono text-[10px] font-semibold text-slate-600">
+                  <Span className="py-0.2 rounded bg-slate-100 px-1.5 text-[10px] font-semibold text-slate-600">
                     v{sub.version}
                   </Span>
                 </div>
@@ -78,7 +87,7 @@ export function LatestSubmissionsWidget() {
               <div className="flex flex-shrink-0 items-center gap-3">
                 <div className="text-right">
                   <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
-                  <Muted className="mt-0.5 block font-mono text-[10px]">
+                  <Muted className="mt-0.5 block text-[10px]">
                     {formatDateIST(sub.submittedAt)}
                   </Muted>
                 </div>
@@ -88,7 +97,10 @@ export function LatestSubmissionsWidget() {
                   variant="outline"
                   size="sm"
                   {...getHoverHandlers(() => prefetchReview(sub.id))}
-                  onClick={() => setSelectedSubmissionId(sub.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSubmissionId(sub.id);
+                  }}
                   className="border-slate-200 px-2.5 text-xs text-slate-700 hover:bg-slate-100"
                 >
                   Review

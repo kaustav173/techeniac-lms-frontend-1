@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -13,8 +14,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
+  const searchParams = useSearchParams();
+  const initialEmail = searchParams.get('email') || '';
   const { forgotPassword } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);

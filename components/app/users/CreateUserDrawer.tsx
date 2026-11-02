@@ -7,10 +7,19 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { H2, Span } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { type CreateUserFormData, createUserSchema, type UserRole } from '@/lib/validation';
+
+const ROLE_OPTIONS: readonly SingleSelectOption<UserRole>[] = [
+  { value: 'MENTEE', label: 'Mentee (Learner)' },
+  { value: 'MENTOR', label: 'Mentor (Instructor / Reviewer)' },
+  { value: 'SUPER_ADMIN', label: 'Super Admin (Administrator)' },
+];
 
 export interface CreateUserDrawerProps {
   isOpen: boolean;
@@ -42,6 +51,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
     onClose: handleResetAndClose,
     dialogRef,
     initialFocusRef: nameInputRef,
+    preventClose: isSubmitting,
   });
 
   if (!isOpen) return null;
@@ -92,7 +102,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
         aria-modal="true"
         aria-labelledby="create-user-drawer-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-lg flex-col justify-between border-l border-[#E1E6EC] bg-[#F6F8FC] shadow-2xl transition-transform duration-300 ease-in-out"
+        className="flex h-full w-full max-w-lg flex-col justify-between border-l border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out"
       >
         {/* Top Header Bar with Save Changes and Circular Close Button */}
         <div className="flex items-center justify-between border-b border-[#E1E6EC] bg-white px-6 py-4">
@@ -121,105 +131,101 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
           </div>
         </div>
 
-        {/* Scrollable Body: LeadNest Form Card */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
-          <div className="rounded-3xl border border-[#E1E6EC] bg-white p-7 shadow-xs">
-            {errors.general ? (
-              <div
-                role="alert"
-                className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700"
-              >
-                {errors.general}
-              </div>
-            ) : null}
-
-            <Form
-              id="create-user-form"
-              onSubmit={(e) => {
-                void handleSubmit(e);
-              }}
-              className="space-y-5"
+        {/* Scrollable Body: Clean Form without Nested Background Card */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {errors.general ? (
+            <div
+              role="alert"
+              className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700"
             >
-              {/* Full Name */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="create-name"
-                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
-                >
-                  <Span>Full Name</Span>
-                  <Span className="text-base font-bold text-red-500">*</Span>
-                </Label>
-                <Input
-                  ref={nameInputRef}
-                  id="create-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Amit Sharma"
-                  hasError={Boolean(errors.name)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
-                />
-                <FieldError error={errors.name} />
-              </div>
+              {errors.general}
+            </div>
+          ) : null}
 
-              {/* Email Address */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="create-email"
-                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
-                >
-                  <Span>Email Address</Span>
-                  <Span className="text-base font-bold text-red-500">*</Span>
-                </Label>
-                <Input
-                  id="create-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="amit@techeniac.com"
-                  hasError={Boolean(errors.email)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-full border border-slate-200 bg-[#F6F8FC] px-5 font-mono text-base font-medium transition-all focus:border-[#0044D3] focus:bg-white"
-                />
-                <FieldError error={errors.email} />
-              </div>
+          <Form
+            id="create-user-form"
+            onSubmit={(e) => {
+              void handleSubmit(e);
+            }}
+            className="space-y-5"
+          >
+            {/* Full Name */}
+            <div>
+              <Label
+                htmlFor="create-name"
+                className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-900"
+              >
+                <Span>Full Name</Span>
+                <Span className="text-sm font-bold text-red-500">*</Span>
+              </Label>
+              <Input
+                ref={nameInputRef}
+                id="create-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Amit Sharma"
+                hasError={Boolean(errors.name)}
+                disabled={isSubmitting}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-[#0044D3]"
+              />
+              <FieldError error={errors.name} />
+            </div>
 
-              {/* Role Assignment */}
-              <div className="space-y-2 rounded-2xl border border-slate-100 bg-[#F6F8FC] p-4">
-                <Label
-                  htmlFor="create-role"
-                  className="flex items-center gap-1 text-base font-semibold text-slate-900"
-                >
-                  <Span>Role Assignment</Span>
-                  <Span className="text-base font-bold text-red-500">*</Span>
-                </Label>
-                <Select
-                  id="create-role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-full border border-[#E1E6EC] bg-white px-5 text-base font-semibold shadow-2xs focus:border-[#0044D3]"
-                >
-                  <option value="MENTEE">Mentee (Learner)</option>
-                  <option value="MENTOR">Mentor (Instructor / Reviewer)</option>
-                  <option value="SUPER_ADMIN">Super Admin (Administrator)</option>
-                </Select>
-              </div>
+            {/* Email Address */}
+            <div>
+              <Label
+                htmlFor="create-email"
+                className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-900"
+              >
+                <Span>Email Address</Span>
+                <Span className="text-sm font-bold text-red-500">*</Span>
+              </Label>
+              <Input
+                id="create-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="amit@TechEniac.com"
+                hasError={Boolean(errors.email)}
+                disabled={isSubmitting}
+                className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-[#0044D3]"
+              />
+              <FieldError error={errors.email} />
+            </div>
 
-              {/* Bottom Full-Width Pill Action Button */}
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  isLoading={isSubmitting}
-                  className="h-12 w-full rounded-full bg-[#0044D3] text-base font-bold text-white shadow-md hover:bg-[#0039B3]"
-                >
-                  Create User & Send Invite
-                </Button>
-              </div>
-            </Form>
-          </div>
+            {/* Role Assignment */}
+            <div>
+              <Label
+                htmlFor="create-role"
+                className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-900"
+              >
+                <Span>Role Assignment</Span>
+                <Span className="text-sm font-bold text-red-500">*</Span>
+              </Label>
+              <SingleSelectDropdown<UserRole>
+                id="create-role"
+                value={role}
+                onChange={(val) => setRole(val)}
+                options={ROLE_OPTIONS}
+                disabled={isSubmitting}
+                size="md"
+                aria-label="Role Assignment"
+              />
+            </div>
+
+            {/* Bottom Action Button */}
+            <div className="pt-4">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={isSubmitting}
+                className="h-11 w-full rounded-xl bg-[#0044D3] text-sm font-bold text-white shadow-xs hover:bg-[#0039B3]"
+              >
+                Create User & Send Invite
+              </Button>
+            </div>
+          </Form>
         </div>
       </div>
     </div>

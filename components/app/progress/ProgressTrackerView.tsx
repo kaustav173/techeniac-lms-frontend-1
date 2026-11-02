@@ -8,13 +8,16 @@ import {
   MENTOR_PROGRESS_NAV,
 } from '@/components/app/navigation/portal-nav.config';
 import { TopicDeadlineModal } from '@/components/app/progress/TopicDeadlineModal';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { H1, H3, H4, Muted, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
+import { H3, H4, Muted, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import {
@@ -46,7 +49,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const {
     data: trackersResponse,
     isLoading: isTrackersLoading,
-    isFetching: isTrackersFetching,
     isError: isTrackersError,
     error: trackersError,
     refetch: refetchTrackers,
@@ -118,7 +120,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
       <Header {...navConfig} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Top Header Strip (Stitch Screen d74ac15e1839485d9881c6dd9616fef6) */}
         <div className="mb-6 flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end">
           <div>
@@ -126,30 +128,24 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
                 📈
               </Span>
-              <Span className="font-mono text-xs font-bold tracking-wider text-blue-600 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                 Learner Telemetry
               </Span>
-              <Span className="rounded-full bg-slate-200/80 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-700">
+              <Span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-xs font-bold text-slate-700">
                 {portalType === 'admin' ? 'Super Admin Matrix' : 'Mentor Scope'}
               </Span>
             </div>
-            <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <PageTitle className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Progress Tracker
-            </H1>
-            <P className="mt-1 text-sm text-slate-500">
+            </PageTitle>
+            <SubText className="mt-1">
               Live curriculum telemetry, cadence diagnostics, and per-topic deadline clearance
               (FR-8.7).
-            </P>
+            </SubText>
           </div>
 
           <div className="flex items-center gap-3">
-            {isTrackersFetching && !isTrackersLoading && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-                <Span>Updating...</Span>
-              </div>
-            )}
-            <Span className="font-mono text-xs text-slate-500">
+            <Span className="text-xs font-semibold text-slate-500">
               {filteredTrackers.length} Mentees in Scope
             </Span>
             <Button
@@ -166,14 +162,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         {/* Quick Stats Metric Cards */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {/* Card 1: Mean Completion */}
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex flex-col">
-              <Span className="font-mono text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
                 Mean Completion
               </Span>
-              <H3 className="mt-1 font-mono text-2xl font-extrabold text-slate-900">
-                {meanCompletion}%
-              </H3>
+              <H3 className="mt-1 text-2xl font-extrabold text-slate-900">{meanCompletion}%</H3>
               <Muted className="mt-0.5 text-xs">Average across mapped cohort</Muted>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-lg font-bold text-blue-600">
@@ -182,16 +176,16 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           </div>
 
           {/* Card 2: On-Track Ratio */}
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex flex-col">
-              <Span className="font-mono text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
                 On-Track Ratio
               </Span>
-              <H3 className="mt-1 font-mono text-2xl font-extrabold text-slate-900">
+              <H3 className="mt-1 text-2xl font-extrabold text-slate-900">
                 {onTrackCount}{' '}
                 <Span className="text-sm font-normal text-slate-400">/ {trackers.length}</Span>
               </H3>
-              <Span className="mt-0.5 font-mono text-xs font-semibold text-emerald-600">
+              <Span className="mt-0.5 text-xs font-semibold text-emerald-600">
                 {trackers.length > 0
                   ? `${Math.round((onTrackCount / trackers.length) * 100)}% On Cadence`
                   : '0%'}
@@ -203,14 +197,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           </div>
 
           {/* Card 3: Overdue Action Items */}
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex flex-col">
-              <Span className="font-mono text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
                 Overdue Cadets
               </Span>
-              <H3 className="mt-1 font-mono text-2xl font-extrabold text-rose-600">
-                {overdueCount}
-              </H3>
+              <H3 className="mt-1 text-2xl font-extrabold text-rose-600">{overdueCount}</H3>
               <Muted className="mt-0.5 text-xs">Exceeded topic or course deadlines</Muted>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 text-lg font-bold text-rose-600">
@@ -220,7 +212,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         </div>
 
         {/* Filter Strip */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex flex-1 flex-wrap items-center gap-3">
             {/* Batch Selector */}
             <div className="flex min-w-[180px] flex-col gap-1">
@@ -313,11 +305,57 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         </div>
 
         {/* Main Telemetry Matrix Table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
           {isTrackersLoading ? (
-            <div className="flex h-64 flex-col items-center justify-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <Span className="font-mono text-xs text-slate-400">Loading candidate matrix...</Span>
+            <div className="w-full overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                    <th className="px-4 py-3.5 sm:px-6">Cadet</th>
+                    <th className="px-4 py-3.5 sm:px-6">Course & Batch</th>
+                    <th className="px-4 py-3.5 sm:px-6">Progress</th>
+                    <th className="px-4 py-3.5 sm:px-6">Clearance</th>
+                    <th className="px-4 py-3.5 sm:px-6">Status</th>
+                    <th className="px-4 py-3.5 text-right sm:px-6">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <TableRow key={`tracker-skel-${idx}`} className="h-16">
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-28 rounded-md" />
+                            <Skeleton className="h-3 w-20 rounded-md" />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-36 rounded-md" />
+                          <Skeleton className="h-3 w-24 rounded-md" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center gap-2.5">
+                          <Skeleton className="h-2 w-24 rounded-full" />
+                          <Skeleton className="h-3 w-8 rounded-md" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <Skeleton className="h-4 w-16 rounded-md" />
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell className="px-4 py-4 text-right sm:px-6">
+                        <Skeleton className="ml-auto h-7 w-20 rounded-lg" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : isTrackersError ? (
             <div className="p-8">
@@ -335,7 +373,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             <div className="w-full overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/75 font-mono text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                  <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                     <th className="px-4 py-3.5 sm:px-6">Cadet</th>
                     <th className="px-4 py-3.5 sm:px-6">Course & Batch</th>
                     <th className="px-4 py-3.5 sm:px-6">Progress</th>
@@ -344,11 +382,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     <th className="px-4 py-3.5 text-right sm:px-6">Action</th>
                   </tr>
                 </thead>
-                <tbody
-                  className={`divide-y divide-slate-100 text-xs ${
-                    isTrackersFetching && !isTrackersLoading ? 'opacity-60 transition-opacity' : ''
-                  }`}
-                >
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredTrackers.map((item) => {
                     const isSelected = selectedAllocationId === item.allocationId;
                     const isCompleted = item.status === 'COMPLETED';
@@ -372,7 +406,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               <Span className="font-semibold text-slate-900 hover:text-blue-600">
                                 {item.menteeName}
                               </Span>
-                              <Span className="font-mono text-[11px] text-slate-400">
+                              <Span className="text-xs text-slate-400">
                                 ID: {item.menteeId.slice(0, 8)}...
                               </Span>
                             </div>
@@ -383,7 +417,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         <td className="px-4 py-4 sm:px-6">
                           <div className="flex flex-col">
                             <Span className="font-semibold text-slate-800">{item.courseTitle}</Span>
-                            <Span className="font-mono text-[11px] text-blue-600">
+                            <Span className="text-xs font-semibold text-blue-600">
                               {item.batchName || 'Individual Track'}
                             </Span>
                           </div>
@@ -406,14 +440,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                 }}
                               />
                             </div>
-                            <Span className="font-mono font-bold text-slate-900">
+                            <Span className="text-xs font-bold text-slate-900">
                               {item.progressPercent}%
                             </Span>
                           </div>
                         </td>
 
                         {/* Clearance count */}
-                        <td className="px-4 py-4 font-mono text-[11px] text-slate-600 sm:px-6">
+                        <td className="px-4 py-4 text-xs font-medium text-slate-600 sm:px-6">
                           {item.completedTopicsCount} / {item.totalActiveTopics} Topics
                         </td>
 
@@ -431,7 +465,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               e.stopPropagation();
                               setSelectedAllocationId(item.allocationId);
                             }}
-                            className="h-7 px-2.5 font-mono text-[11px]"
+                            className="h-7 px-2.5 text-xs font-semibold"
                           >
                             Inspect Outline →
                           </Button>
@@ -458,7 +492,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             itemLabel="cadets"
           />
         </div>
-      </main>
+      </DashboardContent>
 
       {/* Slide-Over Drawer: Cadet Syllabus Breakdown (Stitch Screen d74ac15e1839485d9881c6dd9616fef6) */}
       {selectedItem && (
@@ -472,7 +506,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </div>
                 <div className="flex flex-col">
                   <H3 className="text-base font-bold text-slate-900">{selectedItem.menteeName}</H3>
-                  <P className="font-mono text-xs text-slate-500">
+                  <P className="text-xs text-slate-500">
                     {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Direct'}
                   </P>
                 </div>
@@ -492,7 +526,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
             {/* Quick Metrics Strip */}
             <div className="border-b border-slate-100 bg-slate-50 p-4">
-              <div className="flex items-center justify-between font-mono text-xs">
+              <div className="flex items-center justify-between text-xs">
                 <Span className="font-bold text-blue-600">
                   {selectedItem.progressPercent}% Completed
                 </Span>
@@ -510,16 +544,29 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
             {/* Syllabus Topic List */}
             <div className="flex-1 overflow-y-auto p-6">
-              <H4 className="mb-4 font-mono text-xs font-bold tracking-wider text-slate-400 uppercase">
+              <H4 className="mb-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
                 Active Topic Milestones & Deadlines
               </H4>
 
               {isDrawerLoading ? (
-                <div className="flex h-40 flex-col items-center justify-center gap-2.5">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                  <Span className="font-mono text-xs text-slate-400">
-                    Loading syllabus topics...
-                  </Span>
+                <div className="flex flex-col gap-3">
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={`topic-skel-${idx}`}
+                      className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-32 rounded-md" />
+                            <Skeleton className="h-3 w-24 rounded-md" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : isDrawerError ? (
                 <div className="p-4">
@@ -529,7 +576,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 <div className="flex h-40 flex-col items-center justify-center p-6 text-center">
                   <Span className="text-2xl">📚</Span>
                   <H4 className="mt-2 text-xs font-bold text-slate-800">No Active Topics</H4>
-                  <P className="mt-1 text-[11px] text-slate-500">
+                  <P className="mt-1 text-xs text-slate-500">
                     This course currently has no active syllabus topics configured.
                   </P>
                 </div>
@@ -561,7 +608,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               <H4 className="text-xs font-bold text-slate-900">{t.title}</H4>
                               {t.deadline ? (
                                 <Span
-                                  className={`mt-0.5 font-mono text-[11px] ${
+                                  className={`mt-0.5 text-xs ${
                                     t.isOverdue ? 'font-bold text-rose-600' : 'text-slate-500'
                                   }`}
                                 >
@@ -569,12 +616,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                   {t.isOverdue && ' (Overdue)'}
                                 </Span>
                               ) : (
-                                <Span className="mt-0.5 font-mono text-[11px] text-slate-400">
+                                <Span className="mt-0.5 text-xs text-slate-400">
                                   No topic deadline set
                                 </Span>
                               )}
                               {t.note && (
-                                <div className="mt-2 rounded-lg bg-slate-50 p-2 font-mono text-[11px] text-slate-600">
+                                <div className="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
                                   📝 Mentee Note: {t.note}
                                 </div>
                               )}
@@ -583,7 +630,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
                           <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
                             <Span
-                              className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold ${
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                 isCompleted
                                   ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
                                   : isInProgress
@@ -600,7 +647,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               size="sm"
                               type="button"
                               onClick={() => setDeadlineModalTopic(t)}
-                              className="h-auto p-0 font-mono text-[10.5px] font-semibold text-blue-600 hover:underline"
+                              className="h-auto p-0 text-xs font-semibold text-blue-600 hover:underline"
                             >
                               {t.deadline ? 'Edit Target Date' : '+ Set Target'}
                             </Button>

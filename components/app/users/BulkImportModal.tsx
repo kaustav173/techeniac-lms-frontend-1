@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { Code, P, Span } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import { type CsvUserRow, csvUserRowSchema } from '@/lib/validation';
 
 export type CsvUserRowWithLine = CsvUserRow & { rowNumber?: number };
@@ -219,17 +219,14 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <Modal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={handleClose}
+      isSubmitting={isImporting}
       title="Bulk Import Users (CSV)"
-      description={
-        <>
-          Import cohorts of users with columns:{' '}
-          <Code className="rounded bg-slate-100 px-1 py-0.5 font-mono">name,email,role</Code>
-        </>
-      }
       size="xl"
       footer={
         <>
@@ -321,18 +318,16 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                   <TableBody className="divide-y divide-red-100 bg-white">
                     {importResult.failures.map((f, idx) => (
                       <TableRow key={`${f.row.email}-${idx}`} className="bg-red-50/30">
-                        <TableCell className="p-2.5 font-mono text-xs text-slate-500">
+                        <TableCell className="p-2.5 text-xs text-slate-500">
                           {f.row.rowNumber ? `Line ${f.row.rowNumber}` : `—`}
                         </TableCell>
                         <TableCell className="p-2.5 text-xs font-medium text-slate-900">
                           {f.row.name}
                         </TableCell>
-                        <TableCell className="p-2.5 font-mono text-xs text-slate-600">
+                        <TableCell className="p-2.5 text-xs text-slate-600">
                           {f.row.email}
                         </TableCell>
-                        <TableCell className="p-2.5 font-mono text-xs text-slate-700">
-                          {f.row.role}
-                        </TableCell>
+                        <TableCell className="p-2.5 text-xs text-slate-700">{f.row.role}</TableCell>
                         <TableCell className="p-2.5 text-xs font-medium text-red-600">
                           {f.error}
                         </TableCell>
@@ -421,17 +416,17 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                         key={row.rowNumber}
                         className={row.isValid ? 'bg-white' : 'bg-red-50/50'}
                       >
-                        <TableCell className="p-2.5 font-mono text-xs text-slate-500">
+                        <TableCell className="p-2.5 text-xs text-slate-500">
                           {row.rowNumber}
                         </TableCell>
                         <TableCell className="p-2.5 text-xs font-medium text-slate-900">
                           {row.data.name || '—'}
                         </TableCell>
-                        <TableCell className="p-2.5 font-mono text-xs text-slate-600">
+                        <TableCell className="p-2.5 text-xs text-slate-600">
                           {row.data.email || '—'}
                         </TableCell>
                         <TableCell className="p-2.5">
-                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-800">
+                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-800">
                             {row.data.role || '—'}
                           </Span>
                         </TableCell>

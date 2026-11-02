@@ -30,7 +30,7 @@ export function GradeDistributionChart({
 }: GradeDistributionChartProps) {
   if (isError) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
         <ErrorMessage error={error} onRetry={onRetry} />
       </div>
     );
@@ -38,7 +38,7 @@ export function GradeDistributionChart({
 
   if (isLoading || !distribution) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
         <div className="h-5 w-48 rounded bg-slate-200" />
         <div className="mt-4 flex flex-col gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -53,7 +53,7 @@ export function GradeDistributionChart({
   const totalCount = grades.reduce((sum, g) => sum + (distribution[g]?.count ?? 0), 0);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <H3 className="text-sm font-bold text-slate-900">Grade Distribution</H3>
@@ -61,7 +61,7 @@ export function GradeDistributionChart({
             Letter grade scale distribution across submissions
           </P>
         </div>
-        <Span className="font-mono text-xs text-slate-500">
+        <Span className="text-xs text-slate-500">
           {totalCount} Graded Submission{totalCount === 1 ? '' : 's'}
         </Span>
       </div>
@@ -74,7 +74,7 @@ export function GradeDistributionChart({
           return (
             <div key={grade} className="flex items-center gap-3">
               <Span
-                className={`w-9 rounded border py-0.5 text-center font-mono text-xs font-bold ${styling.badge}`}
+                className={`w-9 rounded border py-0.5 text-center text-xs font-bold ${styling.badge}`}
               >
                 {grade}
               </Span>
@@ -86,7 +86,7 @@ export function GradeDistributionChart({
                 />
               </div>
 
-              <div className="flex w-24 items-center justify-end gap-2 font-mono text-xs">
+              <div className="flex w-24 items-center justify-end gap-2 text-xs">
                 <Span className="font-bold text-slate-800">{item.count}</Span>
                 <Span className="text-slate-400">({item.percentage}%)</Span>
               </div>

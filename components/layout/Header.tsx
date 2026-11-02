@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
@@ -127,6 +127,17 @@ const NAV_ICON_DEFS: readonly NavIconDef[] = [
       />
     ),
   },
+  {
+    keywords: ['audit', 'log'],
+    path: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+      />
+    ),
+  },
 ];
 
 function getNavIcon(itemOrLabel: HeaderNavItem | string) {
@@ -153,6 +164,7 @@ function getNavIcon(itemOrLabel: HeaderNavItem | string) {
 
 export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -164,9 +176,16 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // Close profile dropdown on outside click
+  // Automatically close profile dropdown whenever route / pathname changes (render-phase state adjustment per React docs)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsProfileDropdownOpen(false);
+  }
+
+  // Close profile dropdown on outside click or touch
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (
         profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target as Node)
@@ -176,18 +195,19 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     }
     if (isProfileDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isProfileDropdownOpen]);
 
-  // Handle escape key for drawer and dropdown
+  // Handle escape key for mobile drawer and dropdown only (persistent sidebar collapses only via button or screen resize)
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsMobileNavOpen(false);
-        setIsDrawerOpen(false);
         setIsProfileDropdownOpen(false);
       }
     }
@@ -195,7 +215,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [setIsDrawerOpen, setIsMobileNavOpen]);
+  }, [setIsMobileNavOpen]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -222,7 +242,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     if (user?.role === 'MENTEE') return 'MENTEE PANEL';
     return 'ADMIN PANEL';
   })();
-  const profileUrl = user?.role ? getRoleProfilePath(user.role) : '#';
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -341,13 +360,13 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-150"
               >
                 <Link
-                  href={profileUrl}
-                  onClick={() => setIsProfileDropdownOpen(false)}
+                  href={getRoleProfilePath(user.role)}
                   role="menuitem"
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#111827] transition-colors hover:bg-slate-50"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
                 >
                   <svg
-                    className="h-4 w-4 text-[#111827]"
+                    className="h-4 w-4 text-slate-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -363,6 +382,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   <Span>Profile</Span>
                 </Link>
 
+                <div className="my-1 border-t border-[#E1E6EC]" />
+
                 <button
                   type="button"
                   role="menuitem"
@@ -370,7 +391,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                     setIsProfileDropdownOpen(false);
                     setIsSignOutConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#D92D20] transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#D92D20] transition-colors hover:bg-red-50"
                 >
                   <svg
                     className="h-4 w-4 text-[#D92D20]"
@@ -386,7 +407,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                     />
                   </svg>
-                  <Span>Log out</Span>
+                  <Span>Sign out</Span>
                 </button>
               </div>
             )}
@@ -406,6 +427,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
       {/* Collapsed Side Navigation Rail (Icon Rail matching LeadNest Figma design) */}
       <aside
         aria-label="Collapsed Navigation Rail"
+        onClick={() => setIsProfileDropdownOpen(false)}
         className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
           isDrawerOpen
             ? 'lg:pointer-events-none lg:-translate-x-full lg:opacity-0'
@@ -417,7 +439,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           <Link
             href={homeUrl}
             className="group flex items-center justify-center pt-1"
-            title="Techeniac LMS"
+            title="TechEniac LMS"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
@@ -509,9 +531,9 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
 
       {/* Side Navigation Drawer / Persistent Sidebar */}
       <aside
-        role="dialog"
-        aria-modal="true"
+        {...(isMobileNavOpen ? { role: 'dialog', 'aria-modal': true } : {})}
         aria-label="Site Navigation Drawer"
+        onClick={() => setIsProfileDropdownOpen(false)}
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:shadow-md ${
           isMobileNavOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
         } ${
@@ -520,14 +542,25 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             : 'lg:pointer-events-none lg:-translate-x-full'
         }`}
       >
-        {/* Drawer Header: TL Logo + Techeniac LMS Title + Mobile/Tablet Close Button */}
+        {/* Drawer Header: TL Logo + TechEniac LMS Title + Mobile/Tablet Close Button */}
         <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+          <Link
+            href={homeUrl}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsMobileNavOpen(false);
+              }
+            }}
+            className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
+            title="TechEniac LMS Home"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
             </div>
-            <Span className="text-xl font-bold tracking-tight text-[#111827]">Techeniac LMS</Span>
-          </div>
+            <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
+              TechEniac LMS
+            </Span>
+          </Link>
           <Button
             type="button"
             variant="ghost"
@@ -554,7 +587,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           {isLoading || !user ? (
             <Skeleton className="h-3.5 w-24 rounded-md" />
           ) : (
-            <Span className="font-mono text-xs font-bold tracking-wider text-[#667085] uppercase">
+            <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
               {panelTitle}
             </Span>
           )}
@@ -583,6 +616,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                         key={item.label}
                         href={item.href}
                         onClick={() => {
+                          setIsProfileDropdownOpen(false);
                           if (typeof window !== 'undefined' && window.innerWidth < 1024) {
                             setIsMobileNavOpen(false);
                           }
@@ -627,7 +661,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
               <Span className="block truncate text-sm font-bold text-[#111827]">
                 {formattedRole}
               </Span>
-              <Span className="mt-0.5 block truncate text-xs font-normal text-[#667085]">
+              <Span className="mt-0.5 block truncate text-sm font-medium text-slate-600">
                 {user.email}
               </Span>
             </div>
@@ -661,7 +695,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
         onClose={() => setIsSignOutConfirmOpen(false)}
         onConfirm={handleLogout}
         title="Sign Out?"
-        description="Are you sure you want to sign out of Techeniac LMS? You will need to log in again to access your account."
+        description="Are you sure you want to sign out of TechEniac LMS? You will need to log in again to access your account."
         confirmLabel="Sign Out"
         confirmVariant="danger"
         isLoading={isLoggingOut}

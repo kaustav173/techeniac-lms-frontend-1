@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { H1, P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
@@ -120,14 +122,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600" />
             <Span className="font-semibold">Scoped to assigned cohorts & mapped mentees</Span>
             <Span className="text-blue-300">|</Span>
-            <Span className="font-mono text-[11px] text-blue-700">Mentor Governance Active</Span>
+            <Span className="text-xs font-semibold text-blue-700">Mentor Governance Active</Span>
           </div>
         ) : (
           <div className="flex w-fit items-center gap-2 rounded-lg border border-purple-100 bg-purple-50/70 px-3 py-1.5 text-xs text-purple-900">
             <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-600" />
             <Span className="font-semibold">Super Admin Fleet Command</Span>
             <Span className="text-purple-300">|</Span>
-            <Span className="font-mono text-[11px] text-purple-700">Enterprise Global Access</Span>
+            <Span className="text-xs font-semibold text-purple-700">Enterprise Global Access</Span>
           </div>
         )}
 
@@ -156,8 +158,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
       {/* Stitch KPI Telemetry Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Total Allocations
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
@@ -166,8 +168,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <div className="mt-1 text-xs text-slate-500">{kpis.active} active on current page</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Mentees (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
@@ -176,8 +178,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <div className="mt-1 text-xs text-slate-500">Unique learners on current page</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Avg Velocity (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-600">
@@ -188,8 +190,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="font-mono text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
+          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Action Required (This Page)
           </div>
           <div
@@ -316,10 +318,10 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       </div>
 
       {/* Data Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200 bg-slate-50/75 font-mono text-xs font-semibold tracking-wider text-slate-500 uppercase">
+            <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
               <tr>
                 <th scope="col" className="w-10 py-3.5 pr-2 pl-6"></th>
                 <th scope="col" className="px-4 py-3.5">
@@ -348,11 +350,40 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               }`}
             >
               {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
-                    Loading course allocations...
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                    <TableCell className="py-4 pr-2 pl-6">
+                      <Skeleton className="h-6 w-6 rounded-lg" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-36 rounded-md" />
+                        <Skeleton className="h-3 w-48 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-28 rounded-md" />
+                        <Skeleton className="h-3 w-20 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <div className="space-y-1">
+                        <Skeleton className="h-2 w-36 rounded-full" />
+                        <Skeleton className="h-3 w-16 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="py-4 pr-6 pl-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : isError ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center">
@@ -393,16 +424,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
                             title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
                           >
-                            <Span className="font-mono text-sm font-bold">
-                              {isExpanded ? '▼' : '▶'}
-                            </Span>
+                            <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
                           </Button>
                         </td>
                         <td className="px-4 py-4 align-middle">
                           <div className="font-semibold text-slate-900">
                             {alloc.course?.title ?? 'Untitled Course'}
                           </div>
-                          <div className="mt-0.5 font-mono text-xs text-slate-400">
+                          <div className="mt-0.5 text-xs text-slate-400">
                             {alloc.estimatedMinutes
                               ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
                               : 'Standard Duration'}
@@ -412,7 +441,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                           {alloc.batch ? (
                             <div>
                               <div className="font-medium text-slate-800">{alloc.batch.name}</div>
-                              <div className="font-mono text-xs text-slate-400">
+                              <div className="text-xs text-slate-400">
                                 {alloc.batch.code} • Mentee: {alloc.user?.name}
                               </div>
                             </div>
@@ -421,9 +450,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               <div className="font-medium text-slate-800">
                                 {alloc.user?.name ?? 'Individual Mentee'}
                               </div>
-                              <div className="font-mono text-xs text-slate-400">
-                                {alloc.user?.email}
-                              </div>
+                              <div className="text-xs text-slate-400">{alloc.user?.email}</div>
                             </div>
                           )}
                         </td>
@@ -446,7 +473,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 }}
                               />
                             </div>
-                            <Span className="w-9 text-right font-mono text-xs font-bold text-slate-700">
+                            <Span className="w-9 text-right text-xs font-bold text-slate-700">
                               {alloc.progressPercent}%
                             </Span>
                           </div>
@@ -495,7 +522,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               </Button>
                             </div>
                           ) : (
-                            <Span className="font-mono text-xs text-slate-400">View only</Span>
+                            <Span className="text-xs text-slate-400">View only</Span>
                           )}
                         </td>
                       </tr>
@@ -507,14 +534,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             <div className="border-t border-b border-slate-200/80 px-10 py-4">
                               <div className="mb-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <Span className="font-mono text-xs font-bold text-slate-700 uppercase">
+                                  <Span className="text-xs font-bold text-slate-700 uppercase">
                                     Enrolled Mentee Milestone Telemetry
                                   </Span>
                                   <Span className="text-xs text-slate-400">
                                     • Active subscriber details
                                   </Span>
                                 </div>
-                                <Span className="font-mono text-xs text-slate-500">
+                                <Span className="text-xs text-slate-500">
                                   Allocation ID: {alloc.id.slice(0, 8)}...
                                 </Span>
                               </div>
@@ -522,7 +549,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                   <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-mono text-xs font-bold text-blue-700">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                                       {alloc.user?.name
                                         ? alloc.user.name.slice(0, 2).toUpperCase()
                                         : 'ME'}
@@ -531,7 +558,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                       <div className="text-sm font-semibold text-slate-900">
                                         {alloc.user?.name ?? 'Assigned Mentee'}
                                       </div>
-                                      <div className="font-mono text-xs text-slate-400">
+                                      <div className="text-xs text-slate-400">
                                         {alloc.user?.email}
                                       </div>
                                     </div>
@@ -555,7 +582,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                         style={{ width: `${alloc.progressPercent}%` }}
                                       />
                                     </div>
-                                    <Span className="w-9 text-right font-mono text-xs font-bold text-slate-600">
+                                    <Span className="w-9 text-right text-xs font-bold text-slate-600">
                                       {alloc.progressPercent}%
                                     </Span>
                                   </div>
@@ -578,9 +605,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                       Overrides
                                     </Button>
                                   ) : (
-                                    <Span className="font-mono text-xs text-slate-400">
-                                      View only
-                                    </Span>
+                                    <Span className="text-xs text-slate-400">View only</Span>
                                   )}
                                 </div>
                               </div>
@@ -615,7 +640,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               >
                 Previous
               </Button>
-              <Span className="px-2 font-mono font-medium text-slate-700">
+              <Span className="px-2 font-medium text-slate-700">
                 Page {pagination.page} of {pagination.totalPages}
               </Span>
               <Button

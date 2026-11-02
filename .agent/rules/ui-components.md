@@ -1,6 +1,6 @@
 # UI Components & Design System Rules
 
-These rules are non-negotiable and apply to all agents and developers working on `techeniac-lms-frontend`.
+These rules are non-negotiable and apply to all agents and developers working on `TechEniac-lms-frontend`.
 
 For the authoritative token values, colors, typography scales, and button sizes extracted from Figma, refer to [Design System Specifications](../../docs/DESIGN_SYSTEM.md).
 

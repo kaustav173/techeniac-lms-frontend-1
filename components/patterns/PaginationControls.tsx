@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
@@ -13,10 +13,10 @@ export interface PaginationControlsProps {
   totalPages: number;
   onPageChange: (newPage: number) => void;
   onLimitChange: (newLimit: number) => void;
-  itemLabel?: string;
-  pageSizeOptions?: readonly number[] | number[];
+  itemLabel?: string | undefined;
+  pageSizeOptions?: readonly number[] | number[] | undefined;
   isLoading?: boolean | undefined;
-  className?: string;
+  className?: string | undefined;
 }
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
@@ -40,7 +40,7 @@ export function PaginationControls({
   onPageChange,
   onLimitChange,
   itemLabel = 'entries',
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = [10, 20, 50],
   isLoading = false,
   className,
 }: Readonly<PaginationControlsProps>) {
@@ -52,15 +52,14 @@ export function PaginationControls({
           className,
         )}
       >
-        <Skeleton className="h-4 w-44 rounded-md" />
+        <Skeleton className="h-5 w-48 rounded-md" />
         <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-28 rounded-xl" />
           <div className="flex items-center gap-1.5">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
           </div>
-          <Skeleton className="h-8 w-32 rounded-xl" />
         </div>
       </div>
     );
@@ -70,29 +69,48 @@ export function PaginationControls({
   const endItem = Math.min(page * limit, total);
   const pageNumbers = getPageNumbers(page, totalPages);
 
+  const selectOptions = pageSizeOptions.map((opt) => ({
+    value: opt,
+    label: `${opt} / page`,
+  }));
+
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-500 sm:flex-row',
+        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-600 sm:flex-row',
         className,
       )}
     >
-      <div className="flex items-center gap-2 font-medium" role="status" aria-live="polite">
-        <Span>
-          Showing {startItem}-{endItem} of {total} {itemLabel}
-        </Span>
+      {/* Informative Items Counter (Left-aligned) */}
+      <div
+        className="flex items-center gap-1.5 text-sm font-medium text-slate-500"
+        role="status"
+        aria-live="polite"
+      >
+        <Span>Showing</Span>
+        <Span className="font-semibold text-slate-900">{startItem}</Span>
+        <Span>to</Span>
+        <Span className="font-semibold text-slate-900">{endItem}</Span>
+        <Span>of</Span>
+        <Span className="font-semibold text-slate-900">{total}</Span>
+        <Span>{itemLabel}</Span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Navigation Buttons with Numbered Page Pills */}
-        <div className="flex items-center gap-1.5">
+      {/* Right-aligned Controls: Page Navigation Buttons + Page Size Selector */}
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+        {/* Numbered Page Navigation Pills */}
+        <div
+          className="flex items-center gap-1.5"
+          role="navigation"
+          aria-label="Pagination Navigation"
+        >
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
             aria-label="Previous page"
           >
             <svg
@@ -108,9 +126,9 @@ export function PaginationControls({
 
           {pageNumbers.map((p, idx) =>
             p === 'ellipsis' ? (
-              <span key={`ellipsis-${idx}`} className="px-1 text-slate-400">
+              <Span key={`ellipsis-${idx}`} className="px-1 text-slate-400 select-none">
                 …
-              </span>
+              </Span>
             ) : (
               <Button
                 key={p}
@@ -118,7 +136,7 @@ export function PaginationControls({
                 variant={p === page ? 'primary' : 'ghost'}
                 size="sm"
                 onClick={() => onPageChange(p)}
-                className={`h-8 min-w-8 rounded-full px-2.5 text-xs font-semibold ${
+                className={`h-9 min-w-9 rounded-full px-3 text-sm font-semibold transition-all ${
                   p === page
                     ? 'bg-[#0044D3] text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -136,7 +154,7 @@ export function PaginationControls({
             size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="h-8 w-8 rounded-full border-[#E1E6EC] p-0 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            className="h-9 w-9 rounded-full border-[#E1E6EC] p-0 text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40"
             aria-label="Next page"
           >
             <svg
@@ -151,20 +169,16 @@ export function PaginationControls({
           </Button>
         </div>
 
-        {/* Page Size Selector */}
-        <div className="w-36">
-          <Select
+        {/* Page Size Selector (Opens upward to prevent clipping below table) */}
+        <div className="w-32">
+          <SingleSelectDropdown
             value={limit}
-            onChange={(e) => onLimitChange(Number(e.target.value))}
+            onChange={(newLimit) => onLimitChange(Number(newLimit))}
+            options={selectOptions}
+            direction="up"
+            size="sm"
             aria-label="Entries per page"
-            className="h-8 text-xs font-semibold text-slate-700"
-          >
-            {pageSizeOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt} Per Page
-              </option>
-            ))}
-          </Select>
+          />
         </div>
       </div>
     </div>

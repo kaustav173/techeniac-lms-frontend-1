@@ -6,10 +6,12 @@ import React, { useMemo } from 'react';
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_PROGRESS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { getButtonClassName } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { H2, H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
   isTerminalAllocationStatus,
@@ -31,11 +33,9 @@ function ProgressKpi({
   colorClass?: string;
 }>) {
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+    <div className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
       <div>
-        <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-          {label}
-        </Span>
+        <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">{label}</Span>
         <div className="mt-2 flex items-baseline gap-2">
           <H2 className={`text-2xl font-extrabold ${colorClass}`}>{value}</H2>
           <Span className="text-xs text-slate-500">{subtext}</Span>
@@ -106,35 +106,33 @@ export function MenteeProgressView() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
       <Header {...MENTEE_PROGRESS_NAV} />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end">
+      <DashboardContent className="space-y-6">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end">
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
                 📈
               </Span>
-              <Span className="font-mono text-xs font-bold tracking-wider text-blue-600 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                 Learner Telemetry
               </Span>
-              <Span className="rounded-full bg-blue-100 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-800">
+              <Span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
                 Student Progress
               </Span>
             </div>
-            <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              Learning Progress & Milestones
-            </H1>
-            <P className="mt-1 text-sm text-slate-500">
+            <PageTitle>Learning Progress & Milestones</PageTitle>
+            <SubText className="mt-1">
               Real-time curriculum completion pace, milestone deadlines, and syllabus tracking
               (FR-8.1, FR-8.2).
-            </P>
+            </SubText>
           </div>
-          <Span className="font-mono text-xs text-slate-500">
+          <Span className="text-xs text-slate-500">
             {allocations.length} {allocations.length === 1 ? 'Course' : 'Courses'} Allocated
           </Span>
         </div>
 
         {/* Telemetry KPI Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <ProgressKpi
             label="Average Completion"
             value={`${averagePace}%`}
@@ -162,7 +160,7 @@ export function MenteeProgressView() {
         </div>
 
         {/* Course Breakdown Header */}
-        <div className="mb-6">
+        <div>
           <H2 className="text-base font-bold text-slate-900">Enrolled Course Breakdown</H2>
           <P className="text-xs text-slate-500">
             Per-allocation completion telemetry, milestones, and syllabus access
@@ -170,15 +168,17 @@ export function MenteeProgressView() {
         </div>
 
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="grid grid-cols-1 gap-4">
+            <Skeleton className="h-44 w-full rounded-3xl" />
+            <Skeleton className="h-44 w-full rounded-3xl" />
+            <Skeleton className="h-44 w-full rounded-3xl" />
           </div>
         ) : isError ? (
-          <div className="rounded-2xl border border-rose-200 bg-white p-6">
+          <div className="rounded-3xl border border-rose-200 bg-white p-6 shadow-xs">
             <ErrorMessage error={error} onRetry={() => void refetch()} />
           </div>
         ) : allocations.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+          <div className="flex h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
             <Span className="text-3xl">📚</Span>
             <H3 className="mt-3 text-base font-bold text-slate-800">No Course Allocations Found</H3>
             <P className="mt-1 max-w-sm text-xs text-slate-500">
@@ -195,7 +195,7 @@ export function MenteeProgressView() {
               return (
                 <div
                   key={alloc.id}
-                  className={`flex flex-col justify-between gap-6 rounded-2xl border bg-white p-6 shadow-xs transition-all sm:flex-row sm:items-center ${
+                  className={`flex flex-col justify-between gap-6 rounded-3xl border bg-white p-6 shadow-xs transition-all sm:flex-row sm:items-center ${
                     isOverdue
                       ? 'border-rose-200 bg-rose-50/20'
                       : isCompleted
@@ -205,11 +205,11 @@ export function MenteeProgressView() {
                 >
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Span className="font-mono text-xs font-bold text-blue-600 uppercase">
+                      <Span className="text-xs font-bold text-blue-600 uppercase">
                         {alloc.batch?.name ?? 'Core Track'}
                       </Span>
                       <Span className="text-slate-300">•</Span>
-                      <Span className="font-mono text-xs text-slate-500">
+                      <Span className="text-xs text-slate-500">
                         {alloc.batch?.code ?? 'M7 Allocation'}
                       </Span>
                       <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
@@ -221,7 +221,13 @@ export function MenteeProgressView() {
                       <div className="mb-1 flex items-center justify-between text-xs font-semibold">
                         <Span className="text-slate-600">Course Pace</Span>
                         <Span
-                          className={`font-mono ${isCompleted ? 'text-emerald-700' : isOverdue ? 'text-rose-600' : 'text-blue-600'}`}
+                          className={
+                            isCompleted
+                              ? 'text-emerald-700'
+                              : isOverdue
+                                ? 'text-rose-600'
+                                : 'text-blue-600'
+                          }
                         >
                           {alloc.progressPercent}%
                         </Span>
@@ -234,17 +240,17 @@ export function MenteeProgressView() {
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                      <Span className="font-mono text-[11px]">
+                      <Span className="text-xs">
                         ⏱{' '}
                         {alloc.estimatedMinutes != null
                           ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m est.`
                           : 'Self-paced'}
                       </Span>
-                      <Span className="font-mono text-[11px]">
+                      <Span className="text-xs">
                         📅 Due {new Date(alloc.dueDate).toLocaleDateString()}
                       </Span>
                       {alloc.completedAt && (
-                        <Span className="font-mono text-[11px] text-emerald-700">
+                        <Span className="text-xs text-emerald-700">
                           ✓ Finished {new Date(alloc.completedAt).toLocaleDateString()}
                         </Span>
                       )}
@@ -267,7 +273,7 @@ export function MenteeProgressView() {
             })}
           </div>
         )}
-      </main>
+      </DashboardContent>
     </div>
   );
 }

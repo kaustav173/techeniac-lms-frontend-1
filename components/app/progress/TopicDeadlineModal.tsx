@@ -102,6 +102,7 @@ function TopicDeadlineModalDialog({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      isSubmitting={deadlineMutation.isPending}
       size="md"
       title="Set Topic Deadline"
       description="Configure a target milestone completion date for this mentee (FR-8.6)."
@@ -110,7 +111,7 @@ function TopicDeadlineModalDialog({
         <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3.5 text-xs text-blue-900">
           <Span className="font-semibold text-slate-900">Topic: </Span>
           <Span className="font-medium text-blue-800">{topicTitle}</Span>
-          <div className="mt-1 flex items-center gap-2 font-mono text-[11px] text-slate-500">
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
             <Span>
               Window: {minDate} → {maxDate}
             </Span>

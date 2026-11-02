@@ -101,36 +101,36 @@ export function MentorMenteesView() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
           <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
             Total Mapped Mentees
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+          <P className="mt-1 text-3xl font-bold text-[#111827]">
             {isLoadingMentees ? '—' : mentees.length}
           </P>
         </div>
 
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
           <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
             Matching Filter
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-[#0044D3]">
+          <P className="mt-1 text-3xl font-bold text-[#0044D3]">
             {isLoadingMentees ? '—' : filteredMentees.length}
           </P>
         </div>
 
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
           <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
             Assigned Cohorts
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+          <P className="mt-1 text-3xl font-bold text-[#111827]">
             {isLoadingBatches ? '—' : batches.length}
           </P>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-3xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
           {/* Search Input */}
           <div className="w-full sm:max-w-xs">
@@ -176,7 +176,7 @@ export function MentorMenteesView() {
       </div>
 
       {/* Main Content Area */}
-      <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
         {isLoadingMentees ? (
           <div className="space-y-4 p-6">
             {[1, 2, 3, 4].map((i) => (

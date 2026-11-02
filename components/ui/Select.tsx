@@ -37,14 +37,15 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           aria-invalid={hasError || undefined}
           aria-describedby={resolvedDescribedBy}
           className={cn(
-            'h-11 w-full appearance-none rounded-xl border pr-10 pl-3.5 text-sm font-semibold transition-all duration-150',
-            'bg-white text-slate-900',
-            'cursor-pointer focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none',
-            'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 disabled:opacity-70',
+            'h-11 w-full cursor-pointer appearance-none rounded-xl border bg-white bg-none pr-10 pl-3.5 text-sm font-semibold transition-all duration-150 [-moz-appearance:none] [-webkit-appearance:none]',
+            'text-slate-900 hover:border-slate-300 hover:bg-slate-50/50',
+            'focus:border-[#0044D3] focus:ring-2 focus:ring-[#0044D3]/15 focus:outline-none',
+            'disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 disabled:opacity-70',
             hasError
-              ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-              : 'border-slate-200',
+              ? 'border-[#D92D20] ring-2 ring-[#D92D20]/15 focus:border-[#D92D20]'
+              : 'border-[#E1E6EC]',
             className,
+            '!pr-10',
           )}
           {...props}
         >

@@ -29,7 +29,7 @@ export function LearningHistoryView({
 
   if (isError) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xs">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xs">
         <ErrorMessage error={error} onRetry={onRetry} />
       </div>
     );
@@ -38,8 +38,8 @@ export function LearningHistoryView({
   if (isLoading || !history) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white p-6 shadow-xs" />
-        <div className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white p-6 shadow-xs" />
+        <div className="h-28 animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-xs" />
+        <div className="h-64 animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-xs" />
       </div>
     );
   }
@@ -49,7 +49,7 @@ export function LearningHistoryView({
   // Empty state handling (PER-06, PER-08)
   if (batches.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xs">
+      <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
           <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -83,7 +83,7 @@ export function LearningHistoryView({
       {/* 1. Header Overview Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Allocations */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Courses Assigned
           </Span>
@@ -96,7 +96,7 @@ export function LearningHistoryView({
         </div>
 
         {/* Overall Progress */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Overall Curriculum Progress
           </Span>
@@ -112,7 +112,7 @@ export function LearningHistoryView({
         </div>
 
         {/* Average Score */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Overall Average Grade
           </Span>
@@ -123,12 +123,12 @@ export function LearningHistoryView({
         </div>
 
         {/* Profile Context */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Learner Profile
           </Span>
           <H3 className="mt-2 truncate text-lg font-bold text-slate-900">{user.name}</H3>
-          <P className="truncate font-mono text-xs text-slate-500">{user.email}</P>
+          <P className="truncate text-xs text-slate-500">{user.email}</P>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export function LearningHistoryView({
       {displayedBatches.map((batch) => (
         <section
           key={batch.batchId}
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs"
+          className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs"
         >
           {/* Batch Header Bar */}
           <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/75 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -199,7 +199,7 @@ export function LearningHistoryView({
                     >
                       {alloc.status}
                     </Span>
-                    <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-700">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                       <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
                         <div
                           className="h-full rounded-full bg-blue-600"
@@ -235,7 +235,7 @@ export function LearningHistoryView({
                                 {assign.assignmentTitle}
                               </Span>
                             </td>
-                            <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
+                            <td className="px-4 py-3 text-xs text-slate-500">
                               <div className="flex flex-col">
                                 <Span>{formatDateIST(assign.submittedAt)}</Span>
                                 {assign.isLate && (
@@ -245,10 +245,10 @@ export function LearningHistoryView({
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-center font-mono text-xs">
+                            <td className="px-4 py-3 text-center text-xs font-medium">
                               v{assign.version}
                             </td>
-                            <td className="px-4 py-3 text-center font-mono font-bold text-slate-800">
+                            <td className="px-4 py-3 text-center text-xs font-bold text-slate-800">
                               {assign.marks !== null ? (
                                 <Span>
                                   {assign.marks} / {assign.maxMarks}
@@ -257,7 +257,7 @@ export function LearningHistoryView({
                                 <Span className="text-slate-400">Pending Review</Span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-center font-mono">
+                            <td className="px-4 py-3 text-center">
                               {assign.gradeLabel ? (
                                 <Span className="inline-block w-8 rounded border border-emerald-200 bg-emerald-50 py-0.5 text-center text-xs font-bold text-emerald-700">
                                   {assign.gradeLabel}

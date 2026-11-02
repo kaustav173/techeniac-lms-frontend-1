@@ -11,12 +11,10 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { useResetTokenVerification } from '@/hooks/useResetTokenVerification';
 import { ApiError } from '@/lib/errors';
 import { extractZodErrors, resetPasswordSchema } from '@/lib/validation';
 
-import { PasswordCriteriaChecklist } from './PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
 type ResetState = 'verifying' | 'valid' | 'invalid' | 'done';
@@ -58,7 +56,6 @@ export function ResetPasswordForm() {
   // Fail-open: when verification is unable to determine validity (e.g. network/500/404/429),
   // fall back to 'valid' so the user is never blocked from submitting at the real authorization gate.
   const state: ResetState = resolveResetState(submissionState, isVerifying, status);
-  const criteria = usePasswordCriteria(password);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,7 +94,7 @@ export function ResetPasswordForm() {
     return (
       <div className="space-y-4 py-8 text-center" role="status" aria-live="polite">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#0044D3] border-t-transparent" />
-        <P className="text-sm font-medium text-slate-500">Verifying password reset link...</P>
+        <P className="text-sm font-medium text-slate-500">Verifying link...</P>
       </div>
     );
   }
@@ -120,7 +117,7 @@ export function ResetPasswordForm() {
         <div>
           <H3 className="mb-1 text-xl font-bold text-slate-900">Password updated</H3>
           <P className="text-sm leading-relaxed text-slate-600">
-            Your new password has been set. You can now sign in with your updated credentials.
+            Your password has been reset. You can now sign in.
           </P>
         </div>
 
@@ -162,7 +159,9 @@ export function ResetPasswordForm() {
 
         <div>
           <H3 className="mb-1 text-xl font-bold text-slate-900">Invalid or expired link</H3>
-          <P className="text-sm leading-relaxed text-slate-600">{INVALID_OR_EXPIRED_MESSAGE}</P>
+          <P className="text-sm leading-relaxed text-slate-600">
+            This reset link is invalid or has expired.
+          </P>
         </div>
 
         <div className="space-y-3 pt-2">
@@ -191,7 +190,7 @@ export function ResetPasswordForm() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            <Span className="leading-none">Return to sign in</Span>
+            <Span className="leading-none">Back to sign in</Span>
           </Link>
         </div>
       </div>
@@ -211,7 +210,7 @@ export function ResetPasswordForm() {
         </div>
       ) : null}
 
-      {/* New Password */}
+      {/* Password */}
       <div className="space-y-1.5">
         <Label
           htmlFor="newPassword"
@@ -231,14 +230,31 @@ export function ResetPasswordForm() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          New Password
+          Password
         </Label>
         <div className="relative">
           <Input
             id="newPassword"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPassword(val);
+              if (errors.password) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.password;
+                  return next;
+                });
+              }
+              if (errors.general) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.general;
+                  return next;
+                });
+              }
+            }}
             placeholder="••••••••••••"
             autoComplete="new-password"
             hasError={Boolean(errors.password)}
@@ -253,9 +269,6 @@ export function ResetPasswordForm() {
         </div>
         <FieldError id="newPassword-error" error={errors.password} />
       </div>
-
-      {/* Real-time Checklist */}
-      <PasswordCriteriaChecklist criteria={criteria} />
 
       {/* Confirm Password */}
       <div className="space-y-1.5">
@@ -277,14 +290,31 @@ export function ResetPasswordForm() {
               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
-          Confirm New Password
+          Confirm Password
         </Label>
         <div className="relative">
           <Input
             id="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setConfirmPassword(val);
+              if (errors.confirmPassword) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.confirmPassword;
+                  return next;
+                });
+              }
+              if (errors.general) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.general;
+                  return next;
+                });
+              }
+            }}
             placeholder="••••••••••••"
             autoComplete="new-password"
             hasError={Boolean(errors.confirmPassword)}
@@ -307,9 +337,9 @@ export function ResetPasswordForm() {
           size="lg"
           disabled={isSubmitting}
           isLoading={isSubmitting}
-          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-medium shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
+          className="h-12 w-full rounded-full bg-[#0044D3] text-base font-semibold shadow-md shadow-[#0044D3]/20 hover:bg-[#0036AB]"
         >
-          {isSubmitting ? 'Updating...' : 'Reset Password'}
+          {isSubmitting ? 'Resetting...' : 'Reset'}
         </Button>
       </div>
 
@@ -328,7 +358,7 @@ export function ResetPasswordForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <Span className="leading-none">Cancel and return to sign in</Span>
+          <Span className="leading-none">Back to sign in</Span>
         </Link>
       </div>
     </Form>

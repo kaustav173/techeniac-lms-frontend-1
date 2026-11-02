@@ -44,7 +44,7 @@ export function PerformanceFiltersBar({
   const batchesError = isMentor ? mentorBatchesError : adminBatchesError;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xs">
       {/* Top Row: Search & Export */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 sm:max-w-md">
@@ -98,7 +98,7 @@ export function PerformanceFiltersBar({
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {/* Batch Filter */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Batch
           </Span>
           <Select
@@ -124,7 +124,7 @@ export function PerformanceFiltersBar({
 
         {/* Course Filter */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Course
           </Span>
           <Select
@@ -150,7 +150,7 @@ export function PerformanceFiltersBar({
 
         {/* Grade Range Filter */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Grade
           </Span>
           <Select
@@ -175,7 +175,7 @@ export function PerformanceFiltersBar({
 
         {/* Status Filter */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Status
           </Span>
           <Select
@@ -192,7 +192,7 @@ export function PerformanceFiltersBar({
 
         {/* Sort By Filter */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Sort By
           </Span>
           <Select
@@ -215,7 +215,7 @@ export function PerformanceFiltersBar({
 
         {/* Sort Order Toggle */}
         <div className="flex flex-col gap-1">
-          <Span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Order
           </Span>
           <Button
@@ -228,7 +228,7 @@ export function PerformanceFiltersBar({
                 page: 1,
               })
             }
-            className="h-9 font-mono text-xs"
+            className="h-9 text-xs"
           >
             {filters.sortOrder === 'ASC' ? '▲ Ascending' : '▼ Descending'}
           </Button>

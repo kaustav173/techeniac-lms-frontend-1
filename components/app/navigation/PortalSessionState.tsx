@@ -195,7 +195,7 @@ export function PortalSessionState({
   variant = 'admin',
 }: Readonly<PortalSessionStateProps>) {
   const { refreshUser } = useAuth();
-  const { contentMarginClass } = useSidebar();
+  const { isDrawerOpen, isMobileNavOpen, contentMarginClass } = useSidebar();
 
   if (sessionError) {
     return (
@@ -224,14 +224,91 @@ export function PortalSessionState({
       role="status"
       aria-label={loadingMessage}
     >
+      {/* Collapsed Side Navigation Rail Skeleton (Desktop md:flex) */}
+      <aside
+        aria-label="Collapsed Navigation Rail Skeleton"
+        className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
+          isDrawerOpen
+            ? 'lg:pointer-events-none lg:-translate-x-full lg:opacity-0'
+            : 'pointer-events-auto translate-x-0 opacity-100 shadow-sm'
+        }`}
+      >
+        <div className="flex w-full flex-col items-center gap-6">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+            TL
+          </div>
+          <nav
+            className="flex flex-col items-center space-y-3"
+            aria-label="Rail Loading Placeholders"
+          >
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={`rail-skel-${i}`} className="h-11 w-11 rounded-full" />
+            ))}
+          </nav>
+        </div>
+        <div className="flex flex-col items-center gap-3 pb-2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+      </aside>
+
+      {/* Side Navigation Drawer Skeleton (Persistent Sidebar on lg, Mobile drawer) */}
+      <aside
+        aria-label="Site Navigation Drawer Skeleton"
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:shadow-md ${
+          isMobileNavOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        } ${
+          isDrawerOpen
+            ? 'lg:pointer-events-auto lg:translate-x-0'
+            : 'lg:pointer-events-none lg:-translate-x-full'
+        }`}
+      >
+        {/* Drawer Header Skeleton */}
+        <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+              TL
+            </div>
+            <div className="h-6 w-36 animate-pulse rounded-md bg-slate-200/80" />
+          </div>
+        </div>
+
+        {/* Panel Title Skeleton */}
+        <div className="px-5 pt-5 pb-2">
+          <Skeleton className="h-3.5 w-24 rounded-md" />
+        </div>
+
+        {/* Nav Links Skeleton */}
+        <div className="flex-1 overflow-y-auto px-4 py-2">
+          <nav className="flex flex-col space-y-2" aria-label="Drawer Loading Placeholders">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={`drawer-skel-${i}`}
+                className="flex items-center gap-3.5 rounded-full px-4 py-3.5"
+              >
+                <Skeleton className="h-5 w-5 shrink-0 rounded-md" />
+                <Skeleton className="h-4 flex-1 rounded-md" />
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        {/* Drawer Footer Skeleton */}
+        <div className="flex items-center justify-between border-t border-[#E1E6EC] px-6 py-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28 rounded-md" />
+            <Skeleton className="h-3 w-40 rounded-md" />
+          </div>
+        </div>
+      </aside>
+
       {/* Top Navbar Skeleton (Synchronized with Header) */}
       <div
         className={`sticky top-0 z-30 border-b border-[#E1E6EC] bg-white/95 backdrop-blur-md transition-all duration-300 ${contentMarginClass}`}
       >
-        <div className="flex h-16 w-full items-center justify-between px-6 sm:px-8 lg:px-10">
+        <div className="flex h-20 w-full items-center justify-between px-6 sm:px-8">
           <div className="flex items-center gap-3 md:hidden">
-            <Skeleton className="h-9 w-9 rounded-xl" />
-            <Skeleton className="h-5 w-32 rounded-md" />
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <Skeleton className="h-6 w-32 rounded-md" />
           </div>
           <div className="relative ml-auto flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full" />

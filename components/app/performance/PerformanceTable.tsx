@@ -2,6 +2,7 @@ import React from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { P, Span } from '@/components/ui/Typography';
 import type { MenteePerformanceRow } from '@/services/performance.service';
 
@@ -36,7 +37,7 @@ export function PerformanceTable({
 }: PerformanceTableProps) {
   if (isError) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xs">
         <ErrorMessage error={error} onRetry={onRetry} />
       </div>
     );
@@ -44,10 +45,14 @@ export function PerformanceTable({
 
   if (isLoading) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-        <div className="p-8 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-          <P className="mt-3 text-xs text-slate-500">Loading performance data...</P>
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+        <div className="space-y-4 p-6">
+          <Skeleton className="h-6 w-48" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -55,7 +60,7 @@ export function PerformanceTable({
 
   if (mentees.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -76,10 +81,10 @@ export function PerformanceTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-slate-600">
-          <thead className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+          <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-bold tracking-wider text-slate-500 uppercase">
             <tr>
               <th scope="col" className="px-6 py-3.5">
                 Mentee
@@ -118,7 +123,7 @@ export function PerformanceTable({
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <Span className="font-semibold text-slate-900">{row.menteeName}</Span>
-                    <Span className="font-mono text-[11px] text-slate-500">{row.menteeEmail}</Span>
+                    <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
                   </div>
                 </td>
 
@@ -130,7 +135,7 @@ export function PerformanceTable({
                 </td>
 
                 {/* Courses Count */}
-                <td className="px-4 py-4 font-mono">
+                <td className="px-4 py-4">
                   <Span className="font-bold text-slate-800">{row.completedCoursesCount}</Span>
                   <Span className="text-slate-400"> / {row.assignedCoursesCount} completed</Span>
                 </td>
@@ -138,7 +143,7 @@ export function PerformanceTable({
                 {/* Completion Progress Bar */}
                 <td className="px-4 py-4">
                   <div className="flex w-32 flex-col gap-1">
-                    <div className="flex justify-between font-mono text-[11px]">
+                    <div className="flex justify-between text-xs">
                       <Span className="font-bold text-slate-700">{row.completionPercentage}%</Span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -153,7 +158,7 @@ export function PerformanceTable({
                 </td>
 
                 {/* Average Marks */}
-                <td className="px-4 py-4 text-center font-mono">
+                <td className="px-4 py-4 text-center">
                   {row.averageMarks !== null ? (
                     <Span className="font-bold text-slate-900">{row.averageMarks}</Span>
                   ) : (
@@ -162,17 +167,17 @@ export function PerformanceTable({
                 </td>
 
                 {/* Submissions & On-time Rate */}
-                <td className="px-4 py-4 text-center font-mono">
+                <td className="px-4 py-4 text-center">
                   <div className="flex flex-col items-center">
                     <Span className="font-bold text-slate-800">{row.totalSubmissions}</Span>
-                    <Span className="text-[10px] font-semibold text-emerald-600">
+                    <Span className="text-xs font-semibold text-emerald-600">
                       {row.onTimeRate}% on-time
                     </Span>
                   </div>
                 </td>
 
                 {/* Overdue Count */}
-                <td className="px-4 py-4 text-center font-mono">
+                <td className="px-4 py-4 text-center">
                   {row.overdueCount > 0 ? (
                     <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
                       {row.overdueCount} overdue
@@ -183,7 +188,7 @@ export function PerformanceTable({
                 </td>
 
                 {/* Latest Grade Badge */}
-                <td className="px-6 py-4 text-center font-mono">
+                <td className="px-6 py-4 text-center">
                   {row.latestGrade ? (
                     <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
                       {row.latestGrade}

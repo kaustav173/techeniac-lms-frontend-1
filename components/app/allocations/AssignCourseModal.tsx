@@ -308,6 +308,7 @@ function AssignCourseModalDialog({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      isSubmitting={createMutation.isPending}
       title="Assign Course Deployment"
       description="Deploy curriculum track to cohorts and mentees with scheduled pacing (M7)."
       size="lg"

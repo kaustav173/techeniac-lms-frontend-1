@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
-import { CourseCard } from '@/components/app/courses/CourseCard';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
+import { formatDurationMinutes } from '@/components/app/courses/types';
 import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -18,7 +19,17 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H1, H3, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
+import { H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
@@ -78,10 +89,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     isActive: false,
     limit: 1,
   });
-
-  if (pagination.totalPages > 0 && page > pagination.totalPages) {
-    setPage(pagination.totalPages);
-  }
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -217,9 +224,24 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   };
 
   if (isLoading || !isAuthenticated || !user) {
+    const fallbackNav = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+        <Header {...fallbackNav} />
+        <DashboardContent>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64 rounded-xl" />
+              <Skeleton className="h-4 w-96 rounded-md" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Skeleton className="h-24 rounded-3xl" />
+              <Skeleton className="h-24 rounded-3xl" />
+              <Skeleton className="h-24 rounded-3xl" />
+            </div>
+            <Skeleton className="h-96 rounded-3xl" />
+          </div>
+        </DashboardContent>
       </div>
     );
   }
@@ -235,7 +257,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         {/* Top Breadcrumb & Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -246,12 +268,12 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Span className="text-slate-300">/</Span>
               <Span className="font-semibold text-slate-900">Curriculum & Course Library</Span>
             </div>
-            <H1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <PageTitle className="mt-1.5 text-2xl font-extrabold tracking-tight sm:text-3xl">
               Course Library
-            </H1>
-            <P className="mt-1.5 max-w-2xl text-sm text-slate-500">
+            </PageTitle>
+            <SubText className="mt-1.5 max-w-2xl">
               Manage enterprise learning tracks, syllabus outlines, and live assignments.
-            </P>
+            </SubText>
           </div>
 
           <div className="flex items-center gap-3">
@@ -276,7 +298,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
         {/* Telemetry Stat Cards */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Total Courses
@@ -301,7 +323,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </svg>
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Active Tracks
@@ -326,7 +348,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               </svg>
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
             <div>
               <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                 Draft / Inactive
@@ -414,9 +436,43 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         {/* Courses Grid */}
         <div className="mt-6">
           {loadingCourses ? (
-            <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-            </div>
+            <TableContainer className="w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[36%]">Course</TableHead>
+                    <TableHead>Content Stats</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <TableRow key={`course-skel-${idx}`} className="h-16">
+                      <TableCell>
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-48 rounded-md" />
+                          <Skeleton className="h-3 w-72 rounded-md" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-28 rounded-md" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20 rounded-md" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : (
             <>
               {courses.length === 0 ? (
@@ -428,31 +484,159 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   </P>
                 </div>
               ) : (
-                <div
-                  className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${
+                <TableContainer
+                  className={`w-full ${
                     isFetchingCourses && !loadingCourses ? 'opacity-60 transition-opacity' : ''
                   }`}
                 >
-                  {courses.map((c) => (
-                    <CourseCard
-                      key={c.id}
-                      course={c}
-                      basePath={`/${portal}/courses`}
-                      onCloneCourse={async (targetCourse) => {
-                        await cloneCourse(targetCourse.id);
-                      }}
-                      onRequestDelete={(targetCourse) => {
-                        void onRequestDelete(targetCourse);
-                      }}
-                      onRequestToggleStatus={(targetCourse) => {
-                        void onRequestToggleStatus(targetCourse);
-                      }}
-                      onAssignCourse={(targetCourse) => {
-                        setAssignModalCourse(targetCourse);
-                      }}
-                    />
-                  ))}
-                </div>
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[36%]">Course</TableHead>
+                        <TableHead>Content Stats</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {courses.map((c) => {
+                        const topicCount = c.topicCount ?? c.topics?.length ?? 0;
+                        const assignmentCount =
+                          c.assignmentCount ??
+                          (c.courseAssignments?.length ?? c.assignments?.length ?? 0) +
+                            (c.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ??
+                              0);
+
+                        return (
+                          <TableRow key={c.id} className="hover:bg-slate-50/70">
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <Link
+                                  href={`/${portal}/courses/${c.id}/builder`}
+                                  className="text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                >
+                                  {c.title}
+                                </Link>
+                                <Span className="mt-0.5 line-clamp-1 text-xs text-slate-500">
+                                  {c.description || 'No description provided.'}
+                                </Span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-xs text-slate-600">
+                              <div className="flex items-center gap-2">
+                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                                  {topicCount} topics
+                                </Span>
+                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                                  {assignmentCount} tasks
+                                </Span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-xs font-medium text-slate-600">
+                              {formatDurationMinutes(c.estimatedMinutes)}
+                            </TableCell>
+
+                            <TableCell>
+                              <Span
+                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  c.isActive
+                                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border border-slate-200 bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                <Span
+                                  className={`h-1.5 w-1.5 rounded-full ${c.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
+                                />
+                                {c.isActive ? 'Active' : 'Inactive'}
+                              </Span>
+                            </TableCell>
+
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
+                                  title="Open course builder"
+                                  className="h-8 text-xs font-semibold"
+                                >
+                                  Builder →
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  size="sm"
+                                  disabled={!c.isActive}
+                                  onClick={() => setAssignModalCourse(c)}
+                                  title={
+                                    c.isActive
+                                      ? 'Assign to batch or mentees'
+                                      : 'Only active courses can be assigned'
+                                  }
+                                  className="h-8 text-xs font-semibold"
+                                >
+                                  Assign
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => void cloneCourse(c.id)}
+                                  title="Clone course"
+                                  className="h-8 text-xs font-medium"
+                                >
+                                  Clone
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void onRequestToggleStatus(c)}
+                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
+                                  className="h-8 text-xs text-slate-600 hover:text-slate-900"
+                                >
+                                  {c.isActive ? 'Deactivate' : 'Activate'}
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void onRequestDelete(c)}
+                                  title="Delete course"
+                                  aria-label="Delete course"
+                                  className="h-8 w-8 rounded-lg p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={1.75}
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
 
               {/* Pagination Controls */}
@@ -475,7 +659,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
             </>
           )}
         </div>
-      </main>
+      </DashboardContent>
 
       {/* Create Course Modal */}
       <Modal

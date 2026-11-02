@@ -35,7 +35,7 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
     queryKey: ['courses', initialQuery],
     queryFn: ({ signal }) => coursesService.listCourses(initialQuery, { signal }),
     placeholderData: keepPreviousData,
-    staleTime: 10_000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const courses = data?.courses ?? [];

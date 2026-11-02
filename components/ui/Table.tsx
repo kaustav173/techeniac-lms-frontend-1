@@ -11,7 +11,7 @@ export const TableContainer = React.forwardRef<HTMLDivElement, TableContainerPro
     <div
       ref={ref}
       className={cn(
-        'w-full overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs',
+        'w-full overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs',
         className,
       )}
       {...props}
@@ -48,7 +48,7 @@ export const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeader
     <thead
       ref={ref}
       className={cn(
-        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-[#667085]',
+        'sticky top-0 z-10 border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-slate-700',
         className,
       )}
       {...props}
@@ -114,7 +114,10 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
     <th
       ref={ref}
       scope={scope}
-      className={cn('px-4 py-2.5 font-semibold text-[#667085] sm:px-5 sm:py-2.5', className)}
+      className={cn(
+        'px-4 py-2.5 text-sm font-semibold text-slate-700 sm:px-5 sm:py-3 sm:text-base',
+        className,
+      )}
       {...props}
     >
       {children}
@@ -131,7 +134,10 @@ export const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, children, ...props }, ref) => (
     <td
       ref={ref}
-      className={cn('px-4 py-2 align-middle text-[#111827] sm:px-5 sm:py-2.5', className)}
+      className={cn(
+        'px-4 py-2.5 align-middle text-sm text-[#111827] sm:px-5 sm:py-3 sm:text-base',
+        className,
+      )}
       {...props}
     >
       {children}

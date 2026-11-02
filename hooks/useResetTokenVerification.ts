@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { authService } from '@/services/auth.service';
 
@@ -13,53 +13,35 @@ export interface UseResetTokenVerificationReturn {
 }
 
 export function useResetTokenVerification(token: string | null): UseResetTokenVerificationReturn {
-  const [state, setState] = useState<{
-    key: string | null;
-    status: TokenVerificationStatus | null;
-  }>(() => {
-    const trimmed = token?.trim();
-    if (!trimmed) {
-      return { key: '', status: 'invalid' };
-    }
-    return { key: null, status: null };
+  const trimmed = token?.trim() ?? '';
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['auth', 'reset-token', trimmed],
+    queryFn: async (): Promise<TokenVerificationStatus> => {
+      if (!trimmed) return 'invalid';
+      try {
+        const isValid = await authService.verifyResetToken(trimmed);
+        return isValid ? 'valid' : 'invalid';
+      } catch {
+        return 'unverifiable';
+      }
+    },
+    enabled: Boolean(trimmed),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
-  const queryKey = token?.trim() || '';
-  const [reloadTrigger, setReloadTrigger] = useState(0);
+  if (!trimmed) {
+    return { status: 'invalid', isVerifying: false, retry: () => {} };
+  }
 
-  useEffect(() => {
-    if (!queryKey) {
-      return;
-    }
-
-    let ignore = false;
-
-    void authService
-      .verifyResetToken(queryKey)
-      .then((isValid) => {
-        if (!ignore) {
-          setState({ key: queryKey, status: isValid ? 'valid' : 'invalid' });
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setState({ key: queryKey, status: 'unverifiable' });
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [queryKey, reloadTrigger]);
-
-  const isVerifying = Boolean(queryKey && state.key !== queryKey);
+  const status: TokenVerificationStatus | null = isError ? 'unverifiable' : (data ?? null);
 
   return {
-    status: state.key === queryKey ? state.status : null,
-    isVerifying,
+    status,
+    isVerifying: isLoading,
     retry: () => {
-      setState({ key: null, status: null });
-      setReloadTrigger((prev) => prev + 1);
+      void refetch();
     },
   };
 }

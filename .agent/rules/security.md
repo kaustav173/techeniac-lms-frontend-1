@@ -1,6 +1,6 @@
 # Security Rules
 
-These security rules protect confidential credentials, client runtime integrity, and infrastructure safety for `techeniac-lms-frontend`.
+These security rules protect confidential credentials, client runtime integrity, and infrastructure safety for `TechEniac-lms-frontend`.
 
 ## Secret Handling & Environment Variables
 

@@ -18,6 +18,8 @@ export interface ModalProps {
   initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
   className?: string | undefined;
   ariaLabelledBy?: string | undefined;
+  isSubmitting?: boolean | undefined;
+  preventClose?: boolean | undefined;
 }
 
 export function Modal({
@@ -31,14 +33,18 @@ export function Modal({
   initialFocusRef,
   className,
   ariaLabelledBy,
+  isSubmitting = false,
+  preventClose = false,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const isLocked = Boolean(isSubmitting || preventClose);
 
   useDialogAccessibility({
     isOpen,
     onClose,
     dialogRef,
     initialFocusRef,
+    preventClose: isLocked,
   });
 
   if (!isOpen) return null;
@@ -58,12 +64,20 @@ export function Modal({
   const resolvedTitleId = ariaLabelledBy ?? generatedTitleId;
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150">
+    <div
+      onClick={() => {
+        if (!isLocked) {
+          onClose();
+        }
+      }}
+      className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150"
+    >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={resolvedTitleId}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           'flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl',
           sizeClasses[size],
@@ -92,8 +106,9 @@ export function Modal({
             variant="ghost"
             size="sm"
             onClick={onClose}
+            disabled={isLocked}
             aria-label="Close dialog"
-            className="h-8 w-8 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="h-8 w-8 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
           >
             ✕
           </Button>

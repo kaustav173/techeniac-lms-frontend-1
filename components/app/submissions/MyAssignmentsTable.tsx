@@ -7,7 +7,9 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
-import { Code, H3, P, Span } from '@/components/ui/Typography';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
+import { P, Span } from '@/components/ui/Typography';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
 import { formatDateTimeIST } from '@/lib/date';
@@ -71,41 +73,28 @@ export function MyAssignmentsTable({
 
   return (
     <div className="space-y-6">
-      {/* Header and Filter Controls */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <H3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-            My Course Assignments
-          </H3>
-          <P className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            Track, complete, and submit your assignments across allocated courses. All timestamps
-            are displayed in Indian Standard Time (IST).
-          </P>
+      {/* Search Bar (Left-aligned, prominent) */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="w-full max-w-lg sm:w-[471px]">
+          <Input
+            type="search"
+            aria-label="Search assignments"
+            placeholder="Search assignments by title, course, or topic..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 rounded-xl bg-white text-xs shadow-xs"
+          />
         </div>
-
-        {/* Search bar */}
-        <div className="flex w-full items-center gap-3 md:w-auto">
-          {isFetching && !isLoading && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-              <Span>Updating...</Span>
-            </div>
-          )}
-          <div className="w-full md:w-64">
-            <Input
-              type="text"
-              aria-label="Search assignments"
-              placeholder="Search assignments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 text-xs"
-            />
+        {isFetching && !isLoading && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+            <Span>Updating...</Span>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto border-b border-slate-200 pb-2 dark:border-slate-800">
+      <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto border-b border-slate-200 pb-2">
         {STATUS_FILTERS.map((tab) => {
           const isActive = selectedStatus === tab.value;
           return (
@@ -129,28 +118,72 @@ export function MyAssignmentsTable({
       ) : null}
 
       {isLoading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent" />
-          <P className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            Loading your assignments in Indian Standard Time...
-          </P>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600">
+                <tr>
+                  <th scope="col" className="px-5 py-3.5">
+                    Assignment & Course
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Due Date (IST)
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Est. Time & Marks
+                  </th>
+                  <th scope="col" className="px-4 py-3.5">
+                    Status
+                  </th>
+                  <th scope="col" className="px-5 py-3.5 text-right">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <TableRow key={`assign-skel-${idx}`} className="h-16">
+                    <TableCell className="px-5 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-44 rounded-md" />
+                        <Skeleton className="h-3 w-32 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <div className="space-y-1">
+                        <Skeleton className="h-3 w-20 rounded-md" />
+                        <Skeleton className="h-3 w-16 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : filteredAssignments.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-          <P className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            No assignments found
-          </P>
-          <P className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center">
+          <P className="text-sm font-semibold text-slate-700">No assignments found</P>
+          <P className="mt-1 text-xs text-slate-500">
             {selectedStatus || searchQuery
               ? 'Try adjusting your filters or search keywords.'
               : 'You have no assignments allocated in your current courses.'}
           </P>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
+              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600">
                 <tr>
                   <th scope="col" className="px-5 py-3.5">
                     Assignment & Course
@@ -170,26 +203,23 @@ export function MyAssignmentsTable({
                 </tr>
               </thead>
               <tbody
-                className={`divide-y divide-slate-100 dark:divide-slate-800 ${
+                className={`divide-y divide-slate-100 ${
                   isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
                 }`}
               >
                 {filteredAssignments.map((assignment) => (
-                  <tr
-                    key={assignment.id}
-                    className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
-                  >
+                  <tr key={assignment.id} className="transition-colors hover:bg-slate-50/50">
                     <td className="px-5 py-4">
                       <div className="space-y-1">
                         <Link
                           href={`/mentee/assignments/${assignment.id}`}
                           {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                          className="line-clamp-1 font-semibold text-slate-900 hover:text-blue-600 dark:text-slate-100 dark:hover:text-blue-400"
+                          className="line-clamp-1 font-semibold text-slate-900 hover:text-blue-600"
                         >
                           {assignment.title}
                         </Link>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                          <Span className="font-medium text-slate-700 dark:text-slate-300">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Span className="font-medium text-slate-700">
                             {assignment.courseTitle}
                           </Span>
                           {assignment.topicTitle ? (
@@ -199,7 +229,7 @@ export function MyAssignmentsTable({
                             </>
                           ) : null}
                           <Span>•</Span>
-                          <Span className="py-0.2 rounded bg-slate-100 px-1.5 font-mono text-[10px] dark:bg-slate-800">
+                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
                             {assignment.scope}
                           </Span>
                         </div>
@@ -208,27 +238,27 @@ export function MyAssignmentsTable({
 
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="space-y-0.5">
-                        <Span className="font-medium text-slate-900 dark:text-slate-100">
+                        <Span className="font-medium text-slate-900">
                           {formatDateTimeIST(assignment.dueDate)}
                         </Span>
                         {assignment.allowLate ? (
-                          <Span className="block text-[10px] text-slate-400">
+                          <Span className="block text-xs text-slate-400">
                             Late submissions accepted
                           </Span>
                         ) : (
-                          <Span className="block text-[10px] text-rose-500">Strict deadline</Span>
+                          <Span className="block text-xs text-rose-500">Strict deadline</Span>
                         )}
                       </div>
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+                      <div className="space-y-0.5 text-xs text-slate-600">
                         <div>
                           Est:{' '}
                           <Span className="font-semibold">{assignment.estimatedMinutes} mins</Span>
                         </div>
                         <div>
-                          Max Marks: <Code className="text-[11px]">{assignment.maxMarks}</Code>
+                          Max Marks: <Span className="font-semibold">{assignment.maxMarks}</Span>
                           {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
                         </div>
                       </div>
@@ -241,7 +271,7 @@ export function MyAssignmentsTable({
                       />
                       {assignment.latestSubmission?.marks !== null &&
                       assignment.latestSubmission?.marks !== undefined ? (
-                        <div className="mt-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <div className="mt-1 text-xs font-semibold text-emerald-600">
                           Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
                         </div>
                       ) : null}

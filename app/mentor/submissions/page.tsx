@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 
 import { MENTOR_REVIEWS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { SubmissionQueueTable } from '@/components/app/submissions/SubmissionQueueTable';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { H1, P } from '@/components/ui/Typography';
+import { PageTitle, SubText } from '@/components/ui/Typography';
 
 export const metadata: Metadata = {
   title: 'Submission Queue & Reviews | Mentor Portal',
@@ -14,18 +15,18 @@ export default function MentorSubmissionsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTOR_REVIEWS_NAV} />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         <div className="mb-6">
-          <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <PageTitle className="text-2xl font-bold tracking-tight sm:text-3xl">
             Submission Queue & Reviews
-          </H1>
-          <P className="mt-1 text-sm text-slate-500">
+          </PageTitle>
+          <SubText className="mt-1">
             Review submitted coursework, give marks and feedback, or request revisions.
-          </P>
+          </SubText>
         </div>
 
         <SubmissionQueueTable />
-      </main>
+      </DashboardContent>
     </div>
   );
 }

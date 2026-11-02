@@ -64,7 +64,7 @@ function getAuditTypeBadge(type: AuditType): string {
 export function AuditLogTable() {
   const [filters, setFilters] = useState<AuditQueryFilters>({
     page: 1,
-    limit: 20,
+    limit: 10,
     type: undefined,
     action: undefined,
     startDate: undefined,
@@ -95,11 +95,22 @@ export function AuditLogTable() {
   const { logs, pagination, isLoading, isFetching, error, refetch } = useAuditLogs(filters);
 
   const handleFilterChange = (key: keyof AuditQueryFilters, value: string | number | undefined) => {
-    setFilters((prev) => ({
-      ...prev,
-      page: 1, // Reset to first page on filter change
-      [key]: value === '' || value === 'ALL' ? undefined : value,
-    }));
+    setFilters((prev) => {
+      const nextFilters: AuditQueryFilters = {
+        ...prev,
+        page: 1, // Reset to first page on filter change
+        [key]: value === '' || value === 'ALL' ? undefined : value,
+      };
+      if (
+        key === 'startDate' &&
+        nextFilters.endDate &&
+        value &&
+        String(value) > String(nextFilters.endDate)
+      ) {
+        nextFilters.endDate = undefined;
+      }
+      return nextFilters;
+    });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -126,7 +137,7 @@ export function AuditLogTable() {
     setActionInput('');
     setFilters({
       page: 1,
-      limit: 20,
+      limit: 10,
       type: undefined,
       action: undefined,
       startDate: undefined,

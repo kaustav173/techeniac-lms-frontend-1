@@ -7,8 +7,9 @@ import { GradeDistributionChart } from '@/components/app/performance/GradeDistri
 import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceFiltersBar';
 import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { H1, P, Span } from '@/components/ui/Typography';
+import { PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 import type { PerformanceFilterParams } from '@/services/performance.service';
@@ -62,13 +63,11 @@ export function PerformanceDashboardShell({
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <DashboardContent className="space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              {title}
-            </H1>
-            <P className="mt-1 text-sm text-slate-500">{description}</P>
+            <PageTitle>{title}</PageTitle>
+            <SubText className="mt-1">{description}</SubText>
           </div>
           {isFetching && !isLoading && (
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -123,7 +122,7 @@ export function PerformanceDashboardShell({
             onRetry={handleRetry}
           />
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

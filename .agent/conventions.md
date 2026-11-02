@@ -43,6 +43,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ## Styling & Components
 
 - **Reusable UI Primitives**: Follow [.agent/rules/ui-components.md](rules/ui-components.md). Never render raw HTML `<button>`, headings (`<h1>`..`<h6>`), paragraphs (`<p>`), or inline tags (`<span>`, `<code>`). Always import and use `<Button>`, `<Typography>` (or semantic exports `H1`, `H2`, `H3`, `H4`, `P`, `Span`, `Code`), `<Modal>`, `<Input>`, and `<Label>` from `@/components/ui/` or `@/components/patterns/`.
+- **Strict Typography Policy**: Universal 'Plus Jakarta Sans' across all views, forms, tables, headers, and controls. Never use monospace or `font-mono`. Follow [.agent/rules/typography.md](rules/typography.md).
 - **Tailwind CSS**: Use utility classes directly in JSX. Extract repeated UI patterns into `components/ui/` or `components/patterns/` rather than inventing ad-hoc CSS classes.
 - **Component File Structure**: Use PascalCase for component filenames (`UserProfileCard.tsx`). Use standard camelCase for utility and hook files (`useAuth.ts`, `formatDate.ts`).
 - **No `console.log`**: Avoid `console.log` in committed application code.

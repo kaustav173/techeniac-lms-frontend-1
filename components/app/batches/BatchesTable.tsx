@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
-import { PageHeader } from '@/components/patterns/PageHeader';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
@@ -38,19 +38,35 @@ const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
 ];
 
 function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
+  const router = useRouter();
   const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
 
   return (
-    <TableRow className="h-14 transition-colors hover:bg-slate-50/60">
-      <TableCell className="font-semibold text-slate-900">
+    <TableRow
+      tabIndex={0}
+      role="link"
+      onClick={() => {
+        router.push(`/admin/batches/${batch.id}`);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/admin/batches/${batch.id}`);
+        }
+      }}
+      className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+    >
+      <TableCell className="max-w-[240px] font-semibold text-slate-900 sm:max-w-xs md:max-w-sm">
         <Link
           href={`/admin/batches/${batch.id}`}
-          className="transition-colors hover:text-[#0044D3]"
+          onClick={(e) => e.stopPropagation()}
+          title={batch.name}
+          className="block truncate transition-colors hover:text-[#0044D3]"
         >
           {batch.name}
         </Link>
       </TableCell>
-      <TableCell className="font-mono text-xs font-semibold text-slate-600">
+      <TableCell className="text-xs font-semibold text-slate-600">
         <Span>{batch.code}</Span>
       </TableCell>
       <TableCell>
@@ -62,7 +78,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           {batch.status}
         </Span>
       </TableCell>
-      <TableCell className="font-mono text-xs text-slate-500">
+      <TableCell className="text-xs text-slate-500">
         <Span>
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
@@ -80,7 +96,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
               style={{ width: `${batch.progressPercent ?? 0}%` }}
             />
           </div>
-          <Span className="font-mono text-xs font-semibold text-slate-700">
+          <Span className="text-xs font-semibold text-slate-700">
             {batch.progressPercent ?? 0}%
           </Span>
         </div>
@@ -94,7 +110,7 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
     <>
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={`batch-skel-${idx}`} className="h-14">
-          <TableCell>
+          <TableCell className="max-w-[240px] sm:max-w-xs md:max-w-sm">
             <Skeleton className="h-4 w-44 rounded-md" />
           </TableCell>
           <TableCell>
@@ -124,14 +140,13 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
 export function BatchesPageSkeleton() {
   return (
     <div className="animate-in fade-in space-y-4 duration-150">
-      {/* Top Header Skeleton */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Skeleton className="h-9 w-36 rounded-xl" />
+      {/* Top Action Skeleton */}
+      <div className="flex items-center justify-end pt-2">
         <Skeleton className="h-10 w-32 rounded-full" />
       </div>
 
       {/* Filter Row Skeleton */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         <Skeleton className="h-11 w-full max-w-md rounded-xl" />
         <Skeleton className="h-11 w-48 rounded-xl" />
       </div>
@@ -180,7 +195,6 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
-    isFetching,
     error,
   } = useBatchesList({
     status: filterStatus,
@@ -189,8 +203,9 @@ export function BatchesTable() {
     limit,
   });
 
-  const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse]);
-  const isInitialLoading = isLoading && batches.length === 0;
+  const batches = batchesResponse?.items ?? [];
+
+  const isTableLoading = isLoading;
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {
@@ -235,25 +250,22 @@ export function BatchesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header via Global PageHeader with no breadcrumbs */}
-      <PageHeader
-        title="Batches"
-        actions={
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-          >
-            <Span className="text-base font-bold">+</Span>
-            <Span>Create Batch</Span>
-          </Button>
-        }
-      />
+      {/* Top Header Action Toolbar without redundant h1 header */}
+      <div className="flex items-center justify-end pt-2">
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={() => setIsCreateOpen(true)}
+          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+        >
+          <Span className="text-base font-bold">+</Span>
+          <Span>Create Batch</Span>
+        </Button>
+      </div>
 
       {/* Filter Row with Search Input and Status MultiSelect Filter */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-3.5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
             value={search}
@@ -287,22 +299,16 @@ export function BatchesTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Batch Name</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Timeline</TableHead>
-              <TableHead>Members</TableHead>
-              <TableHead className="text-right">Overall Progress</TableHead>
+              <TableHead className="font-semibold text-slate-700">Batch Name</TableHead>
+              <TableHead className="font-semibold text-slate-700">Code</TableHead>
+              <TableHead className="font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="font-semibold text-slate-700">Timeline</TableHead>
+              <TableHead className="font-semibold text-slate-700">Members</TableHead>
+              <TableHead className="text-right font-semibold text-slate-700">Progress</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={
-              isFetching && !isInitialLoading
-                ? 'opacity-60 transition-opacity'
-                : 'transition-opacity'
-            }
-          >
-            {isInitialLoading ? (
+          <TableBody>
+            {isTableLoading ? (
               <BatchesTableSkeleton count={limit} />
             ) : batches.length === 0 ? (
               <TableRow>
@@ -324,7 +330,7 @@ export function BatchesTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          isLoading={isInitialLoading}
+          isLoading={isTableLoading}
           itemLabel="cohorts"
           pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
         />

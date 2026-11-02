@@ -86,6 +86,7 @@ export function TransferMenteeModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      isSubmitting={isSubmitting}
       title="Transfer Mentee"
       description={
         <Span>

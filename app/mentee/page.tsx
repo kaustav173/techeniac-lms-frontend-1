@@ -56,15 +56,15 @@ function MenteeHeaderSection({
 }>) {
   if (isLoading) {
     return (
-      <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+      <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <Skeleton className="h-9 w-64" />
             <Skeleton className="h-5 w-44" />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Skeleton className="h-20 w-56 rounded-xl" />
-            <Skeleton className="h-20 w-56 rounded-xl" />
+            <Skeleton className="h-20 w-56 rounded-2xl" />
+            <Skeleton className="h-20 w-56 rounded-2xl" />
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ function MenteeHeaderSection({
   }
 
   return (
-    <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+    <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <H1 className="text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">

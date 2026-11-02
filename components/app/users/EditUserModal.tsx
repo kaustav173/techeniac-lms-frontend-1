@@ -78,6 +78,7 @@ function EditUserModalContent({
       title="Edit User Details"
       description="Update the display name or primary email for this account."
       size="sm"
+      isSubmitting={isSubmitting}
       footer={
         <>
           <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
@@ -134,7 +135,7 @@ function EditUserModalContent({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="font-mono text-sm"
+            className="text-sm"
             required
           />
         </div>

@@ -244,6 +244,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
       <Modal
         isOpen={isOpen}
         onClose={handleRequestClose}
+        isSubmitting={isSubmitting}
         title="Create New Batch"
         size="lg"
         footer={
@@ -273,7 +274,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
           onSubmit={(e) => {
             void handleSubmit(e);
           }}
-          className="min-h-[440px] space-y-4"
+          className="min-h-[380px] space-y-4"
         >
           {errors.general ? (
             <Alert variant="error" title="Batch Creation Failed" message={errors.general} />

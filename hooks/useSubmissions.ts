@@ -69,7 +69,7 @@ export function useAssignmentSubmissionDetails(assignmentId: string) {
     queryFn: ({ signal }) =>
       submissionsService.getAssignmentSubmissionDetails(assignmentId, signal),
     enabled: Boolean(assignmentId),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   return {
@@ -93,7 +93,7 @@ export function usePrefetchAssignmentDetails() {
           queryKey: SUBMISSION_QUERY_KEYS.assignmentDetails(assignmentId),
           queryFn: ({ signal }) =>
             submissionsService.getAssignmentSubmissionDetails(assignmentId, signal),
-          staleTime: 30 * 1000,
+          staleTime: 5 * 60 * 1000,
         })
         .catch(noop);
     },

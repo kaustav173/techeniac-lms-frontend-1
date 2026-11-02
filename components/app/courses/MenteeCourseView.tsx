@@ -5,12 +5,14 @@ import React, { useId, useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, H4, Muted, P, Span } from '@/components/ui/Typography';
 import { useCourseDetail } from '@/hooks/useCourses';
 import {
@@ -32,14 +34,14 @@ interface CapstoneAssignmentCardProps {
 
 export function CapstoneAssignmentCard({ assignment }: CapstoneAssignmentCardProps) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+    <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
       <div className="flex items-start justify-between gap-2">
         <H4 className="text-xs font-bold text-slate-900">{assignment.title}</H4>
-        <Span className="rounded bg-slate-200 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-700">
+        <Span className="rounded bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
           {assignment.maxMarks} Marks
         </Span>
       </div>
-      <Muted className="font-mono text-[10.5px]">
+      <Muted className="text-xs">
         Pass: {assignment.passMarks} • Est: {assignment.estimatedMinutes}m
       </Muted>
     </div>
@@ -71,11 +73,11 @@ export function CourseOutlineSidebar({
 }: CourseOutlineSidebarProps) {
   return (
     <aside className="flex flex-col gap-6 lg:col-span-4">
-      <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+      <div className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <H2 className="text-base font-bold text-slate-900">Course Outline</H2>
-            <Muted className="mt-0.5 font-mono text-[11px]">
+            <Muted className="mt-0.5 text-xs">
               {activeTopics.length} Topics • {courseAssignments.length} Capstone
             </Muted>
           </div>
@@ -94,7 +96,7 @@ export function CourseOutlineSidebar({
             return (
               <div
                 key={topic.id}
-                className={`rounded-xl border transition-all ${
+                className={`rounded-2xl border transition-all ${
                   isCurrent
                     ? 'border-blue-300 bg-blue-50/40 shadow-xs'
                     : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
@@ -132,12 +134,12 @@ export function CourseOutlineSidebar({
 
                   <div className="ml-2 flex flex-shrink-0 items-center gap-1.5">
                     {isOverdue && (
-                      <Span className="rounded bg-rose-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-rose-700">
+                      <Span className="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-700">
                         OVERDUE
                       </Span>
                     )}
                     <Span
-                      className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         isCompleted
                           ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
                           : isInProgress
@@ -173,9 +175,7 @@ export function CourseOutlineSidebar({
                             {index + 1}.{sIdx + 1} {sub.title}
                           </Span>
                           {sub.estimatedMinutes != null && (
-                            <Span className="font-mono text-[10px] text-slate-400">
-                              {sub.estimatedMinutes}m
-                            </Span>
+                            <Span className="text-xs text-slate-400">{sub.estimatedMinutes}m</Span>
                           )}
                         </Button>
                       );
@@ -192,7 +192,7 @@ export function CourseOutlineSidebar({
           <div className="mt-6 border-t border-slate-100 pt-4">
             <div className="mb-3 flex items-center gap-1.5">
               <Span className="text-sm">🎯</Span>
-              <H4 className="font-mono text-[11px] font-bold tracking-wider text-slate-700 uppercase">
+              <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                 Course Capstone & Milestones
               </H4>
             </div>
@@ -253,7 +253,7 @@ export function ProgressControlStrip({
       )}
 
       {/* Interactive Mentee Progress Control Strip (Stitch Screen 5701db0470ab457abdb95e73661bc5dc) */}
-      <div className="-mx-6 mt-10 -mb-6 rounded-b-2xl border-t border-slate-200 bg-slate-50 p-6 sm:-mx-10 sm:-mb-10 sm:p-8">
+      <div className="-mx-6 mt-10 -mb-6 rounded-b-3xl border-t border-slate-200 bg-slate-50 p-6 sm:-mx-10 sm:-mb-10 sm:p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
             <Span className="font-bold text-blue-600">📝</Span>
@@ -280,7 +280,7 @@ export function ProgressControlStrip({
                   aria-checked={isSelected}
                   disabled={isReadOnly || isPending}
                   onClick={() => onStatusChange(st)}
-                  className={`h-auto rounded-lg px-3 py-1.5 font-mono text-xs transition-all ${
+                  className={`h-auto rounded-lg px-3 py-1.5 text-xs transition-all ${
                     isSelected
                       ? 'bg-blue-600 font-bold text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
@@ -318,7 +318,7 @@ export function ProgressControlStrip({
             type="button"
             disabled={isReadOnly || currentTopicStatus === 'COMPLETED' || isPending}
             onClick={() => onStatusChange('COMPLETED')}
-            className="h-12 flex-shrink-0 px-6 font-mono text-xs font-bold"
+            className="h-12 flex-shrink-0 px-6 text-xs font-bold"
           >
             {isPending
               ? 'Saving Progress...'
@@ -353,17 +353,17 @@ export function TopicReadingPane({
 }: TopicReadingPaneProps) {
   return (
     <section className="flex flex-col gap-8 lg:col-span-8">
-      <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-10">
+      <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-10">
         {/* Module Header Badge */}
         <div className="border-b border-slate-100 pb-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-mono text-[11px] font-bold tracking-wider text-blue-700 uppercase">
+              <Span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wider text-blue-700 uppercase">
                 Topic Progress • Module Active
               </Span>
               {currentTopicProgress?.deadline && (
                 <Span
-                  className={`font-mono text-[11px] font-semibold ${
+                  className={`text-xs font-semibold ${
                     currentTopicProgress.isOverdue ? 'text-rose-600' : 'text-slate-500'
                   }`}
                 >
@@ -373,7 +373,7 @@ export function TopicReadingPane({
             </div>
 
             <div className="flex items-center gap-2">
-              <Span className="font-mono text-xs text-slate-400">
+              <Span className="text-xs text-slate-400">
                 ⏱{' '}
                 {currentTopic?.estimatedMinutes != null
                   ? `${currentTopic.estimatedMinutes} mins`
@@ -399,7 +399,7 @@ export function TopicReadingPane({
               className="max-w-none leading-7 text-slate-700"
             />
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
               <P className="text-sm text-slate-500">
                 Review the curriculum syllabus guidelines, reference documentation, and complete
                 associated labs below to satisfy milestone clearance.
@@ -409,8 +409,8 @@ export function TopicReadingPane({
 
           {/* Subtopic Resources if present */}
           {currentSubtopic?.resources && currentSubtopic.resources.length > 0 && (
-            <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <H4 className="mb-2 font-mono text-xs font-bold tracking-wider text-slate-700 uppercase">
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <H4 className="mb-2 text-xs font-bold tracking-wider text-slate-700 uppercase">
                 Reference Resources & External Documentation
               </H4>
               <ul className="flex flex-col gap-2">
@@ -448,7 +448,7 @@ export function TopicReadingPane({
                 Action items and tasks associated with this module milestone.
               </P>
             </div>
-            <Span className="rounded-full bg-blue-50 px-3 py-1 font-mono text-xs font-semibold text-blue-700">
+            <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
               {topicAssignments.length} Assignment{topicAssignments.length === 1 ? '' : 's'}
             </Span>
           </div>
@@ -457,14 +457,14 @@ export function TopicReadingPane({
             {topicAssignments.map((assignment) => (
               <div
                 key={assignment.id}
-                className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
+                className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
               >
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <Span className="rounded-md bg-blue-50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-blue-700">
+                    <Span className="rounded-md bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
                       Topic Task
                     </Span>
-                    <Span className="font-mono text-xs font-bold text-slate-700">
+                    <Span className="text-xs font-bold text-slate-700">
                       {assignment.maxMarks} Marks
                     </Span>
                   </div>
@@ -475,7 +475,7 @@ export function TopicReadingPane({
                   </P>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-3 font-mono text-xs text-slate-500">
+                <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
                   <Span>⏱ {assignment.estimatedMinutes}m est.</Span>
                   <Span className="font-semibold text-blue-600">Pass: {assignment.passMarks}</Span>
                 </div>
@@ -617,14 +617,17 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     return (
       <div className="flex min-h-screen flex-col bg-slate-50 antialiased">
         <Header {...MENTEE_COURSES_NAV} />
-        <main className="mx-auto flex w-full max-w-7xl flex-1 items-center justify-center p-12">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-3 border-blue-600 border-t-transparent" />
-            <Span className="font-mono text-xs tracking-wider text-slate-500 uppercase">
-              Loading Learning Workspace Telemetry...
-            </Span>
+        <DashboardContent className="space-y-6">
+          <Skeleton className="h-40 w-full rounded-3xl" />
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <Skeleton className="h-[480px] w-full rounded-3xl" />
+            </div>
+            <div className="lg:col-span-8">
+              <Skeleton className="h-[600px] w-full rounded-3xl" />
+            </div>
           </div>
-        </main>
+        </DashboardContent>
       </div>
     );
   }
@@ -633,8 +636,8 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     return (
       <div className="flex min-h-screen flex-col bg-slate-50 antialiased">
         <Header {...MENTEE_COURSES_NAV} />
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-12">
-          <div className="rounded-2xl border border-rose-200 bg-white p-8 shadow-xs">
+        <DashboardContent className="space-y-6">
+          <div className="rounded-3xl border border-rose-200 bg-white p-8 shadow-xs">
             <ErrorMessage
               error={progressError || courseError || new Error('Failed to load course workspace')}
               onRetry={() => {
@@ -650,7 +653,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               </Link>
             </div>
           </div>
-        </main>
+        </DashboardContent>
       </div>
     );
   }
@@ -661,15 +664,15 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent className="space-y-6">
         {/* Read-Only State Awareness Banner (Stitch Screen 5701db0470ab457abdb95e73661bc5dc) */}
         {isReadOnly && (
-          <div className="mb-6 flex items-start gap-3.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-xs">
+          <div className="flex items-start gap-3.5 rounded-3xl border border-amber-200 bg-amber-50 p-4 shadow-xs">
             <Span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-700">
               ⏸
             </Span>
             <div className="flex flex-col gap-0.5">
-              <Span className="font-mono text-xs font-bold tracking-wider text-amber-900 uppercase">
+              <Span className="text-xs font-bold tracking-wider text-amber-900 uppercase">
                 Review Mode • Read-Only
               </Span>
               <P className="text-xs leading-relaxed text-amber-800">
@@ -682,10 +685,10 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
         )}
 
         {/* Back Link & Breadcrumb Header */}
-        <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <Link
             href="/mentee/courses"
-            className="group inline-flex items-center gap-2 font-mono text-xs font-semibold text-blue-600 transition-colors hover:text-blue-800"
+            className="group inline-flex items-center gap-2 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-800"
           >
             <Span className="transition-transform group-hover:-translate-x-1">←</Span>
             <Span>Back to My Courses</Span>
@@ -700,15 +703,15 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
         </div>
 
         {/* Course Header Telemetry Card */}
-        <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
             <div className="max-w-3xl">
               <div className="mb-2 flex items-center gap-2">
-                <Span className="font-mono text-[11px] font-bold tracking-wider text-blue-600 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                   Curriculum Track
                 </Span>
                 <Span className="text-slate-300">•</Span>
-                <Span className="font-mono text-[11px] text-slate-500 uppercase">
+                <Span className="text-xs text-slate-500 uppercase">
                   {activeTopics.length} Active Modules
                 </Span>
               </div>
@@ -720,12 +723,12 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-600">
                 <div className="flex items-center gap-1.5">
                   <Span className="text-slate-400">📅</Span>
-                  <Span className="font-mono">Due {formattedDueDate}</Span>
+                  <Span>Due {formattedDueDate}</Span>
                 </div>
                 <Span className="text-slate-300">•</Span>
                 <div className="flex items-center gap-1.5">
                   <Span className="text-slate-400">⏱</Span>
-                  <Span className="font-mono">
+                  <Span>
                     {courseData?.estimatedMinutes != null
                       ? `${Math.floor(courseData.estimatedMinutes / 60)}h ${courseData.estimatedMinutes % 60}m duration`
                       : 'Self-paced'}
@@ -743,7 +746,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             </div>
 
             {/* Progress Metric Ring Box */}
-            <div className="flex min-w-[260px] items-center gap-5 rounded-xl border border-slate-100 bg-slate-50 p-5 shadow-xs">
+            <div className="flex min-w-[260px] items-center gap-5 rounded-2xl border border-slate-100 bg-slate-50 p-5 shadow-xs">
               <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center">
                 <svg className="h-16 w-16 -rotate-90 transform" viewBox="0 0 64 64">
                   <circle
@@ -777,21 +780,21 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Span className="font-mono text-sm font-bold text-slate-900">
+                  <Span className="text-sm font-bold text-slate-900">
                     {Math.round(allocation.progressPercent)}%
                   </Span>
                 </div>
               </div>
 
               <div className="flex flex-col">
-                <Span className="font-mono text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
                   Curriculum Pace
                 </Span>
                 <Span className="text-sm font-bold text-slate-900">
                   {completedCount} of {activeTopics.length} Topics
                 </Span>
                 <Span
-                  className={`mt-0.5 font-mono text-[11px] font-semibold ${
+                  className={`mt-0.5 text-xs font-semibold ${
                     allocation.status === 'COMPLETED'
                       ? 'text-emerald-600'
                       : allocation.isOverdue
@@ -854,7 +857,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             }
           />
         </div>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

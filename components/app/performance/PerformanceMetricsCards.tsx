@@ -21,7 +21,7 @@ export function PerformanceMetricsCards({
 }: PerformanceMetricsCardsProps) {
   if (isError) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
         <ErrorMessage error={error} onRetry={onRetry} />
       </div>
     );
@@ -33,7 +33,7 @@ export function PerformanceMetricsCards({
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
+            className="animate-pulse rounded-3xl border border-slate-200 bg-white p-5 shadow-xs"
           >
             <div className="h-4 w-24 rounded bg-slate-200" />
             <div className="mt-3 h-8 w-16 rounded bg-slate-200" />
@@ -47,7 +47,7 @@ export function PerformanceMetricsCards({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {/* 1. Average Marks */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Average Score
         </Span>
@@ -64,7 +64,7 @@ export function PerformanceMetricsCards({
       </div>
 
       {/* 2. Completion Percentage */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Curriculum Completion
         </Span>
@@ -82,7 +82,7 @@ export function PerformanceMetricsCards({
       </div>
 
       {/* 3. On-Time Submission Rate */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
           On-Time Submission Rate
         </Span>
@@ -95,7 +95,7 @@ export function PerformanceMetricsCards({
       </div>
 
       {/* 4. Overdue Items Count */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Overdue Tasks
         </Span>

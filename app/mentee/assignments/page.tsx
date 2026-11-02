@@ -9,7 +9,7 @@ import { MyAssignmentsTable } from '@/components/app/submissions/MyAssignmentsTa
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { H1, P, Span } from '@/components/ui/Typography';
+import { PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import type { AssignmentDerivedStatus } from '@/types/submissions';
@@ -60,44 +60,28 @@ function MenteeAssignmentsContent() {
 
       <DashboardContent>
         {/* Page Header */}
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                <Span>Assignments Portal</Span>
-              </div>
-              <H1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                My Course Assignments
-              </H1>
-              <P variant="muted" className="mt-1 text-sm text-slate-500">
-                Submit assignment deliverables, review mentor grades, and inspect revision history
-                in Indian Standard Time (IST).
-              </P>
-            </div>
-
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs">
-              <Span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                Timezone Standard
-              </Span>
-              <Span className="mt-0.5 block font-bold text-slate-800">IST (UTC+05:30)</Span>
-              <Span className="mt-1 block text-slate-500">All due dates shown in IST</Span>
-            </div>
+        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <PageTitle>My Course Assignments</PageTitle>
+            <SubText className="mt-1">
+              Submit assignment deliverables, review mentor grades, and inspect revision history in
+              Indian Standard Time (IST).
+            </SubText>
           </div>
 
           {activeCourseId ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <div className="flex items-center gap-2">
               <Span className="text-xs text-slate-500">Filtered by course:</Span>
-              <Span className="rounded-md bg-blue-50 px-2 py-0.5 font-mono text-xs font-semibold text-blue-700">
+              <Span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
                 {assignments[0]?.courseTitle ?? activeCourseId}
               </Span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleClearCourseFilter}
-                className="h-6 px-2 text-[11px]"
+                className="h-8 px-3 text-xs"
               >
-                Clear Course Filter
+                Clear Filter
               </Button>
             </div>
           ) : null}

@@ -99,6 +99,7 @@ export function AssignmentOverridesModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      isSubmitting={setOverrideMutation.isPending}
       title="Assignment Due-Date Overrides"
       description={`Set custom deadlines for individual assignments for ${allocation.user?.name ?? 'mentee'}.`}
       size="lg"

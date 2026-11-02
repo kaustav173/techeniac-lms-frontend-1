@@ -6,7 +6,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'Batches Management | Techeniac LMS',
+  title: 'Batches Management | TechEniac LMS',
   description:
     'Manage cohorts, member rosters, allocated courses, and lifecycle status transitions.',
 };

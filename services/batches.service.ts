@@ -169,7 +169,7 @@ export const batchesService = {
         items: res.data.items,
         pagination: res.data.pagination ?? {
           page: filters.page ?? 1,
-          limit: filters.limit ?? 20,
+          limit: filters.limit ?? 10,
           total: res.data.items.length,
           totalPages: 1,
         },
@@ -177,7 +177,7 @@ export const batchesService = {
     }
     return {
       items: [],
-      pagination: { page: 1, limit: 20, total: 0, totalPages: 1 },
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
     };
   },
 

@@ -15,7 +15,7 @@ export function useAuditLogs(filters: AuditQueryFilters = {}) {
     queryKey: auditKeys.list(filters),
     queryFn: () => auditService.getAuditLogs(filters),
     placeholderData: keepPreviousData,
-    staleTime: 10_000,
+    staleTime: 5 * 60 * 1000,
   });
 
   return {

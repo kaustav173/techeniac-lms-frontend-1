@@ -81,16 +81,60 @@ H1.displayName = 'H1';
 
 export const PageTitle = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
   ({ className, children, ...props }, ref) => (
-    <H1
-      ref={ref}
-      className={cn('text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl', className)}
-      {...props}
-    >
+    <h1 ref={ref} className={cn('page-title', className)} {...props}>
       {children}
-    </H1>
+    </h1>
   ),
 );
 PageTitle.displayName = 'PageTitle';
+
+export const Title = PageTitle;
+
+export const SectionTitle = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <h2 ref={ref} className={cn('section-title', className)} {...props}>
+      {children}
+    </h2>
+  ),
+);
+SectionTitle.displayName = 'SectionTitle';
+
+export const CardTitle = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <h3 ref={ref} className={cn('card-title', className)} {...props}>
+      {children}
+    </h3>
+  ),
+);
+CardTitle.displayName = 'CardTitle';
+
+export const BodyText = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <p ref={ref} className={cn('normal-text', className)} {...props}>
+      {children}
+    </p>
+  ),
+);
+BodyText.displayName = 'BodyText';
+
+export const SubText = React.forwardRef<HTMLParagraphElement, Omit<TypographyProps, 'as'>>(
+  ({ className, children, ...props }, ref) => (
+    <p ref={ref} className={cn('sub-text', className)} {...props}>
+      {children}
+    </p>
+  ),
+);
+SubText.displayName = 'SubText';
+
+export const LabelText = React.forwardRef<
+  HTMLLabelElement,
+  React.LabelHTMLAttributes<HTMLLabelElement>
+>(({ className, children, ...props }, ref) => (
+  <label ref={ref} className={cn('label-text', className)} {...props}>
+    {children}
+  </label>
+));
+LabelText.displayName = 'LabelText';
 
 export const H2 = React.forwardRef<HTMLHeadingElement, Omit<TypographyProps, 'as'>>(
   ({ variant = 'h2', ...props }, ref) => (

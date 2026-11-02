@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
@@ -416,23 +415,15 @@ export function BatchDashboardView({
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb & Navigation */}
+      {/* Top Header & Actions */}
       <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-          <Link href="/admin/batches" className="transition-colors hover:text-blue-600">
-            <Span>Batches</Span>
-          </Link>
-          <Span>/</Span>
-          <Span className="text-slate-600">{batch.name}</Span>
-        </div>
-
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="flex flex-wrap items-center gap-3">
             <H1 className="text-2xl font-extrabold tracking-tight break-words text-slate-900 sm:text-3xl">
               {batch.name}
             </H1>
             <Span
-              className={`rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+              className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                 batch.status,
               )}`}
             >
@@ -443,25 +434,11 @@ export function BatchDashboardView({
           <div className="flex items-center gap-2.5">
             <Button
               type="button"
-              variant="primary"
+              variant="secondary"
               size="sm"
               onClick={() => setIsStatusOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700"
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
               <Span>Change Status</Span>
             </Button>
           </div>
@@ -478,19 +455,19 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Active Mentees
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">{mentees.length}</P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{mentees.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Assigned Mentors
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">{mentors.length}</P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{mentors.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Allocated Courses
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+          <P className="mt-1 text-3xl font-bold text-slate-900">
             {batch.courses.length > 0 ? batch.courses.length : '—'}
           </P>
         </div>
@@ -498,7 +475,7 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Timeline Window
           </Span>
-          <P className="mt-2 font-mono text-sm font-semibold text-slate-800">
+          <P className="mt-2 text-sm font-semibold text-slate-800">
             {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
           </P>
         </div>
@@ -550,9 +527,6 @@ export function BatchDashboardView({
           <div className="flex items-center justify-between border-b border-slate-100 p-4">
             <div>
               <H3 className="text-sm font-bold text-slate-800">Cohort Roster</H3>
-              <P className="text-xs text-slate-500">
-                A mentee can belong to only 1 active cohort at a time (FR-5.2)
-              </P>
             </div>
             <div className="flex items-center gap-2">
               {mentors.length > 0 && unmappedMentees.length > 0 && !isArchived ? (
@@ -635,11 +609,11 @@ export function BatchDashboardView({
                     <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
                       <TableCell>
                         <P className="font-semibold text-slate-900">{m.name}</P>
-                        <P className="font-mono text-xs text-slate-500">{m.email}</P>
+                        <P className="text-xs text-slate-500">{m.email}</P>
                       </TableCell>
                       <TableCell>
                         <Span
-                          className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold ${
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                             m.memberRole === 'MENTOR'
                               ? 'border border-blue-200 bg-blue-50 text-blue-700'
                               : 'border border-emerald-200 bg-emerald-50 text-emerald-700'
@@ -657,7 +631,7 @@ export function BatchDashboardView({
                           }
                         />
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-500">
+                      <TableCell className="text-xs text-slate-500">
                         <Span>{formatDateDMY(m.joinedAt)}</Span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -685,14 +659,17 @@ export function BatchDashboardView({
                             variant="ghost"
                             size="sm"
                             disabled={removeMemberMutation.isPending || isArchived}
-                            title={isArchived ? "Can't remove from archived batch" : undefined}
+                            title={
+                              isArchived ? "Can't remove from archived batch" : `Remove ${m.name}`
+                            }
+                            aria-label={`Remove ${m.name}`}
                             onClick={() => {
                               setMemberToRemove({ id: m.id, name: m.name, role: m.memberRole });
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg p-0 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
                           >
                             <svg
-                              className="h-3.5 w-3.5"
+                              className="h-4 w-4"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -705,7 +682,6 @@ export function BatchDashboardView({
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                               />
                             </svg>
-                            <Span>Remove</Span>
                           </Button>
                         </div>
                       </TableCell>
@@ -752,7 +728,7 @@ export function BatchDashboardView({
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-600">
+                      <TableCell className="text-xs text-slate-600">
                         <Span>{formatDateDMY(c.dueDate)}</Span>
                       </TableCell>
                       <TableCell>
@@ -763,13 +739,13 @@ export function BatchDashboardView({
                               style={{ width: `${c.averageProgress}%` }}
                             />
                           </div>
-                          <Span className="font-mono text-xs font-semibold text-slate-700">
+                          <Span className="text-xs font-semibold text-slate-700">
                             {c.averageProgress}%
                           </Span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-700">
+                        <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                           {c.status}
                         </Span>
                       </TableCell>
@@ -846,7 +822,7 @@ export function BatchDashboardView({
                   <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
                     Start Date
                   </Span>
-                  <Span className="mt-0.5 block font-mono text-sm font-bold text-slate-900">
+                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
                     {formatDateDMY(batch.startDate)}
                   </Span>
                 </div>
@@ -875,7 +851,7 @@ export function BatchDashboardView({
                     Current Status
                   </Span>
                   <Span
-                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                       batch.status,
                     )}`}
                   >
@@ -906,7 +882,7 @@ export function BatchDashboardView({
                   <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
                     Target End Date
                   </Span>
-                  <Span className="mt-0.5 block font-mono text-sm font-bold text-slate-900">
+                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
                     {formatDateDMY(batch.endDate)}
                   </Span>
                 </div>
@@ -933,12 +909,10 @@ export function BatchDashboardView({
                   <div key={h.id} className="relative">
                     <Span className="absolute top-1 -left-6 h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white" />
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <Span className="font-mono text-xs font-bold text-slate-800">
+                      <Span className="text-xs font-bold text-slate-800">
                         {h.fromStatus} → {h.toStatus}
                       </Span>
-                      <Span className="font-mono text-xs text-slate-400">
-                        {formatDateDMY(h.changedAt)}
-                      </Span>
+                      <Span className="text-xs text-slate-400">{formatDateDMY(h.changedAt)}</Span>
                     </div>
                     <P className="mt-1 text-xs break-words text-slate-600">
                       By <strong className="font-semibold text-slate-800">{h.changedBy}</strong>

@@ -82,7 +82,7 @@ export function useUsers(
   } = useQuery({
     queryKey: userKeys.list(activeFilters),
     queryFn: () => usersService.listUsers(activeFilters),
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
     ...options,
   });
@@ -124,8 +124,20 @@ export function useUsers(
   const toggleStatusMutation = useMutation({
     mutationFn: (variables: { id: string; activate: boolean }) =>
       usersService.toggleStatus(variables.id, variables.activate),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    onSuccess: (updatedUser) => {
+      queryClient.setQueriesData(
+        { queryKey: userKeys.lists() },
+        (
+          oldData: { users?: ApiUser[]; total?: number; counts?: UserDirectoryCounts } | undefined,
+        ) => {
+          if (!oldData) return oldData;
+          const next = { ...oldData };
+          if (Array.isArray(next.users)) {
+            next.users = next.users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+          }
+          return next;
+        },
+      );
     },
   });
 
