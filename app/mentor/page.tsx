@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/Table';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
+import { useMentorDashboard } from '@/hooks/useDashboard';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -200,6 +201,12 @@ export default function MentorPage() {
     error: menteesError,
   } = useMentorMentees();
 
+  const {
+    data: mentorDashboard,
+    isLoading: isLoadingDashboard,
+    error: dashboardError,
+  } = useMentorDashboard({ enabled: isAuthorized });
+
   if (!isAuthorized || !user) {
     return (
       <PortalSessionState
@@ -209,6 +216,11 @@ export default function MentorPage() {
       />
     );
   }
+
+  const isZeroState =
+    mentorDashboard?.isZeroState ??
+    (batches.filter((b) => !['COMPLETED', 'ARCHIVED'].includes(b.status)).length === 0 &&
+      mentees.length === 0);
 
   const liveBatchesCount = batches.filter((b) => b.status === 'LIVE').length;
 
@@ -237,7 +249,7 @@ export default function MentorPage() {
         </div>
 
         {/* Global Error Banner */}
-        {batchesError || menteesError ? (
+        {batchesError || menteesError || dashboardError ? (
           <div className="mb-6">
             <Alert
               variant="error"
@@ -245,9 +257,64 @@ export default function MentorPage() {
               message={
                 batchesError?.message ||
                 menteesError?.message ||
+                dashboardError?.message ||
                 'An error occurred while fetching your assigned cohort information.'
               }
             />
+          </div>
+        ) : null}
+
+        {/* Empty-State Guidance for New Mentors (DSH-08) */}
+        {isZeroState &&
+        !isLoadingBatches &&
+        !isLoadingMentees &&
+        !isLoadingDashboard &&
+        !batchesError &&
+        !menteesError &&
+        !dashboardError ? (
+          <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50/70 p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0044D3] text-white">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <H2 className="text-lg font-bold text-[#111827]">
+                  Welcome to Techeniac LMS, Mentor!
+                </H2>
+                <P className="mt-1 text-sm leading-relaxed text-[#667085]">
+                  Once an administrator assigns you to an active batch or pairs you with learners,
+                  you will be able to review assignment submissions, track syllabus progress, and
+                  evaluate grades directly from this dashboard.
+                </P>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href="/mentor/courses"
+                    className="inline-flex items-center rounded-xl bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+                  >
+                    Explore Course Library →
+                  </Link>
+                  <Link
+                    href="/mentor/my-performance"
+                    className="inline-flex items-center rounded-xl border border-[#E1E6EC] bg-white px-4 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-[#F6F8FC]"
+                  >
+                    View My Learning History →
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
 
@@ -421,6 +488,55 @@ export default function MentorPage() {
               </H3>
               <P className="mt-1 text-xs text-[#667085]">
                 Monitor real-time cohort milestone velocity and individual mentee pace.
+              </P>
+            </div>
+          </Link>
+
+          {/* Card 4: My Performance (FR-11.5, DSH-02) */}
+          <Link
+            href="/mentor/my-performance"
+            className="group flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:border-[#0044D3] hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-colors group-hover:bg-[#0044D3] group-hover:text-white">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 14l9-5-9-5-9 5 9 5z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                    />
+                  </svg>
+                </div>
+                <svg
+                  className="h-5 w-5 text-slate-400 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0044D3]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+              <H3 className="mt-4 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                My Performance
+              </H3>
+              <P className="mt-1 text-xs text-[#667085]">
+                View your personal learning history, completed tracks, and grades from when you were
+                a mentee.
               </P>
             </div>
           </Link>

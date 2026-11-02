@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AuthContextValue } from '@/context/AuthContext';
@@ -7,6 +8,7 @@ import { ApiError } from '@/lib/errors';
 import { authService, type AuthUser } from '@/services/auth.service';
 
 export function useAuthProvider(): AuthContextValue {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(() => {
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/reset-password')) {
@@ -55,24 +57,31 @@ export function useAuthProvider(): AuthContextValue {
     };
   }, [refreshUser]);
 
-  const login = useCallback(async (credentials: { email: string; password: string }) => {
-    setIsLoading(true);
-    try {
-      const data = await authService.login(credentials);
-      setUser(data.user);
-      setSessionError(null);
-      return data.user;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const login = useCallback(
+    async (credentials: { email: string; password: string }) => {
+      setIsLoading(true);
+      try {
+        // Reset in-memory query cache for current tab session upon login
+        queryClient.clear();
+        const data = await authService.login(credentials);
+        setUser(data.user);
+        setSessionError(null);
+        return data.user;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [queryClient],
+  );
 
   const logout = useCallback(async () => {
     // Note: Do NOT set shared isLoading(true) to avoid page spinner flash
     await authService.logout();
+    // Reset in-memory query cache for current tab session upon logout
+    queryClient.clear();
     setUser(null);
     setSessionError(null);
-  }, []);
+  }, [queryClient]);
 
   return useMemo(
     () => ({
