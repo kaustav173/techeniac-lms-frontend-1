@@ -25,6 +25,7 @@ import { Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { formatDateDMY } from '@/lib/date';
+import { compareStrings } from '@/lib/sort';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -200,7 +201,6 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
-    isFetching,
     error,
   } = useBatchesList({
     status: filterStatus,
@@ -231,24 +231,23 @@ export function BatchesTable() {
       let valA = '';
       let valB = '';
       if (sortField === 'name') {
-        valA = a.name.toLowerCase();
-        valB = b.name.toLowerCase();
+        valA = a.name;
+        valB = b.name;
       } else if (sortField === 'code') {
-        valA = a.code.toLowerCase();
-        valB = b.code.toLowerCase();
+        valA = a.code;
+        valB = b.code;
       } else if (sortField === 'status') {
-        valA = a.status.toLowerCase();
-        valB = b.status.toLowerCase();
+        valA = a.status;
+        valB = b.status;
       } else if (sortField === 'startDate') {
         valA = a.startDate || '';
         valB = b.startDate || '';
       }
-      const cmp = valA.localeCompare(valB);
-      return sortOrder === 'asc' ? cmp : -cmp;
+      return compareStrings(valA, valB, sortOrder);
     });
   }, [batchesResponse, sortField, sortOrder]);
 
-  const isTableLoading = isLoading || isFetching;
+  const isTableLoading = isLoading;
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {
@@ -348,7 +347,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort by Batch Name"
+                tooltip="Sort visible page by Batch Name"
               />
               <SortableColumnHeader<BatchSortField>
                 field="code"
@@ -356,7 +355,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort by Code"
+                tooltip="Sort visible page by Code"
               />
               <SortableColumnHeader<BatchSortField>
                 field="status"
@@ -364,7 +363,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort by Status"
+                tooltip="Sort visible page by Status"
               />
               <SortableColumnHeader<BatchSortField>
                 field="startDate"
@@ -372,7 +371,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort by Timeline"
+                tooltip="Sort visible page by Timeline"
               />
               <TableHead className="font-semibold text-slate-700">Members</TableHead>
               <TableHead className="text-right font-semibold text-slate-700">Progress</TableHead>

@@ -7,6 +7,7 @@ export interface UseDialogAccessibilityOptions {
   onClose: () => void;
   dialogRef: React.RefObject<HTMLElement | null>;
   initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
+  preventClose?: boolean | undefined;
 }
 
 export function useDialogAccessibility({
@@ -14,13 +15,19 @@ export function useDialogAccessibility({
   onClose,
   dialogRef,
   initialFocusRef,
+  preventClose = false,
 }: UseDialogAccessibilityOptions) {
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const preventCloseRef = useRef(preventClose);
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    preventCloseRef.current = preventClose;
+  }, [preventClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +57,9 @@ export function useDialogAccessibility({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onCloseRef.current();
+        if (!preventCloseRef.current) {
+          onCloseRef.current();
+        }
         return;
       }
 

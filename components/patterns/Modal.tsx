@@ -18,6 +18,8 @@ export interface ModalProps {
   initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
   className?: string | undefined;
   ariaLabelledBy?: string | undefined;
+  isSubmitting?: boolean | undefined;
+  preventClose?: boolean | undefined;
 }
 
 export function Modal({
@@ -31,14 +33,18 @@ export function Modal({
   initialFocusRef,
   className,
   ariaLabelledBy,
+  isSubmitting = false,
+  preventClose = false,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const isLocked = Boolean(isSubmitting || preventClose);
 
   useDialogAccessibility({
     isOpen,
     onClose,
     dialogRef,
     initialFocusRef,
+    preventClose: isLocked,
   });
 
   if (!isOpen) return null;
@@ -59,7 +65,11 @@ export function Modal({
 
   return (
     <div
-      onClick={onClose}
+      onClick={() => {
+        if (!isLocked) {
+          onClose();
+        }
+      }}
       className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm duration-150"
     >
       <div
@@ -96,8 +106,9 @@ export function Modal({
             variant="ghost"
             size="sm"
             onClick={onClose}
+            disabled={isLocked}
             aria-label="Close dialog"
-            className="h-8 w-8 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="h-8 w-8 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
           >
             ✕
           </Button>

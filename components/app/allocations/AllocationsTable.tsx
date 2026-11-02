@@ -12,6 +12,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { H1, P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
@@ -350,38 +351,38 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             >
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
-                  <tr key={`alloc-skel-${idx}`} className="h-16">
-                    <td className="py-4 pr-2 pl-6">
+                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                    <TableCell className="py-4 pr-2 pl-6">
                       <Skeleton className="h-6 w-6 rounded-lg" />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-36 rounded-md" />
                         <Skeleton className="h-3 w-48 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-28 rounded-md" />
                         <Skeleton className="h-3 w-20 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-4 w-28 rounded-md" />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <div className="space-y-1">
                         <Skeleton className="h-2 w-36 rounded-full" />
                         <Skeleton className="h-3 w-16 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-6 w-20 rounded-full" />
-                    </td>
-                    <td className="py-4 pr-6 pl-4 text-right">
+                    </TableCell>
+                    <TableCell className="py-4 pr-6 pl-4 text-right">
                       <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : isError ? (
                 <tr>

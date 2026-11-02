@@ -140,6 +140,7 @@ function ChangeRoleModalContent({
         onClose={onClose}
         title="Change Role"
         size="md"
+        isSubmitting={isSubmitting}
         footer={
           <div className="flex w-full items-center justify-end gap-3">
             <Button variant="outline" size="md" onClick={onClose} disabled={isSubmitting}>

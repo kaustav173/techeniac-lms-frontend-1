@@ -225,6 +225,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      isSubmitting={isImporting}
       title="Bulk Import Users (CSV)"
       size="xl"
       footer={

@@ -51,6 +51,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
     onClose: handleResetAndClose,
     dialogRef,
     initialFocusRef: nameInputRef,
+    preventClose: isSubmitting,
   });
 
   if (!isOpen) return null;

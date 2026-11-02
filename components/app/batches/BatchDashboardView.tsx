@@ -423,7 +423,7 @@ export function BatchDashboardView({
               {batch.name}
             </H1>
             <Span
-              className={`rounded-full px-3 py-1 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+              className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                 batch.status,
               )}`}
             >
@@ -455,19 +455,19 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Active Mentees
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">{mentees.length}</P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{mentees.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Assigned Mentors
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">{mentors.length}</P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{mentors.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Allocated Courses
           </Span>
-          <P className="mt-1 font-mono text-3xl font-bold text-slate-900">
+          <P className="mt-1 text-3xl font-bold text-slate-900">
             {batch.courses.length > 0 ? batch.courses.length : '—'}
           </P>
         </div>
@@ -475,7 +475,7 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Timeline Window
           </Span>
-          <P className="mt-2 font-mono text-sm font-semibold text-slate-800">
+          <P className="mt-2 text-sm font-semibold text-slate-800">
             {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
           </P>
         </div>
@@ -609,11 +609,11 @@ export function BatchDashboardView({
                     <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
                       <TableCell>
                         <P className="font-semibold text-slate-900">{m.name}</P>
-                        <P className="font-mono text-xs text-slate-500">{m.email}</P>
+                        <P className="text-xs text-slate-500">{m.email}</P>
                       </TableCell>
                       <TableCell>
                         <Span
-                          className={`inline-block rounded-full px-2.5 py-0.5 font-mono text-[11px] font-bold ${
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                             m.memberRole === 'MENTOR'
                               ? 'border border-blue-200 bg-blue-50 text-blue-700'
                               : 'border border-emerald-200 bg-emerald-50 text-emerald-700'
@@ -631,7 +631,7 @@ export function BatchDashboardView({
                           }
                         />
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-500">
+                      <TableCell className="text-xs text-slate-500">
                         <Span>{formatDateDMY(m.joinedAt)}</Span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -728,7 +728,7 @@ export function BatchDashboardView({
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-600">
+                      <TableCell className="text-xs text-slate-600">
                         <Span>{formatDateDMY(c.dueDate)}</Span>
                       </TableCell>
                       <TableCell>
@@ -739,13 +739,13 @@ export function BatchDashboardView({
                               style={{ width: `${c.averageProgress}%` }}
                             />
                           </div>
-                          <Span className="font-mono text-xs font-semibold text-slate-700">
+                          <Span className="text-xs font-semibold text-slate-700">
                             {c.averageProgress}%
                           </Span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-700">
+                        <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                           {c.status}
                         </Span>
                       </TableCell>
@@ -822,7 +822,7 @@ export function BatchDashboardView({
                   <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
                     Start Date
                   </Span>
-                  <Span className="mt-0.5 block font-mono text-sm font-bold text-slate-900">
+                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
                     {formatDateDMY(batch.startDate)}
                   </Span>
                 </div>
@@ -851,7 +851,7 @@ export function BatchDashboardView({
                     Current Status
                   </Span>
                   <Span
-                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 font-mono text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                       batch.status,
                     )}`}
                   >
@@ -882,7 +882,7 @@ export function BatchDashboardView({
                   <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
                     Target End Date
                   </Span>
-                  <Span className="mt-0.5 block font-mono text-sm font-bold text-slate-900">
+                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
                     {formatDateDMY(batch.endDate)}
                   </Span>
                 </div>

@@ -95,7 +95,7 @@ export default function AdminPage() {
             {isLoadingDashboard ? (
               <Skeleton className="mt-2 h-9 w-20" />
             ) : (
-              <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+              <P className="mt-1 text-3xl font-bold text-[#111827]">
                 {dashboard?.users.totalUsers ?? 0}
               </P>
             )}
@@ -116,7 +116,7 @@ export default function AdminPage() {
             {isLoadingDashboard ? (
               <Skeleton className="mt-2 h-9 w-20" />
             ) : (
-              <P className="mt-1 font-mono text-3xl font-bold text-[#0044D3]">
+              <P className="mt-1 text-3xl font-bold text-[#0044D3]">
                 {dashboard?.batches.liveBatches ?? 0}
               </P>
             )}
@@ -136,7 +136,7 @@ export default function AdminPage() {
             {isLoadingDashboard ? (
               <Skeleton className="mt-2 h-9 w-20" />
             ) : (
-              <P className="mt-1 font-mono text-3xl font-bold text-[#111827]">
+              <P className="mt-1 text-3xl font-bold text-[#111827]">
                 {dashboard?.courses.publishedCourses ?? 0}
               </P>
             )}
@@ -156,7 +156,7 @@ export default function AdminPage() {
             {isLoadingDashboard ? (
               <Skeleton className="mt-2 h-9 w-20" />
             ) : (
-              <P className="mt-1 font-mono text-3xl font-bold text-amber-600">
+              <P className="mt-1 text-3xl font-bold text-amber-600">
                 {dashboard?.submissions.pendingReviewCount ?? 0}
               </P>
             )}

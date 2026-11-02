@@ -99,6 +99,7 @@ export function BatchStatusModal({
       title="Change Batch Status"
       description={`Update status for ${batchName}`}
       size="md"
+      isSubmitting={isSubmitting}
       footer={
         <>
           <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>

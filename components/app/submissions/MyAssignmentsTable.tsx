@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
@@ -141,29 +142,29 @@ export function MyAssignmentsTable({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={`assign-skel-${idx}`} className="h-16">
-                    <td className="px-5 py-4">
+                  <TableRow key={`assign-skel-${idx}`} className="h-16">
+                    <TableCell className="px-5 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-44 rounded-md" />
                         <Skeleton className="h-3 w-32 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-4 w-28 rounded-md" />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <div className="space-y-1">
                         <Skeleton className="h-3 w-20 rounded-md" />
                         <Skeleton className="h-3 w-16 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-6 w-20 rounded-full" />
-                    </td>
-                    <td className="px-5 py-4 text-right">
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
                       <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </tbody>
             </table>

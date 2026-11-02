@@ -16,6 +16,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { H3, H4, Muted, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
@@ -320,8 +321,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {Array.from({ length: 6 }).map((_, idx) => (
-                    <tr key={`tracker-skel-${idx}`} className="h-16">
-                      <td className="px-4 py-4 sm:px-6">
+                    <TableRow key={`tracker-skel-${idx}`} className="h-16">
+                      <TableCell className="px-4 py-4 sm:px-6">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
                           <div className="space-y-1.5">
@@ -329,29 +330,29 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             <Skeleton className="h-3 w-20 rounded-md" />
                           </div>
                         </div>
-                      </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
                         <div className="space-y-1.5">
                           <Skeleton className="h-4 w-36 rounded-md" />
                           <Skeleton className="h-3 w-24 rounded-md" />
                         </div>
-                      </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
                         <div className="flex items-center gap-2.5">
                           <Skeleton className="h-2 w-24 rounded-full" />
                           <Skeleton className="h-3 w-8 rounded-md" />
                         </div>
-                      </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
                         <Skeleton className="h-4 w-16 rounded-md" />
-                      </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      </TableCell>
+                      <TableCell className="px-4 py-4 sm:px-6">
                         <Skeleton className="h-6 w-20 rounded-full" />
-                      </td>
-                      <td className="px-4 py-4 text-right sm:px-6">
+                      </TableCell>
+                      <TableCell className="px-4 py-4 text-right sm:px-6">
                         <Skeleton className="ml-auto h-7 w-20 rounded-lg" />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </tbody>
               </table>

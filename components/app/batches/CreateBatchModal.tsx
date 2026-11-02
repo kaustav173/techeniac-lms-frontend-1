@@ -244,6 +244,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
       <Modal
         isOpen={isOpen}
         onClose={handleRequestClose}
+        isSubmitting={isSubmitting}
         title="Create New Batch"
         size="lg"
         footer={

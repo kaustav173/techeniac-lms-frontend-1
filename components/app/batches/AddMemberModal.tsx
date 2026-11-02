@@ -190,6 +190,7 @@ export function AddMemberModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      isSubmitting={isSubmitting}
       title="Add Batch Members"
       description={
         <Span className="text-xs text-slate-600">

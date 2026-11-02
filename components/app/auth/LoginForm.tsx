@@ -190,11 +190,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           </div>
           <div className="ml-auto shrink-0 pt-1">
             <Link
-              href={
-                email.trim()
-                  ? `/forgot-password?email=${encodeURIComponent(email.trim())}`
-                  : '/forgot-password'
-              }
+              href="/forgot-password"
               className="text-base font-semibold text-[#0044D3] transition-colors hover:text-[#0036ab] hover:underline"
             >
               Forgot Password?

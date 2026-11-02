@@ -27,8 +27,9 @@ import {
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
-import { useUsers } from '@/hooks/useUsers';
+import { useMultiMentorMentees, useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/cn';
+import { compareStrings } from '@/lib/sort';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -36,13 +37,17 @@ import {
   type UserStatus,
 } from '@/lib/validation';
 
+function isUserRole(role: unknown): role is UserRole {
+  return role === 'SUPER_ADMIN' || role === 'MENTOR' || role === 'MENTEE';
+}
+
 export interface UserItem {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   status: UserStatus;
-  batch?: string | undefined;
+  batches: readonly string[];
   mentorName?: string | undefined;
   hasLoggedIn?: boolean | undefined;
   mustChangePassword?: boolean | undefined;
@@ -111,18 +116,13 @@ function getBatchBadgeColor(batchName: string): string {
     hash |= 0;
   }
   const index = Math.abs(hash) % BATCH_BADGE_COLORS.length;
-  return BATCH_BADGE_COLORS[index]!;
+  return (
+    BATCH_BADGE_COLORS[index] ?? BATCH_BADGE_COLORS[0] ?? 'bg-blue-50 text-blue-700 border-blue-200'
+  );
 }
 
-function BatchBadges({ batchString }: { batchString?: string | undefined }) {
-  if (!batchString || batchString === '—') {
-    return <Span className="text-slate-400">—</Span>;
-  }
-  const batches = batchString
-    .split(',')
-    .map((b) => b.trim())
-    .filter(Boolean);
-  if (batches.length === 0) {
+function BatchBadges({ batches }: { batches?: readonly string[] | undefined }) {
+  if (!batches || batches.length === 0) {
     return <Span className="text-slate-400">—</Span>;
   }
   return (
@@ -224,7 +224,6 @@ export function UsersTable() {
     users: apiUsers,
     total: totalCount,
     isLoading,
-    isFetching,
     error: usersError,
     fetchUsers,
     createUser,
@@ -237,7 +236,10 @@ export function UsersTable() {
 
   const { userBatchMap, userMentorMap } = useAllBatchMembers();
 
-  const isTableLoading = isLoading || isFetching;
+  const { mentees: multiMentorMentees, isLoading: isMultiMentorLoading } =
+    useMultiMentorMentees(selectedMentorIds);
+
+  const isTableLoading = selectedMentorIds.length > 1 ? isMultiMentorLoading : isLoading;
 
   const handleSort = (field: 'name' | 'email') => {
     let nextField: 'name' | 'email' | null = field;
@@ -300,11 +302,14 @@ export function UsersTable() {
     [apiUsers],
   );
 
-  const selectedMentorNames = useMemo(() => {
-    return mentorRoster
-      .filter((m) => selectedMentorIds.includes(m.id))
-      .map((m) => m.name.toLowerCase());
-  }, [mentorRoster, selectedMentorIds]);
+  const hasLocalStatusFilter =
+    !selectedStatuses.includes('ALL') &&
+    !(
+      selectedStatuses.length === 1 &&
+      (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
+    );
+
+  const isClientPaginated = multiMentorMentees !== null || hasLocalStatusFilter;
 
   const users: UserItem[] = useMemo(() => {
     const singleFilteredMentor =
@@ -312,7 +317,9 @@ export function UsersTable() {
         ? mentorRoster.find((m) => m.id === selectedMentorIds[0])
         : null;
 
-    let list = apiUsers.map((u) => {
+    const sourceUsers = multiMentorMentees !== null ? multiMentorMentees : apiUsers;
+
+    let list = sourceUsers.map((u) => {
       const mappedMentorName = userMentorMap.get(u.id);
       const resolvedMentorName =
         mappedMentorName || (singleFilteredMentor ? singleFilteredMentor.name : undefined) || '—';
@@ -323,13 +330,24 @@ export function UsersTable() {
         email: u.email,
         role: u.role,
         status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
-        batch: userBatchMap.get(u.id) || '—',
+        batches: userBatchMap.get(u.id) ?? [],
         mentorName: resolvedMentorName,
         hasLoggedIn: u.lastLoginAt !== null,
         mustChangePassword: u.mustChangePassword,
         isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
       };
     });
+
+    if (multiMentorMentees !== null && selectedRole !== 'ALL') {
+      list = list.filter((u) => u.role === selectedRole);
+    }
+
+    if (multiMentorMentees !== null && search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
+      );
+    }
 
     if (!selectedStatuses.includes('ALL') && selectedStatuses.length > 0) {
       list = list.filter((u) => {
@@ -340,47 +358,41 @@ export function UsersTable() {
       });
     }
 
-    if (selectedMentorIds.length > 1) {
-      list = list.filter((u) => {
-        const assignedMentor = (u.mentorName || '').toLowerCase();
-        return selectedMentorNames.some((name) => assignedMentor.includes(name));
-      });
-    }
-
     if (sortField) {
       list.sort((a, b) => {
-        const valA = (a[sortField] || '').toLowerCase();
-        const valB = (b[sortField] || '').toLowerCase();
-        const cmp = valA.localeCompare(valB);
-        return sortOrder === 'asc' ? cmp : -cmp;
+        const valA = a[sortField] || '';
+        const valB = b[sortField] || '';
+        return compareStrings(valA, valB, sortOrder);
       });
     }
 
     return list;
   }, [
+    multiMentorMentees,
     apiUsers,
     activeAdminsCount,
     userBatchMap,
     userMentorMap,
     mentorRoster,
+    selectedRole,
+    search,
     selectedStatuses,
     selectedMentorIds,
-    selectedMentorNames,
     sortField,
     sortOrder,
   ]);
 
-  const hasLocalStatusFilter =
-    !selectedStatuses.includes('ALL') &&
-    !(
-      selectedStatuses.length === 1 &&
-      (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
-    );
-
-  const effectiveTotal =
-    hasLocalStatusFilter || selectedMentorIds.length > 1 ? users.length : totalCount;
+  const effectiveTotal = isClientPaginated ? users.length : totalCount;
 
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
+
+  const displayedUsers = useMemo(() => {
+    if (isClientPaginated) {
+      const start = (page - 1) * limit;
+      return users.slice(start, start + limit);
+    }
+    return users;
+  }, [isClientPaginated, users, page, limit]);
 
   const handleFilterUpdate = ({
     role = filtersRef.current.role,
@@ -409,9 +421,16 @@ export function UsersTable() {
         : undefined;
     const backendMentorId = mentorIds.length === 1 ? mentorIds[0] : undefined;
 
+    const hasLocalStatus =
+      !statuses.includes('ALL') &&
+      !(statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE'));
+
+    const effectiveLimit = hasLocalStatus ? 100 : newLimit;
+    const effectivePage = hasLocalStatus ? 1 : newPage;
+
     void fetchUsers({
-      page: newPage,
-      limit: newLimit,
+      page: effectivePage,
+      limit: effectiveLimit,
       role: role !== 'ALL' ? role : undefined,
       status: backendStatus,
       search: searchVal.trim() || undefined,
@@ -443,7 +462,9 @@ export function UsersTable() {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    handleFilterUpdate({ page: newPage });
+    if (!isClientPaginated) {
+      handleFilterUpdate({ page: newPage });
+    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -452,7 +473,9 @@ export function UsersTable() {
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
     setPage(1);
-    handleFilterUpdate({ page: 1, limit: newLimit });
+    if (!isClientPaginated) {
+      handleFilterUpdate({ page: 1, limit: newLimit });
+    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -789,7 +812,7 @@ export function UsersTable() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : users.length === 0 ? (
+            ) : displayedUsers.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={selectedRole === 'ALL' ? 6 : 5}
@@ -799,7 +822,7 @@ export function UsersTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((u) => {
+              displayedUsers.map((u) => {
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -909,11 +932,11 @@ export function UsersTable() {
                       {selectedRole === 'MENTEE' ? (
                         <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                       ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
-                        <BatchBadges batchString={u.batch} />
+                        <BatchBadges batches={u.batches} />
                       ) : u.role === 'MENTEE' ? (
-                        u.batch && u.batch !== '—' ? (
+                        u.batches.length > 0 ? (
                           <div className="flex flex-col gap-1">
-                            <BatchBadges batchString={u.batch} />
+                            <BatchBadges batches={u.batches} />
                             {u.mentorName && u.mentorName !== '—' ? (
                               <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
                             ) : null}
@@ -922,7 +945,7 @@ export function UsersTable() {
                           <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                         )
                       ) : (
-                        <BatchBadges batchString={u.batch} />
+                        <BatchBadges batches={u.batches} />
                       )}
                     </TableCell>
 
@@ -1003,14 +1026,14 @@ export function UsersTable() {
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
         onChangeRoleClick={(selectedUser) => {
-          if (selectedUser?.role) {
+          if (selectedUser?.role && isUserRole(selectedUser.role)) {
             setUserToChangeRole({
               id: selectedUser.id,
               name: selectedUser.name,
               email: selectedUser.email,
-              role: selectedUser.role as UserRole,
+              role: selectedUser.role,
             });
-          } else if (userToEdit) {
+          } else if (userToEdit && isUserRole(userToEdit.role)) {
             setUserToChangeRole({
               id: userToEdit.id,
               name: userToEdit.name,

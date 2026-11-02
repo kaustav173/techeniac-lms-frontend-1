@@ -195,6 +195,7 @@ export function MapMenteeModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      isSubmitting={isSubmitting}
       title={isReassign ? 'Reassign Mentor' : 'Map Mentee to Mentor'}
       description={`Assign cohort mentees to an active mentor in ${batchName} (FR-4.1 - 4.3)`}
       size="md"

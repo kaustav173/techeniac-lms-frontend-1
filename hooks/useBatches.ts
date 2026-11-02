@@ -287,7 +287,7 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
   const isDetailsError = batchDetailsQueries.some((q) => q.isError);
 
   return useMemo(() => {
-    const bMap = new Map<string, string>();
+    const bMap = new Map<string, string[]>();
     const mMap = new Map<string, string>();
 
     for (const q of batchDetailsQueries) {
@@ -297,10 +297,10 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
           const existing = bMap.get(member.id);
           if (existing) {
             if (!existing.includes(batch.name)) {
-              bMap.set(member.id, `${existing}, ${batch.name}`);
+              existing.push(batch.name);
             }
           } else {
-            bMap.set(member.id, batch.name);
+            bMap.set(member.id, [batch.name]);
           }
 
           if (member.mappedToName) {

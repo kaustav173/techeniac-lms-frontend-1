@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
@@ -128,17 +134,12 @@ export function useUsers(
       queryClient.setQueriesData(
         { queryKey: userKeys.lists() },
         (
-          oldData:
-            | { users?: ApiUser[]; items?: ApiUser[]; total?: number; counts?: UserDirectoryCounts }
-            | undefined,
+          oldData: { users?: ApiUser[]; total?: number; counts?: UserDirectoryCounts } | undefined,
         ) => {
           if (!oldData) return oldData;
           const next = { ...oldData };
           if (Array.isArray(next.users)) {
             next.users = next.users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
-          }
-          if (Array.isArray(next.items)) {
-            next.items = next.items.map((u) => (u.id === updatedUser.id ? updatedUser : u));
           }
           return next;
         },
@@ -224,5 +225,44 @@ export function useUsers(
     changeRole,
     toggleStatus,
     resendInvite,
+  };
+}
+
+/**
+ * Hook to fetch mentees for multiple selected mentors in parallel.
+ * Deduplicates results and caches them for 60s.
+ */
+export function useMultiMentorMentees(mentorIds: string[]) {
+  const queries = useQueries({
+    queries:
+      mentorIds.length > 1
+        ? mentorIds.map((mId) => ({
+            queryKey: ['users', 'mentor-mentees', mId],
+            queryFn: () => usersService.listUsers({ mentorId: mId, limit: 100 }),
+            staleTime: 60_000,
+          }))
+        : [],
+  });
+
+  const isLoading = mentorIds.length > 1 && queries.some((q) => q.isLoading);
+
+  const mentees = useMemo(() => {
+    if (mentorIds.length <= 1) return null;
+    const map = new Map<string, ApiUser>();
+    for (const q of queries) {
+      if (q.data?.users) {
+        for (const u of q.data.users) {
+          if (!map.has(u.id)) {
+            map.set(u.id, u);
+          }
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [queries, mentorIds.length]);
+
+  return {
+    mentees,
+    isLoading,
   };
 }

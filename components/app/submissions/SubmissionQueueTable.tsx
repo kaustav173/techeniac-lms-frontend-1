@@ -7,6 +7,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { H3, Muted, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
@@ -151,32 +152,32 @@ export function SubmissionQueueTable() {
             <tbody className="divide-y divide-slate-100">
               {isLoading &&
                 Array.from({ length: 6 }).map((_, idx) => (
-                  <tr key={`queue-skel-${idx}`} className="h-16">
-                    <td className="px-6 py-4">
+                  <TableRow key={`queue-skel-${idx}`} className="h-16">
+                    <TableCell className="px-6 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-32 rounded-md" />
                         <Skeleton className="h-3 w-40 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-36 rounded-md" />
                         <Skeleton className="h-3 w-28 rounded-md" />
                       </div>
-                    </td>
-                    <td className="px-3 py-4 text-center">
+                    </TableCell>
+                    <TableCell className="px-3 py-4 text-center">
                       <Skeleton className="mx-auto h-5 w-8 rounded-md" />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-4 w-28 rounded-md" />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
                       <Skeleton className="h-6 w-24 rounded-full" />
-                    </td>
-                    <td className="px-6 py-4 text-right">
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-right">
                       <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
 
               {!isLoading && submissions.length === 0 && (
