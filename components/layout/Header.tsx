@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
@@ -164,6 +164,7 @@ function getNavIcon(itemOrLabel: HeaderNavItem | string) {
 
 export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -175,9 +176,16 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // Close profile dropdown on outside click
+  // Automatically close profile dropdown whenever route / pathname changes (render-phase state adjustment per React docs)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsProfileDropdownOpen(false);
+  }
+
+  // Close profile dropdown on outside click or touch
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (
         profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target as Node)
@@ -187,9 +195,11 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     }
     if (isProfileDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isProfileDropdownOpen]);
 
@@ -417,6 +427,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
       {/* Collapsed Side Navigation Rail (Icon Rail matching LeadNest Figma design) */}
       <aside
         aria-label="Collapsed Navigation Rail"
+        onClick={() => setIsProfileDropdownOpen(false)}
         className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
           isDrawerOpen
             ? 'lg:pointer-events-none lg:-translate-x-full lg:opacity-0'
@@ -520,9 +531,9 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
 
       {/* Side Navigation Drawer / Persistent Sidebar */}
       <aside
-        role="dialog"
-        aria-modal="true"
+        {...(isMobileNavOpen ? { role: 'dialog', 'aria-modal': true } : {})}
         aria-label="Site Navigation Drawer"
+        onClick={() => setIsProfileDropdownOpen(false)}
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:shadow-md ${
           isMobileNavOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
         } ${
@@ -605,6 +616,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                         key={item.label}
                         href={item.href}
                         onClick={() => {
+                          setIsProfileDropdownOpen(false);
                           if (typeof window !== 'undefined' && window.innerWidth < 1024) {
                             setIsMobileNavOpen(false);
                           }

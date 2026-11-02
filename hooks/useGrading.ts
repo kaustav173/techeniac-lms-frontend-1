@@ -85,7 +85,7 @@ export function usePrefetchSubmissionReview() {
         .query({
           queryKey: GRADING_QUERY_KEYS.review(submissionId),
           queryFn: ({ signal }) => gradingService.getReviewDetails(submissionId, signal),
-          staleTime: 30 * 1000,
+          staleTime: 5 * 60 * 1000,
         })
         .catch(noop);
     },

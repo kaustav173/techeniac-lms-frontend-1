@@ -1,6 +1,6 @@
 import type { BatchStatus } from '@/lib/validation';
 
-export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+export const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 
 export const VALID_BATCH_STATUSES: readonly BatchStatus[] = [
   'LIVE',

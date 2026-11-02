@@ -7,7 +7,6 @@ import React, { useMemo, useState } from 'react';
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
-import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -25,7 +24,6 @@ import { Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { formatDateDMY } from '@/lib/date';
-import { compareStrings } from '@/lib/sort';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -182,16 +180,12 @@ export function BatchesPageSkeleton() {
   );
 }
 
-type BatchSortField = 'name' | 'code' | 'status' | 'startDate';
-
 export function BatchesTable() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['SUPER_ADMIN'] });
   const [search, setSearch] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<BatchStatus[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [sortField, setSortField] = useState<BatchSortField | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isCreateOpen, setIsCreateOpen] = useState(
     () => typeof window !== 'undefined' && window.location.search.includes('create=true'),
   );
@@ -209,43 +203,7 @@ export function BatchesTable() {
     limit,
   });
 
-  const handleSort = (field: BatchSortField) => {
-    if (sortField === field) {
-      if (sortOrder === 'asc') {
-        setSortOrder('desc');
-      } else {
-        setSortField(null);
-        setSortOrder('asc');
-      }
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
-
-  const batches = useMemo(() => {
-    const raw = batchesResponse?.items ? [...batchesResponse.items] : [];
-    if (!sortField) return raw;
-
-    return raw.sort((a, b) => {
-      let valA = '';
-      let valB = '';
-      if (sortField === 'name') {
-        valA = a.name;
-        valB = b.name;
-      } else if (sortField === 'code') {
-        valA = a.code;
-        valB = b.code;
-      } else if (sortField === 'status') {
-        valA = a.status;
-        valB = b.status;
-      } else if (sortField === 'startDate') {
-        valA = a.startDate || '';
-        valB = b.startDate || '';
-      }
-      return compareStrings(valA, valB, sortOrder);
-    });
-  }, [batchesResponse, sortField, sortOrder]);
+  const batches = batchesResponse?.items ?? [];
 
   const isTableLoading = isLoading;
   const pagination = useMemo(
@@ -341,38 +299,10 @@ export function BatchesTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <SortableColumnHeader<BatchSortField>
-                field="name"
-                label="Batch Name"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort visible page by Batch Name"
-              />
-              <SortableColumnHeader<BatchSortField>
-                field="code"
-                label="Code"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort visible page by Code"
-              />
-              <SortableColumnHeader<BatchSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort visible page by Status"
-              />
-              <SortableColumnHeader<BatchSortField>
-                field="startDate"
-                label="Timeline"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort visible page by Timeline"
-              />
+              <TableHead className="font-semibold text-slate-700">Batch Name</TableHead>
+              <TableHead className="font-semibold text-slate-700">Code</TableHead>
+              <TableHead className="font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="font-semibold text-slate-700">Timeline</TableHead>
               <TableHead className="font-semibold text-slate-700">Members</TableHead>
               <TableHead className="text-right font-semibold text-slate-700">Progress</TableHead>
             </TableRow>

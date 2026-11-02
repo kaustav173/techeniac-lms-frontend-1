@@ -3,6 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
+import { AgentationToolbar } from '@/components/layout/AgentationToolbar';
 import { AuthProvider } from '@/context/AuthContext';
 import { QueryProvider } from '@/context/QueryProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
@@ -41,6 +42,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <SidebarProvider>{children}</SidebarProvider>
+            <AgentationToolbar />
           </AuthProvider>
         </QueryProvider>
       </body>

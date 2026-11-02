@@ -88,7 +88,7 @@ export function useUsers(
   } = useQuery({
     queryKey: userKeys.list(activeFilters),
     queryFn: () => usersService.listUsers(activeFilters),
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
     ...options,
   });
@@ -239,7 +239,7 @@ export function useMultiMentorMentees(mentorIds: string[]) {
         ? mentorIds.map((mId) => ({
             queryKey: ['users', 'mentor-mentees', mId],
             queryFn: () => usersService.listUsers({ mentorId: mId, limit: 100 }),
-            staleTime: 60_000,
+            staleTime: 5 * 60 * 1000,
           }))
         : [],
   });
