@@ -50,7 +50,7 @@ export const userKeys = {
   list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
 };
 
-export const DEFAULT_USERS_PAGE_SIZE = 20;
+export const DEFAULT_USERS_PAGE_SIZE = 10;
 
 const DEFAULT_FILTERS: UserQueryFilters = {
   page: 1,
