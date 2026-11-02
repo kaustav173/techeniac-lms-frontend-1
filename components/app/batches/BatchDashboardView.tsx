@@ -33,6 +33,7 @@ import {
   useRemoveBatchMemberMutation,
 } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
@@ -432,15 +433,17 @@ export function BatchDashboardView({
           </div>
 
           <div className="flex items-center gap-2.5">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsStatusOpen(true)}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50"
-            >
-              <Span>Change Status</Span>
-            </Button>
+            {batch.status !== 'ARCHIVED' ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsStatusOpen(true)}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50"
+              >
+                <Span>Change Status</Span>
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -467,17 +470,21 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Allocated Courses
           </Span>
-          <P className="mt-1 text-3xl font-bold text-slate-900">
-            {batch.courses.length > 0 ? batch.courses.length : '—'}
-          </P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{batch.courses.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Timeline Window
           </Span>
-          <P className="mt-2 text-sm font-semibold text-slate-800">
-            {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
-          </P>
+          <div className="mt-2 flex flex-wrap items-baseline gap-1.5">
+            <Span className="text-base font-bold text-slate-900">
+              {formatDateDMY(batch.startDate) || '—'}
+            </Span>
+            <Span className="text-sm font-medium text-slate-400">to</Span>
+            <Span className="text-base font-bold text-slate-900">
+              {formatDateDMY(batch.endDate) || '—'}
+            </Span>
+          </div>
         </div>
       </div>
 
@@ -585,12 +592,7 @@ export function BatchDashboardView({
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-              <H3 className="mt-3 text-sm font-bold text-slate-800">No Members Enrolled Yet</H3>
-              <P className="mx-auto mt-1 max-w-sm text-xs text-slate-500">
-                {isArchived
-                  ? 'This batch is archived. Members cannot be added to an archived cohort.'
-                  : 'This batch has no mentors or mentees assigned. Use the “Add Members” button above to enroll users.'}
-              </P>
+              <H3 className="mt-3 text-base font-bold text-slate-800">No Members Enrolled Yet</H3>
             </div>
           ) : (
             <TableContainer>
@@ -794,15 +796,15 @@ export function BatchDashboardView({
         <div className="space-y-6">
           {/* Cohort Schedule Overview */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-sm font-bold text-slate-900">Cohort Schedule</H3>
-            <P className="mt-1 text-xs text-slate-500">
+            <H3 className="text-base font-bold text-slate-900">Cohort Schedule</H3>
+            <P className="mt-1 text-sm text-slate-500">
               Active operating window and lifecycle span for this batch.
             </P>
 
             <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
               {/* Start Date */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -819,18 +821,18 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Start Date
                   </Span>
-                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
-                    {formatDateDMY(batch.startDate)}
+                  <Span className="mt-1 block text-base font-bold text-slate-900">
+                    {formatDateDMY(batch.startDate) || '—'}
                   </Span>
                 </div>
               </div>
 
               {/* Current Status */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -847,13 +849,14 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Current Status
                   </Span>
                   <Span
-                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
-                      batch.status,
-                    )}`}
+                    className={cn(
+                      'mt-1.5 inline-block rounded-full px-3 py-0.5 text-xs font-bold uppercase',
+                      getBatchStatusBadgeClass(batch.status),
+                    )}
                   >
                     {batch.status}
                   </Span>
@@ -862,7 +865,7 @@ export function BatchDashboardView({
 
               {/* End Date */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -879,11 +882,11 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Target End Date
                   </Span>
-                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
-                    {formatDateDMY(batch.endDate)}
+                  <Span className="mt-1 block text-base font-bold text-slate-900">
+                    {formatDateDMY(batch.endDate) || '—'}
                   </Span>
                 </div>
               </div>
@@ -892,14 +895,14 @@ export function BatchDashboardView({
 
           {/* Status Transitions Card */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-sm font-bold text-slate-900">Status Transition History</H3>
-            <P className="mt-1 text-xs text-slate-500">
+            <H3 className="text-base font-bold text-slate-900">Status Transition History</H3>
+            <P className="mt-1 text-sm text-slate-500">
               Audit log of all lifecycle status changes performed on this batch.
             </P>
 
             {batch.history.length === 0 ? (
               <div className="mt-6 rounded-xl border border-dashed border-slate-200 p-8 text-center">
-                <P className="text-xs text-slate-500">
+                <P className="text-sm text-slate-500">
                   No status transitions recorded for this batch yet.
                 </P>
               </div>
@@ -907,15 +910,41 @@ export function BatchDashboardView({
               <div className="relative mt-6 space-y-6 pl-6 before:absolute before:top-2 before:bottom-2 before:left-2.5 before:w-0.5 before:bg-slate-200">
                 {batch.history.map((h) => (
                   <div key={h.id} className="relative">
-                    <Span className="absolute top-1 -left-6 h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white" />
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <Span className="text-xs font-bold text-slate-800">
-                        {h.fromStatus} → {h.toStatus}
+                    <Span className="absolute top-1.5 -left-6 h-3.5 w-3.5 rounded-full bg-[#0044D3] ring-4 ring-blue-50" />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                        {h.fromStatus}
                       </Span>
-                      <Span className="text-xs text-slate-400">{formatDateDMY(h.changedAt)}</Span>
+                      <svg
+                        className="h-4 w-4 text-slate-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                      <Span
+                        className={cn(
+                          'rounded-md px-2.5 py-0.5 text-xs font-bold uppercase',
+                          getBatchStatusBadgeClass(h.toStatus),
+                        )}
+                      >
+                        {h.toStatus}
+                      </Span>
+                      <Span className="text-xs text-slate-400">•</Span>
+                      <Span className="text-sm font-medium text-slate-500">
+                        {formatDateDMY(h.changedAt)}
+                      </Span>
                     </div>
-                    <P className="mt-1 text-xs break-words text-slate-600">
-                      By <strong className="font-semibold text-slate-800">{h.changedBy}</strong>
+                    <P className="mt-1.5 text-sm text-slate-600">
+                      Changed by{' '}
+                      <strong className="font-semibold text-slate-900">{h.changedBy}</strong>
                       {h.reason ? ` — "${h.reason}"` : ''}
                     </P>
                   </div>
