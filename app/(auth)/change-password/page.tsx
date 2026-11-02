@@ -28,7 +28,7 @@ export default function ChangePasswordPage() {
       </svg>
       <Span>
         You&apos;re using a temporary password. Please create a new password to secure your
-        Techeniac LMS account.
+        TechEniac LMS account.
       </Span>
     </div>
   );

@@ -21,8 +21,8 @@ const plusJakartaSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Techeniac LMS',
-  description: 'Techeniac Learning Management System',
+  title: 'TechEniac LMS',
+  description: 'TechEniac Learning Management System',
 };
 
 export default function RootLayout({

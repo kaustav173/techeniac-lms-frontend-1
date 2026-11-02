@@ -5,7 +5,7 @@ import { AuthShell } from '@/components/app/auth/AuthShell';
 import { ForgotPasswordForm } from '@/components/app/auth/ForgotPasswordForm';
 
 export const metadata: Metadata = {
-  title: 'Forgot Password | Techeniac LMS',
+  title: 'Forgot Password | TechEniac LMS',
   description: 'Request a password reset link for your account.',
 };
 

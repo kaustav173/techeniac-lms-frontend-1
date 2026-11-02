@@ -6,7 +6,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'Users Management | Techeniac LMS',
+  title: 'Users Management | TechEniac LMS',
   description: 'Manage platform users, roles, batch enrollments, and access status.',
 };
 

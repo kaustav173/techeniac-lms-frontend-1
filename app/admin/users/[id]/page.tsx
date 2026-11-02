@@ -6,7 +6,7 @@ import { User360Shell } from '@/components/app/user-360/User360Shell';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'User 360 Profile | Techeniac LMS',
+  title: 'User 360 Profile | TechEniac LMS',
   description: 'Complete 360-degree historical and performance profile of a user.',
 };
 

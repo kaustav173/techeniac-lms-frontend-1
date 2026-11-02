@@ -402,7 +402,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           <Link
             href={homeUrl}
             className="group flex items-center justify-center pt-1"
-            title="Techeniac LMS"
+            title="TechEniac LMS"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
@@ -505,7 +505,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             : 'lg:pointer-events-none lg:-translate-x-full'
         }`}
       >
-        {/* Drawer Header: TL Logo + Techeniac LMS Title + Mobile/Tablet Close Button */}
+        {/* Drawer Header: TL Logo + TechEniac LMS Title + Mobile/Tablet Close Button */}
         <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
           <Link
             href={homeUrl}
@@ -515,13 +515,13 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
               }
             }}
             className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
-            title="Techeniac LMS Home"
+            title="TechEniac LMS Home"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
               TL
             </div>
             <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
-              Techeniac LMS
+              TechEniac LMS
             </Span>
           </Link>
           <Button
@@ -657,7 +657,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
         onClose={() => setIsSignOutConfirmOpen(false)}
         onConfirm={handleLogout}
         title="Sign Out?"
-        description="Are you sure you want to sign out of Techeniac LMS? You will need to log in again to access your account."
+        description="Are you sure you want to sign out of TechEniac LMS? You will need to log in again to access your account."
         confirmLabel="Sign Out"
         confirmVariant="danger"
         isLoading={isLoggingOut}

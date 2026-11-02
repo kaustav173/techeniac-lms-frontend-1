@@ -19,7 +19,7 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-[#0044D3] shadow-sm">
             TL
           </div>
-          <Span className="text-xl font-bold tracking-tight text-white">Techeniac LMS</Span>
+          <Span className="text-xl font-bold tracking-tight text-white">TechEniac LMS</Span>
         </Link>
       </div>
 
@@ -39,7 +39,7 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
               TL
             </div>
             <H1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Techeniac LMS
+              TechEniac LMS
             </H1>
           </Link>
           <Span className="mt-4 block text-lg font-medium text-blue-100 sm:text-xl">

@@ -1,6 +1,6 @@
-# Techeniac LMS - Design System & UI Specifications
+# TechEniac LMS - Design System & UI Specifications
 
-This document defines the official design tokens, typography scale, color palette, and component specifications extracted directly from the Techeniac LMS Figma design system. All AI agents, contributors, and UI components in this workspace must strictly adhere to these specifications to guarantee visual consistency.
+This document defines the official design tokens, typography scale, color palette, and component specifications extracted directly from the TechEniac LMS Figma design system. All AI agents, contributors, and UI components in this workspace must strictly adhere to these specifications to guarantee visual consistency.
 
 ---
 
@@ -84,7 +84,7 @@ This document defines the official design tokens, typography scale, color palett
 
 ## 4. Button System Specification
 
-Buttons in the Techeniac LMS design system have a consistent pill shape with a `border-radius: 32px`. Button text is set in `'Plus Jakarta Sans'` with `font-weight: 500` (Medium).
+Buttons in the TechEniac LMS design system have a consistent pill shape with a `border-radius: 32px`. Button text is set in `'Plus Jakarta Sans'` with `font-weight: 500` (Medium).
 
 ### 4.1 Button Variants
 

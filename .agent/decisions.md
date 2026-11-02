@@ -10,7 +10,7 @@
   2. Node.js 22 LTS
   3. Node.js 24 LTS
 - **Choice**: Node.js 24 LTS with `.nvmrc` set to `24` and `package.json` engines pinned to `>=24 <25`.
-- **Reasons**: Node 24 is the active LTS release offering updated V8 engine optimizations, standard native cryptographic and fetch primitives, and parity with the `techeniac-lms-backend` environment.
+- **Reasons**: Node 24 is the active LTS release offering updated V8 engine optimizations, standard native cryptographic and fetch primitives, and parity with the `TechEniac-lms-backend` environment.
 - **Consequences**: Local development and deployment environments must use Node 24. Older Node runtime environments are unsupported.
 
 ---
@@ -55,10 +55,10 @@
 
 - **Date**: 2026-10-14
 - **Status**: Accepted
-- **Context**: The Techeniac LMS consists of an API backend (`techeniac-lms-backend`) and a user-facing frontend (`techeniac-lms-frontend`). We must select repository architecture.
+- **Context**: The TechEniac LMS consists of an API backend (`TechEniac-lms-backend`) and a user-facing frontend (`TechEniac-lms-frontend`). We must select repository architecture.
 - **Options**:
   1. Unified Monorepo housing both backend and frontend.
-  2. Decoupled individual repositories (`techeniac-lms-backend` and `techeniac-lms-frontend`).
+  2. Decoupled individual repositories (`TechEniac-lms-backend` and `TechEniac-lms-frontend`).
 - **Choice**: Decoupled individual repositories.
 - **Reasons**:
   - Autonomous deployment lifecycles and CI/CD pipelines (Vercel/edge for frontend, container/cloud for backend).
@@ -157,7 +157,7 @@
   3. Establish centralized, reusable atomic validation schemas in `lib/validation/` using Zod.
 - **Choice**: Option 3 (Centralized atomic schemas in `lib/validation/`).
 - **Reasons**:
-  - Parity with backend constraints: Enforces exact parity with `techeniac-lms-backend` validation rules (`passwordSchema`, `emailSchema`, `uuidSchema`), guaranteeing identical password complexity (min 10, max 64, uppercase, lowercase, number, special character) and email formats.
+  - Parity with backend constraints: Enforces exact parity with `TechEniac-lms-backend` validation rules (`passwordSchema`, `emailSchema`, `uuidSchema`), guaranteeing identical password complexity (min 10, max 64, uppercase, lowercase, number, special character) and email formats.
   - DRY & Composable: Individual form schemas (login, registration, change password) compose these centralized primitives directly rather than duplicating validation rules.
   - Type Inference: Zod provides automatic TypeScript type inference (`z.infer<typeof schema>`), ensuring end-to-end type safety between form state and validated data.
 - **Consequences**:

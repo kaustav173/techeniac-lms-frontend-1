@@ -175,7 +175,7 @@ export function CreateUserDrawer({ isOpen, onClose, onSuccess }: CreateUserDrawe
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="amit@techeniac.com"
+                placeholder="amit@TechEniac.com"
                 hasError={Boolean(errors.email)}
                 disabled={isSubmitting}
                 className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-[#0044D3]"

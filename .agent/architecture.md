@@ -2,7 +2,7 @@
 
 ## Overview
 
-`techeniac-lms-frontend` is the web client for the Techeniac Learning Management System. It is built as a single decoupled client repository interacting with `techeniac-lms-backend` via its versioned REST API (`/api/v1`).
+`TechEniac-lms-frontend` is the web client for the TechEniac Learning Management System. It is built as a single decoupled client repository interacting with `TechEniac-lms-backend` via its versioned REST API (`/api/v1`).
 
 ## Core Tech Stack
 

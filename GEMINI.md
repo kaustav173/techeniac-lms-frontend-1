@@ -1,6 +1,6 @@
-# Techeniac LMS Frontend
+# TechEniac LMS Frontend
 
-Techeniac LMS Frontend provides the student, instructor, and admin web experience for the Techeniac Learning Management System. Built with Next.js 16 (App Router), React 19, strict TypeScript, and Tailwind CSS, consuming the backend API at `/api/v1`.
+TechEniac LMS Frontend provides the student, instructor, and admin web experience for the TechEniac Learning Management System. Built with Next.js 16 (App Router), React 19, strict TypeScript, and Tailwind CSS, consuming the backend API at `/api/v1`.
 
 ## Repository Map
 

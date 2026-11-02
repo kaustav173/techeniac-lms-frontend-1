@@ -7,7 +7,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'Batch Dashboard | Techeniac LMS',
+  title: 'Batch Dashboard | TechEniac LMS',
   description: 'Detailed overview of batch members, course progress, and status timeline.',
 };
 

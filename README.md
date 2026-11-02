@@ -1,4 +1,4 @@
-# techeniac-lms-frontend
+# TechEniac-lms-frontend
 
 ## Prerequisites
 
@@ -65,7 +65,7 @@ _(Automated test suite coming soon; lint rule verification available via `npm ru
 
 ## Migrations
 
-Frontend does not manage database migrations. Database schema migrations are handled by `techeniac-lms-backend`.
+Frontend does not manage database migrations. Database schema migrations are handled by `TechEniac-lms-backend`.
 
 ## Troubleshooting
 
