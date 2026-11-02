@@ -28,6 +28,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useAllBatchMembers } from '@/hooks/useBatches';
 import { useUsers } from '@/hooks/useUsers';
+import { cn } from '@/lib/cn';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -683,7 +684,7 @@ export function UsersTable() {
 
       {/* Users Data Table */}
       <TableContainer>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               <SortableColumnHeader<'name' | 'email'>
@@ -693,6 +694,7 @@ export function UsersTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort visible page by Name"
+                className={selectedRole === 'ALL' ? 'w-[27%]' : 'w-[32%]'}
               />
               <SortableColumnHeader<'name' | 'email'>
                 field="email"
@@ -701,9 +703,10 @@ export function UsersTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort visible page by Email"
+                className={selectedRole === 'ALL' ? 'w-[25%]' : 'w-[30%]'}
               />
-              {selectedRole === 'ALL' ? <TableHead>Role</TableHead> : null}
-              <TableHead>
+              {selectedRole === 'ALL' ? <TableHead className="w-[8.5%]">Role</TableHead> : null}
+              <TableHead className={selectedRole === 'ALL' ? 'w-[14.5%]' : 'w-[22%]'}>
                 {selectedRole === 'MENTEE'
                   ? 'Mentor'
                   : selectedRole === 'MENTOR'
@@ -713,7 +716,7 @@ export function UsersTable() {
                       : 'Batch / Mentor'}
               </TableHead>
               <TableHead className="w-20 text-center">Status</TableHead>
-              <TableHead className="w-24 text-center">Action</TableHead>
+              <TableHead className="w-20 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -721,26 +724,26 @@ export function UsersTable() {
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
-                  <TableCell>
+                  <TableCell className={selectedRole === 'ALL' ? 'w-[27%]' : 'w-[32%]'}>
                     <Skeleton className="h-4 w-36 rounded-md" />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={selectedRole === 'ALL' ? 'w-[25%]' : 'w-[30%]'}>
                     <Skeleton className="h-4 w-44 rounded-md" />
                   </TableCell>
                   {selectedRole === 'ALL' ? (
-                    <TableCell>
-                      <Skeleton className="h-6 w-20 rounded-full" />
+                    <TableCell className="w-[8.5%]">
+                      <Skeleton className="h-6 w-16 rounded-full" />
                     </TableCell>
                   ) : null}
-                  <TableCell>
-                    <Skeleton className="h-5 w-28 rounded-md" />
+                  <TableCell className={selectedRole === 'ALL' ? 'w-[14.5%]' : 'w-[22%]'}>
+                    <Skeleton className="h-5 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="w-20 text-center">
                     <div className="flex items-center justify-center">
                       <Skeleton className="h-6 w-11 rounded-full" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="w-20 text-center">
                     <div className="flex items-center justify-center">
                       <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
@@ -830,18 +833,16 @@ export function UsersTable() {
                     className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
                     {/* User Column (Name only - Avatar circle removed) */}
-                    <TableCell>
-                      <div className="flex items-center gap-3">
+                    <TableCell className={selectedRole === 'ALL' ? 'w-[27%]' : 'w-[32%]'}>
+                      <div className="flex items-center gap-2.5 truncate">
                         <Link
                           href={`/admin/users/${u.id}`}
                           title={`View user profile for ${u.name}`}
-                          className="group flex items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                          className="group flex min-w-0 items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                         >
-                          <div className="min-w-0">
-                            <Span className="block text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
-                              {u.name || '—'}
-                            </Span>
-                          </div>
+                          <Span className="block truncate text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                            {u.name || '—'}
+                          </Span>
                         </Link>
                         {u.mustChangePassword ? (
                           <div className="flex shrink-0 items-center gap-1.5">
@@ -865,14 +866,21 @@ export function UsersTable() {
                       </div>
                     </TableCell>
 
-                    {/* Email Column */}
-                    <TableCell className="max-w-[200px] text-sm break-all text-slate-600 select-all sm:max-w-[240px]">
-                      {u.email}
+                    {/* Email Column - Shifted to x=717, no awkward line breaks */}
+                    <TableCell
+                      className={cn(
+                        'truncate text-sm text-slate-600 select-all',
+                        selectedRole === 'ALL' ? 'w-[25%]' : 'w-[30%]',
+                      )}
+                    >
+                      <span title={u.email} className="block truncate">
+                        {u.email}
+                      </span>
                     </TableCell>
 
                     {/* Role Column (only displayed on ALL filter) */}
                     {selectedRole === 'ALL' ? (
-                      <TableCell>
+                      <TableCell className="w-[8.5%]">
                         <Span
                           className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
                             u.role === 'SUPER_ADMIN'
@@ -892,7 +900,12 @@ export function UsersTable() {
                     ) : null}
 
                     {/* Dynamic Role-Specific Column */}
-                    <TableCell className="text-sm font-medium">
+                    <TableCell
+                      className={cn(
+                        'text-sm font-medium',
+                        selectedRole === 'ALL' ? 'w-[14.5%]' : 'w-[22%]',
+                      )}
+                    >
                       {selectedRole === 'MENTEE' ? (
                         <Span className="text-slate-700">{u.mentorName || '—'}</Span>
                       ) : selectedRole === 'MENTOR' || selectedRole === 'SUPER_ADMIN' ? (
@@ -914,7 +927,7 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Status Column with Switch Only (Tag Removed) */}
-                    <TableCell className="text-center">
+                    <TableCell className="w-20 text-center">
                       <div className="flex items-center justify-center">
                         <ToggleSwitch
                           checked={u.status === 'ACTIVE'}
@@ -927,7 +940,7 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Actions Column (Pencil Edit Icon Center-Aligned with Actions Title) */}
-                    <TableCell className="text-center">
+                    <TableCell className="w-20 text-center">
                       <div className="flex items-center justify-center">
                         <Button
                           type="button"
@@ -971,7 +984,7 @@ export function UsersTable() {
             onPageChange={handlePageChange}
             onLimitChange={handleLimitChange}
             isLoading={isTableLoading}
-            itemLabel="entries"
+            itemLabel="users"
             pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
           />
         )}

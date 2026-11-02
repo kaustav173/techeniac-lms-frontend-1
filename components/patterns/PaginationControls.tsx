@@ -96,20 +96,8 @@ export function PaginationControls({
         <Span>{itemLabel}</Span>
       </div>
 
-      {/* Right-aligned Controls: Page Size Selector + Page Navigation Buttons */}
+      {/* Right-aligned Controls: Page Navigation Buttons + Page Size Selector */}
       <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
-        {/* Page Size Selector (Opens upward to prevent clipping below table) */}
-        <div className="w-32">
-          <SingleSelectDropdown
-            value={limit}
-            onChange={(newLimit) => onLimitChange(Number(newLimit))}
-            options={selectOptions}
-            direction="up"
-            size="sm"
-            aria-label="Entries per page"
-          />
-        </div>
-
         {/* Numbered Page Navigation Pills */}
         <div
           className="flex items-center gap-1.5"
@@ -179,6 +167,18 @@ export function PaginationControls({
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Button>
+        </div>
+
+        {/* Page Size Selector (Opens upward to prevent clipping below table) */}
+        <div className="w-32">
+          <SingleSelectDropdown
+            value={limit}
+            onChange={(newLimit) => onLimitChange(Number(newLimit))}
+            options={selectOptions}
+            direction="up"
+            size="sm"
+            aria-label="Entries per page"
+          />
         </div>
       </div>
     </div>
