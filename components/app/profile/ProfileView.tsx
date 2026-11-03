@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 
 import { PasswordCriteriaChecklist } from '@/components/app/auth/PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from '@/components/app/auth/PasswordVisibilityToggle';
-import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -14,7 +13,6 @@ import { Label } from '@/components/ui/Label';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
-import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
@@ -92,7 +90,7 @@ export interface ProfileViewProps {
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const { changePassword, updateProfile, refreshUser } = useAuth();
 
-  const [isEditNameOpen, setIsEditNameOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   const [profileName, setProfileName] = useState(user.name);
   const [prevUserName, setPrevUserName] = useState(user.name);
@@ -151,7 +149,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     }
 
     if (result.data.name === user.name.trim()) {
-      setIsEditNameOpen(false);
+      setIsEditingName(false);
       return;
     }
 
@@ -159,7 +157,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     try {
       await updateProfile(result.data.name);
       setProfileSuccessMessage('Profile name updated successfully.');
-      setIsEditNameOpen(false);
+      setIsEditingName(false);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
@@ -229,61 +227,115 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             </div>
           </div>
 
-          {/* Name with Pencil Edit Icon */}
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <H2 className="truncate text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
-              {user.name || 'User'}
-            </H2>
-            <button
-              type="button"
-              onClick={() => {
-                setProfileName(user.name);
-                setProfileErrors({});
-                setIsEditNameOpen(true);
+          {/* Name with Inline Edit */}
+          {isEditingName ? (
+            <Form
+              onSubmit={(e) => {
+                void handleProfileSubmit(e);
               }}
-              title="Edit name"
-              aria-label="Edit name"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+              className="mt-4 flex flex-col items-center gap-2"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+              <div className="flex items-center justify-center gap-2">
+                <Input
+                  id="inline-profile-name"
+                  name="name"
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => {
+                    setProfileName(e.target.value);
+                    if (profileErrors.name || profileErrors.general) {
+                      setProfileErrors({});
+                    }
+                  }}
+                  placeholder="Enter your full name"
+                  hasError={Boolean(profileErrors.name)}
+                  errorId="inline-profile-name-error"
+                  disabled={isUpdatingProfile}
+                  autoComplete="name"
+                  className="h-9 w-60 rounded-xl text-center text-base font-bold"
+                  autoFocus
                 />
-              </svg>
-            </button>
-          </div>
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="primary"
+                  disabled={
+                    isUpdatingProfile ||
+                    !profileName.trim() ||
+                    profileName.trim() === user.name.trim()
+                  }
+                  isLoading={isUpdatingProfile}
+                  className="h-9 rounded-full bg-[#0044D3] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+                >
+                  Save
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isUpdatingProfile}
+                  onClick={() => {
+                    setProfileName(user.name);
+                    setProfileErrors({});
+                    setIsEditingName(false);
+                  }}
+                  className="h-9 rounded-full px-3.5 text-xs font-semibold"
+                >
+                  Cancel
+                </Button>
+              </div>
+              {profileErrors.name ? (
+                <FieldError id="inline-profile-name-error" error={profileErrors.name} />
+              ) : null}
+              {profileErrors.general ? (
+                <Span className="text-xs text-rose-600">{profileErrors.general}</Span>
+              ) : null}
+            </Form>
+          ) : (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <H2 className="truncate text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
+                {user.name || 'User'}
+              </H2>
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileName(user.name);
+                  setProfileErrors({});
+                  setIsEditingName(true);
+                }}
+                title="Edit name"
+                aria-label="Edit name"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
 
-          {/* Badges: Role & Status */}
-          <div className="mt-3 flex items-center justify-center gap-2">
+          {/* Badges: Role */}
+          <div className="mt-3 flex items-center justify-center">
             <Span
               className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${roleBadgeStyle}`}
             >
               {formatRoleLabel(user.role)}
             </Span>
-            {user.isActive !== false ? (
-              <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Active
-              </Span>
-            ) : (
-              <Span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                Inactive
-              </Span>
-            )}
           </div>
 
-          {/* Contact & Membership Metadata */}
-          <div className="mt-6 space-y-3 rounded-2xl border border-[#E1E6EC] bg-[#F9FAFB] p-4 text-left">
+          {/* Contact Metadata */}
+          <div className="mt-6 rounded-2xl border border-[#E1E6EC] bg-[#F9FAFB] p-4 text-left">
             <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="flex items-center gap-2 text-[#667085]">
                 <svg
@@ -300,35 +352,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                Email Address
+                Email
               </span>
               <span className="truncate font-semibold text-[#111827]">{user.email}</span>
             </div>
-
-            {user.createdAt ? (
-              <div className="flex items-center justify-between border-t border-[#E1E6EC]/60 pt-3 text-xs sm:text-sm">
-                <span className="flex items-center gap-2 text-[#667085]">
-                  <svg
-                    className="h-4 w-4 shrink-0 text-slate-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Member Since
-                </span>
-                <span className="font-semibold text-[#111827]">
-                  {formatDateIST(user.createdAt)}
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
@@ -337,9 +364,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
         <div className="border-b border-[#E1E6EC] pb-4">
           <H2 className="text-base font-bold text-[#111827]">Change Password</H2>
-          <Span className="text-xs text-[#667085]">
-            Ensure your account is using a strong and secure password.
-          </Span>
         </div>
 
         <Form
@@ -356,7 +380,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
           <ProfilePasswordField
             id="profile-currentPassword"
             name="currentPassword"
-            label="Current Password"
+            label="Current"
             value={currentPassword}
             onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
             placeholder="Enter current password"
@@ -371,7 +395,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
           <ProfilePasswordField
             id="profile-newPassword"
             name="newPassword"
-            label="New Password"
+            label="New"
             value={newPassword}
             onChange={handleFieldChange(setNewPassword, 'newPassword')}
             placeholder="Enter new strong password"
@@ -389,7 +413,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
           <ProfilePasswordField
             id="profile-confirmPassword"
             name="confirmPassword"
-            label="Confirm New Password"
+            label="Confirm"
             value={confirmPassword}
             onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
             placeholder="Re-enter new password"
@@ -410,83 +434,11 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
               isLoading={isSubmitting}
               className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
             >
-              {isSubmitting ? 'Updating Password...' : 'Update Password'}
+              {isSubmitting ? 'Updating...' : 'Update'}
             </Button>
           </div>
         </Form>
       </div>
-
-      {/* Edit Name Modal Popup */}
-      <Modal
-        isOpen={isEditNameOpen}
-        onClose={() => setIsEditNameOpen(false)}
-        title="Edit Full Name"
-        size="sm"
-        isSubmitting={isUpdatingProfile}
-      >
-        <Form
-          onSubmit={(e) => {
-            void handleProfileSubmit(e);
-          }}
-          className="space-y-4"
-        >
-          {profileErrors.general ? (
-            <Alert variant="error" title="Update Failed" message={profileErrors.general} />
-          ) : null}
-
-          <div className="space-y-1.5">
-            <Label htmlFor="modal-profile-name" required>
-              Full Name
-            </Label>
-            <Input
-              id="modal-profile-name"
-              name="name"
-              type="text"
-              value={profileName}
-              onChange={(e) => {
-                setProfileName(e.target.value);
-                if (profileErrors.name || profileErrors.general) {
-                  setProfileErrors({});
-                }
-              }}
-              placeholder="Enter your full name"
-              hasError={Boolean(profileErrors.name)}
-              errorId="modal-profile-name-error"
-              disabled={isUpdatingProfile}
-              autoComplete="name"
-              className="rounded-2xl"
-            />
-            {profileErrors.name ? (
-              <FieldError id="modal-profile-name-error" error={profileErrors.name} />
-            ) : null}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isUpdatingProfile}
-              onClick={() => setIsEditNameOpen(false)}
-              className="rounded-full px-5 text-xs font-semibold"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={
-                isUpdatingProfile || !profileName.trim() || profileName.trim() === user.name.trim()
-              }
-              isLoading={isUpdatingProfile}
-              className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
-            >
-              {isUpdatingProfile ? 'Saving Changes...' : 'Save Changes'}
-            </Button>
-          </div>
-        </Form>
-      </Modal>
     </div>
   );
 }

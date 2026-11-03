@@ -330,7 +330,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 aria-haspopup="true"
                 className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B7A9E] text-base font-bold text-white shadow-xs">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-base font-bold text-white shadow-xs">
                   {userInitials}
                 </div>
                 <div className="hidden text-left sm:block">
