@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -156,26 +157,22 @@ export function AuditLogTable() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Type Filter */}
           <div>
-            <Label htmlFor="audit-type-filter" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="audit-type-filter" className="text-sm font-semibold text-slate-800">
               Event Type
             </Label>
-            <Select
+            <SingleSelectDropdown
               id="audit-type-filter"
               value={filters.type ?? 'ALL'}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
-              className="mt-1.5 h-10 w-full rounded-xl text-xs"
-            >
-              {AUDIT_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
+              onChange={(val) => handleFilterChange('type', val)}
+              options={AUDIT_TYPE_OPTIONS}
+              size="md"
+              className="mt-1.5"
+            />
           </div>
 
           {/* Action Search with Debounce */}
           <div>
-            <Label htmlFor="audit-action-filter" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="audit-action-filter" className="text-sm font-semibold text-slate-800">
               Filter by Action
             </Label>
             <Input
@@ -184,48 +181,44 @@ export function AuditLogTable() {
               placeholder="e.g. ROLE_CHANGE, LOGIN, LIVE_EDIT"
               value={actionInput}
               onChange={(e) => setActionInput(e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+              className="mt-1.5 h-11 rounded-xl text-sm"
             />
           </div>
 
           {/* Date Range Start */}
           <div>
-            <Label htmlFor="audit-start-date" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="audit-start-date" className="text-sm font-semibold text-slate-800">
               From Date
             </Label>
-            <Input
+            <DatePicker
               id="audit-start-date"
-              type="date"
-              value={filters.startDate ?? ''}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+              value={filters.startDate}
+              onChange={(val) => handleFilterChange('startDate', val || undefined)}
+              placeholder="From date"
+              className="mt-1.5 h-11 text-sm"
             />
           </div>
 
           {/* Date Range End */}
           <div>
-            <Label htmlFor="audit-end-date" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="audit-end-date" className="text-sm font-semibold text-slate-800">
               To Date
             </Label>
-            <Input
+            <DatePicker
               id="audit-end-date"
-              type="date"
-              min={filters.startDate}
-              value={filters.endDate ?? ''}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+              value={filters.endDate}
+              onChange={(val) => handleFilterChange('endDate', val || undefined)}
+              placeholder="To date"
+              className="mt-1.5 h-11 text-sm"
             />
           </div>
         </div>
 
         {/* Filter Summary & Actions */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Span className="font-semibold text-slate-700">{pagination.total}</Span> total events
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <Span className="font-bold text-slate-900">{pagination.total}</Span> total events
             recorded
-            {isFetching && !isLoading && (
-              <Span className="animate-pulse text-blue-600">· Refreshing...</Span>
-            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -235,7 +228,7 @@ export function AuditLogTable() {
                 variant="ghost"
                 size="sm"
                 onClick={handleResetFilters}
-                className="text-xs text-slate-600 hover:text-slate-900"
+                className="text-sm font-medium text-slate-600 hover:text-slate-900"
               >
                 Reset Filters
               </Button>
@@ -244,8 +237,9 @@ export function AuditLogTable() {
               type="button"
               variant="outline"
               size="sm"
+              isLoading={isFetching}
               onClick={() => void refetch()}
-              className="text-xs"
+              className="text-sm font-semibold"
             >
               Refresh
             </Button>
@@ -271,14 +265,13 @@ export function AuditLogTable() {
               <TableHead className="px-5 py-3.5 text-xs font-semibold">Action</TableHead>
               <TableHead className="px-5 py-3.5 text-xs font-semibold">Actor</TableHead>
               <TableHead className="px-5 py-3.5 text-xs font-semibold">Target Entity</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Payload Preview</TableHead>
               <TableHead className="px-5 py-3.5 text-right text-xs font-semibold">
                 Details
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-[#F2F4F7] font-normal">
-            {isLoading ? (
+            {isLoading || isFetching ? (
               // Skeleton rows
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
@@ -297,9 +290,6 @@ export function AuditLogTable() {
                   <TableCell className="px-5 py-4">
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
-                    <Skeleton className="h-4 w-40 rounded-md" />
-                  </TableCell>
                   <TableCell className="px-5 py-4 text-right">
                     <Skeleton className="ml-auto h-7 w-16 rounded-md" />
                   </TableCell>
@@ -307,7 +297,7 @@ export function AuditLogTable() {
               ))
             ) : error ? null : logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="px-5 py-12 text-center">
+                <TableCell colSpan={6} className="px-5 py-12 text-center">
                   <div className="mx-auto max-w-sm space-y-2">
                     <H2 className="text-sm font-semibold text-slate-800">No audit events found</H2>
                     <P className="text-xs text-slate-500">
@@ -335,12 +325,6 @@ export function AuditLogTable() {
                 const formattedTime = formatDateTimeISTWithSeconds(item.createdAt);
                 const actorName = item.actor?.name || 'Anonymous / System';
                 const actorRole = item.actor?.role;
-                const previewText = item.newValue
-                  ? JSON.stringify(item.newValue).slice(0, 50) + '...'
-                  : item.oldValue
-                    ? JSON.stringify(item.oldValue).slice(0, 50) + '...'
-                    : '—';
-
                 const target = resolveAuditTargetEntity(item);
 
                 return (
@@ -384,11 +368,6 @@ export function AuditLogTable() {
                           <Span className="text-[10px] text-slate-500">{target.type}</Span>
                         ) : null}
                       </div>
-                    </TableCell>
-
-                    {/* Payload Preview */}
-                    <TableCell className="max-w-xs truncate px-5 py-3.5 font-mono text-[11px] text-slate-500">
-                      {previewText}
                     </TableCell>
 
                     {/* View Payload Details Button */}

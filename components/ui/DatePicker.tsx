@@ -4,6 +4,10 @@ import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } fro
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/Button';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
@@ -21,7 +25,7 @@ export interface DatePickerProps {
   readonly className?: string | undefined;
 }
 
-const POPOVER_WIDTH_PX = 340;
+const POPOVER_WIDTH_PX = 360;
 const POPOVER_HEIGHT_PX = 380;
 const POPOVER_GUTTER_PX = 6;
 const POPOVER_Z_INDEX = 9999;
@@ -40,6 +44,11 @@ const MONTH_NAMES = [
   'November',
   'December',
 ];
+
+const MONTH_OPTIONS: readonly SingleSelectOption<number>[] = MONTH_NAMES.map((name, idx) => ({
+  value: idx,
+  label: name,
+}));
 
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -122,6 +131,8 @@ interface CalendarPopoverProps {
   readonly calendarDays: readonly CalendarDay[];
   readonly onPrevMonth: () => void;
   readonly onNextMonth: () => void;
+  readonly onMonthChange: (newMonth: number) => void;
+  readonly onYearChange: (newYear: number) => void;
   readonly onSelectDay: (dateString: string) => void;
 }
 
@@ -133,8 +144,25 @@ function CalendarPopover({
   calendarDays,
   onPrevMonth,
   onNextMonth,
+  onMonthChange,
+  onYearChange,
   onSelectDay,
 }: Readonly<CalendarPopoverProps>) {
+  const years = useMemo(() => {
+    const minYear = Math.min(2015, viewYear - 5);
+    const maxYear = Math.max(new Date().getFullYear() + 10, viewYear + 5);
+    const list: number[] = [];
+    for (let y = minYear; y <= maxYear; y++) {
+      list.push(y);
+    }
+    return list;
+  }, [viewYear]);
+
+  const yearOptions: readonly SingleSelectOption<number>[] = useMemo(
+    () => years.map((y) => ({ value: y, label: String(y) })),
+    [years],
+  );
+
   return (
     <div
       ref={popoverRef}
@@ -156,7 +184,7 @@ function CalendarPopover({
           variant="ghost"
           size="sm"
           onClick={onPrevMonth}
-          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Previous month"
         >
           <svg
@@ -171,16 +199,35 @@ function CalendarPopover({
           </svg>
         </Button>
 
-        <Span className="text-sm font-bold text-slate-900 sm:text-base">
-          {MONTH_NAMES[viewMonth]} {viewYear}
-        </Span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-[125px]">
+            <SingleSelectDropdown<number>
+              value={viewMonth}
+              onChange={(m) => onMonthChange(m)}
+              options={MONTH_OPTIONS}
+              size="sm"
+              aria-label="Select month"
+              menuClassName="max-h-52 z-50 shadow-xl"
+            />
+          </div>
+          <div className="w-[90px]">
+            <SingleSelectDropdown<number>
+              value={viewYear}
+              onChange={(y) => onYearChange(y)}
+              options={yearOptions}
+              size="sm"
+              aria-label="Select year"
+              menuClassName="max-h-52 z-50 shadow-xl"
+            />
+          </div>
+        </div>
 
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onNextMonth}
-          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Next month"
         >
           <svg
@@ -388,6 +435,14 @@ export function DatePicker({
     setViewDate(new Date(viewYear, viewMonth + 1, 1));
   };
 
+  const handleMonthChange = (newMonth: number) => {
+    setViewDate(new Date(viewYear, newMonth, 1));
+  };
+
+  const handleYearChange = (newYear: number) => {
+    setViewDate(new Date(newYear, viewMonth, 1));
+  };
+
   const calendarDays = useMemo(
     () => buildCalendarGrid(viewYear, viewMonth, value),
     [viewYear, viewMonth, value],
@@ -447,6 +502,8 @@ export function DatePicker({
               calendarDays={calendarDays}
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
+              onMonthChange={handleMonthChange}
+              onYearChange={handleYearChange}
               onSelectDay={handleSelectDay}
             />,
             document.body,
