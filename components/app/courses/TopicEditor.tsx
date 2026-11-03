@@ -248,7 +248,7 @@ export function TopicEditor({
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Topic Parameters
@@ -273,7 +273,7 @@ export function TopicEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-[#0044D3] px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -310,7 +310,7 @@ export function TopicEditor({
         className="mt-6 w-full max-w-4xl space-y-6"
       >
         {/* Card 1: Core Topic Information */}
-        <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Label
               required={true}
@@ -343,7 +343,7 @@ export function TopicEditor({
         </div>
 
         {/* Card 2: Estimated Duration & Planning */}
-        <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Label className="block text-sm font-semibold tracking-wide text-slate-800">
               Estimated Duration
@@ -455,7 +455,7 @@ export function TopicEditor({
         </div>
 
         {/* Card 3: Resources & Attachments Manager */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="flex items-center justify-between">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
@@ -476,7 +476,7 @@ export function TopicEditor({
               >
                 <div className="flex items-center gap-3 truncate">
                   <Span
-                    className={`rounded-lg px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
+                    className={`rounded-lg px-2 py-0.5 text-xs font-bold tracking-wide uppercase ${
                       resItem.type === 'LINK'
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-purple-100 text-purple-700'
@@ -569,7 +569,7 @@ export function TopicEditor({
               <Button
                 type="button"
                 onClick={handleAddResource}
-                className="h-10 w-full rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950"
+                className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
               >
                 <Span className="sm:hidden">+ Add</Span>
                 <Span className="hidden sm:inline">+</Span>
@@ -579,7 +579,7 @@ export function TopicEditor({
         </div>
 
         {/* Card 4: Visibility & Active Toggle */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Span className="block text-base font-bold text-slate-900">Topic Active Status</Span>
             <Span className="mt-0.5 block text-xs text-slate-500">

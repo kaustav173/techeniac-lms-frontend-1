@@ -370,19 +370,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-24 text-center">Activate</TableHead>
                     <TableHead className="w-[42%]">Course</TableHead>
                     <TableHead className="w-28 text-center">Topics</TableHead>
                     <TableHead className="w-28 text-center">Tasks</TableHead>
-                    <TableHead className="w-44 text-right">Action</TableHead>
+                    <TableHead className="w-44 text-center">Action</TableHead>
+                    <TableHead className="w-24 text-center">Activate</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 6 }).map((_, idx) => (
                     <TableRow key={`course-skel-${idx}`} className="h-16">
-                      <TableCell className="w-24 text-center">
-                        <Skeleton className="mx-auto h-6 w-11 rounded-full" />
-                      </TableCell>
                       <TableCell>
                         <div className="space-y-1.5">
                           <Skeleton className="h-4 w-48 rounded-md" />
@@ -395,8 +392,15 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       <TableCell className="text-center">
                         <Skeleton className="mx-auto h-5 w-16 rounded-md" />
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Skeleton className="ml-auto h-8 w-28 rounded-xl" />
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Skeleton className="h-8 w-16 rounded-full" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-24 text-center">
+                        <Skeleton className="mx-auto h-6 w-11 rounded-full" />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -436,11 +440,11 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-24 text-center">Activate</TableHead>
                         <TableHead className="w-[42%]">Course</TableHead>
                         <TableHead className="w-28 text-center">Topics</TableHead>
                         <TableHead className="w-28 text-center">Tasks</TableHead>
-                        <TableHead className="w-44 text-right">Action</TableHead>
+                        <TableHead className="w-44 text-center">Action</TableHead>
+                        <TableHead className="w-24 text-center">Activate</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -458,21 +462,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
                             className="cursor-pointer transition-colors hover:bg-slate-50/80"
                           >
-                            <TableCell
-                              className="w-24 text-center"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="flex items-center justify-center">
-                                <ToggleSwitch
-                                  checked={c.isActive}
-                                  disabled={isActionSubmitting && activeActionCourse?.id === c.id}
-                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
-                                  ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
-                                  onChange={() => void onRequestToggleStatus(c)}
-                                />
-                              </div>
-                            </TableCell>
-
                             <TableCell>
                               <div className="flex max-w-[280px] flex-col sm:max-w-xs md:max-w-md">
                                 <Link
@@ -505,10 +494,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             </TableCell>
 
                             <TableCell
-                              className="w-44 text-right"
+                              className="w-44 text-center"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <div className="flex items-center justify-end gap-1.5">
+                              <div className="flex items-center justify-center gap-1.5">
                                 <Button
                                   type="button"
                                   variant="primary"
@@ -574,6 +563,21 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                     />
                                   </svg>
                                 </Button>
+                              </div>
+                            </TableCell>
+
+                            <TableCell
+                              className="w-24 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="flex items-center justify-center">
+                                <ToggleSwitch
+                                  checked={c.isActive}
+                                  disabled={isActionSubmitting && activeActionCourse?.id === c.id}
+                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
+                                  ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
+                                  onChange={() => void onRequestToggleStatus(c)}
+                                />
                               </div>
                             </TableCell>
                           </TableRow>

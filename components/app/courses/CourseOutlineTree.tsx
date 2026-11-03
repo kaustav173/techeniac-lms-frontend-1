@@ -756,8 +756,8 @@ export function CourseOutlineTree({
           </div>
 
           {/* 2. Topics Section - Structured as a self-contained card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
                 <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                   Topics
@@ -771,7 +771,7 @@ export function CourseOutlineTree({
                 variant="ghost"
                 disabled={Boolean(isReorderingTopics)}
                 onClick={onAddTopic}
-                className="inline-flex h-auto items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1.5 rounded-full bg-[#0044D3] px-3 py-1 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:opacity-40"
                 title="Add a new topic"
               >
                 <svg
@@ -839,13 +839,13 @@ export function CourseOutlineTree({
                           {/* Subtopics Div & Topic Tasks Div */}
                           <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
                             {/* 1. Subtopics Section Div */}
-                            <div className="rounded-lg border border-slate-200/70 bg-white p-2 shadow-2xs">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
                                 <div className="flex items-center gap-1.5">
-                                  <Span className="text-[11px] font-bold tracking-wider text-slate-600 uppercase">
+                                  <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
                                     Subtopics
                                   </Span>
-                                  <Span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">
+                                  <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
                                     {subtopics.length}
                                   </Span>
                                 </div>
@@ -854,7 +854,7 @@ export function CourseOutlineTree({
                                   variant="ghost"
                                   disabled={Boolean(isReorderingSubtopicsThisTopic)}
                                   onClick={() => onAddSubtopic(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:opacity-40"
+                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
                                   title="Add Subtopic"
                                 >
                                   <svg
@@ -923,13 +923,13 @@ export function CourseOutlineTree({
                             </div>
 
                             {/* 2. Topic Tasks Section Div */}
-                            <div className="rounded-lg border border-slate-200/70 bg-white p-2 shadow-2xs">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
                                 <div className="flex items-center gap-1.5">
-                                  <Span className="text-[11px] font-bold tracking-wider text-purple-700 uppercase">
+                                  <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
                                     Tasks
                                   </Span>
-                                  <Span className="rounded-full bg-purple-50 px-1.5 py-0.5 text-[10px] font-bold text-purple-700">
+                                  <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
                                     {topicAssignments.length}
                                   </Span>
                                 </div>
@@ -938,7 +938,7 @@ export function CourseOutlineTree({
                                   variant="ghost"
                                   disabled={Boolean(isReorderingTopicTasksThisTopic)}
                                   onClick={() => onAddTopicAssignment(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-700 transition-colors hover:bg-purple-50 hover:text-purple-700 disabled:opacity-40"
+                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
                                   title="Add Task"
                                 >
                                   <svg
@@ -1017,8 +1017,8 @@ export function CourseOutlineTree({
           </div>
 
           {/* 4. Course-Level Assignments Section (At bottom) */}
-          <div className="mt-3.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div className="mt-3.5 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2">
                 <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                   Course-Level Assignments
@@ -1032,7 +1032,7 @@ export function CourseOutlineTree({
                 variant="ghost"
                 disabled={Boolean(isReorderingCourseAssignments)}
                 onClick={onAddCourseAssignment}
-                className="inline-flex h-auto items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-purple-700 hover:bg-purple-50 hover:text-purple-700 disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
               >
                 <svg
                   className="h-3.5 w-3.5"
