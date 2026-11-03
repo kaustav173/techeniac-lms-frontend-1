@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
@@ -12,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
 import { useAddBatchMembersMutation } from '@/hooks/useBatches';
-import { useUsers } from '@/hooks/useUsers';
+import { userKeys, useUsers } from '@/hooks/useUsers';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
 export interface AddMemberModalProps {
@@ -114,16 +115,21 @@ export function AddMemberModal({
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [submitError, setSubmitError] = useState<unknown>(null);
+  const queryClient = useQueryClient();
 
   const {
     users: candidates,
     isLoading: isLoadingCandidates,
     fetchUsers,
-  } = useUsers({
-    role,
-    status: 'active',
-    limit: 100,
-  });
+  } = useUsers(
+    {
+      role,
+      status: 'active',
+      withoutActiveBatch: role === 'MENTEE' ? true : undefined,
+      limit: 100,
+    },
+    { enabled: isOpen },
+  );
 
   const { mutateAsync: addMembers, isPending: isSubmitting } = useAddBatchMembersMutation();
 
@@ -132,7 +138,12 @@ export function AddMemberModal({
     setRole(newRole);
     setSelectedUserIds([]);
     setSubmitError(null);
-    void fetchUsers({ role: newRole, status: 'active', limit: 100 });
+    void fetchUsers({
+      role: newRole,
+      status: 'active',
+      withoutActiveBatch: newRole === 'MENTEE' ? true : undefined,
+      limit: 100,
+    });
   };
 
   if (!isOpen) return null;
@@ -169,6 +180,7 @@ export function AddMemberModal({
         userIds: selectedUserIds,
         memberRole: role,
       });
+      void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       setSelectedUserIds([]);
       setSearch('');
       setSubmitError(null);

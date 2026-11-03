@@ -29,6 +29,7 @@ export interface UserQueryFilters {
   mentorId?: string | undefined;
   sortBy?: 'name' | 'email' | 'createdAt' | undefined;
   sortOrder?: 'asc' | 'desc' | undefined;
+  withoutActiveBatch?: boolean | undefined;
 }
 
 export interface RoleImpactActiveMentee {
@@ -72,7 +73,7 @@ export const usersService = {
     total: number;
     counts?: UserDirectoryCounts;
   }> {
-    const params: Record<string, string | number | undefined> = {};
+    const params: Record<string, string | number | boolean | undefined> = {};
     if (filters.page) params.page = filters.page;
     if (filters.limit) params.limit = filters.limit;
     if (filters.role && filters.role !== 'ALL') params.role = filters.role;
@@ -84,6 +85,9 @@ export const usersService = {
     if (filters.mentorId) params.mentorId = filters.mentorId;
     if (filters.sortBy) params.sortBy = filters.sortBy;
     if (filters.sortOrder) params.sortOrder = filters.sortOrder;
+    if (filters.withoutActiveBatch !== undefined) {
+      params.withoutActiveBatch = filters.withoutActiveBatch;
+    }
 
     const res = await apiClient<
       ApiResponse<{ users: ApiUser[]; total: number; counts?: UserDirectoryCounts }>

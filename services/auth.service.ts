@@ -33,6 +33,14 @@ export interface MessageResponse {
   message: string;
 }
 
+export interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: AuthUser;
+  };
+}
+
 export interface VerifyResetTokenResponse {
   success: boolean;
   data: {
@@ -125,5 +133,16 @@ export const authService = {
       throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
     }
     return response.message;
+  },
+
+  async updateProfile(name: string): Promise<AuthUser> {
+    const response = await apiClient<UpdateProfileResponse>('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    if (!response?.success || !response?.data?.user) {
+      throw new ApiError(500, 'Invalid response from server', 'INVALID_RESPONSE');
+    }
+    return response.data.user;
   },
 };

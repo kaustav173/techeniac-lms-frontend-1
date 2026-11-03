@@ -17,7 +17,7 @@ import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
-import { changePasswordSchema, extractZodErrors } from '@/lib/validation';
+import { changePasswordSchema, extractZodErrors, updateProfileSchema } from '@/lib/validation';
 import type { AuthUser, UserRole } from '@/services/auth.service';
 
 function getRoleBadgeColor(role: UserRole): string {
@@ -88,7 +88,20 @@ export interface ProfileViewProps {
 }
 
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
-  const { changePassword, refreshUser } = useAuth();
+  const { changePassword, updateProfile, refreshUser } = useAuth();
+
+  const [profileName, setProfileName] = useState(user.name);
+  const [prevUserName, setPrevUserName] = useState(user.name);
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
+  const [profileSuccessMessage, setProfileSuccessMessage] = useState<string | null>(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Adjust state during render when prop changes (React recommended pattern for state mirroring)
+  // to avoid cascading re-renders or effect delays when the authenticated user's name is updated.
+  if (prevUserName !== user.name) {
+    setPrevUserName(user.name);
+    setProfileName(user.name);
+  }
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -116,6 +129,37 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
         setErrors((prev) => ({ ...prev, [fieldKey]: '' }));
       }
     };
+
+  const handleProfileSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isUpdatingProfile) return;
+
+    setProfileErrors({});
+    setProfileSuccessMessage(null);
+
+    const result = updateProfileSchema.safeParse({
+      name: profileName,
+    });
+
+    if (!result.success) {
+      setProfileErrors(extractZodErrors(result.error.issues));
+      return;
+    }
+
+    if (result.data.name === user.name.trim()) return;
+
+    setIsUpdatingProfile(true);
+    try {
+      await updateProfile(result.data.name);
+      setProfileSuccessMessage('Profile name updated successfully.');
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
+      setProfileErrors({ general: message });
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
 
   const handlePasswordSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -236,8 +280,106 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
           </div>
         </div>
 
-        {/* Right Card: Change Password Form */}
+        {/* Right Column: Profile Edit & Change Password Forms */}
         <div className="space-y-6 lg:col-span-7">
+          {/* Personal Information Form Card */}
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
+            <div>
+              <H2 className="text-lg font-bold text-[#111827] sm:text-xl">Personal Information</H2>
+              <P className="mt-1 text-sm text-[#667085]">
+                Update your display name. Email address is managed by administrators and cannot be
+                changed.
+              </P>
+            </div>
+
+            {profileSuccessMessage ? (
+              <div className="mt-6">
+                <Alert variant="success" title="Profile Updated" message={profileSuccessMessage} />
+              </div>
+            ) : null}
+
+            {profileErrors.general ? (
+              <div className="mt-6">
+                <Alert variant="error" title="Update Failed" message={profileErrors.general} />
+              </div>
+            ) : null}
+
+            <Form
+              onSubmit={(e) => {
+                void handleProfileSubmit(e);
+              }}
+              className="mt-6 space-y-5"
+            >
+              {/* Full Name Field (Editable) */}
+              <div className="space-y-1.5">
+                <Label htmlFor="profile-name" required>
+                  Full Name
+                </Label>
+                <Input
+                  id="profile-name"
+                  name="name"
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => {
+                    setProfileName(e.target.value);
+                    if (profileSuccessMessage) setProfileSuccessMessage(null);
+                    if (profileErrors.name || profileErrors.general) {
+                      setProfileErrors({});
+                    }
+                  }}
+                  placeholder="Enter your full name"
+                  hasError={Boolean(profileErrors.name)}
+                  errorId="profile-name-error"
+                  disabled={isUpdatingProfile}
+                  autoComplete="name"
+                />
+                {profileErrors.name ? (
+                  <FieldError id="profile-name-error" error={profileErrors.name} />
+                ) : null}
+              </div>
+
+              {/* Email Address Field (Read-only) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="profile-email">Email Address</Label>
+                  <Span className="text-xs font-medium text-[#667085]">Read-only</Span>
+                </div>
+                <Input
+                  id="profile-email"
+                  name="email"
+                  type="email"
+                  value={user.email}
+                  readOnly
+                  aria-readonly="true"
+                  aria-describedby="profile-email-desc"
+                  className="cursor-not-allowed bg-slate-50 text-slate-500"
+                />
+                <P id="profile-email-desc" className="text-xs text-[#667085]">
+                  Email address is linked to your authentication credentials and cannot be edited.
+                </P>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={
+                    isUpdatingProfile ||
+                    !profileName.trim() ||
+                    profileName.trim() === user.name.trim()
+                  }
+                  isLoading={isUpdatingProfile}
+                  className="rounded-full bg-[#0044D3] px-6 text-sm font-semibold shadow-sm hover:bg-[#0036ab]"
+                >
+                  {isUpdatingProfile ? 'Saving Changes...' : 'Save Changes'}
+                </Button>
+              </div>
+            </Form>
+          </div>
+
+          {/* Change Password Form Card */}
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
             <div>
               <H2 className="text-lg font-bold text-[#111827] sm:text-xl">Change Password</H2>
