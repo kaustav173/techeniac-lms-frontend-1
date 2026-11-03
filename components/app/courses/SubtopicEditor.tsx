@@ -624,23 +624,34 @@ export function SubtopicEditor({
             </Span>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            role="switch"
-            aria-checked={isActive}
-            aria-label="Subtopic active status"
-            onClick={() => handleChange(() => setIsActive(!isActive))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
-              isActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-          >
+          <div className="flex items-center gap-3">
             <Span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                isActive ? 'translate-x-5' : 'translate-x-0'
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                isActive
+                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border border-slate-200 bg-slate-100 text-slate-600'
               }`}
-            />
-          </Button>
+            >
+              {isActive ? 'Active' : 'Inactive'}
+            </Span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isActive}
+              aria-label="Subtopic active status"
+              onClick={() => handleChange(() => setIsActive(!isActive))}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+                isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  isActive ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </form>
     </div>

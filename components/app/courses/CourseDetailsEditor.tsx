@@ -130,11 +130,11 @@ export function CourseDetailsEditor({
     <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Course Root Settings
           </Span>
-          <H2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {course.title}
           </H2>
         </div>
@@ -189,7 +189,7 @@ export function CourseDetailsEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 w-full max-w-4xl space-y-6"
+        className="mt-6 w-full max-w-5xl space-y-4"
       >
         {/* Card 1: Core Details */}
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
@@ -230,10 +230,6 @@ export function CourseDetailsEditor({
             <Label className="block text-sm font-semibold tracking-wide text-slate-800">
               Total Estimated Duration
             </Label>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Curriculum benchmark hours used to calibrate cadence and auto-schedule mentee
-              allocation due dates.
-            </P>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -312,7 +308,7 @@ export function CourseDetailsEditor({
         </div>
 
         {/* Card 3: Visibility Status */}
-        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
           <div>
             <Span className="block text-base font-bold text-slate-900">
               Course Visibility Status
@@ -322,23 +318,34 @@ export function CourseDetailsEditor({
             </Span>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            role="switch"
-            aria-checked={isActive}
-            aria-label="Course visibility status"
-            onClick={() => handleChange(() => setIsActive(!isActive))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
-              isActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-          >
+          <div className="flex items-center gap-3">
             <Span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                isActive ? 'translate-x-5' : 'translate-x-0'
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                isActive
+                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border border-slate-200 bg-slate-100 text-slate-600'
               }`}
-            />
-          </Button>
+            >
+              {isActive ? 'Active' : 'Inactive'}
+            </Span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isActive}
+              aria-label="Course visibility status"
+              onClick={() => handleChange(() => setIsActive(!isActive))}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+                isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  isActive ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </form>
     </div>

@@ -176,7 +176,7 @@ function SortableTopicItem({
             className="group/name relative flex flex-1 cursor-pointer items-center gap-1.5 truncate"
             title={topic.title}
           >
-            <Span className="truncate text-sm font-semibold text-slate-900">{topic.title}</Span>
+            <Span className="truncate text-base font-bold text-slate-900">{topic.title}</Span>
             <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
               {topic.title}
             </Span>
@@ -313,7 +313,7 @@ function SortableSubtopicItem({
           className="group/name relative flex flex-1 items-center gap-1.5 truncate"
           title={subtopic.title}
         >
-          <Span className="truncate text-sm font-medium">{subtopic.title}</Span>
+          <Span className="truncate text-sm font-semibold sm:text-base">{subtopic.title}</Span>
           <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {subtopic.title}
           </Span>
@@ -470,7 +470,7 @@ function SortableAssignmentItem({
           className="group/name relative flex flex-1 items-center gap-1.5 truncate"
           title={assignment.title}
         >
-          <Span className="truncate text-sm font-medium">{assignment.title}</Span>
+          <Span className="truncate text-sm font-semibold sm:text-base">{assignment.title}</Span>
           <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {assignment.title}
           </Span>
@@ -714,12 +714,7 @@ export function CourseOutlineTree({
       <div className="flex h-full flex-col border-b border-slate-200 bg-slate-50/60 lg:border-r lg:border-b-0">
         {/* Outline Header */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3.5">
-          <div>
-            <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-              Curriculum Structure
-            </Span>
-            <H2 className="text-sm font-bold text-slate-900">Course Outline</H2>
-          </div>
+          <H2 className="text-base font-bold text-slate-900 sm:text-lg">Course Outline</H2>
           {hasActiveReorder && (
             <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
               <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -743,7 +738,7 @@ export function CourseOutlineTree({
               <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
                 Course
               </Span>
-              <Span className="truncate text-sm font-bold text-slate-900">{course.title}</Span>
+              <Span className="truncate text-base font-bold text-slate-900">{course.title}</Span>
             </div>
             <div className="flex items-center gap-2">
               <Span className="text-xs font-medium text-slate-500">

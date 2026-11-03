@@ -660,12 +660,6 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
               <Skeleton className="h-3.5 w-3.5 rounded-full" />
               <Skeleton className="h-3.5 w-24 rounded-md" />
             </div>
-            <Span className="h-4 w-px bg-slate-200" />
-            <Skeleton className="h-5 w-48 rounded-md" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </div>
-          <div className="hidden items-center gap-2 sm:flex">
-            <Skeleton className="h-8 w-24 rounded-xl" />
           </div>
         </div>
 
@@ -674,8 +668,7 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
           {/* Left Pane: Outline Tree Skeleton */}
           <div className="hidden w-[400px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <Skeleton className="h-4 w-28 rounded-md" />
-              <Skeleton className="h-8 w-24 rounded-lg" />
+              <Skeleton className="h-5 w-32 rounded-md" />
             </div>
             <div className="mt-3">
               <Skeleton className="h-9 w-full rounded-xl" />
@@ -719,16 +712,17 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
             </div>
           </div>
 
-          {/* Right Pane: Form Field Editor Skeleton */}
+          {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="mx-auto max-w-3xl space-y-6">
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <div className="mx-auto max-w-5xl space-y-4">
+              {/* Card 1: Course Basics */}
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
                 <div className="border-b border-slate-100 pb-4">
                   <Skeleton className="h-6 w-48 rounded-md" />
                   <Skeleton className="mt-1.5 h-3.5 w-72 rounded-md" />
                 </div>
 
-                <div className="mt-6 space-y-5">
+                <div className="mt-5 space-y-4">
                   {/* Title Field */}
                   <div className="space-y-1.5">
                     <Skeleton className="h-3.5 w-20 rounded-md" />
@@ -740,30 +734,39 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
                     <Skeleton className="h-3.5 w-28 rounded-md" />
                     <Skeleton className="h-28 w-full rounded-xl" />
                   </div>
+                </div>
+              </div>
 
-                  {/* Duration Field */}
+              {/* Card 2: Estimated Benchmark Time */}
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+                <div className="border-b border-slate-100 pb-3">
+                  <Skeleton className="h-5 w-48 rounded-md" />
+                  <Skeleton className="mt-1 h-3.5 w-64 rounded-md" />
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-24 rounded-md" />
-                    <div className="flex gap-3">
-                      <Skeleton className="h-10 w-32 rounded-xl" />
-                      <Skeleton className="h-10 w-32 rounded-xl" />
-                    </div>
+                    <Skeleton className="h-3.5 w-16 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   </div>
-
-                  {/* Status Toggle Field */}
-                  <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-28 rounded-md" />
-                      <Skeleton className="h-3 w-48 rounded-md" />
-                    </div>
-                    <Skeleton className="h-6 w-11 rounded-full" />
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-end pt-2">
-                    <Skeleton className="h-10 w-32 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-16 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   </div>
                 </div>
+              </div>
+
+              {/* Card 3: Visibility Status */}
+              <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-32 rounded-md" />
+                  <Skeleton className="h-3 w-56 rounded-md" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-1">
+                <Skeleton className="h-10 w-36 rounded-full" />
               </div>
             </div>
           </div>
@@ -1054,22 +1057,6 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
               </svg>
               <Span>Back to Courses</Span>
             </Link>
-
-            <Span className="h-4 w-px bg-slate-200" />
-
-            <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-slate-500 sm:gap-2">
-              <Span className="hidden sm:inline">Course Builder</Span>
-              <Span className="hidden sm:inline">/</Span>
-              <Span className="truncate font-bold text-slate-900">{course.title}</Span>
-            </div>
-
-            <Span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                course.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-              }`}
-            >
-              {course.isActive ? 'Active' : 'Inactive'}
-            </Span>
           </div>
 
           {/* View Switcher on < lg screens */}

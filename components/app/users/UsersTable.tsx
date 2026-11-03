@@ -37,10 +37,6 @@ import {
   type UserStatus,
 } from '@/lib/validation';
 
-function isUserRole(role: unknown): role is UserRole {
-  return role === 'SUPER_ADMIN' || role === 'MENTOR' || role === 'MENTEE';
-}
-
 export interface UserItem {
   id: string;
   name: string;
@@ -996,23 +992,7 @@ export function UsersTable() {
         isOpen={Boolean(userToEdit)}
         onClose={() => setUserToEdit(null)}
         onSuccess={handleEditUserSuccess}
-        onChangeRoleClick={(selectedUser) => {
-          if (selectedUser?.role && isUserRole(selectedUser.role)) {
-            setUserToChangeRole({
-              id: selectedUser.id,
-              name: selectedUser.name,
-              email: selectedUser.email,
-              role: selectedUser.role,
-            });
-          } else if (userToEdit && isUserRole(userToEdit.role)) {
-            setUserToChangeRole({
-              id: userToEdit.id,
-              name: userToEdit.name,
-              email: userToEdit.email,
-              role: userToEdit.role,
-            });
-          }
-        }}
+        onRoleChangeSuccess={handleRoleChangeSuccess}
         canChangeRole={
           Boolean(userToEdit) && currentUser?.id !== userToEdit?.id && !userToEdit?.isLastSuperAdmin
         }

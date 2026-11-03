@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
@@ -146,6 +146,26 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   );
   const [modalActionType, setModalActionType] = useState<'DELETE' | 'TOGGLE_STATUS' | null>(null);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -370,37 +390,30 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[42%]">Course</TableHead>
+                    <TableHead className="w-[48%]">Course</TableHead>
                     <TableHead className="w-28 text-center">Topics</TableHead>
                     <TableHead className="w-28 text-center">Tasks</TableHead>
-                    <TableHead className="w-44 text-center">Action</TableHead>
-                    <TableHead className="w-24 text-center">Activate</TableHead>
+                    <TableHead className="w-28 text-center">Activate</TableHead>
+                    <TableHead className="w-20 text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 6 }).map((_, idx) => (
                     <TableRow key={`course-skel-${idx}`} className="h-16">
                       <TableCell>
-                        <div className="space-y-1.5">
-                          <Skeleton className="h-4 w-48 rounded-md" />
-                          <Skeleton className="h-3 w-72 rounded-md" />
-                        </div>
+                        <Skeleton className="h-4 w-52 rounded-md" />
                       </TableCell>
                       <TableCell className="text-center">
-                        <Skeleton className="mx-auto h-5 w-16 rounded-md" />
+                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell className="text-center">
-                        <Skeleton className="mx-auto h-5 w-16 rounded-md" />
+                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Skeleton className="h-8 w-16 rounded-full" />
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                        </div>
-                      </TableCell>
-                      <TableCell className="w-24 text-center">
+                      <TableCell className="w-28 text-center">
                         <Skeleton className="mx-auto h-6 w-11 rounded-full" />
+                      </TableCell>
+                      <TableCell className="w-20 text-center">
+                        <Skeleton className="mx-auto h-8 w-8 rounded-full" />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -440,11 +453,11 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[42%]">Course</TableHead>
+                        <TableHead className="w-[48%]">Course</TableHead>
                         <TableHead className="w-28 text-center">Topics</TableHead>
                         <TableHead className="w-28 text-center">Tasks</TableHead>
-                        <TableHead className="w-44 text-center">Action</TableHead>
-                        <TableHead className="w-24 text-center">Activate</TableHead>
+                        <TableHead className="w-28 text-center">Activate</TableHead>
+                        <TableHead className="w-20 text-center">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -463,7 +476,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             className="cursor-pointer transition-colors hover:bg-slate-50/80"
                           >
                             <TableCell>
-                              <div className="flex max-w-[280px] flex-col sm:max-w-xs md:max-w-md">
+                              <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
                                 <Link
                                   href={`/${portal}/courses/${c.id}/builder`}
                                   onClick={(e) => e.stopPropagation()}
@@ -472,102 +485,23 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                 >
                                   {c.title}
                                 </Link>
-                                <Span
-                                  className="mt-0.5 truncate text-xs text-slate-500"
-                                  title={c.description || undefined}
-                                >
-                                  {c.description || 'No description provided.'}
-                                </Span>
                               </div>
                             </TableCell>
 
                             <TableCell className="text-center text-xs text-slate-600">
-                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
                                 {topicCount} {topicCount === 1 ? 'topic' : 'topics'}
                               </Span>
                             </TableCell>
 
                             <TableCell className="text-center text-xs text-slate-600">
-                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
+                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
                                 {assignmentCount} {assignmentCount === 1 ? 'task' : 'tasks'}
                               </Span>
                             </TableCell>
 
                             <TableCell
-                              className="w-44 text-center"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="flex items-center justify-center gap-1.5">
-                                <Button
-                                  type="button"
-                                  variant="primary"
-                                  size="sm"
-                                  disabled={!c.isActive}
-                                  onClick={() => setAssignModalCourse(c)}
-                                  title={
-                                    c.isActive
-                                      ? 'Assign to batch or mentees'
-                                      : 'Only active courses can be assigned'
-                                  }
-                                  className="h-8 rounded-full bg-[#0044D3] px-3 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:opacity-50"
-                                >
-                                  Assign
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => void cloneCourse(c.id)}
-                                  title="Clone course"
-                                  aria-label="Clone course"
-                                  className="h-8 w-8 rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                >
-                                  <svg
-                                    className="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                    aria-hidden="true"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
-                                  </svg>
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => void onRequestDelete(c)}
-                                  title="Delete course"
-                                  aria-label="Delete course"
-                                  className="h-8 w-8 rounded-full p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
-                                >
-                                  <svg
-                                    className="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1.75}
-                                    aria-hidden="true"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                </Button>
-                              </div>
-                            </TableCell>
-
-                            <TableCell
-                              className="w-24 text-center"
+                              className="w-28 text-center"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex items-center justify-center">
@@ -578,6 +512,145 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
                                   onChange={() => void onRequestToggleStatus(c)}
                                 />
+                              </div>
+                            </TableCell>
+
+                            <TableCell
+                              className="w-20 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div
+                                className="relative inline-block text-left"
+                                ref={openActionMenuId === c.id ? actionMenuRef : undefined}
+                              >
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenActionMenuId(openActionMenuId === c.id ? null : c.id);
+                                  }}
+                                  title="Course actions"
+                                  aria-label={`Actions for ${c.title}`}
+                                  className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                                >
+                                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                  </svg>
+                                </Button>
+
+                                {openActionMenuId === c.id && (
+                                  <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                                    <button
+                                      type="button"
+                                      disabled={!c.isActive}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        setAssignModalCourse(c);
+                                      }}
+                                      title={
+                                        c.isActive
+                                          ? 'Assign to batch or mentees'
+                                          : 'Only active courses can be assigned'
+                                      }
+                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-[#0044D3]"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                        />
+                                      </svg>
+                                      <Span>Assign</Span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        void cloneCourse(c.id);
+                                      }}
+                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-slate-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                      <Span>Clone</Span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        router.push(`/${portal}/courses/${c.id}/builder`);
+                                      }}
+                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-slate-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                        />
+                                      </svg>
+                                      <Span>Edit</Span>
+                                    </button>
+
+                                    <div className="my-1 border-t border-slate-100" />
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        void onRequestDelete(c);
+                                      }}
+                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-red-500"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                      </svg>
+                                      <Span>Delete</Span>
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
