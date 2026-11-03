@@ -298,8 +298,8 @@ export function AuditLogTable() {
           </TableHeader>
           <TableBody className="divide-y divide-[#F2F4F7] font-normal">
             {isLoading || isFetching ? (
-              // Skeleton rows
-              Array.from({ length: 6 }).map((_, idx) => (
+              // Skeleton rows (matches default 10-row page size)
+              Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
                   <TableCell className="w-[15%] px-4 py-3.5">
                     <div className="flex flex-col gap-1.5">

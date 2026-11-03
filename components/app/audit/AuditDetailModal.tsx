@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { H4, Span } from '@/components/ui/Typography';
@@ -85,9 +85,6 @@ function getAuditTypeBadge(type: AuditType): string {
 }
 
 export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalProps) {
-  const [copiedOld, setCopiedOld] = useState(false);
-  const [copiedNew, setCopiedNew] = useState(false);
-
   if (!isOpen || !entry) return null;
 
   const actorName = entry.actor?.name || 'System / Automated Process';
@@ -95,22 +92,6 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
   const actorEmail = entry.actor?.email;
   const formattedDate = formatDateTimeISTWithSeconds(entry.createdAt);
   const target = resolveAuditTargetEntity(entry);
-
-  const handleCopy = (text: string, type: 'old' | 'new') => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      void navigator.clipboard.writeText(text);
-      if (type === 'old') {
-        setCopiedOld(true);
-        setTimeout(() => setCopiedOld(false), 2000);
-      } else if (type === 'new') {
-        setCopiedNew(true);
-        setTimeout(() => setCopiedNew(false), 2000);
-      }
-    }
-  };
-
-  const oldJsonString = entry.oldValue ? JSON.stringify(entry.oldValue, null, 2) : '';
-  const newJsonString = entry.newValue ? JSON.stringify(entry.newValue, null, 2) : '';
 
   return (
     <Modal
@@ -279,23 +260,10 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Previous State Card */}
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-4 py-3">
+              <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
                 <span className="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold tracking-wider text-amber-800 uppercase">
                   Previous State (oldValue)
                 </span>
-                {oldJsonString ? (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(oldJsonString, 'old')}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    {copiedOld ? (
-                      <span className="font-semibold text-emerald-600">Copied!</span>
-                    ) : (
-                      'Copy JSON'
-                    )}
-                  </button>
-                ) : null}
               </div>
 
               {entry.oldValue ? (
@@ -303,49 +271,18 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                   {renderPayloadDetails(entry.oldValue)}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center bg-slate-50/30 p-10 text-center">
-                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <Span className="text-sm font-bold text-slate-700">No Previous State</Span>
-                  <Span className="mt-0.5 text-xs text-slate-400">
-                    Record was newly created in this action
-                  </Span>
+                <div className="flex items-center justify-center p-6 text-center">
+                  <Span className="text-xs font-medium text-slate-400">No previous state</Span>
                 </div>
               )}
             </div>
 
             {/* New State Card */}
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-4 py-3">
+              <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
                 <span className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold tracking-wider text-emerald-800 uppercase">
                   New State (newValue)
                 </span>
-                {newJsonString ? (
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(newJsonString, 'new')}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    {copiedNew ? (
-                      <span className="font-semibold text-emerald-600">Copied!</span>
-                    ) : (
-                      'Copy JSON'
-                    )}
-                  </button>
-                ) : null}
               </div>
 
               {entry.newValue ? (
@@ -353,26 +290,8 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                   {renderPayloadDetails(entry.newValue)}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center bg-slate-50/30 p-10 text-center">
-                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </div>
-                  <Span className="text-sm font-bold text-slate-700">No New State</Span>
-                  <Span className="mt-0.5 text-xs text-slate-400">
-                    Record was deleted or purged in this action
-                  </Span>
+                <div className="flex items-center justify-center p-6 text-center">
+                  <Span className="text-xs font-medium text-slate-400">No new state</Span>
                 </div>
               )}
             </div>
