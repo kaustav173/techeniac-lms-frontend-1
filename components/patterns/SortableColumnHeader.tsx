@@ -14,6 +14,7 @@ export interface SortableColumnHeaderProps<T extends string> {
   readonly sortOrder: 'asc' | 'desc';
   readonly onSort: (field: T) => void;
   readonly className?: string;
+  readonly buttonClassName?: string;
   readonly tooltip?: string;
 }
 
@@ -24,6 +25,7 @@ export function SortableColumnHeader<T extends string>({
   sortOrder,
   onSort,
   className,
+  buttonClassName,
   tooltip,
 }: Readonly<SortableColumnHeaderProps<T>>) {
   const isSorted = sortField === field;
@@ -37,13 +39,16 @@ export function SortableColumnHeader<T extends string>({
         size="sm"
         onClick={() => onSort(field)}
         title={tooltip ?? `Sort by ${label}`}
-        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left font-semibold hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none"
+        className={cn(
+          'group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-inherit hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none sm:text-base',
+          buttonClassName,
+        )}
       >
-        <Span className="text-slate-700 transition-colors group-hover:text-slate-900">{label}</Span>
+        <Span className="text-inherit transition-colors group-hover:text-slate-900">{label}</Span>
         <Span className="flex flex-col items-center justify-center -space-y-1">
           <svg
             className={cn(
-              'h-3 w-3 transition-colors',
+              'h-3.5 w-3.5 transition-colors',
               isSorted && sortOrder === 'asc'
                 ? 'text-[#0044D3]'
                 : 'text-slate-300 group-hover:text-slate-500',
@@ -58,7 +63,7 @@ export function SortableColumnHeader<T extends string>({
           </svg>
           <svg
             className={cn(
-              'h-3 w-3 transition-colors',
+              'h-3.5 w-3.5 transition-colors',
               isSorted && sortOrder === 'desc'
                 ? 'text-[#0044D3]'
                 : 'text-slate-300 group-hover:text-slate-500',

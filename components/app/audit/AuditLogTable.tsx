@@ -205,51 +205,76 @@ export function AuditLogTable() {
   return (
     <div className="space-y-6">
       {/* Filters Bar */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {/* 1. Search across Type, Action, Actor, Target Entity (with Search Icon) */}
-        <div>
-          <DebouncedSearchInput
-            value={filters.search ?? ''}
-            onSearchChange={handleSearchChange}
-            placeholder="Search by Type, Action, Actor, Target Entity"
-          />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* 1. Search across Type, Action, Actor, Target Entity (with Search Icon) */}
+          <div>
+            <DebouncedSearchInput
+              value={filters.search ?? ''}
+              onSearchChange={handleSearchChange}
+              placeholder="Search by Type, Action, Actor, Target Entity"
+            />
+          </div>
+
+          {/* 2. Type Filter (Multi-select with Checkboxes & Clear Button) */}
+          <div>
+            <MultiSelectDropdown<AuditType>
+              label="Type"
+              options={AUDIT_TYPE_OPTIONS}
+              selectedValues={selectedTypes}
+              onChange={handleTypesChange}
+              align="left"
+              className="w-full"
+            />
+          </div>
+
+          {/* 3. Date Range Start */}
+          <div>
+            <DatePicker
+              id="audit-start-date"
+              value={filters.startDate}
+              onChange={(val) => handleFilterChange('startDate', val || undefined)}
+              maxDate={filters.endDate}
+              placeholder="From date"
+              className="h-11 text-sm"
+            />
+          </div>
+
+          {/* 4. Date Range End */}
+          <div>
+            <DatePicker
+              id="audit-end-date"
+              value={filters.endDate}
+              onChange={(val) => handleFilterChange('endDate', val || undefined)}
+              minDate={filters.startDate}
+              placeholder="To date"
+              className="h-11 text-sm"
+            />
+          </div>
         </div>
 
-        {/* 2. Type Filter (Multi-select with Checkboxes & Clear Button) */}
-        <div>
-          <MultiSelectDropdown<AuditType>
-            label="Type"
-            options={AUDIT_TYPE_OPTIONS}
-            selectedValues={selectedTypes}
-            onChange={handleTypesChange}
-            align="left"
-            className="w-full"
-          />
-        </div>
-
-        {/* 3. Date Range Start */}
-        <div>
-          <DatePicker
-            id="audit-start-date"
-            value={filters.startDate}
-            onChange={(val) => handleFilterChange('startDate', val || undefined)}
-            maxDate={filters.endDate}
-            placeholder="From date"
-            className="h-11 text-sm"
-          />
-        </div>
-
-        {/* 4. Date Range End */}
-        <div>
-          <DatePicker
-            id="audit-end-date"
-            value={filters.endDate}
-            onChange={(val) => handleFilterChange('endDate', val || undefined)}
-            minDate={filters.startDate}
-            placeholder="To date"
-            className="h-11 text-sm"
-          />
-        </div>
+        {/* Clear Filters Button */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleResetFilters}
+          disabled={!hasActiveFilters}
+          title={hasActiveFilters ? 'Clear all active filters' : 'No filters applied'}
+          className="h-11 shrink-0 gap-1.5 rounded-xl border-[#E1E6EC] bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <svg
+            className="h-3.5 w-3.5 text-slate-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear Filters
+        </Button>
       </div>
 
       {/* Error Banner */}
@@ -272,21 +297,21 @@ export function AuditLogTable() {
                 sortOrder={filters.sortOrder ?? 'desc'}
                 onSort={handleSort}
                 tooltip="Sort by Date & Time"
-                className="w-[15%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                className="w-[16%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
               />
-              <TableHead className="w-[11%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[14%] px-4 py-3.5 pr-6 text-left text-xs font-semibold text-[#667085]">
                 Type
               </TableHead>
-              <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[18%] px-4 py-3.5 pl-6 text-left text-xs font-semibold text-[#667085] sm:pl-8">
                 Action
               </TableHead>
-              <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[17%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Actor
               </TableHead>
-              <TableHead className="w-[26%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Target Entity
               </TableHead>
-              <TableHead className="w-[12%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[11%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
                 Details
               </TableHead>
             </TableRow>
@@ -296,33 +321,33 @@ export function AuditLogTable() {
               // Skeleton rows (matches default 10-row page size)
               Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-                  <TableCell className="w-[15%] px-4 py-3.5">
+                  <TableCell className="w-[16%] px-4 py-3.5">
                     <div className="flex flex-col gap-1.5">
                       <Skeleton className="h-4 w-24 rounded-md" />
                       <Skeleton className="h-3 w-16 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="w-[11%] px-4 py-3.5">
+                  <TableCell className="w-[14%] px-4 py-3.5 pr-6">
                     <Skeleton className="h-5 w-14 rounded-full" />
                   </TableCell>
-                  <TableCell className="w-[18%] px-4 py-3.5">
+                  <TableCell className="w-[18%] px-4 py-3.5 pl-6 sm:pl-8">
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell className="w-[18%] px-4 py-3.5">
+                  <TableCell className="w-[17%] px-4 py-3.5">
                     <div className="flex flex-col gap-1.5">
                       <Skeleton className="h-4 w-28 rounded-md" />
                       <Skeleton className="h-3 w-16 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="w-[26%] px-4 py-3.5">
+                  <TableCell className="w-[24%] px-4 py-3.5">
                     <div className="flex flex-col gap-1.5">
                       <Skeleton className="h-4 w-40 rounded-md" />
                       <Skeleton className="h-3 w-20 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="w-[12%] px-4 py-3.5 text-center">
+                  <TableCell className="w-[11%] px-4 py-3.5 text-center">
                     <div className="flex items-center justify-center">
-                      <Skeleton className="h-8 w-20 rounded-lg" />
+                      <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -376,7 +401,7 @@ export function AuditLogTable() {
                     className="cursor-pointer transition-colors hover:bg-[#F9FAFB]/80 focus:bg-slate-50 focus:outline-hidden"
                   >
                     {/* Date & Time */}
-                    <TableCell className="w-[15%] px-4 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[16%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">
                           {formattedDate}
@@ -386,7 +411,7 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="w-[11%] px-4 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[14%] px-4 py-3.5 pr-6 whitespace-nowrap">
                       <Span
                         className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${getAuditTypeBadge(
                           item.type,
@@ -397,12 +422,12 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="w-[18%] px-4 py-3.5 text-[11px] font-semibold whitespace-nowrap text-slate-800">
+                    <TableCell className="w-[18%] px-4 py-3.5 pl-6 text-[11px] font-semibold whitespace-nowrap text-slate-800 sm:pl-8">
                       {item.action}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="w-[18%] px-4 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[17%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
@@ -412,7 +437,7 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="w-[26%] px-4 py-3.5 whitespace-nowrap text-slate-700">
+                    <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{target.name}</Span>
                         {target.type ? (
@@ -422,19 +447,39 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* View Payload Details Button */}
-                    <TableCell className="w-[12%] px-4 py-3.5 text-center whitespace-nowrap">
+                    <TableCell className="w-[11%] px-4 py-3.5 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center">
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenModal(item);
                           }}
-                          className="h-8 rounded-lg border-blue-200 px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
+                          title="View audit event details"
+                          aria-label={`View audit details for ${item.action}`}
+                          className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-blue-50 hover:text-[#0044D3]"
                         >
-                          View Diff
+                          <svg
+                            className="h-4.5 w-4.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
                         </Button>
                       </div>
                     </TableCell>

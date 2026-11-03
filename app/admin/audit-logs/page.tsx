@@ -6,7 +6,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
-  title: 'Audit Log | TechEniac LMS',
+  title: 'Audit Logs | TechEniac LMS',
   description:
     'Immutable, append-only record of system events, authentication, role changes, and course edits.',
 };
