@@ -260,22 +260,22 @@ export function AuditLogTable() {
         <Table className="w-full text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
                 Timestamp (IST)
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
                 Type
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
                 Action
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
                 Actor
               </TableHead>
-              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
                 Target Entity
               </TableHead>
-              <TableHead className="px-5 py-4 text-right text-xs font-bold tracking-wider text-slate-500 uppercase">
+              <TableHead className="px-5 py-3.5 text-right text-xs font-semibold text-[#667085]">
                 Details
               </TableHead>
             </TableRow>
@@ -285,23 +285,23 @@ export function AuditLogTable() {
               // Skeleton rows
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-5 py-3.5">
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-5 py-3.5">
                     <Skeleton className="h-5 w-20 rounded-full" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-5 py-3.5">
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-5 py-3.5">
                     <Skeleton className="h-4 w-32 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="px-5 py-3.5">
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4 text-right">
-                    <Skeleton className="ml-auto h-8 w-20 rounded-md" />
+                  <TableCell className="px-5 py-3.5 text-right">
+                    <Skeleton className="ml-auto h-7 w-16 rounded-md" />
                   </TableCell>
                 </TableRow>
               ))
@@ -341,14 +341,14 @@ export function AuditLogTable() {
                 return (
                   <TableRow key={item.id} className="transition-colors hover:bg-[#F9FAFB]/80">
                     {/* Timestamp */}
-                    <TableCell className="px-5 py-4 font-mono text-xs whitespace-nowrap text-slate-700">
+                    <TableCell className="px-5 py-3.5 font-mono text-xs whitespace-nowrap text-slate-600">
                       {formattedTime}
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="px-5 py-4 whitespace-nowrap">
+                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
                       <Span
-                        className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-bold tracking-wide uppercase ${getAuditTypeBadge(
+                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${getAuditTypeBadge(
                           item.type,
                         )}`}
                       >
@@ -357,12 +357,12 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="px-5 py-4 font-bold whitespace-nowrap text-slate-900">
+                    <TableCell className="px-5 py-3.5 text-[11px] font-semibold whitespace-nowrap text-slate-800">
                       {item.action}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="px-5 py-4 whitespace-nowrap">
+                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
@@ -372,7 +372,7 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="px-5 py-4 whitespace-nowrap text-slate-700">
+                    <TableCell className="px-5 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{target.name}</Span>
                         {target.type ? (
@@ -382,13 +382,13 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* View Payload Details Button */}
-                    <TableCell className="px-5 py-4 text-right whitespace-nowrap">
+                    <TableCell className="px-5 py-3.5 text-right whitespace-nowrap">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenModal(item)}
-                        className="h-8.5 rounded-xl border-blue-200 px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
+                        className="h-8 rounded-lg border-blue-200 px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
                       >
                         View Diff
                       </Button>
