@@ -7,12 +7,12 @@ import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
   title: 'My Mentees | Mentor Portal',
-  description: 'View and manage mentees actively mapped to you across your assigned cohorts.',
+  description: 'View and manage mentees actively mapped to you across your assigned courses.',
 };
 
 export default function MentorMenteesPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTOR_MENTEES_NAV} />
       <DashboardContent>
         <MentorMenteesView />
