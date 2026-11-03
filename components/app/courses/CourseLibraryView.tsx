@@ -29,13 +29,50 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, H3, P, Span } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { cn } from '@/lib/cn';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  disabled?: boolean | undefined;
+  onChange: () => void;
+  title?: string | undefined;
+  ariaLabel: string;
+}
+
+function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
+  return (
+    <Button
+      type="button"
+      role="switch"
+      variant="ghost"
+      size="sm"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      title={title}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start gap-0 rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+        checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`}
+      />
+    </Button>
+  );
+}
 
 interface CourseLibraryViewProps {
   portal: 'admin' | 'mentor';
@@ -249,15 +286,58 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       <Header {...navConfig} />
 
       <DashboardContent>
-        {/* Top Header & Actions */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <H1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              Course Library
-            </H1>
-            <P className="mt-1 text-sm text-slate-500">
-              Manage enterprise learning tracks, syllabus outlines, and live assignments.
-            </P>
+        {/* Search, Filter Toolbar & Actions */}
+        <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-72 lg:w-80">
+              <DebouncedSearchInput
+                value={search}
+                onSearchChange={(val) => {
+                  setSearch(val);
+                  setPage(1);
+                }}
+                placeholder="Search courses by title or topic..."
+              />
+            </div>
+
+            <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                {
+                  label: `All (${totalCountDisplay})`,
+                  value: 'all' as const,
+                },
+                {
+                  label: `Active (${activeCountDisplay})`,
+                  value: 'active' as const,
+                },
+                {
+                  label: `Inactive (${draftCountDisplay})`,
+                  value: 'inactive' as const,
+                },
+              ].map((tab) => {
+                const isActive = activeFilter === tab.value;
+                return (
+                  <Button
+                    key={tab.value}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setActiveFilter(tab.value);
+                      setPage(1);
+                    }}
+                    className={cn(
+                      'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
+                      isActive
+                        ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
+                        : 'text-slate-600 hover:bg-white hover:text-slate-900',
+                    )}
+                  >
+                    <Span>{tab.label}</Span>
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -266,64 +346,20 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               variant="primary"
               size="sm"
               onClick={() => setIsCreateModalOpen(true)}
-              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] sm:h-10 sm:text-sm"
             >
-              <Span className="text-base font-bold">+</Span>
-              <Span>Create New Course</Span>
+              <svg
+                className="h-4 w-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <Span className="leading-none">Create New Course</Span>
             </Button>
-          </div>
-        </div>
-
-        {/* Search & Filter Toolbar */}
-        <div className="mt-6 flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full sm:w-72 lg:w-80">
-            <DebouncedSearchInput
-              value={search}
-              onSearchChange={(val) => {
-                setSearch(val);
-                setPage(1);
-              }}
-              placeholder="Search courses by title or topic..."
-            />
-          </div>
-
-          <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {[
-              {
-                label: `All (${totalCountDisplay})`,
-                value: 'all' as const,
-              },
-              {
-                label: `Active (${activeCountDisplay})`,
-                value: 'active' as const,
-              },
-              {
-                label: `Inactive (${draftCountDisplay})`,
-                value: 'inactive' as const,
-              },
-            ].map((tab) => {
-              const isActive = activeFilter === tab.value;
-              return (
-                <Button
-                  key={tab.value}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setActiveFilter(tab.value);
-                    setPage(1);
-                  }}
-                  className={cn(
-                    'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
-                    isActive
-                      ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
-                      : 'text-slate-600 hover:bg-white hover:text-slate-900',
-                  )}
-                >
-                  <Span>{tab.label}</Span>
-                </Button>
-              );
-            })}
           </div>
         </div>
 
@@ -334,16 +370,19 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[38%]">Course</TableHead>
+                    <TableHead className="w-24 text-center">Activate</TableHead>
+                    <TableHead className="w-[42%]">Course</TableHead>
                     <TableHead className="w-28 text-center">Topics</TableHead>
                     <TableHead className="w-28 text-center">Tasks</TableHead>
-                    <TableHead className="w-28 text-center">Status</TableHead>
-                    <TableHead className="w-48 text-right">Action</TableHead>
+                    <TableHead className="w-44 text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 6 }).map((_, idx) => (
                     <TableRow key={`course-skel-${idx}`} className="h-16">
+                      <TableCell className="w-24 text-center">
+                        <Skeleton className="mx-auto h-6 w-11 rounded-full" />
+                      </TableCell>
                       <TableCell>
                         <div className="space-y-1.5">
                           <Skeleton className="h-4 w-48 rounded-md" />
@@ -356,9 +395,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       <TableCell className="text-center">
                         <Skeleton className="mx-auto h-5 w-16 rounded-md" />
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Skeleton className="mx-auto h-6 w-20 rounded-full" />
-                      </TableCell>
                       <TableCell className="text-right">
                         <Skeleton className="ml-auto h-8 w-28 rounded-xl" />
                       </TableCell>
@@ -366,6 +402,20 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   ))}
                 </TableBody>
               </Table>
+              <PaginationControls
+                page={page}
+                limit={limit}
+                total={pagination.total || 10}
+                totalPages={pagination.totalPages || 1}
+                onPageChange={setPage}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                  setPage(1);
+                }}
+                isLoading={true}
+                itemLabel="courses"
+                pageSizeOptions={[10, 20, 50, 100]}
+              />
             </TableContainer>
           ) : (
             <>
@@ -386,11 +436,11 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[38%]">Course</TableHead>
+                        <TableHead className="w-24 text-center">Activate</TableHead>
+                        <TableHead className="w-[42%]">Course</TableHead>
                         <TableHead className="w-28 text-center">Topics</TableHead>
                         <TableHead className="w-28 text-center">Tasks</TableHead>
-                        <TableHead className="w-28 text-center">Status</TableHead>
-                        <TableHead className="w-48 text-right">Action</TableHead>
+                        <TableHead className="w-44 text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -408,6 +458,21 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
                             className="cursor-pointer transition-colors hover:bg-slate-50/80"
                           >
+                            <TableCell
+                              className="w-24 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="flex items-center justify-center">
+                                <ToggleSwitch
+                                  checked={c.isActive}
+                                  disabled={isActionSubmitting && activeActionCourse?.id === c.id}
+                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
+                                  ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
+                                  onChange={() => void onRequestToggleStatus(c)}
+                                />
+                              </div>
+                            </TableCell>
+
                             <TableCell>
                               <div className="flex max-w-[280px] flex-col sm:max-w-xs md:max-w-md">
                                 <Link
@@ -439,22 +504,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               </Span>
                             </TableCell>
 
-                            <TableCell className="text-center">
-                              <Span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                  c.isActive
-                                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                                    : 'border border-slate-200 bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                <Span
-                                  className={`h-1.5 w-1.5 rounded-full ${c.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
-                                />
-                                {c.isActive ? 'Active' : 'Inactive'}
-                              </Span>
-                            </TableCell>
-
-                            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <TableCell
+                              className="w-44 text-right"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <div className="flex items-center justify-end gap-1.5">
                                 <Button
                                   type="button"
@@ -501,17 +554,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   type="button"
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => void onRequestToggleStatus(c)}
-                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
-                                  className="h-8 rounded-full px-2.5 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                                >
-                                  {c.isActive ? 'Deactivate' : 'Activate'}
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
                                   onClick={() => void onRequestDelete(c)}
                                   title="Delete course"
                                   aria-label="Delete course"
@@ -539,25 +581,24 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       })}
                     </TableBody>
                   </Table>
-                </TableContainer>
-              )}
 
-              {/* Pagination Controls */}
-              {pagination.total > 0 && (
-                <PaginationControls
-                  page={page}
-                  limit={limit}
-                  total={pagination.total}
-                  totalPages={pagination.totalPages}
-                  onPageChange={setPage}
-                  onLimitChange={(newLimit) => {
-                    setLimit(newLimit);
-                    setPage(1);
-                  }}
-                  itemLabel="courses"
-                  pageSizeOptions={[10, 20, 50, 100]}
-                  className="mt-8 rounded-2xl border border-slate-200/80 shadow-xs"
-                />
+                  {/* Attached Pagination Controls */}
+                  {pagination.total > 0 && (
+                    <PaginationControls
+                      page={page}
+                      limit={limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      onPageChange={setPage}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                      itemLabel="courses"
+                      pageSizeOptions={[10, 20, 50, 100]}
+                    />
+                  )}
+                </TableContainer>
               )}
             </>
           )}

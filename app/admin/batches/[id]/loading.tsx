@@ -1,9 +1,10 @@
 import { BatchDashboardSkeleton } from '@/components/app/batches/BatchDashboardView';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 
 export default function AdminBatchDetailLoading() {
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <DashboardContent>
       <BatchDashboardSkeleton />
-    </div>
+    </DashboardContent>
   );
 }

@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 
 import { ADMIN_USERS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { User360Shell, User360Skeleton } from '@/components/app/user-360/User360Shell';
+import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
@@ -16,11 +17,11 @@ export default async function AdminUser360Page({ params }: { params: Promise<{ i
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...ADMIN_USERS_NAV} />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <DashboardContent>
         <Suspense fallback={<User360Skeleton />}>
           <User360Shell userId={id} />
         </Suspense>
-      </main>
+      </DashboardContent>
     </div>
   );
 }

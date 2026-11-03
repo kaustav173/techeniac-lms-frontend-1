@@ -379,7 +379,7 @@ export const batchesService = {
     if (batchId) params.batchId = batchId;
 
     const res = await apiClient<ApiResponse<{ mentees: ApiMentorMappedMentee[] }>>(
-      '/mentor/mentees',
+      '/mentor/my-mentees',
       {
         method: 'GET',
         params,
