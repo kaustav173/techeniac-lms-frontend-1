@@ -643,12 +643,28 @@ function AddAssignmentModal({
 }
 
 export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
-  const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
   const { contentMarginClass } = useSidebar();
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900">
-      <Header {...navConfig} />
+    <div
+      data-portal={portal}
+      className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
+    >
+      {/* Top Navbar Header Skeleton */}
+      <header
+        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
+      >
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-6 w-36 rounded-md" />
+        </div>
+        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+          <div className="hidden space-y-1.5 text-left sm:block">
+            <Skeleton className="h-3.5 w-20 rounded-md" />
+            <Skeleton className="h-2.5 w-14 rounded-md" />
+          </div>
+        </div>
+      </header>
 
       <div
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
