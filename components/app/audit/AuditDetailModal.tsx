@@ -115,7 +115,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
           <Span className="text-base font-bold text-slate-900">{entry.action}</Span>
         </div>
 
-        {/* Structured Metadata Grid (2x2) */}
+        {/* Structured Metadata Grid (2x2): 1. Timestamp, 2. IP & Country, 3. Initiated By, 4. Target Entity */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Card 1: Timestamp */}
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
@@ -149,7 +149,39 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             </div>
           </div>
 
-          {/* Card 2: Actor */}
+          {/* Card 2: Client IP & Country */}
+          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                <svg
+                  className="h-4.5 w-4.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                  Client IP & Country
+                </Span>
+                <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                  {entry.ipAddress || 'Not recorded (historical)'}
+                </Span>
+                <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                  {entry.country || 'Location unavailable'}
+                </Span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Initiated By (Actor) */}
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
@@ -186,7 +218,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             </div>
           </div>
 
-          {/* Card 3: Target Entity */}
+          {/* Card 4: Target Entity */}
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
@@ -213,38 +245,6 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 </Span>
                 <Span className="mt-0.5 block truncate text-xs text-slate-500">
                   {target.type ? `Category: ${target.type}` : `Entity: ${entry.entity}`}
-                </Span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Client IP & Location */}
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                <svg
-                  className="h-4.5 w-4.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="min-w-0 flex-1">
-                <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                  Client IP & Country
-                </Span>
-                <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
-                  {entry.ipAddress || 'Not recorded (historical)'}
-                </Span>
-                <Span className="mt-0.5 block truncate text-xs text-slate-500">
-                  {entry.country || 'Location unavailable'}
                 </Span>
               </div>
             </div>
