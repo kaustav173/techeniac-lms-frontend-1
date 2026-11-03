@@ -188,8 +188,8 @@ function MentorMenteesTable({
         <TableHeader>
           <TableRow>
             <TableHead>Mentee</TableHead>
-            <TableHead>Cohort</TableHead>
-            <TableHead>Cohort Code</TableHead>
+            <TableHead>Course</TableHead>
+            <TableHead>Course Code</TableHead>
             <TableHead className="text-right">Mapped Since</TableHead>
           </TableRow>
         </TableHeader>
