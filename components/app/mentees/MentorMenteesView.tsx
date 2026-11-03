@@ -119,7 +119,7 @@ function MenteeActionMenu({ menteeName, openUpward }: MenteeActionMenuProps) {
             <Span>Progress</Span>
           </Link>
           <Link
-            href="/mentor/submissions"
+            href="/mentor/reviews"
             role="menuitem"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"

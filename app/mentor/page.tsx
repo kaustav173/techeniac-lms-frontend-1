@@ -396,7 +396,7 @@ export default function MentorPage() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* Card 1: Submission Reviews */}
           <Link
-            href="/mentor/submissions"
+            href="/mentor/reviews"
             className="group flex flex-col justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
           >
             <div>

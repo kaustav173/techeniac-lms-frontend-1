@@ -144,7 +144,7 @@ export const MENTOR_PORTAL_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: true },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -160,7 +160,7 @@ export const MENTOR_MENTEES_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: true },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -176,7 +176,7 @@ export const MENTOR_COURSES_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: true },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -192,7 +192,7 @@ export const MENTOR_ALLOCATIONS_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: true },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -208,7 +208,7 @@ export const MENTOR_REVIEWS_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: true },
+    { label: 'Reviews', href: '/mentor/reviews', active: true },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -224,7 +224,7 @@ export const MENTOR_PROGRESS_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: true },
@@ -240,7 +240,7 @@ export const MENTOR_PERFORMANCE_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -256,7 +256,7 @@ export const MENTOR_MY_PERFORMANCE_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
@@ -356,7 +356,7 @@ export const MENTOR_PROFILE_NAV: PortalNavConfig = {
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
     { label: 'My Mentees', href: '/mentor/mentees', active: false },
-    { label: 'Reviews', href: '/mentor/submissions', active: false },
+    { label: 'Reviews', href: '/mentor/reviews', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },
     { label: 'Progress Tracker', href: '/mentor/progress', active: false },
