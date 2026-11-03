@@ -6,7 +6,6 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
 import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -21,14 +20,46 @@ import {
 import { H2, P, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import { resolveAuditTargetEntity } from '@/lib/audit';
-import { formatDateTimeISTWithSeconds } from '@/lib/date';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
 
 import { AuditDetailModal } from './AuditDetailModal';
 
+function formatAuditDate(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '-';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '-';
+
+  const day = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(
+    date,
+  );
+  const month = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    month: 'short',
+  }).format(date);
+  const year = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+  }).format(date);
+  return `${day} ${month}, ${year}`;
+}
+
+function formatAuditTime(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
 const AUDIT_TYPE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'ALL', label: 'All Event Types' },
+  { value: 'ALL', label: 'All Types' },
   { value: 'AUTH', label: 'Authentication (AUTH)' },
   { value: 'USER', label: 'User & Roles (USER)' },
   { value: 'COURSE', label: 'Courses (COURSE)' },
@@ -93,7 +124,7 @@ export function AuditLogTable() {
     return () => clearTimeout(timer);
   }, [actionInput]);
 
-  const { logs, pagination, isLoading, isFetching, error, refetch } = useAuditLogs(filters);
+  const { logs, pagination, isLoading, isFetching, error } = useAuditLogs(filters);
 
   const handleFilterChange = (key: keyof AuditQueryFilters, value: string | number | undefined) => {
     setFilters((prev) => {
@@ -157,92 +188,48 @@ export function AuditLogTable() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Type Filter */}
           <div>
-            <Label htmlFor="audit-type-filter" className="text-sm font-semibold text-slate-800">
-              Event Type
-            </Label>
             <SingleSelectDropdown
               id="audit-type-filter"
               value={filters.type ?? 'ALL'}
               onChange={(val) => handleFilterChange('type', val)}
               options={AUDIT_TYPE_OPTIONS}
+              triggerLabel={!filters.type || filters.type === 'ALL' ? 'Type' : undefined}
               size="md"
-              className="mt-1.5"
             />
           </div>
 
           {/* Action Search with Debounce */}
           <div>
-            <Label htmlFor="audit-action-filter" className="text-sm font-semibold text-slate-800">
-              Filter by Action
-            </Label>
             <Input
               id="audit-action-filter"
               type="text"
-              placeholder="e.g. ROLE_CHANGE, LOGIN, LIVE_EDIT"
+              placeholder="Filter by Action"
               value={actionInput}
               onChange={(e) => setActionInput(e.target.value)}
-              className="mt-1.5 h-11 rounded-xl text-sm"
+              className="h-11 rounded-xl text-sm"
             />
           </div>
 
           {/* Date Range Start */}
           <div>
-            <Label htmlFor="audit-start-date" className="text-sm font-semibold text-slate-800">
-              From Date
-            </Label>
             <DatePicker
               id="audit-start-date"
               value={filters.startDate}
               onChange={(val) => handleFilterChange('startDate', val || undefined)}
               placeholder="From date"
-              className="mt-1.5 h-11 text-sm"
+              className="h-11 text-sm"
             />
           </div>
 
           {/* Date Range End */}
           <div>
-            <Label htmlFor="audit-end-date" className="text-sm font-semibold text-slate-800">
-              To Date
-            </Label>
             <DatePicker
               id="audit-end-date"
               value={filters.endDate}
               onChange={(val) => handleFilterChange('endDate', val || undefined)}
               placeholder="To date"
-              className="mt-1.5 h-11 text-sm"
+              className="h-11 text-sm"
             />
-          </div>
-        </div>
-
-        {/* Filter Summary & Actions */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Span className="font-bold text-slate-900">{pagination.total}</Span> total events
-            recorded
-          </div>
-
-          <div className="flex items-center gap-2">
-            {hasActiveFilters && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetFilters}
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
-              >
-                Reset Filters
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              isLoading={isFetching}
-              onClick={() => void refetch()}
-              className="text-sm font-semibold"
-            >
-              Refresh
-            </Button>
           </div>
         </div>
       </div>
@@ -257,25 +244,25 @@ export function AuditLogTable() {
 
       {/* Audit Log Table using UI Primitives */}
       <TableContainer>
-        <Table className="w-full text-left">
+        <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
-                Timestamp (IST)
+              <TableHead className="w-[15%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                Date & Time
               </TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[11%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Type
               </TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Action
               </TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Actor
               </TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[26%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Target Entity
               </TableHead>
-              <TableHead className="px-5 py-3.5 text-right text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[12%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
                 Details
               </TableHead>
             </TableRow>
@@ -285,23 +272,34 @@ export function AuditLogTable() {
               // Skeleton rows
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-                  <TableCell className="px-5 py-3.5">
+                  <TableCell className="w-[15%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-24 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[11%] px-4 py-3.5">
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                  </TableCell>
+                  <TableCell className="w-[18%] px-4 py-3.5">
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-3.5">
-                    <Skeleton className="h-5 w-20 rounded-full" />
+                  <TableCell className="w-[18%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
                   </TableCell>
-                  <TableCell className="px-5 py-3.5">
-                    <Skeleton className="h-4 w-24 rounded-md" />
+                  <TableCell className="w-[26%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-40 rounded-md" />
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                    </div>
                   </TableCell>
-                  <TableCell className="px-5 py-3.5">
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-5 py-3.5">
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-5 py-3.5 text-right">
-                    <Skeleton className="ml-auto h-7 w-16 rounded-md" />
+                  <TableCell className="w-[12%] px-4 py-3.5 text-center">
+                    <div className="flex items-center justify-center">
+                      <Skeleton className="h-8 w-20 rounded-lg" />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -333,20 +331,38 @@ export function AuditLogTable() {
               </TableRow>
             ) : (
               logs.map((item) => {
-                const formattedTime = formatDateTimeISTWithSeconds(item.createdAt);
+                const formattedDate = formatAuditDate(item.createdAt);
+                const formattedTime = formatAuditTime(item.createdAt);
                 const actorName = item.actor?.name || 'Anonymous / System';
                 const actorRole = item.actor?.role;
                 const target = resolveAuditTargetEntity(item);
 
                 return (
-                  <TableRow key={item.id} className="transition-colors hover:bg-[#F9FAFB]/80">
-                    {/* Timestamp */}
-                    <TableCell className="px-5 py-3.5 font-mono text-xs whitespace-nowrap text-slate-600">
-                      {formattedTime}
+                  <TableRow
+                    key={item.id}
+                    onClick={() => handleOpenModal(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleOpenModal(item);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    className="cursor-pointer transition-colors hover:bg-[#F9FAFB]/80 focus:bg-slate-50 focus:outline-hidden"
+                  >
+                    {/* Date & Time */}
+                    <TableCell className="w-[15%] px-4 py-3.5 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <Span className="text-sm font-semibold text-slate-900">
+                          {formattedDate}
+                        </Span>
+                        <Span className="text-xs text-slate-500">{formattedTime}</Span>
+                      </div>
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[11%] px-4 py-3.5 whitespace-nowrap">
                       <Span
                         className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${getAuditTypeBadge(
                           item.type,
@@ -357,12 +373,12 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="px-5 py-3.5 text-[11px] font-semibold whitespace-nowrap text-slate-800">
+                    <TableCell className="w-[18%] px-4 py-3.5 text-[11px] font-semibold whitespace-nowrap text-slate-800">
                       {item.action}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[18%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
@@ -372,7 +388,7 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap text-slate-700">
+                    <TableCell className="w-[26%] px-4 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex flex-col">
                         <Span className="text-sm font-semibold text-slate-900">{target.name}</Span>
                         {target.type ? (
@@ -382,16 +398,21 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* View Payload Details Button */}
-                    <TableCell className="px-5 py-3.5 text-right whitespace-nowrap">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenModal(item)}
-                        className="h-8 rounded-lg border-blue-200 px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
-                      >
-                        View Diff
-                      </Button>
+                    <TableCell className="w-[12%] px-4 py-3.5 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(item);
+                          }}
+                          className="h-8 rounded-lg border-blue-200 px-2.5 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
+                        >
+                          View Diff
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

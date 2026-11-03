@@ -16,6 +16,7 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly onChange: (value: T) => void;
   readonly options: readonly SingleSelectOption<T>[];
   readonly placeholder?: string | undefined;
+  readonly triggerLabel?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
   readonly menuClassName?: string | undefined;
@@ -31,6 +32,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
   onChange,
   options,
   placeholder = 'Select an option',
+  triggerLabel,
   disabled = false,
   className,
   menuClassName,
@@ -73,7 +75,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
     [options, value],
   );
 
-  const displayLabel = selectedOption ? selectedOption.label : placeholder;
+  const displayLabel = triggerLabel ?? (selectedOption ? selectedOption.label : placeholder);
 
   const handleSelect = (optionValue: T) => {
     onChange(optionValue);
