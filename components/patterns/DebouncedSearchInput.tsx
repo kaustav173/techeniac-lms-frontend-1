@@ -83,7 +83,7 @@ export function DebouncedSearchInput({
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
+        className="h-11 w-full rounded-xl pl-10 text-sm font-medium placeholder:font-medium placeholder:text-slate-400"
       />
     </div>
   );

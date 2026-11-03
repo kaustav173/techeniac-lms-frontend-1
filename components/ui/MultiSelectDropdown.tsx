@@ -128,8 +128,10 @@ export function MultiSelectDropdown<T extends string = string>({
       {/* Trigger Button with Rounded Border & Hover Effect */}
       <div
         className={cn(
-          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
-          selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
+          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-sm transition-all hover:border-slate-300 hover:bg-slate-50/70',
+          selectedValues.length === 0 && 'font-medium text-slate-400 shadow-xs',
+          selectedValues.length > 0 &&
+            'border-blue-300 bg-blue-50/40 font-semibold text-[#0044D3] shadow-xs',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
       >
@@ -146,7 +148,17 @@ export function MultiSelectDropdown<T extends string = string>({
           }}
           className="flex flex-1 items-center justify-between gap-2 text-left focus:outline-none"
         >
-          <Span className="truncate">{triggerLabel}</Span>
+          <Span
+            className={cn(
+              'truncate font-medium',
+              selectedValues.length === 0
+                ? 'font-medium text-slate-400'
+                : 'font-semibold text-slate-700',
+              selectedValues.length > 0 && 'text-[#0044D3]',
+            )}
+          >
+            {triggerLabel}
+          </Span>
           <svg
             className={cn(
               'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
