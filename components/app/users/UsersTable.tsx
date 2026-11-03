@@ -564,44 +564,8 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {/* Action Buttons Toolbar */}
-      <div className="flex items-center justify-end gap-2.5 pt-2 sm:gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setIsBulkImportOpen(true)}
-          className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-            />
-          </svg>
-          <Span>Bulk Import CSV</Span>
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={() => setIsCreateOpen(true)}
-          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-        >
-          <Span className="text-base font-bold">+</Span>
-          <Span>Create User</Span>
-        </Button>
-      </div>
-
-      {/* Filter Row with Search Input, Status Dropdown, Mentor Dropdown, and Role Pills */}
-      <div className="flex flex-col gap-3 py-1 lg:flex-row lg:items-center lg:justify-between">
+      {/* Unified Filter & Actions Toolbar */}
+      <div className="flex flex-col gap-3 py-1 xl:flex-row xl:items-center xl:justify-between">
         {/* Search Input & Dropdowns */}
         <div className="flex flex-1 flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Search Input */}
@@ -638,37 +602,74 @@ export function UsersTable() {
           ) : null}
         </div>
 
-        {/* Role-Based Pill Filters */}
-        <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {[
-            { label: 'All', value: 'ALL' },
-            { label: 'Mentees', value: 'MENTEE' },
-            { label: 'Mentors', value: 'MENTOR' },
-            { label: 'Super Admin', value: 'SUPER_ADMIN' },
-          ].map((tab) => {
-            const isActive = selectedRole === tab.value;
-            return (
-              <Button
-                key={tab.value}
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedRole(tab.value);
-                  setPage(1);
-                  handleFilterUpdate({ role: tab.value, page: 1 });
-                }}
-                className={cn(
-                  'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
-                  isActive
-                    ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
-                    : 'text-slate-600 hover:bg-white hover:text-slate-900',
-                )}
-              >
-                <Span>{tab.label}</Span>
-              </Button>
-            );
-          })}
+        {/* Right Side: Role-Based Pill Filters + Action Buttons in one row */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Role-Based Pill Filters */}
+          <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { label: 'All', value: 'ALL' },
+              { label: 'Mentees', value: 'MENTEE' },
+              { label: 'Mentors', value: 'MENTOR' },
+              { label: 'Super Admin', value: 'SUPER_ADMIN' },
+            ].map((tab) => {
+              const isActive = selectedRole === tab.value;
+              return (
+                <Button
+                  key={tab.value}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRole(tab.value);
+                    setPage(1);
+                    handleFilterUpdate({ role: tab.value, page: 1 });
+                  }}
+                  className={cn(
+                    'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
+                    isActive
+                      ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-900',
+                  )}
+                >
+                  <Span>{tab.label}</Span>
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Action Buttons */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsBulkImportOpen(true)}
+            className="h-9 gap-2 rounded-full border-[#E1E6EC] px-4 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:h-10 sm:text-sm"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
+            <Span>Bulk Import CSV</Span>
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateOpen(true)}
+            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+          >
+            <Span className="text-base font-bold">+</Span>
+            <Span>Create User</Span>
+          </Button>
         </div>
       </div>
 

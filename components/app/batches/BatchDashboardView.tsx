@@ -14,6 +14,7 @@ import {
 } from '@/components/app/batches/TransferMenteeModal';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -351,6 +352,66 @@ export function BatchDashboardView({
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
 
+  // Sorting state for Batch Members
+  const [memberSortField, setMemberSortField] = useState<'name' | null>(null);
+  const [memberSortOrder, setMemberSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleMemberSort = (field: 'name') => {
+    if (memberSortField === field) {
+      if (memberSortOrder === 'asc') {
+        setMemberSortOrder('desc');
+      } else {
+        setMemberSortField(null);
+        setMemberSortOrder('asc');
+      }
+    } else {
+      setMemberSortField(field);
+      setMemberSortOrder('asc');
+    }
+  };
+
+  const sortedMembers = useMemo(() => {
+    if (!batch?.members) return [];
+    if (!memberSortField) return batch.members;
+    return [...batch.members].sort((a, b) => {
+      const valA = a.name || '';
+      const valB = b.name || '';
+      return memberSortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [batch, memberSortField, memberSortOrder]);
+
+  // Sorting state for Batch Courses
+  const [courseSortField, setCourseSortField] = useState<'title' | null>(null);
+  const [courseSortOrder, setCourseSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleCourseSort = (field: 'title') => {
+    if (courseSortField === field) {
+      if (courseSortOrder === 'asc') {
+        setCourseSortOrder('desc');
+      } else {
+        setCourseSortField(null);
+        setCourseSortOrder('asc');
+      }
+    } else {
+      setCourseSortField(field);
+      setCourseSortOrder('asc');
+    }
+  };
+
+  const sortedBatchCourses = useMemo(() => {
+    if (!batch?.courses) return [];
+    if (!courseSortField) return batch.courses;
+    return [...batch.courses].sort((a, b) => {
+      const valA = a.title || '';
+      const valB = b.title || '';
+      return courseSortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [batch, courseSortField, courseSortOrder]);
+
   const isArchived = Boolean(batch && isBatchLocked(batch.status));
 
   const handleStatusSuccess = () => {
@@ -626,7 +687,14 @@ export function BatchDashboardView({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Member</TableHead>
+                    <SortableColumnHeader<'name'>
+                      field="name"
+                      label="Member"
+                      sortField={memberSortField}
+                      sortOrder={memberSortOrder}
+                      onSort={handleMemberSort}
+                      tooltip="Sort members by Name"
+                    />
                     <TableHead>Role</TableHead>
                     <TableHead>Mapped Mentor</TableHead>
                     <TableHead>Enrolled Date</TableHead>
@@ -634,7 +702,7 @@ export function BatchDashboardView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {batch.members.map((m) => {
+                  {sortedMembers.map((m) => {
                     const isLastMentor = m.memberRole === 'MENTOR' && mentors.length <= 1;
 
                     return (
@@ -764,14 +832,21 @@ export function BatchDashboardView({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Course</TableHead>
+                    <SortableColumnHeader<'title'>
+                      field="title"
+                      label="Course"
+                      sortField={courseSortField}
+                      sortOrder={courseSortOrder}
+                      onSort={handleCourseSort}
+                      tooltip="Sort allocated courses by Title"
+                    />
                     <TableHead>Target Due Date</TableHead>
                     <TableHead>Cohort Avg Progress</TableHead>
                     <TableHead className="text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {batch.courses.map((c) => (
+                  {sortedBatchCourses.map((c) => (
                     <TableRow key={c.id} className="transition-colors hover:bg-slate-50/60">
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>

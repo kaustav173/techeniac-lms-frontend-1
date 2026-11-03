@@ -15,6 +15,7 @@ import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
@@ -118,6 +119,35 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     isActive: false,
     limit: 1,
   });
+
+  // Sorting state for Course Name column
+  const [sortField, setSortField] = useState<'title' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (field: 'title') => {
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        setSortField(null);
+        setSortOrder('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedCourses = useMemo(() => {
+    if (!sortField) return courses;
+    return [...courses].sort((a, b) => {
+      const valA = a.title || '';
+      const valB = b.title || '';
+      return sortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [courses, sortField, sortOrder]);
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -453,7 +483,15 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[48%]">Course</TableHead>
+                        <SortableColumnHeader<'title'>
+                          field="title"
+                          label="Course"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          tooltip="Sort visible courses by Title"
+                          className="w-[48%]"
+                        />
                         <TableHead className="w-28 text-center">Topics</TableHead>
                         <TableHead className="w-28 text-center">Tasks</TableHead>
                         <TableHead className="w-28 text-center">Activate</TableHead>
@@ -461,7 +499,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {courses.map((c) => {
+                      {sortedCourses.map((c) => {
                         const topicCount = c.topicCount ?? c.topics?.length ?? 0;
                         const assignmentCount =
                           c.assignmentCount ??

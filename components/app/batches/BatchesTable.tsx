@@ -7,6 +7,7 @@ import React, { useMemo, useState } from 'react';
 import { CreateBatchModal } from '@/components/app/batches/CreateBatchModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -203,7 +204,36 @@ export function BatchesTable() {
     limit,
   });
 
-  const batches = batchesResponse?.items ?? [];
+  const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse?.items]);
+
+  // Sorting state for Batch Name column
+  const [sortField, setSortField] = useState<'name' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (field: 'name') => {
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        setSortField(null);
+        setSortOrder('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedBatches = useMemo(() => {
+    if (!sortField) return batches;
+    return [...batches].sort((a, b) => {
+      const valA = a.name || '';
+      const valB = b.name || '';
+      return sortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [batches, sortField, sortOrder]);
 
   const isTableLoading = isLoading;
   const pagination = useMemo(
@@ -299,7 +329,15 @@ export function BatchesTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-semibold text-slate-700">Batch Name</TableHead>
+              <SortableColumnHeader<'name'>
+                field="name"
+                label="Batch Name"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort visible batches by Batch Name"
+                className="font-semibold text-slate-700"
+              />
               <TableHead className="font-semibold text-slate-700">Code</TableHead>
               <TableHead className="font-semibold text-slate-700">Status</TableHead>
               <TableHead className="font-semibold text-slate-700">Timeline</TableHead>
@@ -317,7 +355,7 @@ export function BatchesTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              batches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
+              sortedBatches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
             )}
           </TableBody>
         </Table>
