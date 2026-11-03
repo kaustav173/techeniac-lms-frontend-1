@@ -19,6 +19,7 @@ export const auditLogFilterSchema = z
     actorId: z.string().uuid().optional(),
     entity: z.string().max(100).optional(),
     action: z.string().max(100).optional(),
+    search: z.string().max(100).optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     page: z.coerce.number().min(1).default(1),

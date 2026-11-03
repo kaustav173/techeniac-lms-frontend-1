@@ -99,30 +99,31 @@ export function AuditLogTable() {
     limit: 10,
     type: undefined,
     action: undefined,
+    search: undefined,
     startDate: undefined,
     endDate: undefined,
   });
 
-  const [actionInput, setActionInput] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>('');
   const [selectedEntry, setSelectedEntry] = useState<ApiAuditItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debounce action input to avoid firing requests per keystroke
+  // Debounce search input across Type, Action, Actor, Target Entity
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) => {
-        const trimmed = actionInput.trim();
-        const nextAction = trimmed ? trimmed : undefined;
-        if (prev.action === nextAction) return prev;
+        const trimmed = searchInput.trim();
+        const nextSearch = trimmed ? trimmed : undefined;
+        if (prev.search === nextSearch) return prev;
         return {
           ...prev,
           page: 1,
-          action: nextAction,
+          search: nextSearch,
         };
       });
     }, 300);
     return () => clearTimeout(timer);
-  }, [actionInput]);
+  }, [searchInput]);
 
   const { logs, pagination, isLoading, isFetching, error } = useAuditLogs(filters);
 
@@ -166,19 +167,20 @@ export function AuditLogTable() {
   };
 
   const handleResetFilters = () => {
-    setActionInput('');
+    setSearchInput('');
     setFilters({
       page: 1,
       limit: 10,
       type: undefined,
       action: undefined,
+      search: undefined,
       startDate: undefined,
       endDate: undefined,
     });
   };
 
   const hasActiveFilters = Boolean(
-    filters.type || filters.action || filters.startDate || filters.endDate,
+    filters.type || filters.action || filters.search || filters.startDate || filters.endDate,
   );
 
   return (
@@ -198,14 +200,14 @@ export function AuditLogTable() {
             />
           </div>
 
-          {/* Action Search with Debounce */}
+          {/* Search across Type, Action, Actor, Target Entity with Debounce */}
           <div>
             <Input
-              id="audit-action-filter"
+              id="audit-search-filter"
               type="text"
-              placeholder="Filter by Action"
-              value={actionInput}
-              onChange={(e) => setActionInput(e.target.value)}
+              placeholder="Filter by Type, Action, Actor, Target Entity"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="h-11 rounded-xl text-sm"
             />
           </div>
