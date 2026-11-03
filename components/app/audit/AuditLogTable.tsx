@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { Input } from '@/components/ui/Input';
@@ -102,6 +103,7 @@ export function AuditLogTable() {
     search: undefined,
     startDate: undefined,
     endDate: undefined,
+    sortOrder: 'desc',
   });
 
   const [searchInput, setSearchInput] = useState<string>('');
@@ -127,6 +129,14 @@ export function AuditLogTable() {
 
   const { logs, pagination, isLoading, isFetching, error } = useAuditLogs(filters);
 
+  const handleSort = () => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
   const handleFilterChange = (key: keyof AuditQueryFilters, value: string | number | undefined) => {
     setFilters((prev) => {
       const nextFilters: AuditQueryFilters = {
@@ -141,6 +151,14 @@ export function AuditLogTable() {
         String(value) > String(nextFilters.endDate)
       ) {
         nextFilters.endDate = undefined;
+      }
+      if (
+        key === 'endDate' &&
+        nextFilters.startDate &&
+        value &&
+        String(value) < String(nextFilters.startDate)
+      ) {
+        nextFilters.startDate = undefined;
       }
       return nextFilters;
     });
@@ -176,6 +194,7 @@ export function AuditLogTable() {
       search: undefined,
       startDate: undefined,
       endDate: undefined,
+      sortOrder: 'desc',
     });
   };
 
@@ -218,6 +237,7 @@ export function AuditLogTable() {
               id="audit-start-date"
               value={filters.startDate}
               onChange={(val) => handleFilterChange('startDate', val || undefined)}
+              maxDate={filters.endDate}
               placeholder="From date"
               className="h-11 text-sm"
             />
@@ -229,6 +249,7 @@ export function AuditLogTable() {
               id="audit-end-date"
               value={filters.endDate}
               onChange={(val) => handleFilterChange('endDate', val || undefined)}
+              minDate={filters.startDate}
               placeholder="To date"
               className="h-11 text-sm"
             />
@@ -249,9 +270,15 @@ export function AuditLogTable() {
         <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="w-[15%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                Date & Time
-              </TableHead>
+              <SortableColumnHeader<'createdAt'>
+                field="createdAt"
+                label="Date & Time"
+                sortField="createdAt"
+                sortOrder={filters.sortOrder ?? 'desc'}
+                onSort={handleSort}
+                tooltip="Sort by Date & Time"
+                className="w-[15%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+              />
               <TableHead className="w-[11%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Type
               </TableHead>

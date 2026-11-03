@@ -23,6 +23,8 @@ export interface DatePickerProps {
   readonly hasError?: boolean | undefined;
   readonly placement?: 'bottom' | 'top' | 'auto' | undefined;
   readonly className?: string | undefined;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 const POPOVER_WIDTH_PX = 360;
@@ -61,6 +63,7 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
   dateString: string;
   isSelected: boolean;
+  isDisabled?: boolean;
 }
 
 /**
@@ -70,6 +73,8 @@ export function buildCalendarGrid(
   viewYear: number,
   viewMonth: number,
   value?: string,
+  minDate?: string,
+  maxDate?: string,
 ): CalendarDay[] {
   const firstDay = new Date(viewYear, viewMonth, 1);
   let startDayOfWeek = firstDay.getDay() - 1;
@@ -77,6 +82,9 @@ export function buildCalendarGrid(
 
   const daysInCurrentMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+  const isCellDisabled = (ds: string) =>
+    Boolean((minDate && ds < minDate) || (maxDate && ds > maxDate));
 
   const days: CalendarDay[] = [];
 
@@ -91,6 +99,7 @@ export function buildCalendarGrid(
       isCurrentMonth: false,
       dateString,
       isSelected: value === dateString,
+      isDisabled: isCellDisabled(dateString),
     });
   }
 
@@ -102,6 +111,7 @@ export function buildCalendarGrid(
       isCurrentMonth: true,
       dateString,
       isSelected: value === dateString,
+      isDisabled: isCellDisabled(dateString),
     });
   }
 
@@ -117,6 +127,7 @@ export function buildCalendarGrid(
       isCurrentMonth: false,
       dateString,
       isSelected: value === dateString,
+      isDisabled: isCellDisabled(dateString),
     });
   }
 
@@ -261,14 +272,21 @@ function CalendarPopover({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => onSelectDay(cell.dateString)}
+              disabled={cell.isDisabled}
+              onClick={() => {
+                if (!cell.isDisabled) {
+                  onSelectDay(cell.dateString);
+                }
+              }}
               className={cn(
                 'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                cell.isSelected
-                  ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
-                  : cell.isCurrentMonth
-                    ? 'font-semibold text-slate-700 hover:bg-slate-100'
-                    : 'font-normal text-slate-300 hover:bg-slate-50',
+                cell.isDisabled
+                  ? 'cursor-not-allowed text-slate-300 opacity-30 hover:bg-transparent'
+                  : cell.isSelected
+                    ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
+                    : cell.isCurrentMonth
+                      ? 'font-semibold text-slate-700 hover:bg-slate-100'
+                      : 'font-normal text-slate-300 hover:bg-slate-50',
               )}
             >
               <Span>{cell.dayNumber}</Span>
@@ -291,6 +309,8 @@ export function DatePicker({
   hasError = false,
   placement = 'auto',
   className,
+  minDate,
+  maxDate,
 }: Readonly<DatePickerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -444,8 +464,8 @@ export function DatePicker({
   };
 
   const calendarDays = useMemo(
-    () => buildCalendarGrid(viewYear, viewMonth, value),
-    [viewYear, viewMonth, value],
+    () => buildCalendarGrid(viewYear, viewMonth, value, minDate, maxDate),
+    [viewYear, viewMonth, value, minDate, maxDate],
   );
 
   const handleSelectDay = (dateString: string) => {

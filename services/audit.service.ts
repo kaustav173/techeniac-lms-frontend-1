@@ -16,6 +16,7 @@ export interface AuditQueryFilters {
   search?: string | undefined;
   startDate?: string | undefined;
   endDate?: string | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 function buildFallbackPagination(
@@ -79,6 +80,9 @@ export const auditService = {
     }
     if (validated.endDate !== undefined) {
       params.endDate = `${validated.endDate}T23:59:59.999+05:30`;
+    }
+    if (validated.sortOrder !== undefined) {
+      params.sortOrder = validated.sortOrder;
     }
 
     const res = await apiClient<AuditLogsResponse>('/audit-logs', {

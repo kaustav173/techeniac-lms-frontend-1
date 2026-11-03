@@ -22,6 +22,7 @@ export const auditLogFilterSchema = z
     search: z.string().max(100).optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
+    sortOrder: z.enum(['asc', 'desc']).optional(),
     page: z.coerce.number().min(1).default(1),
     limit: z.coerce.number().min(1).max(100).default(20),
   })
