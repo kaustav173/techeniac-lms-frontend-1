@@ -257,15 +257,25 @@ export function AuditLogTable() {
 
       {/* Audit Log Table using UI Primitives */}
       <TableContainer>
-        <Table className="w-full text-left text-xs">
+        <Table className="w-full text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Timestamp (IST)</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Type</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Action</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Actor</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Target Entity</TableHead>
-              <TableHead className="px-5 py-3.5 text-right text-xs font-semibold">
+              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                Timestamp (IST)
+              </TableHead>
+              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                Type
+              </TableHead>
+              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                Action
+              </TableHead>
+              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                Actor
+              </TableHead>
+              <TableHead className="px-5 py-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
+                Target Entity
+              </TableHead>
+              <TableHead className="px-5 py-4 text-right text-xs font-bold tracking-wider text-slate-500 uppercase">
                 Details
               </TableHead>
             </TableRow>
@@ -291,15 +301,15 @@ export function AuditLogTable() {
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
                   <TableCell className="px-5 py-4 text-right">
-                    <Skeleton className="ml-auto h-7 w-16 rounded-md" />
+                    <Skeleton className="ml-auto h-8 w-20 rounded-md" />
                   </TableCell>
                 </TableRow>
               ))
             ) : error ? null : logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="px-5 py-12 text-center">
-                  <div className="mx-auto max-w-sm space-y-2">
-                    <H2 className="text-sm font-semibold text-slate-800">No audit events found</H2>
+                <TableCell colSpan={6} className="px-5 py-14 text-center">
+                  <div className="mx-auto max-w-sm space-y-2.5">
+                    <H2 className="text-base font-bold text-slate-900">No audit events found</H2>
                     <P className="text-xs text-slate-500">
                       {hasActiveFilters
                         ? 'No events match the selected filters. Try widening your date range or clearing filters.'
@@ -312,6 +322,7 @@ export function AuditLogTable() {
                           variant="outline"
                           size="sm"
                           onClick={handleResetFilters}
+                          className="rounded-xl text-xs font-semibold"
                         >
                           Clear All Filters
                         </Button>
@@ -330,14 +341,14 @@ export function AuditLogTable() {
                 return (
                   <TableRow key={item.id} className="transition-colors hover:bg-[#F9FAFB]/80">
                     {/* Timestamp */}
-                    <TableCell className="px-5 py-3.5 font-mono text-[11px] whitespace-nowrap text-slate-600">
+                    <TableCell className="px-5 py-4 font-mono text-xs whitespace-nowrap text-slate-700">
                       {formattedTime}
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="px-5 py-4 whitespace-nowrap">
                       <Span
-                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getAuditTypeBadge(
+                        className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-bold tracking-wide uppercase ${getAuditTypeBadge(
                           item.type,
                         )}`}
                       >
@@ -346,38 +357,38 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="px-5 py-3.5 font-semibold whitespace-nowrap text-slate-900">
+                    <TableCell className="px-5 py-4 font-bold whitespace-nowrap text-slate-900">
                       {item.action}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="px-5 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <Span className="font-semibold text-slate-800">{actorName}</Span>
+                        <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
-                          <Span className="text-[10px] text-slate-500">{actorRole}</Span>
+                          <Span className="text-xs text-slate-500">{actorRole}</Span>
                         ) : null}
                       </div>
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap text-slate-700">
+                    <TableCell className="px-5 py-4 whitespace-nowrap text-slate-700">
                       <div className="flex flex-col">
-                        <Span className="font-semibold text-slate-900">{target.name}</Span>
+                        <Span className="text-sm font-semibold text-slate-900">{target.name}</Span>
                         {target.type ? (
-                          <Span className="text-[10px] text-slate-500">{target.type}</Span>
+                          <Span className="text-xs text-slate-500">{target.type}</Span>
                         ) : null}
                       </div>
                     </TableCell>
 
                     {/* View Payload Details Button */}
-                    <TableCell className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <TableCell className="px-5 py-4 text-right whitespace-nowrap">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenModal(item)}
-                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                        className="h-8.5 rounded-xl border-blue-200 px-3 text-xs font-semibold text-[#0044D3] hover:bg-blue-50 hover:text-blue-700"
                       >
                         View Diff
                       </Button>

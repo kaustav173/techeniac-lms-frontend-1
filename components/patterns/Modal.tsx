@@ -17,6 +17,7 @@ export interface ModalProps {
   children: React.ReactNode;
   initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
   className?: string | undefined;
+  titleClassName?: string | undefined;
   ariaLabelledBy?: string | undefined;
   isSubmitting?: boolean | undefined;
   preventClose?: boolean | undefined;
@@ -32,6 +33,7 @@ export function Modal({
   children,
   initialFocusRef,
   className,
+  titleClassName,
   ariaLabelledBy,
   isSubmitting = false,
   preventClose = false,
@@ -91,7 +93,7 @@ export function Modal({
               id={resolvedTitleId}
               as="h3"
               variant="h3"
-              className="text-lg font-bold text-slate-900"
+              className={cn('text-lg font-bold text-slate-900 sm:text-xl', titleClassName)}
             >
               {title}
             </Typography>
@@ -108,7 +110,7 @@ export function Modal({
             onClick={onClose}
             disabled={isLocked}
             aria-label="Close dialog"
-            className="h-8 w-8 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
+            className="h-10 w-10 rounded-full p-0 text-base font-bold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
           >
             ✕
           </Button>
