@@ -353,7 +353,7 @@ export const MENTOR_PROFILE_NAV: PortalNavConfig = {
   badgeColor: 'bg-emerald-100 text-emerald-800',
   nav: [
     { label: 'Dashboard', href: '/mentor', active: false },
-    { label: 'My Mentees', href: '#', active: false },
+    { label: 'My Mentees', href: '/mentor/mentees', active: false },
     { label: 'Reviews', href: '/mentor/submissions', active: false },
     { label: 'Courses', href: '/mentor/courses', active: false },
     { label: 'Allocations', href: '/mentor/allocations', active: false },

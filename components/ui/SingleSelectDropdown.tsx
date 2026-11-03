@@ -18,6 +18,7 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly placeholder?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
+  readonly triggerClassName?: string | undefined;
   readonly menuClassName?: string | undefined;
   readonly direction?: 'down' | 'up' | undefined;
   readonly size?: 'sm' | 'md' | undefined;
@@ -33,6 +34,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
   placeholder = 'Select an option',
   disabled = false,
   className,
+  triggerClassName,
   menuClassName,
   direction = 'down',
   size = 'md',
@@ -101,6 +103,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
           size === 'sm' && 'h-9 px-3 text-xs font-semibold',
           size === 'md' && 'h-11 px-4 text-sm font-semibold',
+          triggerClassName,
         )}
       >
         <Span className="truncate">{displayLabel}</Span>
