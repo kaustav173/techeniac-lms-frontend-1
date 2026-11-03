@@ -46,7 +46,7 @@ export function MenteeTableRow({ mentee, actions }: Readonly<MenteeTableRowProps
         {mentee.batchName ?? 'Course'}
       </TableCell>
       <TableCell>
-        <Span className="inline-block rounded-md border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-bold text-[#111827]">
+        <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-bold text-[#111827]">
           {mentee.batchCode ?? '—'}
         </Span>
       </TableCell>
