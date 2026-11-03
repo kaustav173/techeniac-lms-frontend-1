@@ -280,22 +280,8 @@ export function BatchesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header Action Toolbar without redundant h1 header */}
-      <div className="flex items-center justify-end pt-2">
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={() => setIsCreateOpen(true)}
-          className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
-        >
-          <Span className="text-base font-bold">+</Span>
-          <Span>Create Batch</Span>
-        </Button>
-      </div>
-
-      {/* Filter Row with Search Input and Status MultiSelect Filter */}
-      <div className="flex flex-wrap items-center justify-between gap-3 py-1">
+      {/* Unified Toolbar Row: Search Input, Status MultiSelect Filter, and Create Batch Action */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1">
         <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
           <DebouncedSearchInput
             value={search}
@@ -303,7 +289,7 @@ export function BatchesTable() {
             placeholder="Search batches by name or code..."
           />
         </div>
-        <div className="w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3">
           <MultiSelectDropdown
             label="Status"
             options={BATCH_STATUS_FILTER_OPTIONS}
@@ -313,6 +299,16 @@ export function BatchesTable() {
               setPage(1);
             }}
           />
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setIsCreateOpen(true)}
+            className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+          >
+            <Span className="text-base font-bold">+</Span>
+            <Span>Create Batch</Span>
+          </Button>
         </div>
       </div>
 

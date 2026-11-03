@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,10 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useRoleImpact } from '@/hooks/useRoleImpact';
@@ -61,7 +64,20 @@ function EditUserModalContent({
 }) {
   const currentRole: UserRole = (user.role as UserRole) || 'MENTEE';
   const isSuperAdmin = currentRole === 'SUPER_ADMIN';
-  const availableTargetRoles = ALLOWED_ROLE_TRANSITIONS[currentRole] ?? [];
+  const availableTargetRoles = useMemo(
+    () => ALLOWED_ROLE_TRANSITIONS[currentRole] ?? [],
+    [currentRole],
+  );
+
+  const roleOptions: readonly SingleSelectOption<UserRole>[] = useMemo(() => {
+    return [
+      { value: currentRole, label: `${formatRoleLabel(currentRole)} (Current)` },
+      ...availableTargetRoles.map((role) => ({
+        value: role,
+        label: `${formatRoleLabel(role)} (Promotion)`,
+      })),
+    ];
+  }, [currentRole, availableTargetRoles]);
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -224,22 +240,18 @@ function EditUserModalContent({
             </Label>
 
             {canChangeRole && availableTargetRoles.length > 0 ? (
-              <Select
+              <SingleSelectDropdown<UserRole>
                 id="edit-role"
                 value={selectedRole}
-                onChange={(e) => {
-                  setSelectedRole(e.target.value as UserRole);
+                onChange={(newRole) => {
+                  setSelectedRole(newRole);
                   setConfirmed(false);
                 }}
-                className="h-10 text-sm font-semibold"
-              >
-                <option value={currentRole}>{formatRoleLabel(currentRole)} (Current)</option>
-                {availableTargetRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {formatRoleLabel(role)} (Promotion)
-                  </option>
-                ))}
-              </Select>
+                options={roleOptions}
+                size="md"
+                aria-label="Assigned Role"
+                className="w-full"
+              />
             ) : (
               <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
                 <Span className="text-sm font-bold text-slate-900">

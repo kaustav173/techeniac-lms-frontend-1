@@ -4,9 +4,12 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -20,7 +23,22 @@ import {
 import { H1, H2, H3, P, Small, Span } from '@/components/ui/Typography';
 import { useUser360 } from '@/hooks/useUser360';
 import { cn } from '@/lib/cn';
+import { formatDateIST, formatDateTimeIST } from '@/lib/date';
 import type { User360FilterState } from '@/types/user-360';
+
+const ROLE_PERIOD_OPTIONS: readonly SingleSelectOption<string>[] = [
+  { value: '', label: 'All Role Periods' },
+  { value: 'MENTEE', label: 'As Mentee' },
+  { value: 'MENTOR', label: 'As Mentor' },
+  { value: 'SUPER_ADMIN', label: 'As Super Admin' },
+];
+
+const AUDIT_TYPE_OPTIONS: readonly SingleSelectOption<string>[] = [
+  { value: '', label: 'All Audit Types' },
+  { value: 'GRADING', label: 'Grading' },
+  { value: 'USER_ROLE', label: 'Role Changes' },
+  { value: 'BATCH', label: 'Batch Membership' },
+];
 
 interface User360ShellProps {
   userId: string;
@@ -293,54 +311,49 @@ export function User360Shell({ userId }: User360ShellProps) {
             <div>
               <Label
                 htmlFor="filter-role-period"
-                className="block text-xs font-semibold text-slate-700"
+                className="mb-1 block text-xs font-semibold text-slate-700"
               >
                 Filter by Role Period
               </Label>
-              <Select
+              <SingleSelectDropdown
                 id="filter-role-period"
-                className="mt-1 h-10 text-xs font-medium"
+                size="sm"
                 value={filters.rolePeriod ?? ''}
-                onChange={(e) => handleFilterChange('rolePeriod', e.target.value)}
-              >
-                <option value="">All Role Periods</option>
-                <option value="MENTEE">As Mentee</option>
-                <option value="MENTOR">As Mentor</option>
-                <option value="SUPER_ADMIN">As Super Admin</option>
-              </Select>
+                onChange={(val) => handleFilterChange('rolePeriod', val)}
+                options={ROLE_PERIOD_OPTIONS}
+                aria-label="Filter by Role Period"
+              />
             </div>
 
             <div>
               <Label
                 htmlFor="filter-start-date"
-                className="block text-xs font-semibold text-slate-700"
+                className="mb-1 block text-xs font-semibold text-slate-700"
               >
                 From Date
               </Label>
-              <Input
+              <DatePicker
                 id="filter-start-date"
-                type="date"
-                max={filters.endDate || undefined}
-                className="mt-1 h-10 text-xs font-medium"
                 value={filters.startDate ?? ''}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                onChange={(val) => handleFilterChange('startDate', val)}
+                placeholder="Select start date"
+                className="h-10 border-slate-200/80 bg-white/90 text-xs opacity-90 transition-opacity hover:opacity-100"
               />
             </div>
 
             <div>
               <Label
                 htmlFor="filter-end-date"
-                className="block text-xs font-semibold text-slate-700"
+                className="mb-1 block text-xs font-semibold text-slate-700"
               >
                 To Date
               </Label>
-              <Input
+              <DatePicker
                 id="filter-end-date"
-                type="date"
-                min={filters.startDate || undefined}
-                className="mt-1 h-10 text-xs font-medium"
                 value={filters.endDate ?? ''}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                onChange={(val) => handleFilterChange('endDate', val)}
+                placeholder="Select end date"
+                className="h-10 border-slate-200/80 bg-white/90 text-xs opacity-90 transition-opacity hover:opacity-100"
               />
             </div>
 
@@ -348,21 +361,18 @@ export function User360Shell({ userId }: User360ShellProps) {
               <div>
                 <Label
                   htmlFor="filter-audit-type"
-                  className="block text-xs font-semibold text-slate-700"
+                  className="mb-1 block text-xs font-semibold text-slate-700"
                 >
                   Audit Type
                 </Label>
-                <Select
+                <SingleSelectDropdown
                   id="filter-audit-type"
-                  className="mt-1 h-10 text-xs font-medium"
+                  size="sm"
                   value={filters.auditType ?? ''}
-                  onChange={(e) => handleFilterChange('auditType', e.target.value)}
-                >
-                  <option value="">All Audit Types</option>
-                  <option value="GRADING">Grading</option>
-                  <option value="USER_ROLE">Role Changes</option>
-                  <option value="BATCH">Batch Membership</option>
-                </Select>
+                  onChange={(val) => handleFilterChange('auditType', val)}
+                  options={AUDIT_TYPE_OPTIONS}
+                  aria-label="Filter by Audit Type"
+                />
               </div>
             )}
           </div>
@@ -424,33 +434,33 @@ export function User360Shell({ userId }: User360ShellProps) {
             <H2 className="text-base font-semibold text-slate-900">User Identity & Profile</H2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">User ID</Span>
-                <P className="mt-1 font-mono text-xs font-semibold break-all text-slate-800">
+                <Span className="text-sm font-semibold text-slate-600">User ID</Span>
+                <P className="mt-1 font-mono text-sm font-bold break-all text-slate-900">
                   {user.id}
                 </P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">Full Name</Span>
-                <P className="mt-1 text-sm font-semibold text-slate-900">{user.name}</P>
+                <Span className="text-sm font-semibold text-slate-600">Full Name</Span>
+                <P className="mt-1 text-base font-bold text-slate-900">{user.name}</P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">Email Address</Span>
-                <P className="mt-1 text-sm font-medium break-all text-slate-800">{user.email}</P>
+                <Span className="text-sm font-semibold text-slate-600">Email Address</Span>
+                <P className="mt-1 text-base font-bold break-all text-slate-900">{user.email}</P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">Current Role</Span>
-                <P className="mt-1 text-sm font-semibold text-slate-900">{user.role}</P>
+                <Span className="text-sm font-semibold text-slate-600">Current Role</Span>
+                <P className="mt-1 text-base font-bold text-slate-900">{user.role}</P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">Account Created</Span>
-                <P className="mt-1 text-sm font-medium text-slate-800">
-                  {new Date(user.createdAt).toLocaleString()}
+                <Span className="text-sm font-semibold text-slate-600">Account Created</Span>
+                <P className="mt-1 text-base font-bold text-slate-900">
+                  {formatDateIST(user.createdAt)}
                 </P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
-                <Span className="text-xs font-medium text-slate-500">Last Login</Span>
-                <P className="mt-1 text-sm font-medium text-slate-800">
-                  {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
+                <Span className="text-sm font-semibold text-slate-600">Last Login</Span>
+                <P className="mt-1 text-base font-bold text-slate-900">
+                  {user.lastLoginAt ? formatDateIST(user.lastLoginAt) : 'Never'}
                 </P>
               </div>
             </div>
@@ -481,8 +491,8 @@ export function User360Shell({ userId }: User360ShellProps) {
                       <TableRow key={rh.id} className="transition-colors hover:bg-slate-50/60">
                         <TableCell className="font-semibold text-slate-900">{rh.role}</TableCell>
                         <TableCell className="text-slate-600">
-                          {new Date(rh.fromAt).toLocaleDateString()} &ndash;{' '}
-                          {rh.toAt ? new Date(rh.toAt).toLocaleDateString() : 'Present'}
+                          {formatDateIST(rh.fromAt)} &ndash;{' '}
+                          {rh.toAt ? formatDateIST(rh.toAt) : 'Present'}
                         </TableCell>
                         <TableCell className="text-slate-700">{rh.reason}</TableCell>
                         <TableCell className="font-medium text-blue-700">
@@ -525,10 +535,10 @@ export function User360Shell({ userId }: User360ShellProps) {
                         </TableCell>
                         <TableCell className="text-slate-700">{b.role}</TableCell>
                         <TableCell className="text-slate-600">
-                          {new Date(b.joinedAt).toLocaleDateString()}
+                          {formatDateIST(b.joinedAt)}
                         </TableCell>
                         <TableCell className="text-slate-600">
-                          {b.leftAt ? new Date(b.leftAt).toLocaleDateString() : EM_DASH}
+                          {b.leftAt ? formatDateIST(b.leftAt) : EM_DASH}
                         </TableCell>
                         <TableCell className="text-slate-600">
                           {b.reasonToLeave ?? EM_DASH}
@@ -584,8 +594,8 @@ export function User360Shell({ userId }: User360ShellProps) {
                           {m.peerName} <Span className="text-slate-500">({m.peerEmail})</Span>
                         </TableCell>
                         <TableCell className="text-slate-600">
-                          {new Date(m.startDate).toLocaleDateString()} &ndash;{' '}
-                          {m.endDate ? new Date(m.endDate).toLocaleDateString() : 'Active'}
+                          {formatDateIST(m.startDate)} &ndash;{' '}
+                          {m.endDate ? formatDateIST(m.endDate) : 'Active'}
                         </TableCell>
                         <TableCell>
                           <Span
@@ -658,8 +668,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                           {c.progressPercent}%
                         </TableCell>
                         <TableCell className="text-slate-600">
-                          {new Date(c.startDate).toLocaleDateString()} &ndash;{' '}
-                          {new Date(c.dueDate).toLocaleDateString()}
+                          {formatDateIST(c.startDate)} &ndash; {formatDateIST(c.dueDate)}
                         </TableCell>
                         <TableCell className="font-medium text-blue-700">{c.periodLabel}</TableCell>
                       </TableRow>
@@ -831,7 +840,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                     {tabs.audit.map((a) => (
                       <TableRow key={a.id} className="transition-colors hover:bg-slate-50/60">
                         <TableCell className="text-slate-600">
-                          {new Date(a.timestamp).toLocaleString()}
+                          {formatDateTimeIST(a.timestamp)}
                         </TableCell>
                         <TableCell>
                           <Span

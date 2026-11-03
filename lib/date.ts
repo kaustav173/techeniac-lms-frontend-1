@@ -52,6 +52,18 @@ export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | u
  */
 export function formatDateIST(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return '-';
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
+    const parts = dateInput.trim().split('-');
+    const y = parseInt(parts[0] ?? '0', 10);
+    const m = parseInt(parts[1] ?? '0', 10) - 1;
+    const d = parseInt(parts[2] ?? '0', 10);
+    const localDate = new Date(y, m, d);
+    return new Intl.DateTimeFormat('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(localDate);
+  }
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   if (isNaN(date.getTime())) return '-';
 
@@ -108,35 +120,9 @@ export function toISTDateInputValue(dateInput: string | Date | null | undefined)
 }
 
 /**
- * Formats a date or ISO string into "DD-MM-YYYY" format.
+ * Formats a date or ISO string into "DD MMM YYYY" format (e.g. "03 Nov 2026").
  */
 export function formatDateDMY(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return '-';
-  if (typeof dateInput === 'string') {
-    const trimmed = dateInput.trim();
-    // YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      const [y, m, d] = trimmed.split('-');
-      return `${d}-${m}-${y}`;
-    }
-    // Already DD-MM-YYYY
-    if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
-      return trimmed;
-    }
-  }
-
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (isNaN(date.getTime())) return '-';
-
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: IST_TIMEZONE,
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).formatToParts(date);
-
-  const day = parts.find((p) => p.type === 'day')?.value ?? '01';
-  const month = parts.find((p) => p.type === 'month')?.value ?? '01';
-  const year = parts.find((p) => p.type === 'year')?.value ?? '1970';
-  return `${day}-${month}-${year}`;
+  return formatDateIST(dateInput);
 }
