@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
-import { Code, H4, Span } from '@/components/ui/Typography';
+import { H4, Span } from '@/components/ui/Typography';
 import { resolveAuditTargetEntity } from '@/lib/audit';
 import { formatDateTimeISTWithSeconds } from '@/lib/date';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
@@ -12,6 +12,53 @@ export interface AuditDetailModalProps {
   entry: ApiAuditItem | null;
   isOpen: boolean;
   onClose: () => void;
+}
+
+function renderPayloadDetails(data: Record<string, unknown> | null) {
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return (
+      <div className="p-4 text-center">
+        <Span className="text-xs text-slate-400">No properties recorded</Span>
+      </div>
+    );
+  }
+
+  const entries = Object.entries(data);
+
+  return (
+    <div className="divide-y divide-slate-100 p-4">
+      {entries.map(([key, val]) => {
+        const formattedKey = key
+          .replace(/_/g, ' ')
+          .replace(/([A-Z])/g, ' $1')
+          .trim()
+          .replace(/^./, (str) => str.toUpperCase());
+
+        let displayValue = '—';
+        if (val === null || val === undefined) {
+          displayValue = '—';
+        } else if (typeof val === 'boolean') {
+          displayValue = val ? 'Yes' : 'No';
+        } else if (typeof val === 'string') {
+          displayValue = val;
+        } else if (typeof val === 'number' || typeof val === 'bigint') {
+          displayValue = String(val);
+        } else if (typeof val === 'object') {
+          displayValue = JSON.stringify(val);
+        }
+
+        return (
+          <div
+            key={key}
+            className="flex items-start justify-between gap-4 py-2 text-xs first:pt-0 last:pb-0"
+          >
+            <Span className="shrink-0 font-semibold text-slate-600 capitalize">{formattedKey}</Span>
+            <Span className="text-right font-medium break-all text-slate-900">{displayValue}</Span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function getAuditTypeBadge(type: AuditType): string {
@@ -190,10 +237,10 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             </div>
           </div>
 
-          {/* Card 4: Integrity Status */}
+          {/* Card 4: Client IP & Location */}
           <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
                 <svg
                   className="h-4.5 w-4.5"
                   fill="none"
@@ -204,19 +251,19 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
                 <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                  Integrity Status
+                  Client IP & Country
                 </Span>
-                <Span className="mt-0.5 block text-sm font-bold text-emerald-700">
-                  Verifiable Audit Record
+                <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                  {entry.ipAddress || 'Not recorded (historical)'}
                 </Span>
-                <Span className="mt-0.5 block text-xs text-slate-500">
-                  Strict append-only record
+                <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                  {entry.country || 'Location unavailable'}
                 </Span>
               </div>
             </div>
@@ -252,10 +299,8 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
               </div>
 
               {entry.oldValue ? (
-                <div className="max-h-72 overflow-auto bg-[#F8FAFC] p-4 text-slate-800">
-                  <Code className="block font-mono text-xs leading-relaxed whitespace-pre text-slate-800">
-                    {oldJsonString}
-                  </Code>
+                <div className="max-h-72 overflow-auto bg-[#F8FAFC]">
+                  {renderPayloadDetails(entry.oldValue)}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center bg-slate-50/30 p-10 text-center">
@@ -304,10 +349,8 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
               </div>
 
               {entry.newValue ? (
-                <div className="max-h-72 overflow-auto bg-[#F8FAFC] p-4 text-slate-800">
-                  <Code className="block font-mono text-xs leading-relaxed whitespace-pre text-slate-800">
-                    {newJsonString}
-                  </Code>
+                <div className="max-h-72 overflow-auto bg-[#F8FAFC]">
+                  {renderPayloadDetails(entry.newValue)}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center bg-slate-50/30 p-10 text-center">

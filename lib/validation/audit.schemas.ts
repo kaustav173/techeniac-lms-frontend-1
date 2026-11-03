@@ -56,6 +56,8 @@ export interface ApiAuditItem {
   action: string;
   oldValue: Record<string, unknown> | null;
   newValue: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  country?: string | null;
   createdAt: string;
 }
 
