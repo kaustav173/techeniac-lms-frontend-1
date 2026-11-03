@@ -127,7 +127,7 @@ export function CourseDetailsEditor({
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">

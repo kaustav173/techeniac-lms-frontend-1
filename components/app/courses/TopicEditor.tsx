@@ -246,14 +246,14 @@ export function TopicEditor({
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Topic Parameters
           </Span>
-          <H2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {topic.title}
           </H2>
         </div>

@@ -125,7 +125,7 @@ function SortableTopicItem({
           isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''
         }`}
       >
-        <div className="flex flex-1 items-center gap-1.5 truncate">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
           {/* Vertical Drag Grip Handle with Mobile Touch Support */}
           <div
             {...attributes}
@@ -173,7 +173,7 @@ function SortableTopicItem({
           {/* Topic Title Click Target with Hover Popup */}
           <div
             onClick={() => onSelectNode({ type: 'TOPIC', id: topic.id })}
-            className="group/name relative flex flex-1 cursor-pointer items-center gap-1.5 truncate"
+            className="group/name relative flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate"
             title={topic.title}
           >
             <Span className="truncate text-base font-bold text-slate-900">{topic.title}</Span>
@@ -280,7 +280,7 @@ function SortableSubtopicItem({
             : 'border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100'
       } ${isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''}`}
     >
-      <div className="flex flex-1 cursor-pointer items-center gap-1.5 truncate">
+      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate">
         {/* Subtopic Drag Handle with Mobile Touch Support */}
         <div
           {...attributes}
@@ -310,7 +310,7 @@ function SortableSubtopicItem({
               parentTopicId,
             })
           }
-          className="group/name relative flex flex-1 items-center gap-1.5 truncate"
+          className="group/name relative flex min-w-0 flex-1 items-center gap-1.5 truncate"
           title={subtopic.title}
         >
           <Span className="truncate text-sm font-semibold sm:text-base">{subtopic.title}</Span>
@@ -438,7 +438,7 @@ function SortableAssignmentItem({
             : 'border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100'
       } ${isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''}`}
     >
-      <div className="flex flex-1 cursor-pointer items-center gap-1.5 truncate">
+      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate">
         {/* Assignment Drag Grip Handle */}
         <div
           {...attributes}
@@ -467,7 +467,7 @@ function SortableAssignmentItem({
               parentTopicId,
             })
           }
-          className="group/name relative flex flex-1 items-center gap-1.5 truncate"
+          className="group/name relative flex min-w-0 flex-1 items-center gap-1.5 truncate"
           title={assignment.title}
         >
           <Span className="truncate text-sm font-semibold sm:text-base">{assignment.title}</Span>
@@ -724,7 +724,7 @@ export function CourseOutlineTree({
         </div>
 
         {/* Tree Content with comfortable scroll area */}
-        <div className="flex-1 space-y-2.5 overflow-y-auto p-3.5 pb-24">
+        <div className="flex-1 [scrollbar-gutter:stable] space-y-2.5 overflow-y-auto p-3.5 pb-24">
           {/* 1. Course Root Item */}
           <div
             onClick={() => onSelectNode({ type: 'COURSE', id: course.id })}
@@ -734,7 +734,7 @@ export function CourseOutlineTree({
                 : 'border border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
-            <div className="flex items-center gap-2 truncate">
+            <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
               <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
                 Course
               </Span>

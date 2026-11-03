@@ -229,17 +229,17 @@ export function AssignmentEditor({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
               {assignment.scope} Task
             </Span>
             <Span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</Span>
           </div>
-          <H2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-1.5 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {assignment.title}
           </H2>
         </div>

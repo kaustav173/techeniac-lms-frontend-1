@@ -666,7 +666,7 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
         {/* Dual Pane Layout Skeleton */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree Skeleton */}
-          <div className="hidden w-[400px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
+          <div className="hidden w-[450px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <Skeleton className="h-5 w-32 rounded-md" />
             </div>
@@ -713,7 +713,7 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
           </div>
 
           {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto p-4 sm:p-6 lg:p-8">
             <div className="mx-auto max-w-5xl space-y-4">
               {/* Card 1: Course Basics */}
               <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
@@ -1091,11 +1091,11 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
           </div>
         </div>
 
-        {/* Dual Pane Layout: 400px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
+        {/* Dual Pane Layout: 450px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree */}
           <div
-            className={`w-full lg:flex lg:w-[400px] lg:flex-none lg:flex-col ${
+            className={`w-full lg:flex lg:w-[450px] lg:flex-none lg:flex-col ${
               mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
             }`}
           >
@@ -1138,8 +1138,8 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
 
           {/* Right Pane: Dynamic Editor */}
           <div
-            className={`w-full overflow-hidden bg-white lg:flex lg:flex-1 lg:flex-col ${
-              mobileTab === 'editor' ? 'flex flex-1 flex-col' : 'hidden'
+            className={`w-full min-w-0 overflow-hidden bg-white lg:flex lg:flex-1 lg:flex-col ${
+              mobileTab === 'editor' ? 'flex min-w-0 flex-1 flex-col' : 'hidden'
             }`}
           >
             {/* Mobile quick-return banner (< lg) */}
@@ -1156,7 +1156,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
                 {selectedNode.type}
               </Span>
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="min-w-0 flex-1 overflow-hidden">
               <CourseActiveEditor
                 course={course}
                 selectedNode={selectedNode}
