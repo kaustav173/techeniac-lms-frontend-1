@@ -7,9 +7,9 @@ import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModa
 import { AssignmentOverridesModal } from '@/components/app/allocations/AssignmentOverridesModal';
 import { EditAllocationModal } from '@/components/app/allocations/EditAllocationModal';
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TableCell, TableRow } from '@/components/ui/Table';
@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
+import { cn } from '@/lib/cn';
 
 export interface AllocationsTableProps {
   readonly userRole: 'SUPER_ADMIN' | 'MENTOR';
@@ -77,11 +78,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilters((prev) => ({ ...prev, search: searchInput.trim() || undefined, page: 1 }));
-  };
 
   const handleStatusTabChange = (tab: 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE') => {
     setStatusTab(tab);
@@ -145,10 +141,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               <Button
                 type="button"
                 variant="primary"
+                size="sm"
                 onClick={() => setIsAssignModalOpen(true)}
-                className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
+                className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
               >
-                <Span>+</Span>
+                <Span className="text-base font-bold">+</Span>
                 <Span>Assign Course</Span>
               </Button>
             </div>
@@ -209,24 +206,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-[280px] flex-1 flex-wrap items-center gap-2.5">
-            <form onSubmit={handleSearchSubmit} className="relative w-64">
-              <Input
-                type="search"
-                placeholder="Filter allocations..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="h-9 w-full text-xs"
-              />
-            </form>
+      {/* Filter & Search Toolbar */}
+      <div className="flex flex-col gap-3 py-1 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Search Input with proper width */}
+          <div className="w-full sm:w-72 lg:w-80">
+            <DebouncedSearchInput
+              value={searchInput}
+              onSearchChange={(val) => {
+                setSearchInput(val);
+                setFilters((prev) => ({ ...prev, search: val.trim() || undefined, page: 1 }));
+              }}
+              placeholder="Filter allocations..."
+            />
+          </div>
 
+          {/* Course Filter Dropdown with proper width */}
+          <div className="w-full sm:w-48">
             <Select
               value={filters.courseId ?? ''}
               onChange={(e) => handleCourseFilter(e.target.value)}
-              className="h-9 text-xs font-medium"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs focus:border-[#0044D3]"
             >
               <option value="">Course: All</option>
               {courses.map((c) => (
@@ -235,11 +235,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </option>
               ))}
             </Select>
+          </div>
 
+          {/* Batch Filter Dropdown with proper width */}
+          <div className="w-full sm:w-48">
             <Select
               value={filters.batchId ?? ''}
               onChange={(e) => handleBatchFilter(e.target.value)}
-              className="h-9 text-xs font-medium"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs focus:border-[#0044D3]"
             >
               <option value="">Batch: All</option>
               {(batchesData?.items ?? []).map((b) => (
@@ -249,71 +252,39 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               ))}
             </Select>
           </div>
+        </div>
 
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('ALL')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'ALL'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              All{' '}
-              <Span className="font-normal text-slate-400">
-                {pagination?.total ?? allocations.length}
-              </Span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('IN_PROGRESS')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'IN_PROGRESS'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              Active
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('COMPLETED')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'COMPLETED'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              Completed
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('OVERDUE')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'OVERDUE'
-                  ? 'bg-white text-rose-700 shadow-xs hover:bg-white'
-                  : 'text-rose-600 hover:bg-rose-100/60 hover:text-rose-700'
-              }`}
-            >
-              Overdue
-            </Button>
-          </div>
-          {isFetching && !isLoading && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-              <Span>Updating...</Span>
-            </div>
-          )}
+        {/* Status Tabs as Pill Filter */}
+        <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {[
+            { key: 'ALL' as const, label: `All (${pagination?.total ?? allocations.length})` },
+            { key: 'IN_PROGRESS' as const, label: 'Active' },
+            { key: 'COMPLETED' as const, label: 'Completed' },
+            { key: 'OVERDUE' as const, label: 'Overdue' },
+          ].map((tab) => {
+            const isActive = statusTab === tab.key;
+            return (
+              <Button
+                key={tab.key}
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => handleStatusTabChange(tab.key)}
+                className={cn(
+                  'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-3.5 sm:text-sm',
+                  isActive
+                    ? tab.key === 'OVERDUE'
+                      ? 'bg-rose-600 text-white shadow-xs hover:bg-rose-700 hover:text-white'
+                      : 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
+                    : tab.key === 'OVERDUE'
+                      ? 'text-rose-600 hover:bg-white hover:text-rose-700'
+                      : 'text-slate-600 hover:bg-white hover:text-slate-900',
+                )}
+              >
+                <Span>{tab.label}</Span>
+              </Button>
+            );
+          })}
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
@@ -147,12 +148,11 @@ function MentorMappingCell({
 export function BatchDashboardSkeleton() {
   return (
     <div className="animate-in fade-in space-y-6 duration-150">
-      {/* Breadcrumb & Header Skeleton */}
-      <div>
-        <div className="mb-2 flex items-center gap-2">
-          <Skeleton className="h-3.5 w-16 rounded-md" />
-          <span className="text-slate-300">/</span>
-          <Skeleton className="h-3.5 w-32 rounded-md" />
+      {/* Back Button & Header Skeleton */}
+      <div className="space-y-3">
+        <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
+          <Skeleton className="h-3.5 w-3.5 rounded-full" />
+          <Skeleton className="h-3.5 w-24 rounded-md" />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="flex items-center gap-3">
@@ -417,7 +417,25 @@ export function BatchDashboardView({
   return (
     <div className="space-y-6">
       {/* Top Header & Actions */}
-      <div>
+      <div className="space-y-3">
+        <div className="flex items-center">
+          <Link
+            href="/admin/batches"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+          >
+            <svg
+              className="h-3.5 w-3.5 text-slate-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <Span>Back to Batches</Span>
+          </Link>
+        </div>
+
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="flex flex-wrap items-center gap-3">
             <H1 className="text-2xl font-extrabold tracking-tight break-words text-slate-900 sm:text-3xl">

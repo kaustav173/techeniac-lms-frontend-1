@@ -403,11 +403,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               0);
 
                         return (
-                          <TableRow key={c.id} className="hover:bg-slate-50/70">
+                          <TableRow
+                            key={c.id}
+                            onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
+                            className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                          >
                             <TableCell>
                               <div className="flex max-w-[280px] flex-col sm:max-w-xs md:max-w-md">
                                 <Link
                                   href={`/${portal}/courses/${c.id}/builder`}
+                                  onClick={(e) => e.stopPropagation()}
                                   className="truncate text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
                                   title={c.title}
                                 >
@@ -449,7 +454,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               </Span>
                             </TableCell>
 
-                            <TableCell className="text-right">
+                            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1.5">
                                 <Button
                                   type="button"
