@@ -10,6 +10,7 @@ export interface AuditQueryFilters {
   page?: number | undefined;
   limit?: number | undefined;
   type?: AuditType | 'ALL' | undefined;
+  types?: AuditType[] | undefined;
   actorId?: string | undefined;
   entity?: string | undefined;
   action?: string | undefined;
@@ -70,6 +71,9 @@ export const auditService = {
     if (validated.limit !== undefined) params.limit = validated.limit;
     if (validated.type !== undefined && (validated.type as string) !== 'ALL') {
       params.type = validated.type;
+    }
+    if (validated.types !== undefined && validated.types.length > 0) {
+      params.types = validated.types.join(',');
     }
     if (validated.actorId !== undefined) params.actorId = validated.actorId;
     if (validated.entity !== undefined) params.entity = validated.entity;

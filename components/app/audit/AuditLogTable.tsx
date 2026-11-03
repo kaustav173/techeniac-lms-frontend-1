@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { Input } from '@/components/ui/Input';
-import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -59,8 +59,7 @@ function formatAuditTime(dateInput: string | Date | null | undefined): string {
   }).format(date);
 }
 
-const AUDIT_TYPE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'ALL', label: 'All Types' },
+const AUDIT_TYPE_OPTIONS: readonly MultiSelectOption<AuditType>[] = [
   { value: 'AUTH', label: 'Authentication (AUTH)' },
   { value: 'USER', label: 'User & Roles (USER)' },
   { value: 'COURSE', label: 'Courses (COURSE)' },
@@ -98,36 +97,36 @@ export function AuditLogTable() {
   const [filters, setFilters] = useState<AuditQueryFilters>({
     page: 1,
     limit: 10,
-    type: undefined,
-    action: undefined,
+    types: undefined,
     search: undefined,
     startDate: undefined,
     endDate: undefined,
     sortOrder: 'desc',
   });
 
-  const [searchInput, setSearchInput] = useState<string>('');
   const [selectedEntry, setSelectedEntry] = useState<ApiAuditItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debounce search input across Type, Action, Actor, Target Entity
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((prev) => {
-        const trimmed = searchInput.trim();
-        const nextSearch = trimmed ? trimmed : undefined;
-        if (prev.search === nextSearch) return prev;
-        return {
-          ...prev,
-          page: 1,
-          search: nextSearch,
-        };
-      });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
   const { logs, pagination, isLoading, isFetching, error } = useAuditLogs(filters);
+
+  const selectedTypes = filters.types ?? [];
+
+  const handleSearchChange = (val: string) => {
+    const trimmed = val.trim();
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      search: trimmed ? trimmed : undefined,
+    }));
+  };
+
+  const handleTypesChange = (newTypes: AuditType[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      types: newTypes.length > 0 ? newTypes : undefined,
+    }));
+  };
 
   const handleSort = () => {
     setFilters((prev) => ({
@@ -185,12 +184,10 @@ export function AuditLogTable() {
   };
 
   const handleResetFilters = () => {
-    setSearchInput('');
     setFilters({
       page: 1,
       limit: 10,
-      type: undefined,
-      action: undefined,
+      types: undefined,
       search: undefined,
       startDate: undefined,
       endDate: undefined,
@@ -199,61 +196,59 @@ export function AuditLogTable() {
   };
 
   const hasActiveFilters = Boolean(
-    filters.type || filters.action || filters.search || filters.startDate || filters.endDate,
+    (filters.types && filters.types.length > 0) ||
+    filters.search ||
+    filters.startDate ||
+    filters.endDate,
   );
 
   return (
     <div className="space-y-6">
       {/* Filters Bar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Type Filter */}
-          <div>
-            <SingleSelectDropdown
-              id="audit-type-filter"
-              value={filters.type ?? 'ALL'}
-              onChange={(val) => handleFilterChange('type', val)}
-              options={AUDIT_TYPE_OPTIONS}
-              triggerLabel={!filters.type || filters.type === 'ALL' ? 'Type' : undefined}
-              size="md"
-            />
-          </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 1. Search across Type, Action, Actor, Target Entity (with Search Icon) */}
+        <div>
+          <DebouncedSearchInput
+            value={filters.search ?? ''}
+            onSearchChange={handleSearchChange}
+            placeholder="Search by Type, Action, Actor, Target Entity"
+          />
+        </div>
 
-          {/* Search across Type, Action, Actor, Target Entity with Debounce */}
-          <div>
-            <Input
-              id="audit-search-filter"
-              type="text"
-              placeholder="Filter by Type, Action, Actor, Target Entity"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="h-11 rounded-xl text-sm"
-            />
-          </div>
+        {/* 2. Type Filter (Multi-select with Checkboxes & Clear Button) */}
+        <div>
+          <MultiSelectDropdown<AuditType>
+            label="Type"
+            options={AUDIT_TYPE_OPTIONS}
+            selectedValues={selectedTypes}
+            onChange={handleTypesChange}
+            align="left"
+            className="w-full"
+          />
+        </div>
 
-          {/* Date Range Start */}
-          <div>
-            <DatePicker
-              id="audit-start-date"
-              value={filters.startDate}
-              onChange={(val) => handleFilterChange('startDate', val || undefined)}
-              maxDate={filters.endDate}
-              placeholder="From date"
-              className="h-11 text-sm"
-            />
-          </div>
+        {/* 3. Date Range Start */}
+        <div>
+          <DatePicker
+            id="audit-start-date"
+            value={filters.startDate}
+            onChange={(val) => handleFilterChange('startDate', val || undefined)}
+            maxDate={filters.endDate}
+            placeholder="From date"
+            className="h-11 text-sm"
+          />
+        </div>
 
-          {/* Date Range End */}
-          <div>
-            <DatePicker
-              id="audit-end-date"
-              value={filters.endDate}
-              onChange={(val) => handleFilterChange('endDate', val || undefined)}
-              minDate={filters.startDate}
-              placeholder="To date"
-              className="h-11 text-sm"
-            />
-          </div>
+        {/* 4. Date Range End */}
+        <div>
+          <DatePicker
+            id="audit-end-date"
+            value={filters.endDate}
+            onChange={(val) => handleFilterChange('endDate', val || undefined)}
+            minDate={filters.startDate}
+            placeholder="To date"
+            className="h-11 text-sm"
+          />
         </div>
       </div>
 
