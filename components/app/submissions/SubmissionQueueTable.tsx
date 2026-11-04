@@ -105,7 +105,7 @@ function SubmissionActionMenu({
         onClick={handleToggle}
         onMouseEnter={onPrefetch}
         onFocus={onPrefetch}
-        className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#E1E6EC] bg-white p-0 text-[#667085] shadow-2xs hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -162,7 +162,7 @@ export function SubmissionQueueTable() {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<SubmissionStatus | 'ALL'>('ALL');
-  const [sortDirection, setSortDirection] = useState<'latest' | 'oldest'>('latest');
+  const [submittedSort, setSubmittedSort] = useState<'asc' | 'desc' | null>(null);
   const [nameSort, setNameSort] = useState<'asc' | 'desc' | null>(null);
   const [page, setPage] = useState<number>(1);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
@@ -175,10 +175,13 @@ export function SubmissionQueueTable() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const sortParam =
+    submittedSort === 'asc' ? 'oldest' : submittedSort === 'desc' ? 'latest' : undefined;
+
   const { submissions, total, totalPages, isLoading, error } = useSubmissionQueue({
     status: statusFilter,
     search: debouncedSearch.trim() || undefined,
-    sort: sortDirection,
+    sort: sortParam,
     page,
     limit: 20,
   });
@@ -204,12 +207,21 @@ export function SubmissionQueueTable() {
         );
       });
     }
-    if (!nameSort) return list;
-    return [...list].sort((a, b) => {
-      const cmp = a.mentee.name.localeCompare(b.mentee.name);
-      return nameSort === 'asc' ? cmp : -cmp;
-    });
-  }, [submissions, search, nameSort]);
+    if (nameSort) {
+      return [...list].sort((a, b) => {
+        const cmp = a.mentee.name.localeCompare(b.mentee.name);
+        return nameSort === 'asc' ? cmp : -cmp;
+      });
+    }
+    if (submittedSort) {
+      return [...list].sort((a, b) => {
+        const dateA = new Date(a.submittedAt).getTime();
+        const dateB = new Date(b.submittedAt).getTime();
+        return submittedSort === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    }
+    return list;
+  }, [submissions, search, nameSort, submittedSort]);
 
   const rowsWithSpans = useMemo(() => {
     return displayedSubmissions.map((sub, i, arr) => {
@@ -233,6 +245,67 @@ export function SubmissionQueueTable() {
       return () => clearTimeout(timer);
     }
   }, [isLoading, submissions.length, page]);
+
+  const handleNameSort = () => {
+    setSubmittedSort(null);
+    setNameSort((prev) => {
+      if (prev === null) return 'asc';
+      if (prev === 'asc') return 'desc';
+      return null;
+    });
+  };
+
+  const handleSubmittedSort = () => {
+    setNameSort(null);
+    setSubmittedSort((prev) => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
+    setPage(1);
+  };
+
+  const renderSortIcon = (isActive: boolean, order?: 'asc' | 'desc' | null) => {
+    if (!isActive || !order) {
+      return (
+        <svg
+          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        className="h-3.5 w-3.5 text-[#0044D3]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        aria-hidden="true"
+      >
+        {order === 'asc' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        )}
+      </svg>
+    );
+  };
+
+  const hasActiveFilters = Boolean(search.trim() !== '' || statusFilter !== 'ALL');
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setDebouncedSearch('');
+    setStatusFilter('ALL');
+    setPage(1);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -284,6 +357,28 @@ export function SubmissionQueueTable() {
             menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
           />
         </div>
+
+        {/* Clear Filter icon button */}
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
+            title="Clear filters"
+            aria-label="Clear filters"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        ) : null}
       </div>
 
       {error && (
@@ -296,19 +391,18 @@ export function SubmissionQueueTable() {
           <table className="w-full border-collapse text-left text-sm">
             <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
               <tr>
-                <th className="px-6 py-3.5">
+                <th
+                  className="px-6 py-3.5 text-sm font-semibold text-[#667085]"
+                  aria-sort={
+                    nameSort === 'asc' ? 'ascending' : nameSort === 'desc' ? 'descending' : 'none'
+                  }
+                >
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      setNameSort((prev) => {
-                        if (prev === null) return 'asc';
-                        if (prev === 'asc') return 'desc';
-                        return null;
-                      });
-                    }}
-                    className="inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-xs font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    onClick={handleNameSort}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                     title={
                       nameSort === 'asc'
                         ? 'Sorted A to Z (click for Z to A)'
@@ -317,68 +411,53 @@ export function SubmissionQueueTable() {
                           : 'Sort by mentee name'
                     }
                   >
-                    <Span>Mentee</Span>
-                    <svg
-                      className={cn('h-3.5 w-3.5', nameSort ? 'text-[#0044D3]' : 'text-slate-400')}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    >
-                      {nameSort === 'asc' ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      )}
-                    </svg>
+                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                      Mentee
+                    </Span>
+                    {renderSortIcon(nameSort !== null, nameSort)}
                   </Button>
                 </th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-[#667085]">
-                  <Span>Assignment & Course</Span>
+                <th className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
+                  <Span className="text-sm font-semibold text-[#667085]">Assignment & Course</Span>
                 </th>
-                <th className="px-3 py-3.5 text-center text-xs font-semibold text-[#667085]">
-                  <Span>Version</Span>
+                <th className="px-3 py-3.5 text-center text-sm font-semibold text-[#667085]">
+                  <Span className="text-sm font-semibold text-[#667085]">Version</Span>
                 </th>
-                <th className="px-4 py-3.5">
+                <th
+                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  aria-sort={
+                    submittedSort === 'asc'
+                      ? 'ascending'
+                      : submittedSort === 'desc'
+                        ? 'descending'
+                        : 'none'
+                  }
+                >
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      setNameSort(null);
-                      setSortDirection((prev) => (prev === 'latest' ? 'oldest' : 'latest'));
-                      setPage(1);
-                    }}
-                    className="inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-xs font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    onClick={handleSubmittedSort}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                     title={
-                      sortDirection === 'latest'
-                        ? 'Sort by date (currently newest first)'
-                        : 'Sort by date (currently oldest first)'
+                      submittedSort === 'desc'
+                        ? 'Sorted newest first (click for oldest first)'
+                        : submittedSort === 'asc'
+                          ? 'Sorted oldest first (click to reset)'
+                          : 'Sort by submission date'
                     }
                   >
-                    <Span>Submitted</Span>
-                    <svg
-                      className="h-3.5 w-3.5 text-[#0044D3]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    >
-                      {sortDirection === 'latest' ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                      )}
-                    </svg>
+                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                      Submitted
+                    </Span>
+                    {renderSortIcon(submittedSort !== null, submittedSort)}
                   </Button>
                 </th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-[#667085]">
-                  <Span>Status & Score</Span>
+                <th className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
+                  <Span className="text-sm font-semibold text-[#667085]">Status & Score</Span>
                 </th>
-                <th className="px-6 py-3.5 text-right text-xs font-semibold text-[#667085]">
-                  <Span>Action</Span>
+                <th className="px-6 py-3.5 text-right text-sm font-semibold text-[#667085]">
+                  <Span className="text-sm font-semibold text-[#667085]">Action</Span>
                 </th>
               </tr>
             </thead>
@@ -417,11 +496,6 @@ export function SubmissionQueueTable() {
                 <tr>
                   <td colSpan={6} className="p-10 text-center">
                     <H3 className="text-sm font-semibold text-slate-700">No submissions found</H3>
-                    <P className="mt-1 text-xs text-slate-500">
-                      {statusFilter === SubmissionStatus.SUBMITTED
-                        ? 'All pending submissions have been reviewed and graded! 🎉'
-                        : 'No submissions match your active filter criteria.'}
-                    </P>
                   </td>
                 </tr>
               )}
