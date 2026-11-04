@@ -37,6 +37,7 @@ import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
+import { compareStrings } from '@/lib/sort';
 import type { Course, CourseImpact } from '@/types/courses';
 
 interface ToggleSwitchProps {
@@ -154,6 +155,18 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     setSortOrder(nextOrder);
     setPage(1);
   };
+
+  const sortedCourses = useMemo(() => {
+    if (!sortField) return courses;
+    const list = [...courses];
+    list.sort((a, b) => {
+      if (sortField === 'title') {
+        return compareStrings(a.title, b.title, sortOrder);
+      }
+      return 0;
+    });
+    return list;
+  }, [courses, sortField, sortOrder]);
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -498,7 +511,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {courses.map((c) => {
+                      {sortedCourses.map((c, idx) => {
                         const topicCount = c.topicCount ?? c.topics?.length ?? 0;
                         const assignmentCount =
                           c.assignmentCount ??
@@ -509,8 +522,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                         return (
                           <TableRow
                             key={c.id}
+                            style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                             onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
-                            className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                            className="animate-row-enter cursor-pointer transition-colors hover:bg-slate-50/80"
                           >
                             <TableCell>
                               <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">

@@ -471,13 +471,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              allocations.map((alloc) => {
+              allocations.map((alloc, idx) => {
                 const isExpanded = expandedAllocId === alloc.id;
                 return (
                   <React.Fragment key={alloc.id}>
                     <TableRow
+                      style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                       className={cn(
-                        'transition-colors',
+                        'animate-row-enter transition-colors',
                         isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60',
                       )}
                     >
