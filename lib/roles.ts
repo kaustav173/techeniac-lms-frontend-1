@@ -8,5 +8,19 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 export function formatRoleLabel(role?: string): string {
   if (!role) return 'Member';
-  return (ROLE_LABELS as Record<string, string>)[role] ?? role;
+  const clean = role.trim().toUpperCase();
+  if (clean === 'SUPER_ADMIN' || clean === 'SUPERADMIN' || clean === 'ADMIN') {
+    return 'Super Admin';
+  }
+  if (clean === 'MENTOR') {
+    return 'Mentor';
+  }
+  if (clean === 'MENTEE') {
+    return 'Mentee';
+  }
+  return (
+    (ROLE_LABELS as Record<string, string>)[clean] ??
+    (ROLE_LABELS as Record<string, string>)[role] ??
+    role
+  );
 }

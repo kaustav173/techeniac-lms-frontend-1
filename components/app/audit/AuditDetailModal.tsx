@@ -6,6 +6,7 @@ import { Modal } from '@/components/patterns/Modal';
 import { H4, Span } from '@/components/ui/Typography';
 import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
 import { formatDateTimeISTWithSeconds } from '@/lib/date';
+import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 
 export interface AuditDetailModalProps {
@@ -88,7 +89,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
   if (!isOpen || !entry) return null;
 
   const actorName = entry.actor?.name || 'System / Automated Process';
-  const actorRole = entry.actor?.role;
+  const actorRole = entry.actor?.role ? formatRoleLabel(entry.actor.role) : null;
   const actorEmail = entry.actor?.email;
   const formattedDate = formatDateTimeISTWithSeconds(entry.createdAt);
   const target = resolveAuditTargetEntity(entry);

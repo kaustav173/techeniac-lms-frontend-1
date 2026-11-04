@@ -21,6 +21,7 @@ import {
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
+import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
 
@@ -57,6 +58,15 @@ function formatAuditTime(dateInput: string | Date | null | undefined): string {
     second: '2-digit',
     hour12: true,
   }).format(date);
+}
+
+function formatActorRole(role?: string | null): string | null {
+  if (!role) return null;
+  const clean = role.trim().toUpperCase();
+  if (clean === 'SUPER_ADMIN' || clean === 'SUPERADMIN' || clean === 'ADMIN') return 'Super Admin';
+  if (clean === 'MENTOR') return 'Mentor';
+  if (clean === 'MENTEE') return 'Mentee';
+  return formatRoleLabel(role);
 }
 
 const AUDIT_TYPE_OPTIONS: readonly MultiSelectOption<AuditType>[] = [
@@ -366,7 +376,7 @@ export function AuditLogTable() {
                 const formattedDate = formatAuditDate(item.createdAt);
                 const formattedTime = formatAuditTime(item.createdAt);
                 const actorName = item.actor?.name || 'Anonymous / System';
-                const actorRole = item.actor?.role;
+                const actorRole = formatActorRole(item.actor?.role);
                 const target = resolveAuditTargetEntity(item);
 
                 return (
