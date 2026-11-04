@@ -172,8 +172,9 @@ export function BatchesTable() {
 
   const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
-  // Sorting state for Batch Name column
-  const [sortField, setSortField] = useState<'name' | null>(null);
+  // Sorting state across all entries in the whole table
+  type BatchSortField = 'name' | 'code' | 'status' | 'startDate';
+  const [sortField, setSortField] = useState<BatchSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const {
@@ -192,18 +193,22 @@ export function BatchesTable() {
 
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse?.items]);
 
-  const handleSort = (field: 'name') => {
+  const handleSort = (field: BatchSortField) => {
+    let nextField: BatchSortField | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
     if (sortField === field) {
       if (sortOrder === 'asc') {
-        setSortOrder('desc');
+        nextOrder = 'desc';
       } else {
-        setSortField(null);
-        setSortOrder('asc');
+        nextField = null;
+        nextOrder = 'asc';
       }
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
     }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
   };
 
   const sortedBatches = batches;
@@ -214,6 +219,8 @@ export function BatchesTable() {
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
     setPage(1);
   };
 
@@ -330,7 +337,7 @@ export function BatchesTable() {
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <SortableColumnHeader<'name'>
+              <SortableColumnHeader<BatchSortField>
                 field="name"
                 label="Batch Name"
                 sortField={sortField}
@@ -339,9 +346,33 @@ export function BatchesTable() {
                 tooltip="Sort all batches by Batch Name"
                 className="w-[32%] font-semibold text-slate-700"
               />
-              <TableHead className="w-[16%] font-semibold text-slate-700">Code</TableHead>
-              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
-              <TableHead className="w-[26%] font-semibold text-slate-700">Timeline</TableHead>
+              <SortableColumnHeader<BatchSortField>
+                field="code"
+                label="Code"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all batches by Batch Code"
+                className="w-[16%] font-semibold text-slate-700"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="status"
+                label="Status"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all batches by Status"
+                className="w-[14%] font-semibold text-slate-700"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="startDate"
+                label="Timeline"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all batches by Timeline"
+                className="w-[26%] font-semibold text-slate-700"
+              />
               <TableHead className="w-[12%] font-semibold text-slate-700">Members</TableHead>
             </TableRow>
           </TableHeader>

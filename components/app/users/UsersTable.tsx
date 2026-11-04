@@ -28,7 +28,6 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useUsers } from '@/hooks/useUsers';
-import { compareStrings } from '@/lib/sort';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -52,32 +51,30 @@ export interface UserItem {
 
 const STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
   { value: 'PENDING', label: 'Pending' },
+  { value: 'INACTIVE', label: 'Inactive' },
 ];
 
-interface FilterUpdateOptions {
-  role?: string | undefined;
-  statuses?: string[] | undefined;
-  search?: string | undefined;
-  page?: number | undefined;
-  limit?: number | undefined;
-  sortBy?: 'name' | 'email' | undefined;
-  sortOrder?: 'asc' | 'desc' | undefined;
-}
+const ROLE_OPTIONS: MultiSelectOption[] = [
+  { value: 'SUPER_ADMIN', label: 'Admin' },
+  { value: 'MENTOR', label: 'Mentor' },
+  { value: 'MENTEE', label: 'Mentee' },
+];
+
+type UserSortField = 'name' | 'email' | 'role' | 'status';
 
 export function UsersTable() {
   const router = useRouter();
   const { user: currentUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const [search, setSearch] = useState('');
-  const selectedRole = 'ALL';
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
 
-  // Sorting state for Name and Email columns
-  const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
+  // Sorting state across all entries in the whole table
+  const [sortField, setSortField] = useState<UserSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Action Menu state
@@ -102,28 +99,6 @@ export function UsersTable() {
     };
   }, [openActionMenuId]);
 
-  const filtersRef = useRef({
-    role: selectedRole,
-    statuses: selectedStatuses,
-    search,
-    page,
-    limit,
-    sortBy: sortField ?? undefined,
-    sortOrder: sortField ? sortOrder : undefined,
-  });
-
-  useEffect(() => {
-    filtersRef.current = {
-      role: selectedRole,
-      statuses: selectedStatuses,
-      search,
-      page,
-      limit,
-      sortBy: sortField ?? undefined,
-      sortOrder: sortField ? sortOrder : undefined,
-    };
-  }, [selectedRole, selectedStatuses, search, page, limit, sortField, sortOrder]);
-
   useEffect(() => {
     if (!isAuthLoading) {
       if (!isAuthenticated || !currentUser) {
@@ -135,6 +110,19 @@ export function UsersTable() {
       }
     }
   }, [isAuthLoading, isAuthenticated, currentUser, router]);
+
+  const userQuery = useMemo(
+    () => ({
+      page,
+      limit,
+      search: search.trim() || undefined,
+      role: selectedRoles.length > 0 ? selectedRoles : undefined,
+      status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
+    }),
+    [page, limit, search, selectedRoles, selectedStatuses, sortField, sortOrder],
+  );
 
   const {
     users: apiUsers,
@@ -149,25 +137,25 @@ export function UsersTable() {
     changeRole,
     toggleStatus,
     resendInvite,
-  } = useUsers({ page: 1, limit: 10 });
+  } = useUsers(userQuery);
 
   const isTableLoading = isLoading || isFetching;
 
-  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
+  const hasActiveFilters = Boolean(
+    search.trim() || selectedStatuses.length > 0 || selectedRoles.length > 0,
+  );
 
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
+    setSelectedRoles([]);
+    setSortField(null);
+    setSortOrder('asc');
     setPage(1);
-    handleFilterUpdate({
-      search: '',
-      statuses: [],
-      page: 1,
-    });
   };
 
-  const handleSort = (field: 'name' | 'email') => {
-    let nextField: 'name' | 'email' | null = field;
+  const handleSort = (field: UserSortField) => {
+    let nextField: UserSortField | null = field;
     let nextOrder: 'asc' | 'desc' = 'asc';
 
     if (sortField === field) {
@@ -182,12 +170,6 @@ export function UsersTable() {
     setSortField(nextField);
     setSortOrder(nextOrder);
     setPage(1);
-
-    handleFilterUpdate({
-      page: 1,
-      sortBy: nextField ?? undefined,
-      sortOrder: nextField ? nextOrder : undefined,
-    });
   };
 
   // Modal controls
@@ -227,11 +209,8 @@ export function UsersTable() {
     [apiUsers],
   );
 
-  const hasLocalStatusFilter = selectedStatuses.length > 0;
-  const isClientPaginated = hasLocalStatusFilter;
-
   const users: UserItem[] = useMemo(() => {
-    let list: UserItem[] = apiUsers.map((u) => ({
+    return apiUsers.map((u) => ({
       id: u.id,
       name: u.name,
       email: u.email,
@@ -241,90 +220,24 @@ export function UsersTable() {
       mustChangePassword: u.mustChangePassword,
       isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
     }));
+  }, [apiUsers, activeAdminsCount]);
 
-    if (selectedStatuses.length > 0) {
-      list = list.filter((u) => {
-        const isPending = Boolean(u.mustChangePassword || !u.hasLoggedIn);
-        if (selectedStatuses.includes('PENDING') && isPending) return true;
-        if (selectedStatuses.includes('ACTIVE') && !isPending && u.status === 'ACTIVE') return true;
-        if (selectedStatuses.includes('INACTIVE') && !isPending && u.status === 'INACTIVE')
-          return true;
-        return false;
-      });
-    }
-
-    if (sortField) {
-      list.sort((a, b) => {
-        const valA = a[sortField] || '';
-        const valB = b[sortField] || '';
-        return compareStrings(valA, valB, sortOrder);
-      });
-    }
-
-    return list;
-  }, [apiUsers, activeAdminsCount, selectedStatuses, sortField, sortOrder]);
-
-  const effectiveTotal = isClientPaginated ? users.length : totalCount;
-
+  const displayedUsers = users;
+  const effectiveTotal = totalCount;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
-
-  const displayedUsers = useMemo(() => {
-    if (isClientPaginated) {
-      const start = (page - 1) * limit;
-      return users.slice(start, start + limit);
-    }
-    return users;
-  }, [isClientPaginated, users, page, limit]);
-
-  const handleFilterUpdate = ({
-    role = filtersRef.current.role,
-    statuses = filtersRef.current.statuses,
-    search: searchVal = filtersRef.current.search,
-    page: newPage = filtersRef.current.page,
-    limit: newLimit = filtersRef.current.limit,
-    sortBy = filtersRef.current.sortBy,
-    sortOrder: newSortOrder = filtersRef.current.sortOrder,
-  }: FilterUpdateOptions = {}) => {
-    filtersRef.current = {
-      role,
-      statuses,
-      search: searchVal,
-      page: newPage,
-      limit: newLimit,
-      sortBy,
-      sortOrder: newSortOrder,
-    };
-
-    const hasLocalStatus = statuses.length > 0;
-    const effectiveLimit = hasLocalStatus ? 100 : newLimit;
-    const effectivePage = hasLocalStatus ? 1 : newPage;
-
-    void fetchUsers({
-      page: effectivePage,
-      limit: effectiveLimit,
-      role: role !== 'ALL' ? role : undefined,
-      status: undefined,
-      search: searchVal.trim() || undefined,
-      sortBy,
-      sortOrder: newSortOrder,
-    });
-  };
 
   const handleStatusesChange = (vals: string[]) => {
     setSelectedStatuses(vals);
     setPage(1);
+  };
 
-    handleFilterUpdate({
-      statuses: vals,
-      page: 1,
-    });
+  const handleRolesChange = (vals: string[]) => {
+    setSelectedRoles(vals);
+    setPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    if (!isClientPaginated) {
-      handleFilterUpdate({ page: newPage });
-    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -333,9 +246,6 @@ export function UsersTable() {
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
     setPage(1);
-    if (!isClientPaginated) {
-      handleFilterUpdate({ page: 1, limit: newLimit });
-    }
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -344,7 +254,6 @@ export function UsersTable() {
   const handleSearchChange = (val: string) => {
     setSearch(val);
     setPage(1);
-    handleFilterUpdate({ search: val, page: 1 });
   };
 
   const handleCreateUser = async (data: CreateUserFormData) => {
@@ -480,6 +389,15 @@ export function UsersTable() {
             align="left"
           />
 
+          {/* Role MultiSelect Dropdown */}
+          <MultiSelectDropdown
+            label="Role"
+            options={ROLE_OPTIONS}
+            selectedValues={selectedRoles}
+            onChange={handleRolesChange}
+            align="left"
+          />
+
           {/* Circular Red Cross Button to Clear All Active Filters */}
           {hasActiveFilters ? (
             <Button
@@ -527,7 +445,7 @@ export function UsersTable() {
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
               />
             </svg>
-            <Span>Bulk Import CSV</Span>
+            <Span>Import CSV</Span>
           </Button>
           <Button
             type="button"
@@ -547,7 +465,7 @@ export function UsersTable() {
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <SortableColumnHeader<'name' | 'email'>
+              <SortableColumnHeader<UserSortField>
                 field="name"
                 label="Name"
                 sortField={sortField}
@@ -556,7 +474,7 @@ export function UsersTable() {
                 tooltip="Sort all users by Name"
                 className="w-[32%]"
               />
-              <SortableColumnHeader<'name' | 'email'>
+              <SortableColumnHeader<UserSortField>
                 field="email"
                 label="Email"
                 sortField={sortField}
@@ -565,8 +483,24 @@ export function UsersTable() {
                 tooltip="Sort all users by Email"
                 className="w-[32%]"
               />
-              <TableHead className="w-[14%]">Role</TableHead>
-              <TableHead className="w-[12%] text-center">Status</TableHead>
+              <SortableColumnHeader<UserSortField>
+                field="role"
+                label="Role"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all users by Role"
+                className="w-[14%]"
+              />
+              <SortableColumnHeader<UserSortField>
+                field="status"
+                label="Status"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all users by Status"
+                className="w-[12%] text-center"
+              />
               <TableHead className="w-[10%] text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -714,7 +648,7 @@ export function UsersTable() {
                         }`}
                       >
                         {u.role === 'SUPER_ADMIN'
-                          ? 'Super Admin'
+                          ? 'Admin'
                           : u.role === 'MENTOR'
                             ? 'Mentor'
                             : 'Mentee'}
@@ -804,25 +738,30 @@ export function UsersTable() {
                                   setOpenActionMenuId(null);
                                   void handleResendInvite(u.id, u.name);
                                 }}
-                                className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
+                                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
                               >
-                                <svg
-                                  className="h-3.5 w-3.5 text-amber-600"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth={2}
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                <Span>
-                                  {inFlightAction[u.id] === 'resend'
-                                    ? 'Sending...'
-                                    : 'Resend Invite'}
+                                <Span className="flex items-center gap-2">
+                                  <svg
+                                    className="h-3.5 w-3.5 text-amber-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                  <Span>
+                                    {inFlightAction[u.id] === 'resend'
+                                      ? 'Sending...'
+                                      : 'Send Invite'}
+                                  </Span>
+                                </Span>
+                                <Span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                                  Pending
                                 </Span>
                               </Button>
                             ) : null}

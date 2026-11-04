@@ -22,12 +22,12 @@ export interface ApiUser {
 export interface UserQueryFilters {
   page?: number | undefined;
   limit?: number | undefined;
-  role?: string | undefined;
-  status?: string | undefined;
+  role?: string | string[] | undefined;
+  status?: string | string[] | undefined;
   search?: string | undefined;
   batchId?: string | undefined;
   mentorId?: string | undefined;
-  sortBy?: 'name' | 'email' | 'createdAt' | undefined;
+  sortBy?: 'name' | 'email' | 'role' | 'status' | 'createdAt' | undefined;
   sortOrder?: 'asc' | 'desc' | undefined;
   withoutActiveBatch?: boolean | undefined;
 }
@@ -76,9 +76,13 @@ export const usersService = {
     const params: Record<string, string | number | boolean | undefined> = {};
     if (filters.page) params.page = filters.page;
     if (filters.limit) params.limit = filters.limit;
-    if (filters.role && filters.role !== 'ALL') params.role = filters.role;
+    if (filters.role && filters.role !== 'ALL') {
+      params.role = Array.isArray(filters.role) ? filters.role.join(',') : filters.role;
+    }
     if (filters.status && filters.status !== 'ALL') {
-      params.status = filters.status.toLowerCase();
+      params.status = Array.isArray(filters.status)
+        ? filters.status.map((s) => s.toLowerCase()).join(',')
+        : filters.status.toLowerCase();
     }
     if (filters.search) params.search = filters.search;
     if (filters.batchId) params.batchId = filters.batchId;

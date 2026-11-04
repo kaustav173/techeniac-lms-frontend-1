@@ -68,7 +68,8 @@ export function useUsers(
   const activeFilters = useMemo(() => {
     return {
       ...DEFAULT_FILTERS,
-      ...(overrideFilters ?? initialFilters),
+      ...initialFilters,
+      ...(overrideFilters ?? {}),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overrideFilters, serializedInitial]);
