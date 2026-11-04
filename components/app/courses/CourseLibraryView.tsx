@@ -120,6 +120,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
     setPage(1);
   };
 
@@ -136,20 +138,22 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   } = useCourses(courseQuery);
 
   const handleSort = (field: 'title') => {
+    let nextField: 'title' | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
     if (sortField === field) {
       if (sortOrder === 'asc') {
-        setSortOrder('desc');
+        nextOrder = 'desc';
       } else {
-        setSortField(null);
-        setSortOrder('asc');
+        nextField = null;
+        nextOrder = 'asc';
       }
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
     }
-  };
 
-  const sortedCourses = courses;
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
+  };
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -494,7 +498,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sortedCourses.map((c) => {
+                      {courses.map((c) => {
                         const topicCount = c.topicCount ?? c.topics?.length ?? 0;
                         const assignmentCount =
                           c.assignmentCount ??

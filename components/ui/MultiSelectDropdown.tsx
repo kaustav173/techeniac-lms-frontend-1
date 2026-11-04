@@ -143,42 +143,38 @@ export function MultiSelectDropdown<T extends string = string>({
       ref={containerRef}
     >
       {/* Trigger Button with Rounded Border & Hover Effect */}
-      <div
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => {
+          setIsOpen((prev) => {
+            if (prev) setSearchQuery('');
+            return !prev;
+          });
+        }}
         className={cn(
-          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70',
+          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-left text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:outline-none',
           selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
       >
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
-          onClick={() => {
-            setIsOpen((prev) => {
-              if (prev) setSearchQuery('');
-              return !prev;
-            });
-          }}
-          className="flex flex-1 items-center justify-between gap-2 text-left focus:outline-none"
+        <Span className="truncate">{triggerLabel}</Span>
+        <svg
+          className={cn(
+            'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
+            isOpen && 'rotate-180 text-[#0044D3]',
+          )}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
         >
-          <Span className="truncate">{triggerLabel}</Span>
-          <svg
-            className={cn(
-              'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
-              isOpen && 'rotate-180 text-[#0044D3]',
-            )}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
       {/* Popover Dropdown matching trigger with high z-index */}
       {isOpen ? (

@@ -548,14 +548,20 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                       </TableCell>
                       <TableCell className="py-4 pr-6 pl-4 text-right align-middle">
                         {userRole === 'SUPER_ADMIN' ? (
-                          <div className="relative flex items-center justify-end">
+                          <div
+                            ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
+                            className="relative flex items-center justify-end"
+                          >
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() =>
-                                setOpenActionMenuId(openActionMenuId === alloc.id ? null : alloc.id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId((prev) =>
+                                  prev === alloc.id ? null : alloc.id,
+                                );
+                              }}
                               className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                               title="Allocation actions"
                               aria-label="Allocation actions"
@@ -569,7 +575,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
                             {openActionMenuId === alloc.id && (
                               <div
-                                ref={actionMenuRef}
                                 role="menu"
                                 aria-label="Allocation actions"
                                 className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl"
