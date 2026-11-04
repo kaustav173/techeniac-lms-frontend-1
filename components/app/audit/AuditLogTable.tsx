@@ -216,9 +216,9 @@ export function AuditLogTable() {
     <div className="space-y-6">
       {/* Filters Bar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {/* 1. Search across Type, Activity, Actor, Target Entity (with Search Icon) */}
-          <div>
+          <div className="sm:col-span-2 lg:col-span-2">
             <DebouncedSearchInput
               value={filters.search ?? ''}
               onSearchChange={handleSearchChange}
@@ -227,7 +227,7 @@ export function AuditLogTable() {
           </div>
 
           {/* 2. Type Filter (Multi-select with Checkboxes & Clear Button) */}
-          <div>
+          <div className="lg:col-span-1">
             <MultiSelectDropdown<AuditType>
               label="Type"
               options={AUDIT_TYPE_OPTIONS}
@@ -239,7 +239,7 @@ export function AuditLogTable() {
           </div>
 
           {/* 3. Date Range Start */}
-          <div>
+          <div className="lg:col-span-1">
             <DatePicker
               id="audit-start-date"
               value={filters.startDate}
@@ -251,7 +251,7 @@ export function AuditLogTable() {
           </div>
 
           {/* 4. Date Range End */}
-          <div>
+          <div className="lg:col-span-1">
             <DatePicker
               id="audit-end-date"
               value={filters.endDate}
