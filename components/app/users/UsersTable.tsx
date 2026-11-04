@@ -28,6 +28,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useUsers } from '@/hooks/useUsers';
+import { compareStrings } from '@/lib/sort';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -61,7 +62,7 @@ const ROLE_OPTIONS: MultiSelectOption[] = [
   { value: 'MENTEE', label: 'Mentee' },
 ];
 
-type UserSortField = 'name' | 'email' | 'role' | 'status';
+type UserSortField = 'name' | 'email';
 
 export function UsersTable() {
   const router = useRouter();
@@ -222,7 +223,20 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  const displayedUsers = users;
+  const displayedUsers = useMemo(() => {
+    if (!sortField) return users;
+    const list = [...users];
+    list.sort((a, b) => {
+      if (sortField === 'name') {
+        return compareStrings(a.name, b.name, sortOrder);
+      }
+      if (sortField === 'email') {
+        return compareStrings(a.email, b.email, sortOrder);
+      }
+      return 0;
+    });
+    return list;
+  }, [users, sortField, sortOrder]);
   const effectiveTotal = totalCount;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
@@ -483,25 +497,13 @@ export function UsersTable() {
                 tooltip="Sort all users by Email"
                 className="w-[32%]"
               />
-              <SortableColumnHeader<UserSortField>
-                field="role"
-                label="Role"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Role"
-                className="w-[14%]"
-              />
-              <SortableColumnHeader<UserSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Status"
-                className="w-[12%] text-center"
-              />
-              <TableHead className="w-[10%] text-center">Action</TableHead>
+              <TableHead className="w-[14%] font-semibold text-slate-700">Role</TableHead>
+              <TableHead className="w-[12%] text-center font-semibold text-slate-700">
+                Status
+              </TableHead>
+              <TableHead className="w-[10%] text-center font-semibold text-slate-700">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -576,7 +578,7 @@ export function UsersTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              displayedUsers.map((u) => {
+              displayedUsers.map((u, idx) => {
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -593,6 +595,7 @@ export function UsersTable() {
                     key={u.id}
                     tabIndex={0}
                     role="link"
+                    style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         const target = e.target as HTMLElement;
@@ -612,7 +615,7 @@ export function UsersTable() {
                         router.push(`/admin/users/${u.id}`);
                       }
                     }}
-                    className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
+                    className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
                     {/* User Column (Name only) */}
                     <TableCell className="w-[32%]">

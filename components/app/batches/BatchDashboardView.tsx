@@ -702,11 +702,15 @@ export function BatchDashboardView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedMembers.map((m) => {
+                  {sortedMembers.map((m, idx) => {
                     const isLastMentor = m.memberRole === 'MENTOR' && mentors.length <= 1;
 
                     return (
-                      <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
+                      <TableRow
+                        key={m.id}
+                        style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
+                        className="animate-row-enter transition-colors hover:bg-slate-50/60"
+                      >
                         <TableCell>
                           <P className="font-semibold text-slate-900">{m.name}</P>
                           <P className="text-xs text-slate-500">{m.email}</P>
@@ -846,8 +850,12 @@ export function BatchDashboardView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedBatchCourses.map((c) => (
-                    <TableRow key={c.id} className="transition-colors hover:bg-slate-50/60">
+                  {sortedBatchCourses.map((c, idx) => (
+                    <TableRow
+                      key={c.id}
+                      style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
+                      className="animate-row-enter transition-colors hover:bg-slate-50/60"
+                    >
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>
                       </TableCell>

@@ -52,13 +52,25 @@ export function PaginationControls({
           className,
         )}
       >
-        <Skeleton className="h-5 w-48 rounded-md" />
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-28 rounded-xl" />
+        {/* Informative Items Counter Skeleton (Left-aligned) */}
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-4 w-36 rounded-md" />
+        </div>
+
+        {/* Right-aligned Controls Skeleton: Page Navigation Buttons + Page Size Selector */}
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+          {/* Numbered Page Navigation Pills Skeleton */}
           <div className="flex items-center gap-1.5">
             <Skeleton className="h-9 w-9 rounded-full" />
             <Skeleton className="h-9 w-9 rounded-full" />
             <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+          </div>
+
+          {/* Page Size Selector Skeleton */}
+          <div className="w-32">
+            <Skeleton className="h-9 w-full rounded-xl" />
           </div>
         </div>
       </div>

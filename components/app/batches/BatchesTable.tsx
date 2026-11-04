@@ -25,6 +25,7 @@ import { Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { formatDateDMY } from '@/lib/date';
+import { compareStrings } from '@/lib/sort';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -38,7 +39,10 @@ const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
   { value: 'ARCHIVED', label: 'Archived' },
 ];
 
-function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
+function BatchesTableRow({
+  batch,
+  index = 0,
+}: Readonly<{ batch: ApiBatchSummary; index?: number }>) {
   const router = useRouter();
   const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
 
@@ -46,6 +50,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
     <TableRow
       tabIndex={0}
       role="link"
+      style={{ animationDelay: `${Math.min(index * 35, 350)}ms` }}
       onClick={() => {
         router.push(`/admin/batches/${batch.id}`);
       }}
@@ -55,7 +60,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           router.push(`/admin/batches/${batch.id}`);
         }
       }}
-      className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+      className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
       <TableCell className="w-[32%] font-semibold text-slate-900">
         <Link
@@ -173,7 +178,7 @@ export function BatchesTable() {
   const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
   // Sorting state across all entries in the whole table
-  type BatchSortField = 'name' | 'code' | 'status' | 'startDate';
+  type BatchSortField = 'name' | 'members';
   const [sortField, setSortField] = useState<BatchSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -211,7 +216,22 @@ export function BatchesTable() {
     setPage(1);
   };
 
-  const sortedBatches = batches;
+  const sortedBatches = useMemo(() => {
+    if (!sortField) return batches;
+    const list = [...batches];
+    list.sort((a, b) => {
+      if (sortField === 'name') {
+        return compareStrings(a.name, b.name, sortOrder);
+      }
+      if (sortField === 'members') {
+        const countA = (a.menteesCount ?? 0) + (a.mentorsCount ?? 0);
+        const countB = (b.menteesCount ?? 0) + (b.mentorsCount ?? 0);
+        return sortOrder === 'asc' ? countA - countB : countB - countA;
+      }
+      return 0;
+    });
+    return list;
+  }, [batches, sortField, sortOrder]);
 
   const isTableLoading = isLoading || isFetching;
   const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
@@ -346,34 +366,18 @@ export function BatchesTable() {
                 tooltip="Sort all batches by Batch Name"
                 className="w-[32%] font-semibold text-slate-700"
               />
+              <TableHead className="w-[16%] font-semibold text-slate-700">Code</TableHead>
+              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="w-[26%] font-semibold text-slate-700">Timeline</TableHead>
               <SortableColumnHeader<BatchSortField>
-                field="code"
-                label="Code"
+                field="members"
+                label="Members"
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort all batches by Batch Code"
-                className="w-[16%] font-semibold text-slate-700"
+                tooltip="Sort all batches by Members"
+                className="w-[12%] font-semibold text-slate-700"
               />
-              <SortableColumnHeader<BatchSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all batches by Status"
-                className="w-[14%] font-semibold text-slate-700"
-              />
-              <SortableColumnHeader<BatchSortField>
-                field="startDate"
-                label="Timeline"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all batches by Timeline"
-                className="w-[26%] font-semibold text-slate-700"
-              />
-              <TableHead className="w-[12%] font-semibold text-slate-700">Members</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -386,7 +390,7 @@ export function BatchesTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              sortedBatches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
+              sortedBatches.map((b, idx) => <BatchesTableRow key={b.id} batch={b} index={idx} />)
             )}
           </TableBody>
         </Table>

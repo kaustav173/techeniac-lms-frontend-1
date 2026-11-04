@@ -95,8 +95,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  // Sorting state for Course Name column
-  const [sortField, setSortField] = useState<'title' | null>(null);
+  // Sorting state for Course Name, Topics, and Tasks
+  type CourseSortField = 'title' | 'topics' | 'tasks';
+  const [sortField, setSortField] = useState<CourseSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const resolvedIsActive = useMemo(() => {
@@ -138,8 +139,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     getCourseImpact,
   } = useCourses(courseQuery);
 
-  const handleSort = (field: 'title') => {
-    let nextField: 'title' | null = field;
+  const handleSort = (field: CourseSortField) => {
+    let nextField: CourseSortField | null = field;
     let nextOrder: 'asc' | 'desc' = 'asc';
 
     if (sortField === field) {
@@ -162,6 +163,22 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     list.sort((a, b) => {
       if (sortField === 'title') {
         return compareStrings(a.title, b.title, sortOrder);
+      }
+      if (sortField === 'topics') {
+        const countA = a.topicCount ?? a.topics?.length ?? 0;
+        const countB = b.topicCount ?? b.topics?.length ?? 0;
+        return sortOrder === 'asc' ? countA - countB : countB - countA;
+      }
+      if (sortField === 'tasks') {
+        const countA =
+          a.assignmentCount ??
+          (a.courseAssignments?.length ?? a.assignments?.length ?? 0) +
+            (a.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ?? 0);
+        const countB =
+          b.assignmentCount ??
+          (b.courseAssignments?.length ?? b.assignments?.length ?? 0) +
+            (b.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ?? 0);
+        return sortOrder === 'asc' ? countA - countB : countB - countA;
       }
       return 0;
     });
@@ -495,19 +512,39 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <SortableColumnHeader<'title'>
+                        <SortableColumnHeader<CourseSortField>
                           field="title"
                           label="Course"
                           sortField={sortField}
                           sortOrder={sortOrder}
                           onSort={handleSort}
-                          tooltip="Sort all courses by Title"
+                          tooltip="Sort all courses by Course Name"
                           className="w-[48%]"
                         />
-                        <TableHead className="w-28 text-center">Topics</TableHead>
-                        <TableHead className="w-28 text-center">Tasks</TableHead>
-                        <TableHead className="w-28 text-center">Activate</TableHead>
-                        <TableHead className="w-20 text-center">Action</TableHead>
+                        <SortableColumnHeader<CourseSortField>
+                          field="topics"
+                          label="Topics"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          tooltip="Sort all courses by Topics"
+                          className="w-28 text-center"
+                        />
+                        <SortableColumnHeader<CourseSortField>
+                          field="tasks"
+                          label="Tasks"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          tooltip="Sort all courses by Tasks"
+                          className="w-28 text-center"
+                        />
+                        <TableHead className="w-28 text-center font-semibold text-slate-700">
+                          Activate
+                        </TableHead>
+                        <TableHead className="w-20 text-center font-semibold text-slate-700">
+                          Action
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
