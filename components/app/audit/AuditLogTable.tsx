@@ -491,6 +491,7 @@ export function AuditLogTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
+          itemLabel="Audit Logs"
         />
       </TableContainer>
 
