@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/Table';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
-import { resolveAuditTargetEntity } from '@/lib/audit';
+import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
 
@@ -406,7 +406,7 @@ export function AuditLogTable() {
 
                     {/* Action */}
                     <TableCell className="w-[18%] px-4 py-3.5 pl-6 text-[11px] font-semibold whitespace-nowrap text-slate-800 sm:pl-8">
-                      {item.action}
+                      {formatAuditAction(item.action)}
                     </TableCell>
 
                     {/* Actor */}
@@ -441,7 +441,7 @@ export function AuditLogTable() {
                             handleOpenModal(item);
                           }}
                           title="View audit event details"
-                          aria-label={`View audit details for ${item.action}`}
+                          aria-label={`View audit details for ${formatAuditAction(item.action)}`}
                           className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-blue-50 hover:text-[#0044D3]"
                         >
                           <svg

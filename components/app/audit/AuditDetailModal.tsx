@@ -4,7 +4,7 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { H4, Span } from '@/components/ui/Typography';
-import { resolveAuditTargetEntity } from '@/lib/audit';
+import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
 import { formatDateTimeISTWithSeconds } from '@/lib/date';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 
@@ -112,7 +112,9 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
           >
             {entry.type}
           </Span>
-          <Span className="text-base font-bold text-slate-900">{entry.action}</Span>
+          <Span className="text-base font-bold text-slate-900">
+            {formatAuditAction(entry.action)}
+          </Span>
         </div>
 
         {/* Structured Metadata Grid (2x2): 1. Timestamp, 2. IP & Country, 3. Initiated By, 4. Target Entity */}

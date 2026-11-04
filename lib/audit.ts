@@ -1,6 +1,20 @@
 import type { ApiAuditItem } from '@/lib/validation';
 
 /**
+ * Formats raw SNAKE_CASE or UPPER_CASE audit action strings into clean Title Case
+ * (e.g., 'LOGIN' -> 'Login', 'FAILED_LOGIN' -> 'Failed Login', 'ROLE_CHANGE' -> 'Role Change').
+ */
+export function formatAuditAction(action: string | null | undefined): string {
+  if (!action) return '-';
+
+  return action
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/**
  * Resolves a human-friendly name and type for an audit target entity
  * using a priority cascade across known payload fields.
  */
