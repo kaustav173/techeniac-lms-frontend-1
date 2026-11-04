@@ -26,14 +26,14 @@ export function formatDateTimeIST(dateInput: string | Date | null | undefined): 
 }
 
 /**
- * Formats a date or ISO string into IST date & time with seconds: "27 Oct 2026, 04:30:15 PM IST"
+ * Formats a date or ISO string into IST date & time with seconds: "27 Oct 2026, 04:30:15 PM"
  */
 export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return '-';
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   if (isNaN(date.getTime())) return '-';
 
-  const formatted = new Intl.DateTimeFormat('en-IN', {
+  return new Intl.DateTimeFormat('en-IN', {
     timeZone: IST_TIMEZONE,
     day: '2-digit',
     month: 'short',
@@ -43,8 +43,6 @@ export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | u
     second: '2-digit',
     hour12: true,
   }).format(date);
-
-  return `${formatted} IST`;
 }
 
 /**

@@ -4,7 +4,7 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { H4, Span } from '@/components/ui/Typography';
-import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
+import { formatAuditAction, formatAuditType, resolveAuditTargetEntity } from '@/lib/audit';
 import { formatDateTimeISTWithSeconds } from '@/lib/date';
 import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
@@ -107,11 +107,11 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
         {/* Event Header Hero Card */}
         <div className="flex items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4 py-3 shadow-xs">
           <Span
-            className={`inline-flex items-center rounded-xl border px-3 py-1 text-xs font-bold tracking-wide uppercase ${getAuditTypeBadge(
+            className={`inline-flex items-center rounded-xl border px-3 py-1 text-xs font-bold tracking-wide ${getAuditTypeBadge(
               entry.type,
             )}`}
           >
-            {entry.type}
+            {formatAuditType(entry.type)}
           </Span>
           <Span className="text-base font-bold text-slate-900">
             {formatAuditAction(entry.action)}
@@ -144,9 +144,6 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 </Span>
                 <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
                   {formattedDate}
-                </Span>
-                <Span className="mt-0.5 block text-xs text-slate-500">
-                  Recorded instantly on event commit
                 </Span>
               </div>
             </div>
@@ -265,7 +262,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
               <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
                 <span className="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold tracking-wider text-amber-800 uppercase">
-                  Previous State (oldValue)
+                  Previous State
                 </span>
               </div>
 
@@ -284,7 +281,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
               <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
                 <span className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold tracking-wider text-emerald-800 uppercase">
-                  New State (newValue)
+                  New State
                 </span>
               </div>
 

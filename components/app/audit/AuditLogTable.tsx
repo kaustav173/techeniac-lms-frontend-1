@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/Table';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
-import { formatAuditAction, resolveAuditTargetEntity } from '@/lib/audit';
+import { formatAuditAction, formatAuditType, resolveAuditTargetEntity } from '@/lib/audit';
 import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
@@ -70,14 +70,14 @@ function formatActorRole(role?: string | null): string | null {
 }
 
 const AUDIT_TYPE_OPTIONS: readonly MultiSelectOption<AuditType>[] = [
-  { value: 'AUTH', label: 'Authentication (AUTH)' },
-  { value: 'USER', label: 'User & Roles (USER)' },
-  { value: 'COURSE', label: 'Courses (COURSE)' },
-  { value: 'BATCH', label: 'Batches (BATCH)' },
-  { value: 'MENTOR_MAPPING', label: 'Mentor Mapping (MENTOR_MAPPING)' },
-  { value: 'COURSE_ALLOCATION', label: 'Allocations (COURSE_ALLOCATION)' },
-  { value: 'SUBMISSION', label: 'Submissions (SUBMISSION)' },
-  { value: 'GRADING', label: 'Grading (GRADING)' },
+  { value: 'AUTH', label: 'Auth' },
+  { value: 'USER', label: 'User' },
+  { value: 'COURSE', label: 'Course' },
+  { value: 'BATCH', label: 'Batch' },
+  { value: 'MENTOR_MAPPING', label: 'Mentor Mapping' },
+  { value: 'COURSE_ALLOCATION', label: 'Course Allocation' },
+  { value: 'SUBMISSION', label: 'Submission' },
+  { value: 'GRADING', label: 'Grading' },
 ];
 
 function getAuditTypeBadge(type: AuditType): string {
@@ -303,11 +303,11 @@ export function AuditLogTable() {
             <TableRow>
               <SortableColumnHeader<'createdAt'>
                 field="createdAt"
-                label="Date & Time"
+                label="Date & Time (IST)"
                 sortField="createdAt"
                 sortOrder={filters.sortOrder ?? 'desc'}
                 onSort={handleSort}
-                tooltip="Sort by Date & Time"
+                tooltip="Sort by Date & Time (IST)"
                 className="w-[16%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
               />
               <TableHead className="w-[14%] px-4 py-3.5 pr-6 text-left text-xs font-semibold text-[#667085]">
@@ -410,7 +410,7 @@ export function AuditLogTable() {
                           item.type,
                         )}`}
                       >
-                        {item.type}
+                        {formatAuditType(item.type)}
                       </Span>
                     </TableCell>
 

@@ -15,6 +15,20 @@ export function formatAuditAction(action: string | null | undefined): string {
 }
 
 /**
+ * Formats raw SNAKE_CASE audit type strings into clean Title Case
+ * (e.g., 'COURSE_ALLOCATION' -> 'Course Allocation', 'MENTOR_MAPPING' -> 'Mentor Mapping').
+ */
+export function formatAuditType(type: string | null | undefined): string {
+  if (!type) return '-';
+
+  return type
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+/**
  * Resolves a human-friendly name and type for an audit target entity
  * using a priority cascade across known payload fields.
  */
