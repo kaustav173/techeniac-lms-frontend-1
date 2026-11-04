@@ -4,6 +4,10 @@ import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } fro
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/Button';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
@@ -19,6 +23,8 @@ export interface DatePickerProps {
   readonly hasError?: boolean | undefined;
   readonly placement?: 'bottom' | 'top' | 'auto' | undefined;
   readonly className?: string | undefined;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 const POPOVER_WIDTH_PX = 340;
@@ -40,6 +46,16 @@ const MONTH_NAMES = [
   'November',
   'December',
 ];
+
+const MONTH_OPTIONS: readonly SingleSelectOption<number>[] = MONTH_NAMES.map((name, idx) => ({
+  value: idx,
+  label: name,
+}));
+
+const YEAR_OPTIONS: readonly SingleSelectOption<number>[] = Array.from({ length: 101 }, (_, i) => {
+  const y = 1970 + i;
+  return { value: y, label: String(y) };
+});
 
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -122,7 +138,11 @@ interface CalendarPopoverProps {
   readonly calendarDays: readonly CalendarDay[];
   readonly onPrevMonth: () => void;
   readonly onNextMonth: () => void;
+  readonly onMonthChange: (month: number) => void;
+  readonly onYearChange: (year: number) => void;
   readonly onSelectDay: (dateString: string) => void;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 function CalendarPopover({
@@ -133,7 +153,11 @@ function CalendarPopover({
   calendarDays,
   onPrevMonth,
   onNextMonth,
+  onMonthChange,
+  onYearChange,
   onSelectDay,
+  minDate,
+  maxDate,
 }: Readonly<CalendarPopoverProps>) {
   return (
     <div
@@ -149,18 +173,18 @@ function CalendarPopover({
       }}
       className="animate-in fade-in zoom-in-95 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xl duration-100"
     >
-      {/* Header with Navigation - 44px Accessible Touch Targets */}
+      {/* Header with Navigation & Month/Year Selectors */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onPrevMonth}
-          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Previous month"
         >
           <svg
-            className="h-5 w-5"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -171,20 +195,37 @@ function CalendarPopover({
           </svg>
         </Button>
 
-        <Span className="text-sm font-bold text-slate-900 sm:text-base">
-          {MONTH_NAMES[viewMonth]} {viewYear}
-        </Span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-[124px]">
+            <SingleSelectDropdown<number>
+              value={viewMonth}
+              onChange={(val) => onMonthChange(val)}
+              options={MONTH_OPTIONS}
+              size="sm"
+              aria-label="Select month"
+            />
+          </div>
+          <div className="w-[96px]">
+            <SingleSelectDropdown<number>
+              value={viewYear}
+              onChange={(val) => onYearChange(val)}
+              options={YEAR_OPTIONS}
+              size="sm"
+              aria-label="Select year"
+            />
+          </div>
+        </div>
 
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={onNextMonth}
-          className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           aria-label="Next month"
         >
           <svg
-            className="h-5 w-5"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -208,20 +249,26 @@ function CalendarPopover({
       {/* Day Grid with Accessible 44px Touch Targets */}
       <div className="mt-1 grid grid-cols-7 gap-0.5 text-center text-sm">
         {calendarDays.map((cell) => {
+          const isOutOfRange = Boolean(
+            (minDate && cell.dateString < minDate) || (maxDate && cell.dateString > maxDate),
+          );
           return (
             <Button
               key={cell.dateString}
               type="button"
               variant="ghost"
               size="sm"
+              disabled={isOutOfRange}
               onClick={() => onSelectDay(cell.dateString)}
               className={cn(
                 'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                cell.isSelected
-                  ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
-                  : cell.isCurrentMonth
-                    ? 'font-semibold text-slate-700 hover:bg-slate-100'
-                    : 'font-normal text-slate-300 hover:bg-slate-50',
+                isOutOfRange
+                  ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
+                  : cell.isSelected
+                    ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
+                    : cell.isCurrentMonth
+                      ? 'font-semibold text-slate-700 hover:bg-slate-100'
+                      : 'font-normal text-slate-300 hover:bg-slate-50',
               )}
             >
               <Span>{cell.dayNumber}</Span>
@@ -244,6 +291,8 @@ export function DatePicker({
   hasError = false,
   placement = 'auto',
   className,
+  minDate,
+  maxDate,
 }: Readonly<DatePickerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -299,6 +348,12 @@ export function DatePicker({
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        const hasOpenDropdown = Boolean(
+          popoverRef.current?.querySelector('[aria-expanded="true"]'),
+        );
+        if (hasOpenDropdown) {
+          return;
+        }
         e.stopPropagation();
         e.preventDefault();
         setIsOpen(false);
@@ -388,6 +443,14 @@ export function DatePicker({
     setViewDate(new Date(viewYear, viewMonth + 1, 1));
   };
 
+  const handleMonthChange = (month: number) => {
+    setViewDate(new Date(viewYear, month, 1));
+  };
+
+  const handleYearChange = (year: number) => {
+    setViewDate(new Date(year, viewMonth, 1));
+  };
+
   const calendarDays = useMemo(
     () => buildCalendarGrid(viewYear, viewMonth, value),
     [viewYear, viewMonth, value],
@@ -447,7 +510,11 @@ export function DatePicker({
               calendarDays={calendarDays}
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
+              onMonthChange={handleMonthChange}
+              onYearChange={handleYearChange}
               onSelectDay={handleSelectDay}
+              minDate={minDate}
+              maxDate={maxDate}
             />,
             document.body,
           )

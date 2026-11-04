@@ -36,36 +36,39 @@ export function SortableColumnHeader<T extends string>({
         size="sm"
         onClick={() => onSort(field)}
         title={tooltip ?? `Sort by ${label}`}
-        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left font-semibold hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none"
+        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none sm:text-base"
       >
-        <Span className="text-slate-700 transition-colors group-hover:text-slate-900">{label}</Span>
-        <Span className="inline-flex items-center">
+        <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+          {label}
+        </Span>
+        <Span className="flex items-center justify-center">
           {isSorted ? (
-            <svg
-              className="h-3.5 w-3.5 text-[#0044D3]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              {sortOrder === 'asc' ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
-                />
-              )}
-            </svg>
+            sortOrder === 'asc' ? (
+              <svg
+                className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+              </svg>
+            ) : (
+              <svg
+                className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            )
           ) : (
             <svg
-              className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+              className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -75,7 +78,7 @@ export function SortableColumnHeader<T extends string>({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+                d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
               />
             </svg>
           )}

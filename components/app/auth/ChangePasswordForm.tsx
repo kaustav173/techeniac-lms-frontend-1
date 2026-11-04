@@ -10,11 +10,9 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { ApiError } from '@/lib/errors';
 import { changePasswordSchema, extractZodErrors } from '@/lib/validation';
 
-import { PasswordCriteriaChecklist } from './PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
 export function ChangePasswordForm() {
@@ -28,8 +26,6 @@ export function ChangePasswordForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  const criteria = usePasswordCriteria(newPassword);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -195,9 +191,6 @@ export function ChangePasswordForm() {
         </div>
         <FieldError id="newPassword-error" error={errors.newPassword} />
       </div>
-
-      {/* Criteria Checklist */}
-      <PasswordCriteriaChecklist criteria={criteria} />
 
       {/* Confirm Password */}
       <div className="space-y-1.5">

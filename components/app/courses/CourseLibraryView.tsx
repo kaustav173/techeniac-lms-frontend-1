@@ -2,23 +2,25 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
-import { formatDurationMinutes } from '@/components/app/courses/types';
 import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -29,12 +31,55 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
+import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  disabled?: boolean | undefined;
+  onChange: () => void;
+  title?: string | undefined;
+  ariaLabel: string;
+}
+
+function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
+  return (
+    <Button
+      type="button"
+      role="switch"
+      variant="ghost"
+      size="sm"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      title={title}
+      disabled={disabled}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start gap-0 rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+        checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+    >
+      <Span
+        aria-hidden="true"
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`}
+      />
+    </Button>
+  );
+}
+
+const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+];
 
 interface CourseLibraryViewProps {
   portal: 'admin' | 'mentor';
@@ -45,28 +90,40 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+  // Sorting state for Course Name column
+  const [sortField, setSortField] = useState<'title' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const resolvedIsActive = useMemo(() => {
+    if (selectedStatuses.includes('active') && !selectedStatuses.includes('inactive')) return true;
+    if (selectedStatuses.includes('inactive') && !selectedStatuses.includes('active')) return false;
+    return 'all' as const;
+  }, [selectedStatuses]);
 
   const courseQuery = useMemo(
     () => ({
       page,
       limit,
-      search: debouncedSearch.trim() || undefined,
-      isActive: activeFilter === 'all' ? ('all' as const) : activeFilter === 'active',
+      search: search.trim() || undefined,
+      isActive: resolvedIsActive,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
     }),
-    [page, limit, debouncedSearch, activeFilter],
+    [page, limit, search, resolvedIsActive, sortField, sortOrder],
   );
+
+  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
+  const handleClearFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
+    setPage(1);
+  };
 
   const {
     courses,
@@ -80,15 +137,23 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     getCourseImpact,
   } = useCourses(courseQuery);
 
-  const { total: totalAllCourses, error: totalCoursesError } = useCourses({ limit: 1 });
-  const { total: totalActiveTracks, error: activeTracksError } = useCourses({
-    isActive: true,
-    limit: 1,
-  });
-  const { total: totalDraftTracks, error: draftTracksError } = useCourses({
-    isActive: false,
-    limit: 1,
-  });
+  const handleSort = (field: 'title') => {
+    let nextField: 'title' | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
+      } else {
+        nextField = null;
+        nextOrder = 'asc';
+      }
+    }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
+  };
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -117,13 +182,33 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   );
   const [modalActionType, setModalActionType] = useState<'DELETE' | 'TOGGLE_STATUS' | null>(null);
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated || !user) {
         router.replace('/login');
       } else if (user.role !== 'SUPER_ADMIN' && user.role !== 'MENTOR') {
-        router.replace('/mentee');
+        router.replace(getRolePortalPath('MENTEE'));
       }
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -246,190 +331,84 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     );
   }
 
-  const totalCountDisplay = totalCoursesError ? '—' : totalAllCourses;
-  const activeCountDisplay = activeTracksError ? '—' : totalActiveTracks;
-  const draftCountDisplay = draftTracksError ? '—' : totalDraftTracks;
-
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
-  const breadcrumbRoot = portal === 'mentor' ? 'Mentor' : 'Admin';
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...navConfig} />
 
       <DashboardContent>
-        {/* Top Breadcrumb & Actions */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <Link href={`/${portal}`} className="transition-colors hover:text-slate-900">
-                {breadcrumbRoot}
-              </Link>
-              <Span className="text-slate-300">/</Span>
-              <Span className="font-semibold text-slate-900">Curriculum & Course Library</Span>
+        {/* Search, Filter Toolbar & Actions */}
+        <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-72 lg:w-80">
+              <DebouncedSearchInput
+                value={search}
+                onSearchChange={(val) => {
+                  setSearch(val);
+                  setPage(1);
+                }}
+                placeholder="Search courses by title or topic..."
+              />
             </div>
-            <PageTitle className="mt-1.5 text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Course Library
-            </PageTitle>
-            <SubText className="mt-1.5 max-w-2xl">
-              Manage enterprise learning tracks, syllabus outlines, and live assignments.
-            </SubText>
+
+            {/* Status Dropdown Filter */}
+            <MultiSelectDropdown
+              label="Status"
+              options={COURSE_STATUS_OPTIONS}
+              selectedValues={selectedStatuses}
+              onChange={(vals) => {
+                setSelectedStatuses(vals);
+                setPage(1);
+              }}
+              align="left"
+            />
+
+            {/* Circular Red Cross Clear Button */}
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                title="Clear all filters"
+                aria-label="Clear all filters"
+                className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-3">
             <Button
               type="button"
+              variant="primary"
+              size="sm"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex h-auto items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-slate-800 hover:shadow-sm focus-visible:ring-slate-800 active:bg-slate-950"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] sm:h-10 sm:text-sm"
             >
               <svg
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2.5}
+                aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
-              <Span>Create New Course</Span>
+              <Span className="leading-none">Create New Course</Span>
             </Button>
-          </div>
-        </div>
-
-        {/* Telemetry Stat Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
-            <div>
-              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Total Courses
-              </Span>
-              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-900">
-                {totalCountDisplay}
-              </div>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
-            <div>
-              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Active Tracks
-              </Span>
-              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-emerald-600">
-                {activeCountDisplay}
-              </div>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all hover:border-slate-300 hover:shadow-sm">
-            <div>
-              <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                Draft / Inactive
-              </Span>
-              <div className="mt-1.5 text-3xl font-extrabold tracking-tight text-slate-700">
-                {draftCountDisplay}
-              </div>
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Search & Filter Toolbar */}
-        <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-md flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search courses by title or topic..."
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 pr-3.5 pl-10 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:outline-hidden"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Status Segmented Filter */}
-            <div className="inline-flex rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 text-sm">
-              {(['all', 'active', 'inactive'] as const).map((st) => (
-                <Button
-                  key={st}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setActiveFilter(st);
-                    setPage(1);
-                  }}
-                  className={`h-auto rounded-lg px-4 py-1.5 text-xs font-semibold transition-colors ${
-                    activeFilter === st
-                      ? 'bg-white text-slate-900 shadow-xs hover:bg-white active:bg-white'
-                      : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
-                  }`}
-                >
-                  {st === 'all' ? 'All' : st === 'active' ? 'Active' : 'Inactive'}
-                </Button>
-              ))}
-            </div>
-            {isFetchingCourses && !loadingCourses && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-                <Span>Updating...</Span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -437,41 +416,52 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         <div className="mt-6">
           {loadingCourses ? (
             <TableContainer className="w-full">
-              <Table className="w-full">
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[36%]">Course</TableHead>
-                    <TableHead>Content Stats</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[48%]">Course</TableHead>
+                    <TableHead className="w-28 text-center">Topics</TableHead>
+                    <TableHead className="w-28 text-center">Tasks</TableHead>
+                    <TableHead className="w-28 text-center">Activate</TableHead>
+                    <TableHead className="w-20 text-center">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 6 }).map((_, idx) => (
                     <TableRow key={`course-skel-${idx}`} className="h-16">
                       <TableCell>
-                        <div className="space-y-1.5">
-                          <Skeleton className="h-4 w-48 rounded-md" />
-                          <Skeleton className="h-3 w-72 rounded-md" />
-                        </div>
+                        <Skeleton className="h-4 w-52 rounded-md" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28 rounded-md" />
+                      <TableCell className="text-center">
+                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20 rounded-md" />
+                      <TableCell className="text-center">
+                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-6 w-20 rounded-full" />
+                      <TableCell className="w-28 text-center">
+                        <Skeleton className="mx-auto h-6 w-11 rounded-full" />
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                      <TableCell className="w-20 text-center">
+                        <Skeleton className="mx-auto h-8 w-8 rounded-full" />
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <PaginationControls
+                page={page}
+                limit={limit}
+                total={pagination.total || 10}
+                totalPages={pagination.totalPages || 1}
+                onPageChange={setPage}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                  setPage(1);
+                }}
+                isLoading={true}
+                itemLabel="courses"
+                pageSizeOptions={[10, 20, 50, 100]}
+              />
             </TableContainer>
           ) : (
             <>
@@ -489,14 +479,22 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                     isFetchingCourses && !loadingCourses ? 'opacity-60 transition-opacity' : ''
                   }`}
                 >
-                  <Table className="w-full">
+                  <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[36%]">Course</TableHead>
-                        <TableHead>Content Stats</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <SortableColumnHeader<'title'>
+                          field="title"
+                          label="Course"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          tooltip="Sort all courses by Title"
+                          className="w-[48%]"
+                        />
+                        <TableHead className="w-28 text-center">Topics</TableHead>
+                        <TableHead className="w-28 text-center">Tasks</TableHead>
+                        <TableHead className="w-28 text-center">Activate</TableHead>
+                        <TableHead className="w-20 text-center">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -509,126 +507,195 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               0);
 
                         return (
-                          <TableRow key={c.id} className="hover:bg-slate-50/70">
+                          <TableRow
+                            key={c.id}
+                            onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
+                            className="cursor-pointer transition-colors hover:bg-slate-50/80"
+                          >
                             <TableCell>
-                              <div className="flex flex-col">
+                              <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
                                 <Link
                                   href={`/${portal}/courses/${c.id}/builder`}
-                                  className="text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="truncate text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                  title={c.title}
                                 >
                                   {c.title}
                                 </Link>
-                                <Span className="mt-0.5 line-clamp-1 text-xs text-slate-500">
-                                  {c.description || 'No description provided.'}
-                                </Span>
                               </div>
                             </TableCell>
 
-                            <TableCell className="text-xs text-slate-600">
-                              <div className="flex items-center gap-2">
-                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
-                                  {topicCount} topics
-                                </Span>
-                                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
-                                  {assignmentCount} tasks
-                                </Span>
-                              </div>
-                            </TableCell>
-
-                            <TableCell className="text-xs font-medium text-slate-600">
-                              {formatDurationMinutes(c.estimatedMinutes)}
-                            </TableCell>
-
-                            <TableCell>
-                              <Span
-                                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                  c.isActive
-                                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                                    : 'border border-slate-200 bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                <Span
-                                  className={`h-1.5 w-1.5 rounded-full ${c.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
-                                />
-                                {c.isActive ? 'Active' : 'Inactive'}
+                            <TableCell className="text-center text-xs text-slate-600">
+                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
+                                {topicCount} {topicCount === 1 ? 'topic' : 'topics'}
                               </Span>
                             </TableCell>
 
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
-                                  title="Open course builder"
-                                  className="h-8 text-xs font-semibold"
-                                >
-                                  Builder →
-                                </Button>
+                            <TableCell className="text-center text-xs text-slate-600">
+                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
+                                {assignmentCount} {assignmentCount === 1 ? 'task' : 'tasks'}
+                              </Span>
+                            </TableCell>
 
-                                <Button
-                                  type="button"
-                                  variant="primary"
-                                  size="sm"
-                                  disabled={!c.isActive}
-                                  onClick={() => setAssignModalCourse(c)}
-                                  title={
-                                    c.isActive
-                                      ? 'Assign to batch or mentees'
-                                      : 'Only active courses can be assigned'
-                                  }
-                                  className="h-8 text-xs font-semibold"
-                                >
-                                  Assign
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => void cloneCourse(c.id)}
-                                  title="Clone course"
-                                  className="h-8 text-xs font-medium"
-                                >
-                                  Clone
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => void onRequestToggleStatus(c)}
+                            <TableCell
+                              className="w-28 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="flex items-center justify-center">
+                                <ToggleSwitch
+                                  checked={c.isActive}
+                                  disabled={isActionSubmitting && activeActionCourse?.id === c.id}
                                   title={c.isActive ? 'Deactivate course' : 'Activate course'}
-                                  className="h-8 text-xs text-slate-600 hover:text-slate-900"
-                                >
-                                  {c.isActive ? 'Deactivate' : 'Activate'}
-                                </Button>
+                                  ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
+                                  onChange={() => void onRequestToggleStatus(c)}
+                                />
+                              </div>
+                            </TableCell>
 
+                            <TableCell
+                              className="w-20 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div
+                                className="relative inline-block text-left"
+                                ref={openActionMenuId === c.id ? actionMenuRef : undefined}
+                              >
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => void onRequestDelete(c)}
-                                  title="Delete course"
-                                  aria-label="Delete course"
-                                  className="h-8 w-8 rounded-lg p-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenActionMenuId(openActionMenuId === c.id ? null : c.id);
+                                  }}
+                                  title="Course actions"
+                                  aria-label={`Actions for ${c.title}`}
+                                  className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                 >
-                                  <svg
-                                    className="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={1.75}
-                                    aria-hidden="true"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
+                                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                   </svg>
                                 </Button>
+
+                                {openActionMenuId === c.id && (
+                                  <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={!c.isActive}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        setAssignModalCourse(c);
+                                      }}
+                                      title={
+                                        c.isActive
+                                          ? 'Assign to batch or mentees'
+                                          : 'Only active courses can be assigned'
+                                      }
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-[#0044D3]"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                        />
+                                      </svg>
+                                      <Span>Assign</Span>
+                                    </Button>
+
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        void cloneCourse(c.id);
+                                      }}
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-slate-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                      <Span>Clone</Span>
+                                    </Button>
+
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        router.push(`/${portal}/courses/${c.id}/builder`);
+                                      }}
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-slate-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                        />
+                                      </svg>
+                                      <Span>Edit</Span>
+                                    </Button>
+
+                                    <div className="my-1 border-t border-slate-100" />
+
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        void onRequestDelete(c);
+                                      }}
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-red-500"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                      </svg>
+                                      <Span>Delete</Span>
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -636,25 +703,24 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                       })}
                     </TableBody>
                   </Table>
-                </TableContainer>
-              )}
 
-              {/* Pagination Controls */}
-              {pagination.total > 0 && (
-                <PaginationControls
-                  page={page}
-                  limit={limit}
-                  total={pagination.total}
-                  totalPages={pagination.totalPages}
-                  onPageChange={setPage}
-                  onLimitChange={(newLimit) => {
-                    setLimit(newLimit);
-                    setPage(1);
-                  }}
-                  itemLabel="courses"
-                  pageSizeOptions={[10, 20, 50, 100]}
-                  className="mt-8 rounded-2xl border border-slate-200/80 shadow-xs"
-                />
+                  {/* Attached Pagination Controls */}
+                  {pagination.total > 0 && (
+                    <PaginationControls
+                      page={page}
+                      limit={limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      onPageChange={setPage}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                      itemLabel="courses"
+                      pageSizeOptions={[10, 20, 50, 100]}
+                    />
+                  )}
+                </TableContainer>
               )}
             </>
           )}

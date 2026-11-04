@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
@@ -61,15 +61,30 @@ export function MyAssignmentsTable({
   const { getHoverHandlers } = useHoverPrefetch();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredAssignments = assignments.filter((item) => {
-    if (!searchQuery.trim()) return true;
+  const filteredAssignments = useMemo(() => {
+    const seen = new Set<string>();
+    const unique: AssignmentWithSubmissionStatus[] = [];
+    for (const item of assignments) {
+      if (item?.id) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          unique.push(item);
+        }
+      } else {
+        unique.push(item);
+      }
+    }
+
+    if (!searchQuery.trim()) return unique;
     const q = searchQuery.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(q) ||
-      item.courseTitle.toLowerCase().includes(q) ||
-      (item.topicTitle && item.topicTitle.toLowerCase().includes(q))
-    );
-  });
+    return unique.filter((item) => {
+      return (
+        item.title.toLowerCase().includes(q) ||
+        item.courseTitle.toLowerCase().includes(q) ||
+        (item.topicTitle && item.topicTitle.toLowerCase().includes(q))
+      );
+    });
+  }, [assignments, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -207,8 +222,11 @@ export function MyAssignmentsTable({
                   isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
                 }`}
               >
-                {filteredAssignments.map((assignment) => (
-                  <tr key={assignment.id} className="transition-colors hover:bg-slate-50/50">
+                {filteredAssignments.map((assignment, idx) => (
+                  <tr
+                    key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
+                    className="transition-colors hover:bg-slate-50/50"
+                  >
                     <td className="px-5 py-4">
                       <div className="space-y-1">
                         <Link

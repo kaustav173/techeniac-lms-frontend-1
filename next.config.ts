@@ -19,6 +19,21 @@ const nextConfig: NextConfig = {
         destination: '/mentor/my-mentees',
         permanent: true,
       },
+      {
+        source: '/admin',
+        destination: '/admin/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/mentor',
+        destination: '/mentor/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/mentee',
+        destination: '/mentee/dashboard',
+        permanent: false,
+      },
     ]);
   },
   rewrites() {

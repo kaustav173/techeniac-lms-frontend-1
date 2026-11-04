@@ -229,17 +229,17 @@ export function AssignmentEditor({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
               {assignment.scope} Task
             </Span>
             <Span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</Span>
           </div>
-          <H2 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-1.5 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {assignment.title}
           </H2>
         </div>
@@ -259,7 +259,7 @@ export function AssignmentEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-[#0044D3] px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -283,7 +283,7 @@ export function AssignmentEditor({
       >
         <div className="space-y-6 lg:col-span-7">
           {/* Card 1: Core Specifications */}
-          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div>
               <Label
                 required={true}
@@ -316,7 +316,7 @@ export function AssignmentEditor({
           </div>
 
           {/* Card 2: Time, Marks & Late Submissions */}
-          <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div>
               <Label className="block text-sm font-semibold tracking-wide text-slate-800">
                 Grading & Duration Calibration
@@ -418,30 +418,41 @@ export function AssignmentEditor({
                 </Span>
               </div>
 
-              <Button
-                type="button"
-                variant="ghost"
-                role="switch"
-                aria-checked={allowLate}
-                aria-label="Allow late submissions"
-                onClick={() => handleChange(() => setAllowLate(!allowLate))}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
-                  allowLate
-                    ? 'bg-purple-600 hover:bg-purple-700'
-                    : 'bg-slate-300 hover:bg-slate-400'
-                }`}
-              >
+              <div className="flex items-center gap-3">
                 <Span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                    allowLate ? 'translate-x-5' : 'translate-x-0'
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    allowLate
+                      ? 'border border-purple-200 bg-purple-50 text-purple-700'
+                      : 'border border-slate-200 bg-slate-100 text-slate-600'
                   }`}
-                />
-              </Button>
+                >
+                  {allowLate ? 'Allowed' : 'Blocked'}
+                </Span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  role="switch"
+                  aria-checked={allowLate}
+                  aria-label="Allow late submissions"
+                  onClick={() => handleChange(() => setAllowLate(!allowLate))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 ${
+                    allowLate ? 'bg-purple-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <Span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      allowLate ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Card 3: Submission Modes Chooser */}
-          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div>
               <H3 className="text-base font-bold text-slate-900">Mentee Submission Deliverables</H3>
               <P className="mt-0.5 text-xs text-slate-500">
@@ -469,7 +480,7 @@ export function AssignmentEditor({
                       onClick={() => handleChange(() => setPdfMode(mode))}
                       className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         pdfMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
@@ -497,7 +508,7 @@ export function AssignmentEditor({
                       onClick={() => handleChange(() => setZipMode(mode))}
                       className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         zipMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
@@ -527,7 +538,7 @@ export function AssignmentEditor({
                       onClick={() => handleChange(() => setUrlMode(mode))}
                       className={`h-auto rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         urlMode === mode
-                          ? 'bg-slate-900 text-white shadow-xs hover:bg-slate-900 hover:text-white'
+                          ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
@@ -540,7 +551,7 @@ export function AssignmentEditor({
           </div>
 
           {/* Card 4: Resources Manager */}
-          <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
             <div className="flex items-center justify-between">
               <div>
                 <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
@@ -560,7 +571,7 @@ export function AssignmentEditor({
                   className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
                 >
                   <div className="flex items-center gap-3 truncate">
-                    <Span className="rounded-lg bg-purple-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-purple-800 uppercase">
+                    <Span className="rounded-lg bg-purple-100 px-2 py-0.5 text-xs font-bold tracking-wide text-purple-800 uppercase">
                       {item.type}
                     </Span>
                     <Span className="truncate font-semibold text-slate-900">{item.title}</Span>
@@ -647,7 +658,7 @@ export function AssignmentEditor({
                 <Button
                   type="button"
                   onClick={handleAddResource}
-                  className="h-10 w-full rounded-xl bg-purple-600 px-3 text-sm font-semibold text-white shadow-xs hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800"
+                  className="h-10 w-full rounded-full bg-purple-600 px-3 text-sm font-semibold text-white shadow-xs hover:bg-purple-700 focus-visible:ring-purple-500 active:bg-purple-800"
                 >
                   <Span className="sm:hidden">+ Add</Span>
                   <Span className="hidden sm:inline">+</Span>
@@ -659,7 +670,7 @@ export function AssignmentEditor({
 
         {/* Right Column: Live Mentee Submission Form Preview */}
         <div className="lg:col-span-5">
-          <div className="sticky top-6 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs">
+          <div className="sticky top-6 space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
               <Span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
                 Mentee Form Preview
@@ -752,7 +763,7 @@ export function AssignmentEditor({
                   />
                   <Span className="text-xs leading-tight font-semibold text-blue-900">
                     &ldquo;I have completed this assignment&rdquo; confirmation
-                    <Span className="mt-0.5 block text-[11px] font-normal text-blue-700">
+                    <Span className="mt-0.5 block text-xs font-normal text-blue-700">
                       Mandatory for all cadets (cannot be turned off)
                     </Span>
                   </Span>

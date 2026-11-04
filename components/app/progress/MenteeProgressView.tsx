@@ -66,10 +66,22 @@ export function MenteeProgressView() {
     limit: 100,
   });
 
-  const allocations = useMemo<readonly CourseAllocation[]>(
-    () => allocationsData?.items ?? [],
-    [allocationsData],
-  );
+  const allocations = useMemo<readonly CourseAllocation[]>(() => {
+    const items = allocationsData?.items ?? [];
+    const seen = new Set<string>();
+    const unique: CourseAllocation[] = [];
+    for (const item of items) {
+      if (item?.id) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          unique.push(item);
+        }
+      } else {
+        unique.push(item);
+      }
+    }
+    return unique;
+  }, [allocationsData]);
 
   const active = useMemo(
     () => allocations.filter((a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS'),
@@ -188,13 +200,13 @@ export function MenteeProgressView() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {allocations.map((alloc) => {
+            {allocations.map((alloc, idx) => {
               const isCompleted = alloc.status === 'COMPLETED';
               const isClosed = isTerminalAllocationStatus(alloc.status) && !isCompleted;
               const isOverdue = Boolean(alloc.isOverdue) && !isCompleted && !isClosed;
               return (
                 <div
-                  key={alloc.id}
+                  key={alloc.id ? `${alloc.id}-${idx}` : `alloc-${idx}`}
                   className={`flex flex-col justify-between gap-6 rounded-3xl border bg-white p-6 shadow-xs transition-all sm:flex-row sm:items-center ${
                     isOverdue
                       ? 'border-rose-200 bg-rose-50/20'

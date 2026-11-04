@@ -23,9 +23,12 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { P, Span } from '@/components/ui/Typography';
+import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
+import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
 import {
   Assignment,
@@ -228,6 +231,7 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
               setError(null);
             }}
             size="sm"
+            className="rounded-full border-slate-300 px-4 text-slate-700 hover:bg-slate-50"
           >
             Cancel
           </Button>
@@ -237,7 +241,7 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
             disabled={isCreating}
             isLoading={isCreating}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="rounded-full bg-[#0044D3] px-5 text-white hover:bg-[#0039B3]"
           >
             Create Topic
           </Button>
@@ -339,6 +343,7 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
               setError(null);
             }}
             size="sm"
+            className="rounded-full border-slate-300 px-4 text-slate-700 hover:bg-slate-50"
           >
             Cancel
           </Button>
@@ -348,7 +353,7 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
             disabled={isCreating}
             isLoading={isCreating}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="rounded-full bg-[#0044D3] px-5 text-white hover:bg-[#0039B3]"
           >
             Create Subtopic
           </Button>
@@ -509,6 +514,7 @@ function AddAssignmentModal({
               setError(null);
             }}
             size="sm"
+            className="rounded-full border-slate-300 px-4 text-slate-700 hover:bg-slate-50"
           >
             Cancel
           </Button>
@@ -518,7 +524,7 @@ function AddAssignmentModal({
             disabled={isCreating}
             isLoading={isCreating}
             size="sm"
-            className="bg-purple-600 hover:bg-purple-700 focus-visible:ring-purple-500"
+            className="rounded-full bg-purple-600 px-5 text-white hover:bg-purple-700 focus-visible:ring-purple-500"
           >
             Create Assignment
           </Button>
@@ -559,7 +565,7 @@ function AddAssignmentModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
               Est. Hours
             </Label>
             <div className="relative mt-1">
@@ -573,15 +579,13 @@ function AddAssignmentModal({
                 }}
                 className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
               />
-              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-slate-400">
                 hrs
               </Span>
             </div>
           </div>
           <div>
-            <Label className="block text-[11px] font-bold text-slate-700 uppercase">
-              Est. Minutes
-            </Label>
+            <Label className="block text-xs font-bold text-slate-700 uppercase">Est. Minutes</Label>
             <div className="relative mt-1">
               <Input
                 type="number"
@@ -594,7 +598,7 @@ function AddAssignmentModal({
                 }}
                 className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
               />
-              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-[10px] font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-slate-400">
                 mins
               </Span>
             </div>
@@ -603,7 +607,7 @@ function AddAssignmentModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
               Max Marks
             </Label>
             <Input
@@ -619,7 +623,7 @@ function AddAssignmentModal({
             />
           </div>
           <div>
-            <Label required={true} className="block text-[11px] font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
               Pass Marks
             </Label>
             <Input
@@ -639,7 +643,158 @@ function AddAssignmentModal({
   );
 }
 
+export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
+  const { contentMarginClass } = useSidebar();
+
+  return (
+    <div
+      data-portal={portal}
+      className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
+    >
+      {/* Top Navbar Header Skeleton */}
+      <header
+        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
+      >
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-6 w-36 rounded-md" />
+        </div>
+        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+          <div className="hidden space-y-1.5 text-left sm:block">
+            <Skeleton className="h-3.5 w-20 rounded-md" />
+            <Skeleton className="h-2.5 w-14 rounded-md" />
+          </div>
+        </div>
+      </header>
+
+      <div
+        className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
+      >
+        {/* Top Command Bar Skeleton */}
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
+              <Skeleton className="h-3.5 w-3.5 rounded-full" />
+              <Skeleton className="h-3.5 w-24 rounded-md" />
+            </div>
+          </div>
+        </div>
+
+        {/* Dual Pane Layout Skeleton */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Pane: Outline Tree Skeleton */}
+          <div className="hidden w-[450px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <Skeleton className="h-5 w-32 rounded-md" />
+            </div>
+            <div className="mt-3">
+              <Skeleton className="h-9 w-full rounded-xl" />
+            </div>
+            <div className="mt-4 space-y-2.5">
+              {/* Course Root Node */}
+              <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-2.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-md" />
+                  <Skeleton className="h-4 w-40 rounded-md" />
+                </div>
+              </div>
+              {/* Topic 1 */}
+              <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-md" />
+                  <Skeleton className="h-4 w-36 rounded-md" />
+                </div>
+                <div className="ml-6 space-y-1 pt-1">
+                  <Skeleton className="h-3.5 w-28 rounded-md" />
+                  <Skeleton className="h-3.5 w-32 rounded-md" />
+                </div>
+              </div>
+              {/* Topic 2 */}
+              <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-md" />
+                  <Skeleton className="h-4 w-32 rounded-md" />
+                </div>
+                <div className="ml-6 space-y-1 pt-1">
+                  <Skeleton className="h-3.5 w-24 rounded-md" />
+                </div>
+              </div>
+              {/* Topic 3 */}
+              <div className="rounded-xl border border-slate-200/80 p-2.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-md" />
+                  <Skeleton className="h-4 w-44 rounded-md" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
+          <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-5xl space-y-4">
+              {/* Card 1: Course Basics */}
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+                <div className="border-b border-slate-100 pb-4">
+                  <Skeleton className="h-6 w-48 rounded-md" />
+                  <Skeleton className="mt-1.5 h-3.5 w-72 rounded-md" />
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {/* Title Field */}
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-20 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                  </div>
+
+                  {/* Description Field */}
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-28 rounded-md" />
+                    <Skeleton className="h-28 w-full rounded-xl" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Estimated Benchmark Time */}
+              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+                <div className="border-b border-slate-100 pb-3">
+                  <Skeleton className="h-5 w-48 rounded-md" />
+                  <Skeleton className="mt-1 h-3.5 w-64 rounded-md" />
+                </div>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-16 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-16 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Visibility Status */}
+              <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-32 rounded-md" />
+                  <Skeleton className="h-3 w-56 rounded-md" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-1">
+                <Skeleton className="h-10 w-36 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
+  const { contentMarginClass } = useSidebar();
   const params = useParams();
   const router = useRouter();
   const rawId = params.id;
@@ -725,7 +880,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
       return;
     }
     if (user.role !== 'SUPER_ADMIN' && user.role !== 'MENTOR') {
-      router.replace('/mentee');
+      router.replace(getRolePortalPath('MENTEE'));
     }
   }, [isLoading, isAuthenticated, user, router]);
 
@@ -883,14 +1038,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   };
 
   if (!course) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <P className="text-xs font-medium text-slate-500">Loading Course Builder...</P>
-        </div>
-      </div>
-    );
+    return <CourseBuilderSkeleton portal={portal} />;
   }
 
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
@@ -899,144 +1047,145 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900">
       <Header {...navConfig} />
 
-      {/* Builder Top Command Bar */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2.5 sm:px-6">
-        <div className="flex items-center gap-2 truncate sm:gap-3">
-          <Link
-            href={`/${portal}/courses`}
-            onClick={handleNavigateLibrary}
-            className="rounded-lg p-1 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            title="Return to Course Library"
-          >
-            &larr; Library
-          </Link>
-
-          <Span className="h-4 w-px bg-slate-200" />
-
-          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-slate-500 sm:gap-2">
-            <Span className="hidden sm:inline">Course Builder</Span>
-            <Span className="hidden sm:inline">/</Span>
-            <Span className="truncate font-bold text-slate-900">{course.title}</Span>
+      <div
+        className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
+      >
+        {/* Builder Top Command Bar */}
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 sm:px-6">
+          <div className="flex items-center gap-2 truncate sm:gap-3">
+            <Link
+              href={`/${portal}/courses`}
+              onClick={handleNavigateLibrary}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+              title="Return to Course Library"
+            >
+              <svg
+                className="h-3.5 w-3.5 text-slate-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              <Span>Back to Courses</Span>
+            </Link>
           </div>
 
-          <Span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-              course.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-            }`}
-          >
-            {course.isActive ? 'Active' : 'Inactive'}
-          </Span>
-        </div>
-
-        {/* View Switcher on < lg screens */}
-        <div className="flex items-center rounded-lg bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setMobileTab('outline')}
-            className={`h-auto rounded px-2.5 py-1 transition-colors ${
-              mobileTab === 'outline'
-                ? 'bg-white font-bold text-slate-900 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            Outline
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setMobileTab('editor')}
-            className={`flex h-auto items-center gap-1 rounded px-2.5 py-1 transition-colors ${
-              mobileTab === 'editor'
-                ? 'bg-white font-bold text-slate-900 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <Span>Editor</Span>
-            {isDirty && (
-              <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Dual Pane Layout: 400px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Pane: Outline Tree */}
-        <div
-          className={`w-full lg:flex lg:w-[400px] lg:flex-none lg:flex-col ${
-            mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
-          }`}
-        >
-          <CourseOutlineTree
-            course={course}
-            selectedNode={selectedNode}
-            reorderingIds={reorderingIds}
-            isReorderingTopics={isReorderingTopics}
-            isReorderingCourseAssignments={isReorderingCourseAssignments}
-            reorderingSubtopicTopicIds={reorderingSubtopicTopicIds}
-            reorderingTopicAssignmentTopicIds={reorderingTopicAssignmentTopicIds}
-            onSelectNode={handleSelectNode}
-            onAddTopic={() => setIsAddTopicOpen(true)}
-            onAddSubtopic={(topicId) => {
-              setTargetTopicId(topicId);
-              setIsAddSubtopicOpen(true);
-            }}
-            onAddTopicAssignment={(topicId) => {
-              setAssignmentScope(AssignmentScope.TOPIC);
-              setAssignmentTopicId(topicId);
-              setIsAddAssignmentOpen(true);
-            }}
-            onAddCourseAssignment={() => {
-              setAssignmentScope(AssignmentScope.COURSE);
-              setAssignmentTopicId(null);
-              setIsAddAssignmentOpen(true);
-            }}
-            onReorderTopics={(targetId, orderedIds) => {
-              void handleReorderTopics(targetId, orderedIds);
-            }}
-            onReorderSubtopics={(targetId, topicId, orderedIds) => {
-              void handleReorderSubtopics(targetId, topicId, orderedIds);
-            }}
-            onReorderAssignments={(targetId, orderedIds, topicId) => {
-              void handleReorderAssignments(targetId, orderedIds, topicId);
-            }}
-            onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
-          />
-        </div>
-
-        {/* Right Pane: Dynamic Editor */}
-        <div
-          className={`w-full overflow-hidden bg-white lg:flex lg:flex-1 lg:flex-col ${
-            mobileTab === 'editor' ? 'flex flex-1 flex-col' : 'hidden'
-          }`}
-        >
-          {/* Mobile quick-return banner (< lg) */}
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 lg:hidden">
+          {/* View Switcher on < lg screens */}
+          <div className="flex items-center rounded-full bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
             <Button
               type="button"
               variant="ghost"
               onClick={() => setMobileTab('outline')}
-              className="inline-flex h-auto items-center gap-1 p-0 text-xs font-semibold text-blue-600 hover:bg-transparent hover:text-blue-800"
+              className={`h-auto rounded-full px-3 py-1 transition-colors ${
+                mobileTab === 'outline'
+                  ? 'bg-white font-bold text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
-              &larr; Back to Outline
+              Outline
             </Button>
-            <Span className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">
-              {selectedNode.type}
-            </Span>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setMobileTab('editor')}
+              className={`flex h-auto items-center gap-1 rounded-full px-3 py-1 transition-colors ${
+                mobileTab === 'editor'
+                  ? 'bg-white font-bold text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Span>Editor</Span>
+              {isDirty && (
+                <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
+              )}
+            </Button>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <CourseActiveEditor
+        </div>
+
+        {/* Dual Pane Layout: 450px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Pane: Outline Tree */}
+          <div
+            className={`w-full lg:flex lg:w-[450px] lg:flex-none lg:flex-col ${
+              mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
+            }`}
+          >
+            <CourseOutlineTree
               course={course}
               selectedNode={selectedNode}
-              impact={impact}
-              updateCourse={updateCourse}
-              updateTopic={updateTopic}
-              updateSubtopic={updateSubtopic}
-              updateAssignment={updateAssignment}
-              onConflict={() => setIsConflictModalOpen(true)}
-              onDirtyChange={setIsDirty}
+              reorderingIds={reorderingIds}
+              isReorderingTopics={isReorderingTopics}
+              isReorderingCourseAssignments={isReorderingCourseAssignments}
+              reorderingSubtopicTopicIds={reorderingSubtopicTopicIds}
+              reorderingTopicAssignmentTopicIds={reorderingTopicAssignmentTopicIds}
+              onSelectNode={handleSelectNode}
+              onAddTopic={() => setIsAddTopicOpen(true)}
+              onAddSubtopic={(topicId) => {
+                setTargetTopicId(topicId);
+                setIsAddSubtopicOpen(true);
+              }}
+              onAddTopicAssignment={(topicId) => {
+                setAssignmentScope(AssignmentScope.TOPIC);
+                setAssignmentTopicId(topicId);
+                setIsAddAssignmentOpen(true);
+              }}
+              onAddCourseAssignment={() => {
+                setAssignmentScope(AssignmentScope.COURSE);
+                setAssignmentTopicId(null);
+                setIsAddAssignmentOpen(true);
+              }}
+              onReorderTopics={(targetId, orderedIds) => {
+                void handleReorderTopics(targetId, orderedIds);
+              }}
+              onReorderSubtopics={(targetId, topicId, orderedIds) => {
+                void handleReorderSubtopics(targetId, topicId, orderedIds);
+              }}
+              onReorderAssignments={(targetId, orderedIds, topicId) => {
+                void handleReorderAssignments(targetId, orderedIds, topicId);
+              }}
+              onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
             />
+          </div>
+
+          {/* Right Pane: Dynamic Editor */}
+          <div
+            className={`w-full min-w-0 overflow-hidden bg-white lg:flex lg:flex-1 lg:flex-col ${
+              mobileTab === 'editor' ? 'flex min-w-0 flex-1 flex-col' : 'hidden'
+            }`}
+          >
+            {/* Mobile quick-return banner (< lg) */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 lg:hidden">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setMobileTab('outline')}
+                className="inline-flex h-auto items-center gap-1 p-0 text-xs font-semibold text-blue-600 hover:bg-transparent hover:text-blue-800"
+              >
+                &larr; Back to Outline
+              </Button>
+              <Span className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                {selectedNode.type}
+              </Span>
+            </div>
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <CourseActiveEditor
+                course={course}
+                selectedNode={selectedNode}
+                impact={impact}
+                updateCourse={updateCourse}
+                updateTopic={updateTopic}
+                updateSubtopic={updateSubtopic}
+                updateAssignment={updateAssignment}
+                onConflict={() => setIsConflictModalOpen(true)}
+                onDirtyChange={setIsDirty}
+              />
+            </div>
           </div>
         </div>
       </div>
