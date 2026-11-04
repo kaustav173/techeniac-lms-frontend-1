@@ -263,44 +263,50 @@ export function AuditLogTable() {
 
       {/* Audit Log Table using UI Primitives */}
       <TableContainer>
-        <Table className="w-full text-left text-xs">
+        <Table className="w-full table-fixed text-left text-xs">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Timestamp (IST)</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Type</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Action</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Actor</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Target Entity</TableHead>
-              <TableHead className="px-5 py-3.5 text-xs font-semibold">Payload Preview</TableHead>
-              <TableHead className="px-5 py-3.5 text-right text-xs font-semibold">
+              <TableHead className="w-[16%] px-5 py-3.5 text-xs font-semibold">
+                Timestamp (IST)
+              </TableHead>
+              <TableHead className="w-[10%] px-5 py-3.5 text-xs font-semibold">Type</TableHead>
+              <TableHead className="w-[14%] px-5 py-3.5 text-xs font-semibold">Action</TableHead>
+              <TableHead className="w-[18%] px-5 py-3.5 text-xs font-semibold">Actor</TableHead>
+              <TableHead className="w-[14%] px-5 py-3.5 text-xs font-semibold">
+                Target Entity
+              </TableHead>
+              <TableHead className="w-[18%] px-5 py-3.5 text-xs font-semibold">
+                Payload Preview
+              </TableHead>
+              <TableHead className="w-[10%] px-5 py-3.5 text-right text-xs font-semibold">
                 Details
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-[#F2F4F7] font-normal">
-            {isLoading ? (
+            {isLoading || isFetching ? (
               // Skeleton rows
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[16%] px-5 py-4">
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[10%] px-5 py-4">
                     <Skeleton className="h-5 w-20 rounded-full" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[14%] px-5 py-4">
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[18%] px-5 py-4">
                     <Skeleton className="h-4 w-32 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[14%] px-5 py-4">
                     <Skeleton className="h-4 w-24 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4">
+                  <TableCell className="w-[18%] px-5 py-4">
                     <Skeleton className="h-4 w-40 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-5 py-4 text-right">
+                  <TableCell className="w-[10%] px-5 py-4 text-right">
                     <Skeleton className="ml-auto h-7 w-16 rounded-md" />
                   </TableCell>
                 </TableRow>
@@ -346,12 +352,12 @@ export function AuditLogTable() {
                 return (
                   <TableRow key={item.id} className="transition-colors hover:bg-[#F9FAFB]/80">
                     {/* Timestamp */}
-                    <TableCell className="px-5 py-3.5 font-mono text-[11px] whitespace-nowrap text-slate-600">
+                    <TableCell className="w-[16%] px-5 py-3.5 text-[11px] whitespace-nowrap text-slate-600">
                       {formattedTime}
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[10%] px-5 py-3.5 whitespace-nowrap">
                       <Span
                         className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getAuditTypeBadge(
                           item.type,
@@ -362,12 +368,12 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="px-5 py-3.5 font-semibold whitespace-nowrap text-slate-900">
+                    <TableCell className="w-[14%] px-5 py-3.5 font-semibold whitespace-nowrap text-slate-900">
                       {item.action}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[18%] px-5 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
                         <Span className="font-semibold text-slate-800">{actorName}</Span>
                         {actorRole ? (
@@ -377,7 +383,7 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="px-5 py-3.5 whitespace-nowrap text-slate-700">
+                    <TableCell className="w-[14%] px-5 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex flex-col">
                         <Span className="font-semibold text-slate-900">{target.name}</Span>
                         {target.type ? (
@@ -387,12 +393,14 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Payload Preview */}
-                    <TableCell className="max-w-xs truncate px-5 py-3.5 font-mono text-[11px] text-slate-500">
-                      {previewText}
+                    <TableCell className="w-[18%] max-w-xs truncate px-5 py-3.5 text-[11px] text-slate-500">
+                      <Span className="block truncate text-xs" title={previewText}>
+                        {previewText}
+                      </Span>
                     </TableCell>
 
                     {/* View Payload Details Button */}
-                    <TableCell className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <TableCell className="w-[10%] px-5 py-3.5 text-right whitespace-nowrap">
                       <Button
                         type="button"
                         variant="outline"

@@ -432,9 +432,9 @@ export default function MenteePage() {
               </Link>
             </div>
             <div className="space-y-3">
-              {menteeDashboard.upcomingDeadlines.map((item) => (
+              {menteeDashboard.upcomingDeadlines.map((item, idx) => (
                 <div
-                  key={item.allocationId}
+                  key={item.allocationId ? `${item.allocationId}-${idx}` : `deadline-${idx}`}
                   className="flex items-center justify-between rounded-xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5"
                 >
                   <div>

@@ -13,6 +13,7 @@ import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
+import { Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
 import { ApiError } from '@/lib/errors';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
@@ -88,7 +89,7 @@ function CreateBatchFormFields({
           <Label htmlFor="batch-name" required>
             Batch Name
           </Label>
-          <span className="text-[11px] font-medium text-slate-400">{name.length}/100</span>
+          <Span className="text-[11px] font-medium text-slate-400">{name.length}/100</Span>
         </div>
         <Input
           id="batch-name"
@@ -108,7 +109,7 @@ function CreateBatchFormFields({
           <Label htmlFor="batch-code" required>
             Unique Code
           </Label>
-          <span className="text-[11px] font-medium text-slate-400">{code.length}/20</span>
+          <Span className="text-[11px] font-medium text-slate-400">{code.length}/20</Span>
         </div>
         <Input
           id="batch-code"
@@ -118,7 +119,7 @@ function CreateBatchFormFields({
           placeholder="e.g. FE-25Q1"
           hasError={Boolean(errors.code)}
           disabled={disabled}
-          className="font-mono uppercase"
+          className="uppercase"
         />
         {errors.code ? <FieldError error={errors.code} /> : null}
       </div>
@@ -162,7 +163,7 @@ function CreateBatchFormFields({
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <Label htmlFor="batch-desc">Description</Label>
-          <span className="text-[11px] font-medium text-slate-400">{description.length}/500</span>
+          <Span className="text-[11px] font-medium text-slate-400">{description.length}/500</Span>
         </div>
         <Textarea
           id="batch-desc"

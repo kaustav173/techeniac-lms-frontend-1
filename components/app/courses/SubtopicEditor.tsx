@@ -244,14 +244,14 @@ export function SubtopicEditor({
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border-b border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Subtopic Lesson Editor
           </Span>
-          <H2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {subtopic.title}
           </H2>
         </div>
@@ -271,7 +271,7 @@ export function SubtopicEditor({
             onClick={() => {
               void handleSave();
             }}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-[#0044D3] px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -307,7 +307,7 @@ export function SubtopicEditor({
         className="mt-6 w-full max-w-4xl space-y-6"
       >
         {/* Card 1: Core Lesson Information & Markdown */}
-        <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Label
               required={true}
@@ -382,7 +382,7 @@ export function SubtopicEditor({
         </div>
 
         {/* Card 2: Estimated Duration & Caps */}
-        <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Label className="block text-sm font-semibold tracking-wide text-slate-800">
               Estimated Duration
@@ -492,7 +492,7 @@ export function SubtopicEditor({
         </div>
 
         {/* Card 3: Resources & Attachments Manager */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="flex items-center justify-between">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
@@ -513,7 +513,7 @@ export function SubtopicEditor({
               >
                 <div className="flex items-center gap-3 truncate">
                   <Span
-                    className={`rounded-lg px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${
+                    className={`rounded-lg px-2 py-0.5 text-xs font-bold tracking-wide uppercase ${
                       resItem.type === 'LINK'
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-purple-100 text-purple-700'
@@ -606,7 +606,7 @@ export function SubtopicEditor({
               <Button
                 type="button"
                 onClick={handleAddResource}
-                className="h-10 w-full rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 focus-visible:ring-slate-800 active:bg-slate-950"
+                className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
               >
                 <Span className="sm:hidden">+ Add</Span>
                 <Span className="hidden sm:inline">+</Span>
@@ -616,7 +616,7 @@ export function SubtopicEditor({
         </div>
 
         {/* Card 4: Visibility & Active Toggle */}
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Span className="block text-base font-bold text-slate-900">Subtopic Active Status</Span>
             <Span className="mt-0.5 block text-xs text-slate-500">
@@ -624,23 +624,36 @@ export function SubtopicEditor({
             </Span>
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            role="switch"
-            aria-checked={isActive}
-            aria-label="Subtopic active status"
-            onClick={() => handleChange(() => setIsActive(!isActive))}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
-              isActive ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-          >
+          <div className="flex items-center gap-3">
             <Span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                isActive ? 'translate-x-5' : 'translate-x-0'
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                isActive
+                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border border-slate-200 bg-slate-100 text-slate-600'
               }`}
-            />
-          </Button>
+            >
+              {isActive ? 'Active' : 'Inactive'}
+            </Span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              role="switch"
+              aria-checked={isActive}
+              aria-label="Subtopic active status"
+              onClick={() => handleChange(() => setIsActive(!isActive))}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+                isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+              }`}
+            >
+              <Span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  isActive ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </Button>
+          </div>
         </div>
       </form>
     </div>

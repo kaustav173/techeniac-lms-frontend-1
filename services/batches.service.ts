@@ -107,6 +107,8 @@ export interface BatchQueryFilters {
   search?: string | undefined;
   limit?: number | undefined;
   page?: number | undefined;
+  sortBy?: 'name' | 'code' | 'status' | 'startDate' | 'endDate' | 'createdAt' | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 interface ApiResponse<T> {
@@ -138,6 +140,12 @@ export const batchesService = {
     }
     if (filters.page) {
       params.page = filters.page;
+    }
+    if (filters.sortBy) {
+      params.sortBy = filters.sortBy;
+    }
+    if (filters.sortOrder) {
+      params.sortOrder = filters.sortOrder;
     }
 
     const res = await apiClient<

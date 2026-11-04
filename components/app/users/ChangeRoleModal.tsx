@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useRoleImpact } from '@/hooks/useRoleImpact';
+import { ALLOWED_ROLE_TRANSITIONS } from '@/lib/roles';
 import { type ChangeRoleFormData, changeRoleSchema, type UserRole } from '@/lib/validation';
 
 import { ReassignWizardModal } from './ReassignWizardModal';
@@ -31,12 +32,6 @@ export interface ChangeRoleModalProps {
 }
 
 export const SUPER_ADMIN_ROLE_IMMUTABLE_MESSAGE = 'Super Admin role cannot be changed';
-
-const ALLOWED_ROLE_TRANSITIONS: Record<UserRole, UserRole[]> = {
-  MENTEE: ['MENTOR'],
-  MENTOR: ['SUPER_ADMIN'],
-  SUPER_ADMIN: [],
-};
 
 function getDefaultTargetRole(currentRole: UserRole): UserRole {
   const allowed = ALLOWED_ROLE_TRANSITIONS[currentRole];
