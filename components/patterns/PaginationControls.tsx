@@ -87,7 +87,6 @@ export function PaginationControls({
         role="status"
         aria-live="polite"
       >
-        <Span>Showing</Span>
         <Span className="font-semibold text-slate-900">{startItem}</Span>
         <Span>to</Span>
         <Span className="font-semibold text-slate-900">{endItem}</Span>

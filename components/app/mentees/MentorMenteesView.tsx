@@ -82,7 +82,7 @@ function MenteeActionMenu({ menteeName, openUpward }: MenteeActionMenuProps) {
         aria-expanded={isOpen}
         aria-label={`Actions for ${menteeName ?? 'mentee'}`}
         onClick={handleToggle}
-        className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#E1E6EC] bg-white text-[#667085] shadow-2xs transition-colors hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -150,13 +150,10 @@ export function MentorMenteesView() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [menteeSort, setMenteeSort] = useState<'asc' | 'desc' | null>(null);
+  const [mappedSinceSort, setMappedSinceSort] = useState<'asc' | 'desc' | null>(null);
 
-  const {
-    data: batches = [],
-    isLoading: isLoadingBatches,
-    error: batchesError,
-    refetch: refetchBatches,
-  } = useMentorBatches();
+  const { data: batches = [], error: batchesError, refetch: refetchBatches } = useMentorBatches();
 
   const {
     data: mentees = [],
@@ -194,18 +191,95 @@ export function MentorMenteesView() {
     });
   }, [mentees, searchQuery, selectedBatchId]);
 
+  const handleMenteeSort = () => {
+    setMappedSinceSort(null);
+    setMenteeSort((prev) => {
+      if (prev === null) return 'asc';
+      if (prev === 'asc') return 'desc';
+      return null;
+    });
+    setPage(1);
+  };
+
+  const handleMappedSinceSort = () => {
+    setMenteeSort(null);
+    setMappedSinceSort((prev) => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
+    setPage(1);
+  };
+
+  const renderSortIcon = (isActive: boolean, order?: 'asc' | 'desc' | null) => {
+    if (!isActive || !order) {
+      return (
+        <svg
+          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        className="h-3.5 w-3.5 text-[#0044D3]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        aria-hidden="true"
+      >
+        {order === 'asc' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        )}
+      </svg>
+    );
+  };
+
+  const sortedMentees = useMemo(() => {
+    if (!menteeSort && !mappedSinceSort) {
+      return filteredMentees;
+    }
+    return [...filteredMentees].sort((a, b) => {
+      if (menteeSort) {
+        const nameA = (a.name ?? '').toLowerCase();
+        const nameB = (b.name ?? '').toLowerCase();
+        const cmp = nameA.localeCompare(nameB);
+        return menteeSort === 'asc' ? cmp : -cmp;
+      }
+      if (mappedSinceSort) {
+        const timeA = a.startDate ? new Date(a.startDate).getTime() : 0;
+        const timeB = b.startDate ? new Date(b.startDate).getTime() : 0;
+        return mappedSinceSort === 'asc' ? timeA - timeB : timeB - timeA;
+      }
+      return 0;
+    });
+  }, [filteredMentees, menteeSort, mappedSinceSort]);
+
   const totalPages = Math.ceil(filteredMentees.length / pageSize) || 1;
 
   const paginatedMentees = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return filteredMentees.slice(start, start + pageSize);
-  }, [filteredMentees, page, pageSize]);
+    return sortedMentees.slice(start, start + pageSize);
+  }, [sortedMentees, page, pageSize]);
 
-  const hasActiveFilters = Boolean(selectedBatchId || searchQuery.trim());
+  const hasActiveFilters = Boolean(
+    selectedBatchId || searchQuery.trim() || menteeSort !== null || mappedSinceSort !== null,
+  );
 
   const handleClearFilters = () => {
     setSelectedBatchId('');
     setSearchQuery('');
+    setMenteeSort(null);
+    setMappedSinceSort(null);
     setPage(1);
   };
 
@@ -237,42 +311,6 @@ export function MentorMenteesView() {
           </div>
         </Alert>
       ) : null}
-
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
-          <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-            Total Mapped Mentees
-          </Span>
-          {isLoadingMentees ? (
-            <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
-          ) : (
-            <P className="mt-1 text-3xl font-bold text-[#111827]">{mentees.length}</P>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
-          <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-            Matching Filter
-          </Span>
-          {isLoadingMentees ? (
-            <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
-          ) : (
-            <P className="mt-1 text-3xl font-bold text-[#0044D3]">{filteredMentees.length}</P>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
-          <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-            Assigned Courses
-          </Span>
-          {isLoadingBatches ? (
-            <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
-          ) : (
-            <P className="mt-1 text-3xl font-bold text-[#111827]">{batches.length}</P>
-          )}
-        </div>
-      </div>
 
       {/* Filter Toolbar */}
       <div className="flex flex-col gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center">
@@ -327,15 +365,24 @@ export function MentorMenteesView() {
           />
 
           {hasActiveFilters ? (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={handleClearFilters}
-              className="h-[47px] rounded-2xl px-3 text-xs font-semibold text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
+              title="Clear filters"
+              aria-label="Clear filters"
             >
-              Clear Filters
-            </Button>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           ) : null}
         </div>
       </div>
@@ -382,10 +429,6 @@ export function MentorMenteesView() {
               </svg>
             </div>
             <H2 className="mt-4 text-base font-bold text-[#111827]">No Mentees Mapped</H2>
-            <P className="mx-auto mt-1 max-w-md text-sm text-[#667085]">
-              You are not currently paired with any mentees. Once an administrator maps mentees to
-              you within an active batch, they will appear here.
-            </P>
           </div>
         ) : filteredMentees.length === 0 ? (
           /* Empty State: Filter yielded zero results */
@@ -394,9 +437,6 @@ export function MentorMenteesView() {
               {searchQuery
                 ? `No mentees match \u201C${searchQuery}\u201D`
                 : 'No mentees found in the selected course'}
-            </P>
-            <P className="mt-1 text-sm text-[#667085]">
-              Try adjusting your search criteria or resetting filters.
             </P>
             <div className="mt-4">
               <Button type="button" variant="outline" size="sm" onClick={handleClearFilters}>
@@ -411,19 +451,69 @@ export function MentorMenteesView() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
-                    <TableHead className="py-3.5 text-xs font-semibold text-[#667085]">
-                      Mentee
+                    <TableHead
+                      className="py-3.5 text-sm font-semibold text-[#667085]"
+                      aria-sort={
+                        menteeSort === 'asc'
+                          ? 'ascending'
+                          : menteeSort === 'desc'
+                            ? 'descending'
+                            : 'none'
+                      }
+                    >
+                      <button
+                        type="button"
+                        onClick={handleMenteeSort}
+                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                        title={
+                          menteeSort === 'asc'
+                            ? 'Sorted A to Z (click for Z to A)'
+                            : menteeSort === 'desc'
+                              ? 'Sorted Z to A (click to reset)'
+                              : 'Sort by mentee name'
+                        }
+                      >
+                        <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                          Mentee
+                        </Span>
+                        {renderSortIcon(menteeSort !== null, menteeSort)}
+                      </button>
                     </TableHead>
-                    <TableHead className="py-3.5 text-xs font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
                       Course
                     </TableHead>
-                    <TableHead className="py-3.5 text-xs font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
                       Course Code
                     </TableHead>
-                    <TableHead className="py-3.5 text-xs font-semibold text-[#667085]">
-                      Mapped Since
+                    <TableHead
+                      className="py-3.5 text-sm font-semibold text-[#667085]"
+                      aria-sort={
+                        mappedSinceSort === 'asc'
+                          ? 'ascending'
+                          : mappedSinceSort === 'desc'
+                            ? 'descending'
+                            : 'none'
+                      }
+                    >
+                      <button
+                        type="button"
+                        onClick={handleMappedSinceSort}
+                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                        title={
+                          mappedSinceSort === 'desc'
+                            ? 'Sorted newest first (click for oldest first)'
+                            : mappedSinceSort === 'asc'
+                              ? 'Sorted oldest first (click to reset)'
+                              : 'Sort by mapped date'
+                        }
+                      >
+                        <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                          Mapped Since
+                        </Span>
+                        {renderSortIcon(mappedSinceSort !== null, mappedSinceSort)}
+                      </button>
                     </TableHead>
-                    <TableHead className="py-3.5 text-right text-xs font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
                       Actions
                     </TableHead>
                   </TableRow>
