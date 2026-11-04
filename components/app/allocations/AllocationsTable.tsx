@@ -1,27 +1,50 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
 import { AssignmentOverridesModal } from '@/components/app/allocations/AssignmentOverridesModal';
 import { EditAllocationModal } from '@/components/app/allocations/EditAllocationModal';
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { TableCell, TableRow } from '@/components/ui/Table';
-import { H1, P, Span } from '@/components/ui/Typography';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
+import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
   type CourseAllocation,
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
-import { useBatchesList } from '@/hooks/useBatches';
+import { useBatchesList, useMentorBatches } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
+import { cn } from '@/lib/cn';
+import { formatDateIST } from '@/lib/date';
+
+const EM_DASH = '—';
+
+const ALLOCATION_STATUS_OPTIONS: readonly SingleSelectOption<string>[] = [
+  { value: 'ALL', label: 'Status: All' },
+  { value: 'IN_PROGRESS', label: 'Active' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'OVERDUE', label: 'Overdue' },
+];
 
 export interface AllocationsTableProps {
   readonly userRole: 'SUPER_ADMIN' | 'MENTOR';
@@ -35,15 +58,60 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const [searchInput, setSearchInput] = useState<string>('');
   const [expandedAllocId, setExpandedAllocId] = useState<string | null>(null);
 
-  // Modals state
+  // Modals & Action Menu state
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [editingAllocation, setEditingAllocation] = useState<CourseAllocation | null>(null);
   const [revokingAllocation, setRevokingAllocation] = useState<CourseAllocation | null>(null);
   const [overridingAllocation, setOverridingAllocation] = useState<CourseAllocation | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(filters);
-  const { data: batchesData } = useBatchesList({ limit: 100 });
+
+  const isMentor = userRole === 'MENTOR';
+  const { data: adminBatchesData } = useBatchesList({ limit: 100 }, { enabled: !isMentor });
+  const { data: mentorBatchesData } = useMentorBatches({ limit: 100 }, { enabled: isMentor });
+
+  const batchesList = useMemo(() => {
+    if (isMentor) {
+      return mentorBatchesData ?? [];
+    }
+    return adminBatchesData?.items ?? [];
+  }, [isMentor, mentorBatchesData, adminBatchesData]);
+
   const { courses } = useCourses();
+
+  const courseOptions: readonly SingleSelectOption<string>[] = useMemo(() => {
+    return [
+      { value: '', label: 'Course: All' },
+      ...courses.map((c) => ({ value: c.id, label: c.title })),
+    ];
+  }, [courses]);
+
+  const batchOptions: readonly SingleSelectOption<string>[] = useMemo(() => {
+    return [
+      { value: '', label: 'Batch: All' },
+      ...batchesList.map((b) => ({ value: b.id, label: b.name })),
+    ];
+  }, [batchesList]);
 
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
@@ -78,11 +146,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilters((prev) => ({ ...prev, search: searchInput.trim() || undefined, page: 1 }));
-  };
-
   const handleStatusTabChange = (tab: 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE') => {
     setStatusTab(tab);
     setFilters((prev) => ({
@@ -109,53 +172,22 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     }));
   };
 
+  const hasActiveFilters = Boolean(
+    searchInput.trim() || filters.courseId || filters.batchId || statusTab !== 'ALL',
+  );
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setStatusTab('ALL');
+    setFilters({ page: 1, limit: 15 });
+  };
+
   const toggleExpand = (id: string) => {
     setExpandedAllocId((prev) => (prev === id ? null : id));
   };
 
   return (
     <div className="space-y-6">
-      {/* Scope Notice & Header Section */}
-      <div className="flex flex-col gap-3">
-        {userRole === 'MENTOR' ? (
-          <div className="flex w-fit items-center gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-1.5 text-xs text-blue-900">
-            <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600" />
-            <Span className="font-semibold">Scoped to assigned cohorts & mapped mentees</Span>
-            <Span className="text-blue-300">|</Span>
-            <Span className="text-xs font-semibold text-blue-700">Mentor Governance Active</Span>
-          </div>
-        ) : (
-          <div className="flex w-fit items-center gap-2 rounded-lg border border-purple-100 bg-purple-50/70 px-3 py-1.5 text-xs text-purple-900">
-            <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-600" />
-            <Span className="font-semibold">Super Admin Fleet Command</Span>
-            <Span className="text-purple-300">|</Span>
-            <Span className="text-xs font-semibold text-purple-700">Enterprise Global Access</Span>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <H1 className="text-2xl font-bold tracking-tight text-slate-900">Course Allocations</H1>
-            <P className="mt-0.5 text-sm text-slate-500">
-              Manage course deployments, mentee timelines, deadlines, and assignment overrides (M7).
-            </P>
-          </div>
-          {userRole === 'SUPER_ADMIN' ? (
-            <div className="flex items-center gap-2.5">
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => setIsAssignModalOpen(true)}
-                className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700"
-              >
-                <Span>+</Span>
-                <Span>Assign Course</Span>
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
       {/* Stitch KPI Telemetry Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
@@ -200,7 +232,10 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             {kpis.overdue < 10 ? `0${kpis.overdue}` : kpis.overdue}
           </div>
           <div
-            className={`mt-1 text-xs font-medium ${kpis.overdue > 0 ? 'text-rose-500' : 'text-slate-500'}`}
+            className={cn(
+              'mt-1 text-xs font-medium',
+              kpis.overdue > 0 ? 'text-rose-500' : 'text-slate-500',
+            )}
           >
             {kpis.overdue > 0
               ? 'Overdue milestone allocations on page'
@@ -209,454 +244,541 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-[280px] flex-1 flex-wrap items-center gap-2.5">
-            <form onSubmit={handleSearchSubmit} className="relative w-64">
-              <Input
-                type="search"
-                placeholder="Filter allocations..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="h-9 w-full text-xs"
-              />
-            </form>
+      {/* Filter & Search Toolbar */}
+      <div className="flex flex-col gap-3 py-1 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Search Input with proper width */}
+          <div className="w-full sm:w-72 lg:w-80">
+            <DebouncedSearchInput
+              value={searchInput}
+              onSearchChange={(val) => {
+                setSearchInput(val);
+                setFilters((prev) => ({ ...prev, search: val.trim() || undefined, page: 1 }));
+              }}
+              placeholder="Filter allocations..."
+            />
+          </div>
 
-            <Select
+          {/* Course Filter Dropdown */}
+          <div className="w-full sm:w-44">
+            <SingleSelectDropdown
               value={filters.courseId ?? ''}
-              onChange={(e) => handleCourseFilter(e.target.value)}
-              className="h-9 text-xs font-medium"
-            >
-              <option value="">Course: All</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </Select>
+              onChange={(val) => handleCourseFilter(val)}
+              options={courseOptions}
+              size="sm"
+              aria-label="Filter by Course"
+            />
+          </div>
 
-            <Select
+          {/* Batch Filter Dropdown */}
+          <div className="w-full sm:w-44">
+            <SingleSelectDropdown
               value={filters.batchId ?? ''}
-              onChange={(e) => handleBatchFilter(e.target.value)}
-              className="h-9 text-xs font-medium"
-            >
-              <option value="">Batch: All</option>
-              {(batchesData?.items ?? []).map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
+              onChange={(val) => handleBatchFilter(val)}
+              options={batchOptions}
+              size="sm"
+              aria-label="Filter by Batch"
+            />
           </div>
 
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs">
-            <Button
-              type="button"
-              variant="ghost"
+          {/* Status Filter Dropdown */}
+          <div className="w-full sm:w-40">
+            <SingleSelectDropdown
+              value={statusTab}
+              onChange={(val) =>
+                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
+              }
+              options={ALLOCATION_STATUS_OPTIONS}
               size="sm"
-              onClick={() => handleStatusTabChange('ALL')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'ALL'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              All{' '}
-              <Span className="font-normal text-slate-400">
-                {pagination?.total ?? allocations.length}
-              </Span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('IN_PROGRESS')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'IN_PROGRESS'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              Active
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('COMPLETED')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'COMPLETED'
-                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white'
-                  : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
-              }`}
-            >
-              Completed
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleStatusTabChange('OVERDUE')}
-              className={`h-auto rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                statusTab === 'OVERDUE'
-                  ? 'bg-white text-rose-700 shadow-xs hover:bg-white'
-                  : 'text-rose-600 hover:bg-rose-100/60 hover:text-rose-700'
-              }`}
-            >
-              Overdue
-            </Button>
+              aria-label="Filter by Status"
+            />
           </div>
-          {isFetching && !isLoading && (
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-              <Span>Updating...</Span>
-            </div>
-          )}
+
+          {/* Circular Red Cross Clear Button */}
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          ) : null}
+
+          {/* Status Filter Dropdown */}
+          <div className="w-full sm:w-40">
+            <SingleSelectDropdown
+              value={statusTab}
+              onChange={(val) =>
+                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
+              }
+              options={ALLOCATION_STATUS_OPTIONS}
+              size="sm"
+              aria-label="Filter by Status"
+            />
+          </div>
+
+          {/* Circular Red Cross Clear Button */}
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {userRole === 'SUPER_ADMIN' ? (
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => setIsAssignModalOpen(true)}
+              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+            >
+              <Span className="text-base font-bold">+</Span>
+              <Span>Assign Course</Span>
+            </Button>
+          ) : null}
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-              <tr>
-                <th scope="col" className="w-10 py-3.5 pr-2 pl-6"></th>
-                <th scope="col" className="px-4 py-3.5">
-                  Course
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Assigned To
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Timeline
-                </th>
-                <th scope="col" className="w-48 px-4 py-3.5">
-                  Progress
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Status
-                </th>
-                <th scope="col" className="py-3.5 pr-6 pl-4 text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              className={`divide-y divide-slate-100 ${
-                isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
-              }`}
-            >
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, idx) => (
-                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                    <TableCell className="py-4 pr-2 pl-6">
-                      <Skeleton className="h-6 w-6 rounded-lg" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-36 rounded-md" />
-                        <Skeleton className="h-3 w-48 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-28 rounded-md" />
-                        <Skeleton className="h-3 w-20 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
+      <TableContainer className="rounded-3xl border border-slate-200/80 bg-white shadow-xs">
+        <Table className="w-full border-collapse text-left text-sm text-slate-700">
+          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+            <TableRow>
+              <TableHead scope="col" className="w-10 py-3.5 pr-2 pl-6" />
+              <TableHead scope="col" className="px-4 py-3.5">
+                Course
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Mentee
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Batch
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Started
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Due
+              </TableHead>
+              <TableHead scope="col" className="w-44 px-4 py-3.5">
+                Progress
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Status
+              </TableHead>
+              <TableHead scope="col" className="py-3.5 pr-6 pl-4 text-right">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
+            {isLoading || isFetching ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                  <TableCell className="py-4 pr-2 pl-6">
+                    <Skeleton className="h-6 w-6 rounded-lg" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-36 rounded-md" />
+                      <Skeleton className="h-3 w-48 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
                       <Skeleton className="h-4 w-28 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1">
-                        <Skeleton className="h-2 w-36 rounded-full" />
-                        <Skeleton className="h-3 w-16 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell className="py-4 pr-6 pl-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center">
-                    <ErrorMessage
-                      error={error}
-                      title="Failed to load allocations"
-                      onRetry={() => void refetch()}
-                    />
-                  </td>
-                </tr>
-              ) : allocations.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <P className="text-sm font-medium text-slate-600">
-                      No course allocations found.
-                    </P>
-                    <Span className="mt-1 text-xs text-slate-400">
-                      {userRole === 'SUPER_ADMIN'
-                        ? 'Use the "Assign Course" button above to allocate an active course to a batch or mentee.'
-                        : 'No course allocations match your current filters.'}
-                    </Span>
-                  </td>
-                </tr>
-              ) : (
-                allocations.map((alloc) => {
-                  const isExpanded = expandedAllocId === alloc.id;
-                  return (
-                    <React.Fragment key={alloc.id}>
-                      <tr
-                        className={`transition-colors ${isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60'}`}
-                      >
-                        <td className="py-4 pr-2 pl-6 align-middle">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleExpand(alloc.id)}
-                            className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
-                            title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-24 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-20 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-20 rounded-md" />
+                  </TableCell>
+                  <TableCell className="w-44 px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-2 flex-1 rounded-full" />
+                      <Skeleton className="h-3 w-8 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </TableCell>
+                  <TableCell className="py-4 pr-6 pl-4 text-right">
+                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={9} className="px-6 py-8 text-center">
+                  <ErrorMessage
+                    error={error}
+                    title="Failed to load allocations"
+                    onRetry={() => void refetch()}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : allocations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="px-6 py-12 text-center">
+                  <P className="text-sm font-medium text-slate-600">No course allocations found.</P>
+                  <Span className="mt-1 block text-xs text-slate-400">
+                    {userRole === 'SUPER_ADMIN'
+                      ? 'Use the "Assign Course" button above to allocate an active course to a batch or mentee.'
+                      : 'No course allocations match your current filters.'}
+                  </Span>
+                </TableCell>
+              </TableRow>
+            ) : (
+              allocations.map((alloc) => {
+                const isExpanded = expandedAllocId === alloc.id;
+                return (
+                  <React.Fragment key={alloc.id}>
+                    <TableRow
+                      className={cn(
+                        'transition-colors',
+                        isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60',
+                      )}
+                    >
+                      <TableCell className="py-4 pr-2 pl-6 align-middle">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleExpand(alloc.id)}
+                          className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+                          title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
+                        >
+                          <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
+                        </Button>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <P
+                          className="max-w-[200px] truncate font-semibold text-slate-900 transition-all hover:overflow-visible hover:whitespace-normal"
+                          title={alloc.course?.title ?? 'Untitled Course'}
+                        >
+                          {alloc.course?.title ?? 'Untitled Course'}
+                        </P>
+                        <P className="mt-0.5 text-xs text-slate-400">
+                          {alloc.estimatedMinutes
+                            ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
+                            : 'Standard Duration'}
+                        </P>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <P className="font-semibold text-slate-900">
+                          {alloc.user?.name ?? 'Individual Mentee'}
+                        </P>
+                        <P className="text-xs text-slate-400">{alloc.user?.email}</P>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        {alloc.batch ? (
+                          <div>
+                            <P className="font-medium text-slate-800">{alloc.batch.name}</P>
+                            <P className="text-xs text-slate-400">{alloc.batch.code}</P>
+                          </div>
+                        ) : (
+                          <Span className="text-slate-400">{EM_DASH}</Span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                        {formatDateIST(alloc.startDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                        {formatDateIST(alloc.dueDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-blue-600 transition-all"
+                              style={{
+                                width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
+                              }}
+                            />
+                          </div>
+                          <Span className="w-9 text-right text-xs font-bold text-slate-700">
+                            {alloc.progressPercent}%
+                          </Span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
+                      </TableCell>
+                      <TableCell className="py-4 pr-6 pl-4 text-right align-middle">
+                        {userRole === 'SUPER_ADMIN' ? (
+                          <div
+                            ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
+                            className="relative flex items-center justify-end"
                           >
-                            <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
-                          </Button>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="font-semibold text-slate-900">
-                            {alloc.course?.title ?? 'Untitled Course'}
-                          </div>
-                          <div className="mt-0.5 text-xs text-slate-400">
-                            {alloc.estimatedMinutes
-                              ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
-                              : 'Standard Duration'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          {alloc.batch ? (
-                            <div>
-                              <div className="font-medium text-slate-800">{alloc.batch.name}</div>
-                              <div className="text-xs text-slate-400">
-                                {alloc.batch.code} • Mentee: {alloc.user?.name}
-                              </div>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="font-medium text-slate-800">
-                                {alloc.user?.name ?? 'Individual Mentee'}
-                              </div>
-                              <div className="text-xs text-slate-400">{alloc.user?.email}</div>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="font-medium text-slate-800">
-                            {new Date(alloc.startDate).toLocaleDateString()} →{' '}
-                            {new Date(alloc.dueDate).toLocaleDateString()}
-                          </div>
-                          <div className="mt-0.5 text-xs text-slate-400">
-                            Due: {new Date(alloc.dueDate).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-blue-600 transition-all"
-                                style={{
-                                  width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
-                                }}
-                              />
-                            </div>
-                            <Span className="w-9 text-right text-xs font-bold text-slate-700">
-                              {alloc.progressPercent}%
-                            </Span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <AllocationStatusBadge
-                            status={alloc.status}
-                            isOverdue={alloc.isOverdue}
-                          />
-                        </td>
-                        <td className="py-4 pr-6 pl-4 text-right align-middle">
-                          {userRole === 'SUPER_ADMIN' ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingAllocation(alloc)}
-                                disabled={isTerminalAllocationStatus(alloc.status)}
-                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                                title="Edit dates & duration"
-                              >
-                                Dates
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setOverridingAllocation(alloc)}
-                                disabled={isTerminalAllocationStatus(alloc.status)}
-                                className="h-8 px-2.5 text-xs text-slate-600 hover:text-slate-900"
-                                title="Assignment due-date overrides"
-                              >
-                                Overrides
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setRevokingAllocation(alloc)}
-                                disabled={isTerminalAllocationStatus(alloc.status)}
-                                className="h-8 px-2.5 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                                title="Soft revoke allocation"
-                              >
-                                Revoke
-                              </Button>
-                            </div>
-                          ) : (
-                            <Span className="text-xs text-slate-400">View only</Span>
-                          )}
-                        </td>
-                      </tr>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId((prev) =>
+                                  prev === alloc.id ? null : alloc.id,
+                                );
+                              }}
+                              className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                              title="Allocation actions"
+                              aria-label="Allocation actions"
+                              aria-haspopup="menu"
+                              aria-expanded={openActionMenuId === alloc.id}
+                            >
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </Button>
 
-                      {/* Expandable Cadet Breakdown Drawer */}
-                      {isExpanded ? (
-                        <tr>
-                          <td colSpan={7} className="bg-slate-50/80 p-0">
-                            <div className="border-t border-b border-slate-200/80 px-10 py-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Span className="text-xs font-bold text-slate-700 uppercase">
-                                    Enrolled Mentee Milestone Telemetry
-                                  </Span>
-                                  <Span className="text-xs text-slate-400">
-                                    • Active subscriber details
-                                  </Span>
-                                </div>
-                                <Span className="text-xs text-slate-500">
-                                  Allocation ID: {alloc.id.slice(0, 8)}...
+                            {openActionMenuId === alloc.id && (
+                              <div
+                                role="menu"
+                                aria-label="Allocation actions"
+                                className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl"
+                              >
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  role="menuitem"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setEditingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-slate-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                  <Span>Edit Dates</Span>
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  role="menuitem"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setOverridingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-slate-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  <Span>Overrides</Span>
+                                </Button>
+
+                                <div className="my-1 border-t border-slate-100" />
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  role="menuitem"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setRevokingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-red-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                  <Span>Revoke</Span>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Span className="text-xs text-slate-400">View only</Span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Expandable Cadet Breakdown Drawer */}
+                    {isExpanded ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="bg-slate-50/80 p-0">
+                          <div className="border-t border-b border-slate-200/80 px-10 py-4">
+                            <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Span className="text-xs font-bold text-slate-700 uppercase">
+                                  Enrolled Mentee Milestone Telemetry
+                                </Span>
+                                <Span className="text-xs text-slate-400">
+                                  • Active subscriber details
                                 </Span>
                               </div>
+                              <Span className="text-xs text-slate-500">
+                                Allocation ID: {alloc.id.slice(0, 8)}...
+                              </Span>
+                            </div>
 
-                              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-                                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                                      {alloc.user?.name
-                                        ? alloc.user.name.slice(0, 2).toUpperCase()
-                                        : 'ME'}
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-semibold text-slate-900">
-                                        {alloc.user?.name ?? 'Assigned Mentee'}
-                                      </div>
-                                      <div className="text-xs text-slate-400">
-                                        {alloc.user?.email}
-                                      </div>
-                                    </div>
+                            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                                    {alloc.user?.name
+                                      ? alloc.user.name.slice(0, 2).toUpperCase()
+                                      : 'ME'}
                                   </div>
-
-                                  <div className="max-w-sm flex-1">
-                                    <div className="text-xs font-medium text-slate-700">
-                                      Course Allocation Pace
-                                    </div>
-                                    <div className="mt-0.5 text-[11px] text-slate-400">
-                                      {alloc.progressPercent >= 100
-                                        ? 'All active course topics verified & completed'
-                                        : `${alloc.progressPercent}% active curriculum completed`}
-                                    </div>
+                                  <div>
+                                    <P className="text-sm font-semibold text-slate-900">
+                                      {alloc.user?.name ?? 'Assigned Mentee'}
+                                    </P>
+                                    <P className="text-xs text-slate-400">{alloc.user?.email}</P>
                                   </div>
+                                </div>
 
-                                  <div className="flex w-44 items-center gap-3">
-                                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                                      <div
-                                        className="h-full rounded-full bg-emerald-500"
-                                        style={{ width: `${alloc.progressPercent}%` }}
-                                      />
-                                    </div>
-                                    <Span className="w-9 text-right text-xs font-bold text-slate-600">
-                                      {alloc.progressPercent}%
-                                    </Span>
-                                  </div>
+                                <div className="max-w-sm flex-1">
+                                  <P className="text-xs font-medium text-slate-700">
+                                    Course Allocation Pace
+                                  </P>
+                                  <P className="mt-0.5 text-[11px] text-slate-400">
+                                    {alloc.progressPercent >= 100
+                                      ? 'All active course topics verified & completed'
+                                      : `${alloc.progressPercent}% active curriculum completed`}
+                                  </P>
+                                </div>
 
-                                  <div className="w-28 text-center">
-                                    <AllocationStatusBadge
-                                      status={alloc.status}
-                                      isOverdue={alloc.isOverdue}
+                                <div className="flex w-44 items-center gap-3">
+                                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                    <div
+                                      className="h-full rounded-full bg-emerald-500"
+                                      style={{ width: `${alloc.progressPercent}%` }}
                                     />
                                   </div>
-
-                                  {userRole === 'SUPER_ADMIN' ? (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setOverridingAllocation(alloc)}
-                                      className="text-xs"
-                                    >
-                                      Overrides
-                                    </Button>
-                                  ) : (
-                                    <Span className="text-xs text-slate-400">View only</Span>
-                                  )}
+                                  <Span className="w-9 text-right text-xs font-bold text-slate-600">
+                                    {alloc.progressPercent}%
+                                  </Span>
                                 </div>
+
+                                <div className="w-28 text-center">
+                                  <AllocationStatusBadge
+                                    status={alloc.status}
+                                    isOverdue={alloc.isOverdue}
+                                  />
+                                </div>
+
+                                {userRole === 'SUPER_ADMIN' ? (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setOverridingAllocation(alloc)}
+                                    className="text-xs"
+                                  >
+                                    Overrides
+                                  </Button>
+                                ) : (
+                                  <Span className="text-xs text-slate-400">View only</Span>
+                                )}
                               </div>
                             </div>
-                          </td>
-                        </tr>
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
 
-        {/* Pagination Bar */}
-        {pagination && pagination.totalPages > 1 ? (
-          <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 text-xs text-slate-500">
-            <div>
-              Showing {(pagination.page - 1) * pagination.limit + 1}–
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-              allocations
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={pagination.page <= 1}
-                onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page ?? 1) - 1 }))}
-                className="h-7 px-2.5 text-xs"
-              >
-                Previous
-              </Button>
-              <Span className="px-2 font-medium text-slate-700">
-                Page {pagination.page} of {pagination.totalPages}
-              </Span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page ?? 1) + 1 }))}
-                className="h-7 px-2.5 text-xs"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        ) : null}
-      </div>
+        {/* Attached Pagination Controls */}
+        {pagination && pagination.total > 0 && (
+          <PaginationControls
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
+            onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
+            isLoading={isLoading || isFetching}
+            itemLabel="allocations"
+            pageSizeOptions={[10, 15, 25, 50]}
+          />
+        )}
+      </TableContainer>
 
       {/* Modals */}
       <AssignCourseModal

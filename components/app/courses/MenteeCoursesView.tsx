@@ -32,7 +32,22 @@ export function MenteeCoursesView() {
     limit: 100,
   });
   const rawAllocations = data?.items;
-  const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
+  const allocations = useMemo(() => {
+    const items = rawAllocations ?? [];
+    const seen = new Set<string>();
+    const unique: CourseAllocation[] = [];
+    for (const item of items) {
+      if (item?.id) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          unique.push(item);
+        }
+      } else {
+        unique.push(item);
+      }
+    }
+    return unique;
+  }, [rawAllocations]);
 
   const filteredAllocations = useMemo(() => {
     return allocations.filter((alloc) => {

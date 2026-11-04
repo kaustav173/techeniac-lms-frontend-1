@@ -12,6 +12,25 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  redirects() {
+    return Promise.resolve([
+      {
+        source: '/admin',
+        destination: '/admin/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/mentor',
+        destination: '/mentor/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/mentee',
+        destination: '/mentee/dashboard',
+        permanent: false,
+      },
+    ]);
+  },
   rewrites() {
     const rawTarget =
       process.env.BACKEND_API_URL ||

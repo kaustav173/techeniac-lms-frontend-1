@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
@@ -13,6 +14,7 @@ import {
 } from '@/components/app/batches/TransferMenteeModal';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -33,6 +35,7 @@ import {
   useRemoveBatchMemberMutation,
 } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
@@ -146,12 +149,11 @@ function MentorMappingCell({
 export function BatchDashboardSkeleton() {
   return (
     <div className="animate-in fade-in space-y-6 duration-150">
-      {/* Breadcrumb & Header Skeleton */}
-      <div>
-        <div className="mb-2 flex items-center gap-2">
-          <Skeleton className="h-3.5 w-16 rounded-md" />
-          <span className="text-slate-300">/</span>
-          <Skeleton className="h-3.5 w-32 rounded-md" />
+      {/* Back Button & Header Skeleton */}
+      <div className="space-y-3">
+        <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
+          <Skeleton className="h-3.5 w-3.5 rounded-full" />
+          <Skeleton className="h-3.5 w-24 rounded-md" />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div className="flex items-center gap-3">
@@ -350,6 +352,66 @@ export function BatchDashboardView({
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
 
+  // Sorting state for Batch Members
+  const [memberSortField, setMemberSortField] = useState<'name' | null>(null);
+  const [memberSortOrder, setMemberSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleMemberSort = (field: 'name') => {
+    if (memberSortField === field) {
+      if (memberSortOrder === 'asc') {
+        setMemberSortOrder('desc');
+      } else {
+        setMemberSortField(null);
+        setMemberSortOrder('asc');
+      }
+    } else {
+      setMemberSortField(field);
+      setMemberSortOrder('asc');
+    }
+  };
+
+  const sortedMembers = useMemo(() => {
+    if (!batch?.members) return [];
+    if (!memberSortField) return batch.members;
+    return [...batch.members].sort((a, b) => {
+      const valA = a.name || '';
+      const valB = b.name || '';
+      return memberSortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [batch, memberSortField, memberSortOrder]);
+
+  // Sorting state for Batch Courses
+  const [courseSortField, setCourseSortField] = useState<'title' | null>(null);
+  const [courseSortOrder, setCourseSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const handleCourseSort = (field: 'title') => {
+    if (courseSortField === field) {
+      if (courseSortOrder === 'asc') {
+        setCourseSortOrder('desc');
+      } else {
+        setCourseSortField(null);
+        setCourseSortOrder('asc');
+      }
+    } else {
+      setCourseSortField(field);
+      setCourseSortOrder('asc');
+    }
+  };
+
+  const sortedBatchCourses = useMemo(() => {
+    if (!batch?.courses) return [];
+    if (!courseSortField) return batch.courses;
+    return [...batch.courses].sort((a, b) => {
+      const valA = a.title || '';
+      const valB = b.title || '';
+      return courseSortOrder === 'asc'
+        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
+        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
+    });
+  }, [batch, courseSortField, courseSortOrder]);
+
   const isArchived = Boolean(batch && isBatchLocked(batch.status));
 
   const handleStatusSuccess = () => {
@@ -416,14 +478,32 @@ export function BatchDashboardView({
   return (
     <div className="space-y-6">
       {/* Top Header & Actions */}
-      <div>
+      <div className="space-y-3">
+        <div className="flex items-center">
+          <Link
+            href="/admin/batches"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900 sm:text-sm"
+          >
+            <svg
+              className="h-4 w-4 text-slate-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <Span>Back to Batches</Span>
+          </Link>
+        </div>
+
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex max-w-3xl min-w-0 flex-1 flex-wrap items-center gap-3">
             <H1 className="text-2xl font-extrabold tracking-tight break-words text-slate-900 sm:text-3xl">
               {batch.name}
             </H1>
             <Span
-              className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
                 batch.status,
               )}`}
             >
@@ -431,16 +511,18 @@ export function BatchDashboardView({
             </Span>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsStatusOpen(true)}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50"
-            >
-              <Span>Change Status</Span>
-            </Button>
+          <div className="flex shrink-0 items-center gap-2.5">
+            {batch.status !== 'ARCHIVED' ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsStatusOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-[#0044D3] bg-white px-4 py-2 text-xs font-bold text-[#0044D3] shadow-2xs transition-all hover:border-[#0039B3] hover:bg-blue-50/70 hover:text-[#0039B3] sm:text-sm"
+              >
+                <Span>Change Status</Span>
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -467,17 +549,21 @@ export function BatchDashboardView({
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Allocated Courses
           </Span>
-          <P className="mt-1 text-3xl font-bold text-slate-900">
-            {batch.courses.length > 0 ? batch.courses.length : '—'}
-          </P>
+          <P className="mt-1 text-3xl font-bold text-slate-900">{batch.courses.length}</P>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
           <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
             Timeline Window
           </Span>
-          <P className="mt-2 text-sm font-semibold text-slate-800">
-            {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
-          </P>
+          <div className="mt-2 flex flex-wrap items-baseline gap-1.5">
+            <Span className="text-base font-bold text-slate-900">
+              {formatDateDMY(batch.startDate) || '—'}
+            </Span>
+            <Span className="text-sm font-medium text-slate-400">to</Span>
+            <Span className="text-base font-bold text-slate-900">
+              {formatDateDMY(batch.endDate) || '—'}
+            </Span>
+          </div>
         </div>
       </div>
 
@@ -561,10 +647,19 @@ export function BatchDashboardView({
                 disabled={isArchived}
                 title={isArchived ? "Can't add in archived batch" : undefined}
                 onClick={() => setIsAddMemberOpen(true)}
-                className="flex items-center gap-1.5 bg-[#0044D3] font-semibold text-white hover:bg-[#0039B3]"
+                className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] disabled:opacity-50"
               >
-                <Span className="text-base leading-none font-bold">+</Span>
-                <Span>Add Member</Span>
+                <svg
+                  className="h-4 w-4 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <Span className="leading-none">Add Member</Span>
               </Button>
             </div>
           </div>
@@ -585,19 +680,21 @@ export function BatchDashboardView({
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-              <H3 className="mt-3 text-sm font-bold text-slate-800">No Members Enrolled Yet</H3>
-              <P className="mx-auto mt-1 max-w-sm text-xs text-slate-500">
-                {isArchived
-                  ? 'This batch is archived. Members cannot be added to an archived cohort.'
-                  : 'This batch has no mentors or mentees assigned. Use the “Add Members” button above to enroll users.'}
-              </P>
+              <H3 className="mt-3 text-base font-bold text-slate-800">No Members Enrolled Yet</H3>
             </div>
           ) : (
             <TableContainer>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Member</TableHead>
+                    <SortableColumnHeader<'name'>
+                      field="name"
+                      label="Member"
+                      sortField={memberSortField}
+                      sortOrder={memberSortOrder}
+                      onSort={handleMemberSort}
+                      tooltip="Sort members by Name"
+                    />
                     <TableHead>Role</TableHead>
                     <TableHead>Mapped Mentor</TableHead>
                     <TableHead>Enrolled Date</TableHead>
@@ -605,88 +702,96 @@ export function BatchDashboardView({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {batch.members.map((m) => (
-                    <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
-                      <TableCell>
-                        <P className="font-semibold text-slate-900">{m.name}</P>
-                        <P className="text-xs text-slate-500">{m.email}</P>
-                      </TableCell>
-                      <TableCell>
-                        <Span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                            m.memberRole === 'MENTOR'
-                              ? 'border border-blue-200 bg-blue-50 text-blue-700'
-                              : 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                          }`}
-                        >
-                          {m.memberRole}
-                        </Span>
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-700">
-                        <MentorMappingCell
-                          member={m}
-                          isArchived={isArchived}
-                          onOpenMapping={(target) =>
-                            setMapMenteeTarget({ isOpen: true, targetMentee: target })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-500">
-                        <Span>{formatDateDMY(m.joinedAt)}</Span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {m.memberRole === 'MENTEE' && !isArchived ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                setMenteeToTransfer({
-                                  id: m.id,
-                                  name: m.name,
-                                  currentBatchId: batch.id,
-                                  currentBatchName: batch.name,
-                                })
-                              }
-                              className="px-2.5 py-1 text-xs text-[#0044D3] hover:bg-blue-50"
-                            >
-                              Transfer
-                            </Button>
-                          ) : null}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={removeMemberMutation.isPending || isArchived}
-                            title={
-                              isArchived ? "Can't remove from archived batch" : `Remove ${m.name}`
-                            }
-                            aria-label={`Remove ${m.name}`}
-                            onClick={() => {
-                              setMemberToRemove({ id: m.id, name: m.name, role: m.memberRole });
-                            }}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg p-0 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                  {sortedMembers.map((m) => {
+                    const isLastMentor = m.memberRole === 'MENTOR' && mentors.length <= 1;
+
+                    return (
+                      <TableRow key={m.id} className="transition-colors hover:bg-slate-50/60">
+                        <TableCell>
+                          <P className="font-semibold text-slate-900">{m.name}</P>
+                          <P className="text-xs text-slate-500">{m.email}</P>
+                        </TableCell>
+                        <TableCell>
+                          <Span
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                              m.memberRole === 'MENTOR'
+                                ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                                : 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                            }`}
                           >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={1.75}
-                              aria-hidden="true"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {m.memberRole}
+                          </Span>
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-700">
+                          <MentorMappingCell
+                            member={m}
+                            isArchived={isArchived}
+                            onOpenMapping={(target) =>
+                              setMapMenteeTarget({ isOpen: true, targetMentee: target })
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-500">
+                          <Span>{formatDateDMY(m.joinedAt)}</Span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {m.memberRole === 'MENTEE' && !isArchived ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setMenteeToTransfer({
+                                    id: m.id,
+                                    name: m.name,
+                                    currentBatchId: batch.id,
+                                    currentBatchName: batch.name,
+                                  })
+                                }
+                                className="px-2.5 py-1 text-xs text-[#0044D3] hover:bg-blue-50"
+                              >
+                                Transfer
+                              </Button>
+                            ) : null}
+                            {!isLastMentor ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={removeMemberMutation.isPending || isArchived}
+                                title={
+                                  isArchived
+                                    ? "Can't remove from archived batch"
+                                    : `Remove ${m.name}`
+                                }
+                                aria-label={`Remove ${m.name}`}
+                                onClick={() => {
+                                  setMemberToRemove({ id: m.id, name: m.name, role: m.memberRole });
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg p-0 text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={1.75}
+                                  aria-hidden="true"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </Button>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -697,33 +802,51 @@ export function BatchDashboardView({
       {/* Tab 2: Courses */}
       {activeTab === 'courses' ? (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <P className="text-xs text-slate-500">
-              Curriculum allocations assigned to members of this cohort.
-            </P>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAssignCourseModalOpen(true)}
-              className="text-xs font-semibold"
-            >
-              + Allocate Course
-            </Button>
-          </div>
+          {batch.courses.length > 0 ? (
+            <div className="flex items-center justify-end">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={isArchived}
+                title={isArchived ? "Can't allocate in archived batch" : undefined}
+                onClick={() => setIsAssignCourseModalOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] disabled:opacity-50"
+              >
+                <svg
+                  className="h-4 w-4 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <Span className="leading-none">Allocate Course</Span>
+              </Button>
+            </div>
+          ) : null}
           {batch.courses.length > 0 ? (
             <TableContainer>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Course</TableHead>
+                    <SortableColumnHeader<'title'>
+                      field="title"
+                      label="Course"
+                      sortField={courseSortField}
+                      sortOrder={courseSortOrder}
+                      onSort={handleCourseSort}
+                      tooltip="Sort allocated courses by Title"
+                    />
                     <TableHead>Target Due Date</TableHead>
                     <TableHead>Cohort Avg Progress</TableHead>
                     <TableHead className="text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {batch.courses.map((c) => (
+                  {sortedBatchCourses.map((c) => (
                     <TableRow key={c.id} className="transition-colors hover:bg-slate-50/60">
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>
@@ -779,9 +902,22 @@ export function BatchDashboardView({
                   type="button"
                   variant="primary"
                   size="sm"
+                  disabled={isArchived}
+                  title={isArchived ? "Can't allocate in archived batch" : undefined}
                   onClick={() => setIsAssignCourseModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] disabled:opacity-50"
                 >
-                  Allocate Course
+                  <svg
+                    className="h-4 w-4 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  <Span className="leading-none">Allocate Course</Span>
                 </Button>
               </div>
             </div>
@@ -794,15 +930,15 @@ export function BatchDashboardView({
         <div className="space-y-6">
           {/* Cohort Schedule Overview */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-sm font-bold text-slate-900">Cohort Schedule</H3>
-            <P className="mt-1 text-xs text-slate-500">
+            <H3 className="text-base font-bold text-slate-900">Cohort Schedule</H3>
+            <P className="mt-1 text-sm text-slate-500">
               Active operating window and lifecycle span for this batch.
             </P>
 
             <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
               {/* Start Date */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -819,18 +955,18 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Start Date
                   </Span>
-                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
-                    {formatDateDMY(batch.startDate)}
+                  <Span className="mt-1 block text-base font-bold text-slate-900">
+                    {formatDateDMY(batch.startDate) || '—'}
                   </Span>
                 </div>
               </div>
 
               {/* Current Status */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -847,13 +983,14 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Current Status
                   </Span>
                   <Span
-                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
-                      batch.status,
-                    )}`}
+                    className={cn(
+                      'mt-1.5 inline-block rounded-full px-3 py-0.5 text-xs font-bold uppercase',
+                      getBatchStatusBadgeClass(batch.status),
+                    )}
                   >
                     {batch.status}
                   </Span>
@@ -862,7 +999,7 @@ export function BatchDashboardView({
 
               {/* End Date */}
               <div className="flex items-center gap-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -879,11 +1016,11 @@ export function BatchDashboardView({
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <Span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                  <Span className="block text-xs font-bold tracking-wider text-slate-500 uppercase">
                     Target End Date
                   </Span>
-                  <Span className="mt-0.5 block text-sm font-bold text-slate-900">
-                    {formatDateDMY(batch.endDate)}
+                  <Span className="mt-1 block text-base font-bold text-slate-900">
+                    {formatDateDMY(batch.endDate) || '—'}
                   </Span>
                 </div>
               </div>
@@ -892,14 +1029,14 @@ export function BatchDashboardView({
 
           {/* Status Transitions Card */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-sm font-bold text-slate-900">Status Transition History</H3>
-            <P className="mt-1 text-xs text-slate-500">
+            <H3 className="text-base font-bold text-slate-900">Status Transition History</H3>
+            <P className="mt-1 text-sm text-slate-500">
               Audit log of all lifecycle status changes performed on this batch.
             </P>
 
             {batch.history.length === 0 ? (
               <div className="mt-6 rounded-xl border border-dashed border-slate-200 p-8 text-center">
-                <P className="text-xs text-slate-500">
+                <P className="text-sm text-slate-500">
                   No status transitions recorded for this batch yet.
                 </P>
               </div>
@@ -907,15 +1044,41 @@ export function BatchDashboardView({
               <div className="relative mt-6 space-y-6 pl-6 before:absolute before:top-2 before:bottom-2 before:left-2.5 before:w-0.5 before:bg-slate-200">
                 {batch.history.map((h) => (
                   <div key={h.id} className="relative">
-                    <Span className="absolute top-1 -left-6 h-3.5 w-3.5 rounded-full bg-blue-600 ring-4 ring-white" />
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <Span className="text-xs font-bold text-slate-800">
-                        {h.fromStatus} → {h.toStatus}
+                    <Span className="absolute top-1.5 -left-6 h-3.5 w-3.5 rounded-full bg-[#0044D3] ring-4 ring-blue-50" />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                        {h.fromStatus}
                       </Span>
-                      <Span className="text-xs text-slate-400">{formatDateDMY(h.changedAt)}</Span>
+                      <svg
+                        className="h-4 w-4 text-slate-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                      <Span
+                        className={cn(
+                          'rounded-md px-2.5 py-0.5 text-xs font-bold uppercase',
+                          getBatchStatusBadgeClass(h.toStatus),
+                        )}
+                      >
+                        {h.toStatus}
+                      </Span>
+                      <Span className="text-xs text-slate-400">•</Span>
+                      <Span className="text-sm font-medium text-slate-500">
+                        {formatDateDMY(h.changedAt)}
+                      </Span>
                     </div>
-                    <P className="mt-1 text-xs break-words text-slate-600">
-                      By <strong className="font-semibold text-slate-800">{h.changedBy}</strong>
+                    <P className="mt-1.5 text-sm text-slate-600">
+                      Changed by{' '}
+                      <strong className="font-semibold text-slate-900">{h.changedBy}</strong>
                       {h.reason ? ` — "${h.reason}"` : ''}
                     </P>
                   </div>

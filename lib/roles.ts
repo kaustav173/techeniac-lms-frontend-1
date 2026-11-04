@@ -6,6 +6,12 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   MENTEE: 'Mentee',
 };
 
+export const ALLOWED_ROLE_TRANSITIONS: Record<UserRole, UserRole[]> = {
+  MENTEE: ['MENTOR'],
+  MENTOR: ['SUPER_ADMIN'],
+  SUPER_ADMIN: [],
+};
+
 export function formatRoleLabel(role?: string): string {
   if (!role) return 'Member';
   const clean = role.trim().toUpperCase();

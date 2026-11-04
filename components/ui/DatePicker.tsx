@@ -52,6 +52,10 @@ const MONTH_OPTIONS: readonly SingleSelectOption<number>[] = MONTH_NAMES.map((na
   label: name,
 }));
 
+const YEAR_OPTIONS: readonly SingleSelectOption<number>[] = Array.from({ length: 101 }, (_, i) => {
+  const y = 1970 + i;
+  return { value: y, label: String(y) };
+});
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function formatTwoDigits(n: number): string {
@@ -142,9 +146,11 @@ interface CalendarPopoverProps {
   readonly calendarDays: readonly CalendarDay[];
   readonly onPrevMonth: () => void;
   readonly onNextMonth: () => void;
-  readonly onMonthChange: (newMonth: number) => void;
-  readonly onYearChange: (newYear: number) => void;
+  readonly onMonthChange: (month: number) => void;
+  readonly onYearChange: (year: number) => void;
   readonly onSelectDay: (dateString: string) => void;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 function CalendarPopover({
@@ -158,22 +164,9 @@ function CalendarPopover({
   onMonthChange,
   onYearChange,
   onSelectDay,
+  minDate,
+  maxDate,
 }: Readonly<CalendarPopoverProps>) {
-  const years = useMemo(() => {
-    const minYear = Math.min(2015, viewYear - 5);
-    const maxYear = Math.max(new Date().getFullYear() + 10, viewYear + 5);
-    const list: number[] = [];
-    for (let y = minYear; y <= maxYear; y++) {
-      list.push(y);
-    }
-    return list;
-  }, [viewYear]);
-
-  const yearOptions: readonly SingleSelectOption<number>[] = useMemo(
-    () => years.map((y) => ({ value: y, label: String(y) })),
-    [years],
-  );
-
   return (
     <div
       ref={popoverRef}
@@ -188,7 +181,7 @@ function CalendarPopover({
       }}
       className="animate-in fade-in zoom-in-95 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xl duration-100"
     >
-      {/* Header with Navigation - 44px Accessible Touch Targets */}
+      {/* Header with Navigation & Month/Year Selectors */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
         <Button
           type="button"
@@ -199,7 +192,7 @@ function CalendarPopover({
           aria-label="Previous month"
         >
           <svg
-            className="h-5 w-5"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -211,24 +204,22 @@ function CalendarPopover({
         </Button>
 
         <div className="flex items-center gap-1.5">
-          <div className="w-[125px]">
+          <div className="w-[124px]">
             <SingleSelectDropdown<number>
               value={viewMonth}
-              onChange={(m) => onMonthChange(m)}
+              onChange={(val) => onMonthChange(val)}
               options={MONTH_OPTIONS}
               size="sm"
               aria-label="Select month"
-              menuClassName="max-h-52 z-50 shadow-xl"
             />
           </div>
-          <div className="w-[90px]">
+          <div className="w-[96px]">
             <SingleSelectDropdown<number>
               value={viewYear}
-              onChange={(y) => onYearChange(y)}
-              options={yearOptions}
+              onChange={(val) => onYearChange(val)}
+              options={YEAR_OPTIONS}
               size="sm"
               aria-label="Select year"
-              menuClassName="max-h-52 z-50 shadow-xl"
             />
           </div>
         </div>
@@ -242,7 +233,7 @@ function CalendarPopover({
           aria-label="Next month"
         >
           <svg
-            className="h-5 w-5"
+            className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -266,22 +257,25 @@ function CalendarPopover({
       {/* Day Grid with Accessible 44px Touch Targets */}
       <div className="mt-1 grid grid-cols-7 gap-0.5 text-center text-sm">
         {calendarDays.map((cell) => {
+          const isOutOfRange = Boolean(
+            (minDate && cell.dateString < minDate) || (maxDate && cell.dateString > maxDate),
+          );
           return (
             <Button
               key={cell.dateString}
               type="button"
               variant="ghost"
               size="sm"
-              disabled={cell.isDisabled}
+              disabled={cell.isDisabled || isOutOfRange}
               onClick={() => {
-                if (!cell.isDisabled) {
+                if (!cell.isDisabled && !isOutOfRange) {
                   onSelectDay(cell.dateString);
                 }
               }}
               className={cn(
                 'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                cell.isDisabled
-                  ? 'cursor-not-allowed text-slate-300 opacity-30 hover:bg-transparent'
+                cell.isDisabled || isOutOfRange
+                  ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
                   : cell.isSelected
                     ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
                     : cell.isCurrentMonth
@@ -366,6 +360,12 @@ export function DatePicker({
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        const hasOpenDropdown = Boolean(
+          popoverRef.current?.querySelector('[aria-expanded="true"]'),
+        );
+        if (hasOpenDropdown) {
+          return;
+        }
         e.stopPropagation();
         e.preventDefault();
         setIsOpen(false);
@@ -455,12 +455,12 @@ export function DatePicker({
     setViewDate(new Date(viewYear, viewMonth + 1, 1));
   };
 
-  const handleMonthChange = (newMonth: number) => {
-    setViewDate(new Date(viewYear, newMonth, 1));
+  const handleMonthChange = (month: number) => {
+    setViewDate(new Date(viewYear, month, 1));
   };
 
-  const handleYearChange = (newYear: number) => {
-    setViewDate(new Date(newYear, viewMonth, 1));
+  const handleYearChange = (year: number) => {
+    setViewDate(new Date(year, viewMonth, 1));
   };
 
   const calendarDays = useMemo(
@@ -525,6 +525,8 @@ export function DatePicker({
               onMonthChange={handleMonthChange}
               onYearChange={handleYearChange}
               onSelectDay={handleSelectDay}
+              minDate={minDate}
+              maxDate={maxDate}
             />,
             document.body,
           )

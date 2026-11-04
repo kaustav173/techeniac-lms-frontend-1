@@ -22,6 +22,10 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly className?: string | undefined;
   readonly align?: 'left' | 'right' | undefined;
   readonly showMenuLabel?: boolean | undefined;
+  readonly onScrollEnd?: (() => void) | undefined;
+  readonly isLoadingMore?: boolean | undefined;
+  readonly onSearch?: ((query: string) => void) | undefined;
+  readonly isSearching?: boolean | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -33,6 +37,10 @@ export function MultiSelectDropdown<T extends string = string>({
   className,
   align = 'right',
   showMenuLabel = false,
+  onScrollEnd,
+  isLoadingMore = false,
+  onSearch,
+  isSearching = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,11 +124,20 @@ export function MultiSelectDropdown<T extends string = string>({
     return `${label} (${selectedValues.length})`;
   }, [label, options, selectedValues]);
 
+  useEffect(() => {
+    if (!onSearch) return;
+    const timer = setTimeout(() => {
+      onSearch(searchQuery);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, onSearch]);
+
   const filteredOptions = useMemo(() => {
+    if (onSearch) return options;
     if (!searchQuery.trim()) return options;
     const q = searchQuery.toLowerCase().trim();
     return options.filter((o) => o.label.toLowerCase().includes(q));
-  }, [options, searchQuery]);
+  }, [options, searchQuery, onSearch]);
 
   return (
     <div
@@ -128,54 +145,38 @@ export function MultiSelectDropdown<T extends string = string>({
       ref={containerRef}
     >
       {/* Trigger Button with Rounded Border & Hover Effect */}
-      <div
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => {
+          setIsOpen((prev) => {
+            if (prev) setSearchQuery('');
+            return !prev;
+          });
+        }}
         className={cn(
-          'flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-sm transition-all hover:border-slate-300 hover:bg-slate-50/70',
-          selectedValues.length === 0 && 'font-medium text-slate-400 shadow-xs',
-          selectedValues.length > 0 &&
-            'border-blue-300 bg-blue-50/40 font-semibold text-[#0044D3] shadow-xs',
+          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-left text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:outline-none',
+          selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
       >
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
-          onClick={() => {
-            setIsOpen((prev) => {
-              if (prev) setSearchQuery('');
-              return !prev;
-            });
-          }}
-          className="flex flex-1 items-center justify-between gap-2 text-left focus:outline-none"
+        <Span className="truncate">{triggerLabel}</Span>
+        <svg
+          className={cn(
+            'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
+            isOpen && 'rotate-180 text-[#0044D3]',
+          )}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
         >
-          <Span
-            className={cn(
-              'truncate font-medium',
-              selectedValues.length === 0
-                ? 'font-medium text-slate-400'
-                : 'font-semibold text-slate-700',
-              selectedValues.length > 0 && 'text-[#0044D3]',
-            )}
-          >
-            {triggerLabel}
-          </Span>
-          <svg
-            className={cn(
-              'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
-              isOpen && 'rotate-180 text-[#0044D3]',
-            )}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
       {/* Popover Dropdown matching trigger with high z-index */}
       {isOpen ? (
@@ -209,8 +210,8 @@ export function MultiSelectDropdown<T extends string = string>({
             </div>
           )}
 
-          {/* Search Box inside Dropdown (for larger option lists) */}
-          {options.length > 5 ? (
+          {/* Search Box inside Dropdown (for larger option lists or when onSearch is provided) */}
+          {options.length > 5 || onSearch ? (
             <div className="pt-2 pb-1">
               <div className="relative">
                 <input
@@ -218,10 +219,14 @@ export function MultiSelectDropdown<T extends string = string>({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search ${label.toLowerCase()}...`}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
+                  placeholder="Search..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-7 pl-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
                 />
-                {searchQuery ? (
+                {isSearching ? (
+                  <div className="absolute inset-y-0 right-2 flex items-center">
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+                  </div>
+                ) : searchQuery ? (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
@@ -235,7 +240,16 @@ export function MultiSelectDropdown<T extends string = string>({
           ) : null}
 
           {/* Option List */}
-          <div className="mt-1 max-h-52 space-y-0.5 overflow-y-auto">
+          <div
+            className="mt-1 max-h-52 space-y-0.5 overflow-y-auto"
+            onScroll={(e) => {
+              if (!onScrollEnd) return;
+              const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+              if (scrollHeight - scrollTop - clientHeight < 25) {
+                onScrollEnd();
+              }
+            }}
+          >
             {filteredOptions.length === 0 ? (
               <Span className="block px-2.5 py-3 text-center text-sm text-slate-400">
                 No matching options
@@ -289,6 +303,11 @@ export function MultiSelectDropdown<T extends string = string>({
                 );
               })
             )}
+            {isLoadingMore ? (
+              <div className="flex items-center justify-center py-2 text-xs text-slate-400">
+                <Span>Loading more...</Span>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

@@ -11,16 +11,23 @@ export type { UserRole };
 export function getRolePortalPath(role: UserRole): string {
   switch (role) {
     case 'SUPER_ADMIN':
-      return '/admin';
+      return '/admin/dashboard';
     case 'MENTOR':
-      return '/mentor';
+      return '/mentor/dashboard';
     case 'MENTEE':
-      return '/mentee';
+      return '/mentee/dashboard';
   }
 }
 
 export function getRoleProfilePath(role: UserRole): string {
-  return `${getRolePortalPath(role)}/profile`;
+  switch (role) {
+    case 'SUPER_ADMIN':
+      return '/admin/profile';
+    case 'MENTOR':
+      return '/mentor/profile';
+    case 'MENTEE':
+      return '/mentee/profile';
+  }
 }
 
 export function redirectUserByRole(

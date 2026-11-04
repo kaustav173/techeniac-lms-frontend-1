@@ -22,7 +22,6 @@ export function UnsavedChangesModal({
       isOpen={isOpen}
       onClose={onStay}
       title="Unsaved Changes Guard"
-      description="You have unsaved changes in this form. If you navigate away or switch nodes now, your edits will be discarded."
       size="sm"
       footer={
         <>
@@ -37,7 +36,7 @@ export function UnsavedChangesModal({
     >
       <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
         <Span className="font-bold">Notice:</Span>
-        <P className="leading-relaxed">
+        <P className="text-xs leading-relaxed text-amber-900">
           Unsaved modifications on this outline node will be permanently lost if you discard.
         </P>
       </div>
