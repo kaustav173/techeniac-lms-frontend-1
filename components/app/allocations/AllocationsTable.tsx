@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
@@ -7,10 +8,10 @@ import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModa
 import { AssignmentOverridesModal } from '@/components/app/allocations/AssignmentOverridesModal';
 import { EditAllocationModal } from '@/components/app/allocations/EditAllocationModal';
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
-import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { Input } from '@/components/ui/Input';
 import {
   SingleSelectDropdown,
   type SingleSelectOption,
@@ -40,7 +41,7 @@ import { formatDateIST } from '@/lib/date';
 const EM_DASH = '—';
 
 const ALLOCATION_STATUS_OPTIONS: readonly SingleSelectOption<string>[] = [
-  { value: 'ALL', label: 'Status: All' },
+  { value: 'ALL', label: 'All Statuses' },
   { value: 'IN_PROGRESS', label: 'Active' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'OVERDUE', label: 'Overdue' },
@@ -101,14 +102,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
   const courseOptions: readonly SingleSelectOption<string>[] = useMemo(() => {
     return [
-      { value: '', label: 'Course: All' },
+      { value: '', label: 'All Courses' },
       ...courses.map((c) => ({ value: c.id, label: c.title })),
     ];
   }, [courses]);
 
   const batchOptions: readonly SingleSelectOption<string>[] = useMemo(() => {
     return [
-      { value: '', label: 'Batch: All' },
+      { value: '', label: 'All Batches' },
       ...batchesList.map((b) => ({ value: b.id, label: b.name })),
     ];
   }, [batchesList]);
@@ -116,24 +117,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
   const pagination = data?.pagination;
-
-  // Telemetry KPIs
-  const kpis = useMemo(() => {
-    const active = allocations.filter(
-      (a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS',
-    ).length;
-    const completed = allocations.filter((a) => a.status === 'COMPLETED').length;
-    const overdue = allocations.filter((a) => a.isOverdue).length;
-    const avgProgress =
-      allocations.length > 0
-        ? Math.round(
-            allocations.reduce((acc, a) => acc + (a.progressPercent ?? 0), 0) / allocations.length,
-          )
-        : 0;
-    const uniqueCadets = new Set(allocations.map((a) => a.userId)).size;
-
-    return { active, completed, overdue, avgProgress, uniqueCadets };
-  }, [allocations]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -188,122 +171,93 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
   return (
     <div className="space-y-6">
-      {/* Stitch KPI Telemetry Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Total Allocations
+      {/* Filter Toolbar */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-72 lg:w-80">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
           </div>
-          <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
-            {pagination?.total ?? allocations.length}
-          </div>
-          <div className="mt-1 text-xs text-slate-500">{kpis.active} active on current page</div>
+          <Input
+            type="search"
+            placeholder="Search allocations..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            aria-label="Search allocations"
+            className="h-[47px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
+          />
         </div>
 
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Mentees (This Page)
-          </div>
-          <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
-            {kpis.uniqueCadets}
-          </div>
-          <div className="mt-1 text-xs text-slate-500">Unique learners on current page</div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Avg Velocity (This Page)
-          </div>
-          <div className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-600">
-            {kpis.avgProgress}%
-          </div>
-          <div className="mt-1 text-xs font-medium text-emerald-600">
-            {kpis.completed} completed tracks on page
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
-          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Action Required (This Page)
-          </div>
-          <div
-            className={`mt-2 text-2xl font-extrabold tracking-tight ${kpis.overdue > 0 ? 'text-rose-600' : 'text-slate-800'}`}
-          >
-            {kpis.overdue < 10 ? `0${kpis.overdue}` : kpis.overdue}
-          </div>
-          <div
-            className={cn(
-              'mt-1 text-xs font-medium',
-              kpis.overdue > 0 ? 'text-rose-500' : 'text-slate-500',
-            )}
-          >
-            {kpis.overdue > 0
-              ? 'Overdue milestone allocations on page'
-              : 'All page records on schedule'}
-          </div>
-        </div>
-      </div>
-
-      {/* Filter & Search Toolbar */}
-      <div className="flex flex-col gap-3 py-1 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-2.5 sm:gap-3">
-          {/* Search Input with proper width */}
-          <div className="w-full sm:w-72 lg:w-80">
-            <DebouncedSearchInput
-              value={searchInput}
-              onSearchChange={(val) => {
-                setSearchInput(val);
-                setFilters((prev) => ({ ...prev, search: val.trim() || undefined, page: 1 }));
-              }}
-              placeholder="Filter allocations..."
-            />
-          </div>
-
+        {/* Dropdown Filters & Clear */}
+        <div className="flex flex-wrap items-center gap-3">
           {/* Course Filter Dropdown */}
-          <div className="w-full sm:w-44">
-            <SingleSelectDropdown
-              value={filters.courseId ?? ''}
-              onChange={(val) => handleCourseFilter(val)}
-              options={courseOptions}
-              size="sm"
-              aria-label="Filter by Course"
-            />
-          </div>
+          <SingleSelectDropdown
+            value={filters.courseId ?? ''}
+            onChange={(val) => handleCourseFilter(val)}
+            options={courseOptions}
+            placeholder="All Courses"
+            aria-label="Filter by Course"
+            className="w-full shrink-0 sm:w-44"
+            triggerClassName={cn(
+              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
+              filters.courseId && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
+            )}
+            menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+          />
 
           {/* Batch Filter Dropdown */}
-          <div className="w-full sm:w-44">
-            <SingleSelectDropdown
-              value={filters.batchId ?? ''}
-              onChange={(val) => handleBatchFilter(val)}
-              options={batchOptions}
-              size="sm"
-              aria-label="Filter by Batch"
-            />
-          </div>
+          <SingleSelectDropdown
+            value={filters.batchId ?? ''}
+            onChange={(val) => handleBatchFilter(val)}
+            options={batchOptions}
+            placeholder="All Batches"
+            aria-label="Filter by Batch"
+            className="w-full shrink-0 sm:w-44"
+            triggerClassName={cn(
+              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
+              filters.batchId && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
+            )}
+            menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+          />
 
           {/* Status Filter Dropdown */}
-          <div className="w-full sm:w-40">
-            <SingleSelectDropdown
-              value={statusTab}
-              onChange={(val) =>
-                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
-              }
-              options={ALLOCATION_STATUS_OPTIONS}
-              size="sm"
-              aria-label="Filter by Status"
-            />
-          </div>
+          <SingleSelectDropdown
+            value={statusTab}
+            onChange={(val) =>
+              handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
+            }
+            options={ALLOCATION_STATUS_OPTIONS}
+            placeholder="All Statuses"
+            aria-label="Filter by Status"
+            className="w-full shrink-0 sm:w-40"
+            triggerClassName={cn(
+              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
+              statusTab !== 'ALL' && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
+            )}
+            menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+          />
 
           {/* Circular Red Cross Clear Button */}
           {hasActiveFilters ? (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={handleClearFilters}
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
               title="Clear all filters"
               aria-label="Clear all filters"
-              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
             >
               <svg
                 className="h-4 w-4"
@@ -315,136 +269,123 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </Button>
-          ) : null}
-
-          {/* Status Filter Dropdown */}
-          <div className="w-full sm:w-40">
-            <SingleSelectDropdown
-              value={statusTab}
-              onChange={(val) =>
-                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
-              }
-              options={ALLOCATION_STATUS_OPTIONS}
-              size="sm"
-              aria-label="Filter by Status"
-            />
-          </div>
-
-          {/* Circular Red Cross Clear Button */}
-          {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              title="Clear all filters"
-              aria-label="Clear all filters"
-              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+            </button>
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {userRole === 'SUPER_ADMIN' ? (
+        {userRole === 'SUPER_ADMIN' ? (
+          <div className="flex items-center gap-3 sm:ml-auto">
             <Button
               type="button"
               variant="primary"
               size="sm"
               onClick={() => setIsAssignModalOpen(true)}
-              className="h-9 gap-2 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] sm:h-10 sm:text-sm"
+              className="h-[47px] gap-2 rounded-2xl bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
             >
               <Span className="text-base font-bold">+</Span>
               <Span>Assign Course</Span>
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Data Table */}
-      <TableContainer className="rounded-3xl border border-slate-200/80 bg-white shadow-xs">
+      <TableContainer className="rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         <Table className="w-full border-collapse text-left text-sm text-slate-700">
-          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            <TableRow>
+          <TableHeader className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+            <TableRow className="hover:bg-transparent">
               <TableHead scope="col" className="w-10 py-3.5 pr-2 pl-6" />
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Course
               </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Mentee
               </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Batch
               </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Started
               </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Due
               </TableHead>
-              <TableHead scope="col" className="w-44 px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="w-44 px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Progress
               </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
+              <TableHead
+                scope="col"
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Status
               </TableHead>
-              <TableHead scope="col" className="py-3.5 pr-6 pl-4 text-right">
+              <TableHead
+                scope="col"
+                className="py-3.5 pr-6 pl-4 text-right text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="divide-y divide-slate-100">
+          <TableBody className="divide-y divide-[#E1E6EC]/60">
             {isLoading || isFetching ? (
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                  <TableCell className="py-4 pr-2 pl-6">
-                    <Skeleton className="h-6 w-6 rounded-lg" />
+                  <TableCell className="py-3.5 pr-2 pl-6">
+                    <Skeleton className="h-5 w-5 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <div className="space-y-1.5">
                       <Skeleton className="h-4 w-36 rounded-md" />
                       <Skeleton className="h-3 w-48 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <div className="space-y-1.5">
                       <Skeleton className="h-4 w-28 rounded-md" />
                       <Skeleton className="h-3 w-20 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <div className="space-y-1.5">
                       <Skeleton className="h-4 w-24 rounded-md" />
                       <Skeleton className="h-3 w-16 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <Skeleton className="h-4 w-20 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <Skeleton className="h-4 w-20 rounded-md" />
                   </TableCell>
-                  <TableCell className="w-44 px-4 py-4">
+                  <TableCell className="w-44 px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-2 flex-1 rounded-full" />
                       <Skeleton className="h-3 w-8 rounded-md" />
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="px-4 py-3.5">
                     <Skeleton className="h-6 w-20 rounded-full" />
                   </TableCell>
-                  <TableCell className="py-4 pr-6 pl-4 text-right">
+                  <TableCell className="py-3.5 pr-6 pl-4 text-right">
                     <Skeleton className="ml-auto h-8 w-8 rounded-full" />
                   </TableCell>
                 </TableRow>
@@ -477,92 +418,100 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   <React.Fragment key={alloc.id}>
                     <TableRow
                       className={cn(
-                        'transition-colors',
-                        isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60',
+                        'transition-colors hover:bg-[#F9FAFB]/90',
+                        isExpanded && 'bg-slate-50/70',
                       )}
                     >
-                      <TableCell className="py-4 pr-2 pl-6 align-middle">
-                        <Button
+                      <TableCell className="py-3.5 pr-2 pl-6 align-middle">
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="sm"
                           onClick={() => toggleExpand(alloc.id)}
-                          className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+                          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md p-0 text-[#667085] transition-colors hover:bg-slate-100 hover:text-slate-900"
                           title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
+                          aria-label={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
                         >
-                          <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
-                        </Button>
+                          <svg
+                            className={cn(
+                              'h-4 w-4 transition-transform duration-150',
+                              isExpanded && 'rotate-90',
+                            )}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle">
+                      <TableCell className="px-4 py-3.5 align-middle">
                         <P
-                          className="max-w-[200px] truncate font-semibold text-slate-900 transition-all hover:overflow-visible hover:whitespace-normal"
+                          className="max-w-[200px] truncate font-semibold text-[#111827] transition-all hover:overflow-visible hover:whitespace-normal"
                           title={alloc.course?.title ?? 'Untitled Course'}
                         >
                           {alloc.course?.title ?? 'Untitled Course'}
                         </P>
-                        <P className="mt-0.5 text-xs text-slate-400">
+                        <P className="mt-0.5 text-xs text-[#667085]">
                           {alloc.estimatedMinutes
                             ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
                             : 'Standard Duration'}
                         </P>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle">
-                        <P className="font-semibold text-slate-900">
+                      <TableCell className="px-4 py-3.5 align-middle">
+                        <P className="font-semibold text-[#111827]">
                           {alloc.user?.name ?? 'Individual Mentee'}
                         </P>
-                        <P className="text-xs text-slate-400">{alloc.user?.email}</P>
+                        <P className="text-xs text-[#667085]">{alloc.user?.email}</P>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle">
+                      <TableCell className="px-4 py-3.5 align-middle">
                         {alloc.batch ? (
                           <div>
-                            <P className="font-medium text-slate-800">{alloc.batch.name}</P>
-                            <P className="text-xs text-slate-400">{alloc.batch.code}</P>
+                            <P className="font-medium text-[#111827]">{alloc.batch.name}</P>
+                            <P className="text-xs text-[#667085]">{alloc.batch.code}</P>
                           </div>
                         ) : (
-                          <Span className="text-slate-400">{EM_DASH}</Span>
+                          <Span className="text-[#667085]">{EM_DASH}</Span>
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                      <TableCell className="px-4 py-3.5 align-middle font-medium text-[#475467]">
                         {formatDateIST(alloc.startDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                      <TableCell className="px-4 py-3.5 align-middle font-medium text-[#475467]">
                         {formatDateIST(alloc.dueDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle">
+                      <TableCell className="px-4 py-3.5 align-middle">
                         <div className="flex items-center gap-3">
                           <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                             <div
-                              className="h-full rounded-full bg-blue-600 transition-all"
+                              className="h-full rounded-full bg-[#0044D3] transition-all"
                               style={{
                                 width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
                               }}
                             />
                           </div>
-                          <Span className="w-9 text-right text-xs font-bold text-slate-700">
+                          <Span className="w-9 text-right text-xs font-bold text-[#475467]">
                             {alloc.progressPercent}%
                           </Span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle">
+                      <TableCell className="px-4 py-3.5 align-middle">
                         <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
                       </TableCell>
-                      <TableCell className="py-4 pr-6 pl-4 text-right align-middle">
+                      <TableCell className="py-3.5 pr-6 pl-4 text-right align-middle">
                         {userRole === 'SUPER_ADMIN' ? (
                           <div
                             ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
                             className="relative flex items-center justify-end"
                           >
-                            <Button
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setOpenActionMenuId((prev) =>
                                   prev === alloc.id ? null : alloc.id,
                                 );
                               }}
-                              className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
                               title="Allocation actions"
                               aria-label="Allocation actions"
                               aria-haspopup="menu"
@@ -571,13 +520,13 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                               </svg>
-                            </Button>
+                            </button>
 
                             {openActionMenuId === alloc.id && (
                               <div
                                 role="menu"
                                 aria-label="Allocation actions"
-                                className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl"
+                                className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
                               >
                                 <Button
                                   type="button"
@@ -635,7 +584,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   <Span>Overrides</Span>
                                 </Button>
 
-                                <div className="my-1 border-t border-slate-100" />
+                                <div className="my-1 border-t border-[#E1E6EC]" />
 
                                 <Button
                                   type="button"
@@ -668,7 +617,88 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             )}
                           </div>
                         ) : (
-                          <Span className="text-xs text-slate-400">View only</Span>
+                          <div
+                            ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
+                            className="relative flex items-center justify-end"
+                          >
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId((prev) =>
+                                  prev === alloc.id ? null : alloc.id,
+                                );
+                              }}
+                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                              title="Allocation actions"
+                              aria-label="Allocation actions"
+                              aria-haspopup="menu"
+                              aria-expanded={openActionMenuId === alloc.id}
+                            >
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </button>
+
+                            {openActionMenuId === alloc.id && (
+                              <div
+                                role="menu"
+                                aria-label="Allocation actions"
+                                className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
+                              >
+                                <Link
+                                  href={
+                                    alloc.user?.name
+                                      ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                      : '/mentor/progress'
+                                  }
+                                  role="menuitem"
+                                  onClick={() => setOpenActionMenuId(null)}
+                                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
+                                >
+                                  <svg
+                                    className="h-4 w-4 text-[#0044D3]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="2"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                    />
+                                  </svg>
+                                  <Span>Progress</Span>
+                                </Link>
+                                <Link
+                                  href={
+                                    alloc.user?.name
+                                      ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                      : '/mentor/reviews'
+                                  }
+                                  role="menuitem"
+                                  onClick={() => setOpenActionMenuId(null)}
+                                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
+                                >
+                                  <svg
+                                    className="h-4 w-4 text-purple-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth="2"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                  </svg>
+                                  <Span>Submissions</Span>
+                                </Link>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>
@@ -676,8 +706,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     {/* Expandable Cadet Breakdown Drawer */}
                     {isExpanded ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="bg-slate-50/80 p-0">
-                          <div className="border-t border-b border-slate-200/80 px-10 py-4">
+                        <TableCell colSpan={9} className="bg-[#F8FAFC]/60 p-0">
+                          <div className="border-t border-b border-[#E1E6EC] px-8 py-4">
                             <div className="mb-3 flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Span className="text-xs font-bold text-slate-700 uppercase">
@@ -692,19 +722,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               </Span>
                             </div>
 
-                            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                            <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs">
                               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-[#0044D3]">
                                     {alloc.user?.name
                                       ? alloc.user.name.slice(0, 2).toUpperCase()
                                       : 'ME'}
                                   </div>
                                   <div>
-                                    <P className="text-sm font-semibold text-slate-900">
+                                    <P className="text-sm font-semibold text-[#111827]">
                                       {alloc.user?.name ?? 'Assigned Mentee'}
                                     </P>
-                                    <P className="text-xs text-slate-400">{alloc.user?.email}</P>
+                                    <P className="text-xs text-[#667085]">{alloc.user?.email}</P>
                                   </div>
                                 </div>
 
@@ -712,7 +742,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   <P className="text-xs font-medium text-slate-700">
                                     Course Allocation Pace
                                   </P>
-                                  <P className="mt-0.5 text-[11px] text-slate-400">
+                                  <P className="mt-0.5 text-[11px] text-[#667085]">
                                     {alloc.progressPercent >= 100
                                       ? 'All active course topics verified & completed'
                                       : `${alloc.progressPercent}% active curriculum completed`}
@@ -744,12 +774,21 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setOverridingAllocation(alloc)}
-                                    className="text-xs"
+                                    className="rounded-xl text-xs"
                                   >
                                     Overrides
                                   </Button>
                                 ) : (
-                                  <Span className="text-xs text-slate-400">View only</Span>
+                                  <Link
+                                    href={
+                                      alloc.user?.name
+                                        ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                        : '/mentor/progress'
+                                    }
+                                    className="rounded-xl px-2.5 py-1 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-50"
+                                  >
+                                    View Progress
+                                  </Link>
                                 )}
                               </div>
                             </div>
