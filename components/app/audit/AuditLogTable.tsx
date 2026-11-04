@@ -207,12 +207,12 @@ export function AuditLogTable() {
       {/* Filters Bar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {/* 1. Search across Type, Action, Actor, Target Entity (with Search Icon) */}
+          {/* 1. Search across Type, Activity, Actor, Target Entity (with Search Icon) */}
           <div>
             <DebouncedSearchInput
               value={filters.search ?? ''}
               onSearchChange={handleSearchChange}
-              placeholder="Search by Type, Action, Actor, Target Entity"
+              placeholder="Search by Type, Activity, Actor, Target Entity"
             />
           </div>
 
@@ -253,28 +253,29 @@ export function AuditLogTable() {
           </div>
         </div>
 
-        {/* Clear Filters Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleResetFilters}
-          disabled={!hasActiveFilters}
-          title={hasActiveFilters ? 'Clear all active filters' : 'No filters applied'}
-          className="h-11 shrink-0 gap-1.5 rounded-xl border-[#E1E6EC] bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <svg
-            className="h-3.5 w-3.5 text-slate-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
+        {/* Clear Filters (Cross Icon Button - appears only when any filter is active) */}
+        {hasActiveFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            title="Clear all filters"
+            aria-label="Clear all filters"
+            className="h-11 w-11 shrink-0 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-300"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          Clear Filters
-        </Button>
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
+        )}
       </div>
 
       {/* Error Banner */}
@@ -303,7 +304,7 @@ export function AuditLogTable() {
                 Type
               </TableHead>
               <TableHead className="w-[18%] px-4 py-3.5 pl-6 text-left text-xs font-semibold text-[#667085] sm:pl-8">
-                Action
+                Activity
               </TableHead>
               <TableHead className="w-[17%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Actor
@@ -312,7 +313,7 @@ export function AuditLogTable() {
                 Target Entity
               </TableHead>
               <TableHead className="w-[11%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
-                Details
+                Action
               </TableHead>
             </TableRow>
           </TableHeader>
