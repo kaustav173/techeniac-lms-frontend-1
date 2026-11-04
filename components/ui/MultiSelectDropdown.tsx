@@ -117,11 +117,13 @@ export function MultiSelectDropdown<T extends string = string>({
 
   const triggerLabel = useMemo(() => {
     if (selectedValues.length === 0) return label;
+    const firstMatch = options.find((o) => o.value === selectedValues[0]);
+    const firstName = firstMatch ? firstMatch.label : label;
+
     if (selectedValues.length === 1) {
-      const match = options.find((o) => o.value === selectedValues[0]);
-      return match ? match.label : label;
+      return firstName;
     }
-    return `${label} (${selectedValues.length})`;
+    return `${firstName} + ${selectedValues.length - 1}`;
   }, [label, options, selectedValues]);
 
   useEffect(() => {
