@@ -23,6 +23,8 @@ export interface DatePickerProps {
   readonly hasError?: boolean | undefined;
   readonly placement?: 'bottom' | 'top' | 'auto' | undefined;
   readonly className?: string | undefined;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 const POPOVER_WIDTH_PX = 340;
@@ -139,6 +141,8 @@ interface CalendarPopoverProps {
   readonly onMonthChange: (month: number) => void;
   readonly onYearChange: (year: number) => void;
   readonly onSelectDay: (dateString: string) => void;
+  readonly minDate?: string | undefined;
+  readonly maxDate?: string | undefined;
 }
 
 function CalendarPopover({
@@ -152,6 +156,8 @@ function CalendarPopover({
   onMonthChange,
   onYearChange,
   onSelectDay,
+  minDate,
+  maxDate,
 }: Readonly<CalendarPopoverProps>) {
   return (
     <div
@@ -243,20 +249,26 @@ function CalendarPopover({
       {/* Day Grid with Accessible 44px Touch Targets */}
       <div className="mt-1 grid grid-cols-7 gap-0.5 text-center text-sm">
         {calendarDays.map((cell) => {
+          const isOutOfRange = Boolean(
+            (minDate && cell.dateString < minDate) || (maxDate && cell.dateString > maxDate),
+          );
           return (
             <Button
               key={cell.dateString}
               type="button"
               variant="ghost"
               size="sm"
+              disabled={isOutOfRange}
               onClick={() => onSelectDay(cell.dateString)}
               className={cn(
                 'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                cell.isSelected
-                  ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
-                  : cell.isCurrentMonth
-                    ? 'font-semibold text-slate-700 hover:bg-slate-100'
-                    : 'font-normal text-slate-300 hover:bg-slate-50',
+                isOutOfRange
+                  ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
+                  : cell.isSelected
+                    ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
+                    : cell.isCurrentMonth
+                      ? 'font-semibold text-slate-700 hover:bg-slate-100'
+                      : 'font-normal text-slate-300 hover:bg-slate-50',
               )}
             >
               <Span>{cell.dayNumber}</Span>
@@ -279,6 +291,8 @@ export function DatePicker({
   hasError = false,
   placement = 'auto',
   className,
+  minDate,
+  maxDate,
 }: Readonly<DatePickerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -334,6 +348,12 @@ export function DatePicker({
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        const hasOpenDropdown = Boolean(
+          popoverRef.current?.querySelector('[aria-expanded="true"]'),
+        );
+        if (hasOpenDropdown) {
+          return;
+        }
         e.stopPropagation();
         e.preventDefault();
         setIsOpen(false);
@@ -493,6 +513,8 @@ export function DatePicker({
               onMonthChange={handleMonthChange}
               onYearChange={handleYearChange}
               onSelectDay={handleSelectDay}
+              minDate={minDate}
+              maxDate={maxDate}
             />,
             document.body,
           )

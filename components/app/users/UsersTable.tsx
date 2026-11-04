@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
-import { useAllBatchMembers } from '@/hooks/useBatches';
+import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useUsers } from '@/hooks/useUsers';
 import { compareStrings } from '@/lib/sort';
 import {
@@ -42,7 +42,7 @@ export interface UserItem {
   email: string;
   role: UserRole;
   status: UserStatus;
-  batches: readonly string[];
+  batches?: readonly string[] | undefined;
   mentorName?: string | undefined;
   hasLoggedIn?: boolean | undefined;
   mustChangePassword?: boolean | undefined;
@@ -50,95 +50,16 @@ export interface UserItem {
   isLastSuperAdmin?: boolean | undefined;
 }
 
-interface ToggleSwitchProps {
-  checked: boolean;
-  disabled?: boolean | undefined;
-  onChange: () => void;
-  title?: string | undefined;
-  ariaLabel: string;
-}
-
-function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
-  return (
-    <Button
-      type="button"
-      role="switch"
-      variant="ghost"
-      size="sm"
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      title={title}
-      disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation();
-        onChange();
-      }}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start gap-0 rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-        checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
-      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-    >
-      <Span
-        aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-          checked ? 'translate-x-5' : 'translate-x-0'
-        }`}
-      />
-    </Button>
-  );
-}
-
 const STATUS_OPTIONS: MultiSelectOption[] = [
-  { value: 'ACTIVE', label: 'Active Users' },
-  { value: 'PENDING', label: 'Pending Users' },
-  { value: 'INACTIVE', label: 'Inactive Users' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'INACTIVE', label: 'Inactive' },
+  { value: 'PENDING', label: 'Pending' },
 ];
-
-const BATCH_BADGE_COLORS = [
-  'bg-blue-50 text-blue-700 border-blue-200',
-  'bg-purple-50 text-purple-700 border-purple-200',
-  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'bg-amber-50 text-amber-800 border-amber-200',
-  'bg-indigo-50 text-indigo-700 border-indigo-200',
-  'bg-pink-50 text-pink-700 border-pink-200',
-  'bg-cyan-50 text-cyan-800 border-cyan-200',
-];
-
-function getBatchBadgeColor(batchName: string): string {
-  let hash = 0;
-  for (let i = 0; i < batchName.length; i++) {
-    hash = (hash << 5) - hash + batchName.charCodeAt(i);
-    hash |= 0;
-  }
-  const index = Math.abs(hash) % BATCH_BADGE_COLORS.length;
-  return (
-    BATCH_BADGE_COLORS[index] ?? BATCH_BADGE_COLORS[0] ?? 'bg-blue-50 text-blue-700 border-blue-200'
-  );
-}
-
-function BatchBadges({ batches }: { batches?: readonly string[] | undefined }) {
-  if (!batches || batches.length === 0) {
-    return <Span className="text-slate-400">—</Span>;
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {batches.map((batchName) => (
-        <Span
-          key={batchName}
-          className={`inline-block rounded-md border px-2 py-0.5 text-xs font-semibold ${getBatchBadgeColor(batchName)}`}
-        >
-          {batchName}
-        </Span>
-      ))}
-    </div>
-  );
-}
 
 interface FilterUpdateOptions {
   role?: string | undefined;
   statuses?: string[] | undefined;
   search?: string | undefined;
-  mentorId?: string | undefined;
-  mentorIds?: string[] | undefined;
   page?: number | undefined;
   limit?: number | undefined;
   sortBy?: 'name' | 'email' | undefined;
@@ -152,40 +73,39 @@ export function UsersTable() {
   const [search, setSearch] = useState('');
   const selectedRole = 'ALL';
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
-
-  // Progressive roster of mentors for the filter dropdown
-  const [mentorLimit, setMentorLimit] = useState(20);
-  const {
-    users: mentorRoster,
-    total: totalMentors,
-    isFetching: isMentorsFetching,
-  } = useUsers({ role: 'MENTOR', limit: mentorLimit });
-
-  const handleLoadMoreMentors = () => {
-    if (mentorRoster.length < totalMentors && !isMentorsFetching) {
-      setMentorLimit((prev) => prev + 20);
-    }
-  };
-
-  const mentorOptions = useMemo<MultiSelectOption[]>(() => {
-    return mentorRoster.map((m) => ({
-      value: m.id,
-      label: m.name,
-    }));
-  }, [mentorRoster]);
 
   // Sorting state for Name and Email columns
   const [sortField, setSortField] = useState<'name' | 'email' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
+  // Action Menu state
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
+
   const filtersRef = useRef({
     role: selectedRole,
     statuses: selectedStatuses,
     search,
-    mentorIds: selectedMentorIds,
     page,
     limit,
     sortBy: sortField ?? undefined,
@@ -197,22 +117,12 @@ export function UsersTable() {
       role: selectedRole,
       statuses: selectedStatuses,
       search,
-      mentorIds: selectedMentorIds,
       page,
       limit,
       sortBy: sortField ?? undefined,
       sortOrder: sortField ? sortOrder : undefined,
     };
-  }, [
-    selectedRole,
-    selectedStatuses,
-    search,
-    selectedMentorIds,
-    page,
-    limit,
-    sortField,
-    sortOrder,
-  ]);
+  }, [selectedRole, selectedStatuses, search, page, limit, sortField, sortOrder]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -221,7 +131,7 @@ export function UsersTable() {
       } else if (currentUser.mustChangePassword) {
         router.replace('/change-password');
       } else if (currentUser.role !== 'SUPER_ADMIN') {
-        router.replace(currentUser.role === 'MENTOR' ? '/mentor' : '/mentee');
+        router.replace(getRolePortalPath(currentUser.role));
       }
     }
   }, [isAuthLoading, isAuthenticated, currentUser, router]);
@@ -241,23 +151,17 @@ export function UsersTable() {
     resendInvite,
   } = useUsers({ page: 1, limit: 10 });
 
-  const { userBatchMap, userMentorMap } = useAllBatchMembers();
-
   const isTableLoading = isLoading || isFetching;
 
-  const hasActiveFilters = Boolean(
-    search.trim() || selectedStatuses.length > 0 || selectedMentorIds.length > 0,
-  );
+  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
 
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
-    setSelectedMentorIds([]);
     setPage(1);
     handleFilterUpdate({
       search: '',
       statuses: [],
-      mentorIds: [],
       page: 1,
     });
   };
@@ -323,45 +227,28 @@ export function UsersTable() {
     [apiUsers],
   );
 
-  const hasLocalStatusFilter =
-    selectedStatuses.length > 0 &&
-    !(
-      selectedStatuses.length === 1 &&
-      (selectedStatuses[0] === 'ACTIVE' || selectedStatuses[0] === 'INACTIVE')
-    );
-
+  const hasLocalStatusFilter = selectedStatuses.length > 0;
   const isClientPaginated = hasLocalStatusFilter;
 
   const users: UserItem[] = useMemo(() => {
-    const singleFilteredMentor =
-      selectedMentorIds.length === 1
-        ? mentorRoster.find((m) => m.id === selectedMentorIds[0])
-        : null;
-
-    let list = apiUsers.map((u) => {
-      const mappedMentorName = userMentorMap.get(u.id);
-      const resolvedMentorName =
-        mappedMentorName || (singleFilteredMentor ? singleFilteredMentor.name : undefined) || '—';
-
-      return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
-        batches: userBatchMap.get(u.id) ?? [],
-        mentorName: resolvedMentorName,
-        hasLoggedIn: u.lastLoginAt !== null,
-        mustChangePassword: u.mustChangePassword,
-        isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
-      };
-    });
+    let list: UserItem[] = apiUsers.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.isActive ? ('ACTIVE' as const) : ('INACTIVE' as const),
+      hasLoggedIn: u.lastLoginAt !== null,
+      mustChangePassword: u.mustChangePassword,
+      isLastSuperAdmin: u.role === 'SUPER_ADMIN' && activeAdminsCount <= 1,
+    }));
 
     if (selectedStatuses.length > 0) {
       list = list.filter((u) => {
-        if (selectedStatuses.includes('PENDING') && !u.hasLoggedIn) return true;
-        if (selectedStatuses.includes('ACTIVE') && u.status === 'ACTIVE') return true;
-        if (selectedStatuses.includes('INACTIVE') && u.status === 'INACTIVE') return true;
+        const isPending = Boolean(u.mustChangePassword || !u.hasLoggedIn);
+        if (selectedStatuses.includes('PENDING') && isPending) return true;
+        if (selectedStatuses.includes('ACTIVE') && !isPending && u.status === 'ACTIVE') return true;
+        if (selectedStatuses.includes('INACTIVE') && !isPending && u.status === 'INACTIVE')
+          return true;
         return false;
       });
     }
@@ -375,17 +262,7 @@ export function UsersTable() {
     }
 
     return list;
-  }, [
-    apiUsers,
-    activeAdminsCount,
-    userBatchMap,
-    userMentorMap,
-    mentorRoster,
-    selectedStatuses,
-    selectedMentorIds,
-    sortField,
-    sortOrder,
-  ]);
+  }, [apiUsers, activeAdminsCount, selectedStatuses, sortField, sortOrder]);
 
   const effectiveTotal = isClientPaginated ? users.length : totalCount;
 
@@ -403,7 +280,6 @@ export function UsersTable() {
     role = filtersRef.current.role,
     statuses = filtersRef.current.statuses,
     search: searchVal = filtersRef.current.search,
-    mentorIds = filtersRef.current.mentorIds,
     page: newPage = filtersRef.current.page,
     limit: newLimit = filtersRef.current.limit,
     sortBy = filtersRef.current.sortBy,
@@ -413,23 +289,13 @@ export function UsersTable() {
       role,
       statuses,
       search: searchVal,
-      mentorIds,
       page: newPage,
       limit: newLimit,
       sortBy,
       sortOrder: newSortOrder,
     };
 
-    const backendStatus =
-      statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE')
-        ? statuses[0]
-        : undefined;
-    const backendMentorId = mentorIds.length > 0 ? mentorIds.join(',') : undefined;
-
-    const hasLocalStatus =
-      statuses.length > 0 &&
-      !(statuses.length === 1 && (statuses[0] === 'ACTIVE' || statuses[0] === 'INACTIVE'));
-
+    const hasLocalStatus = statuses.length > 0;
     const effectiveLimit = hasLocalStatus ? 100 : newLimit;
     const effectivePage = hasLocalStatus ? 1 : newPage;
 
@@ -437,9 +303,8 @@ export function UsersTable() {
       page: effectivePage,
       limit: effectiveLimit,
       role: role !== 'ALL' ? role : undefined,
-      status: backendStatus,
+      status: undefined,
       search: searchVal.trim() || undefined,
-      mentorId: backendMentorId,
       sortBy,
       sortOrder: newSortOrder,
     });
@@ -615,21 +480,6 @@ export function UsersTable() {
             align="left"
           />
 
-          {/* Mentor Dropdown with Multi-select, Search, and Progressive Scrolling */}
-          <MultiSelectDropdown
-            label="Mentor"
-            options={mentorOptions}
-            selectedValues={selectedMentorIds}
-            onChange={(vals) => {
-              setSelectedMentorIds(vals);
-              setPage(1);
-              handleFilterUpdate({ mentorIds: vals, page: 1 });
-            }}
-            align="left"
-            onScrollEnd={handleLoadMoreMentors}
-            isLoadingMore={isMentorsFetching}
-          />
-
           {/* Circular Red Cross Button to Clear All Active Filters */}
           {hasActiveFilters ? (
             <Button
@@ -657,7 +507,6 @@ export function UsersTable() {
 
         {/* Right Side: Action Buttons in one row */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          {/* Action Buttons */}
           <Button
             type="button"
             variant="outline"
@@ -704,8 +553,8 @@ export function UsersTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort visible page by Name"
-                className="w-[26%]"
+                tooltip="Sort all users by Name"
+                className="w-[32%]"
               />
               <SortableColumnHeader<'name' | 'email'>
                 field="email"
@@ -713,11 +562,10 @@ export function UsersTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort visible page by Email"
-                className="w-[26%]"
+                tooltip="Sort all users by Email"
+                className="w-[32%]"
               />
-              <TableHead className="w-[12%]">Role</TableHead>
-              <TableHead className="w-[14%]">Batch / Mentor</TableHead>
+              <TableHead className="w-[14%]">Role</TableHead>
               <TableHead className="w-[12%] text-center">Status</TableHead>
               <TableHead className="w-[10%] text-center">Action</TableHead>
             </TableRow>
@@ -727,21 +575,18 @@ export function UsersTable() {
               // Loading Skeleton Rows - calibrated to exact data row dimensions
               Array.from({ length: limit }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
-                  <TableCell className="w-[26%]">
-                    <Skeleton className="h-4 w-36 rounded-md" />
+                  <TableCell className="w-[32%]">
+                    <Skeleton className="h-4 w-40 rounded-md" />
                   </TableCell>
-                  <TableCell className="w-[26%]">
-                    <Skeleton className="h-4 w-44 rounded-md" />
-                  </TableCell>
-                  <TableCell className="w-[12%]">
-                    <Skeleton className="h-6 w-16 rounded-full" />
+                  <TableCell className="w-[32%]">
+                    <Skeleton className="h-4 w-48 rounded-md" />
                   </TableCell>
                   <TableCell className="w-[14%]">
-                    <Skeleton className="h-5 w-24 rounded-md" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
                   </TableCell>
                   <TableCell className="w-[12%] text-center">
                     <div className="flex items-center justify-center">
-                      <Skeleton className="h-6 w-11 rounded-full" />
+                      <Skeleton className="h-6 w-16 rounded-full" />
                     </div>
                   </TableCell>
                   <TableCell className="w-[10%] text-center">
@@ -753,7 +598,7 @@ export function UsersTable() {
               ))
             ) : usersError ? (
               <TableRow>
-                <TableCell colSpan={selectedRole === 'ALL' ? 6 : 5} className="py-12 text-center">
+                <TableCell colSpan={5} className="py-12 text-center">
                   <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
                       <svg
@@ -761,7 +606,7 @@ export function UsersTable() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                        strokeWidth="2"
+                        strokeWidth={2}
                         aria-hidden="true"
                       >
                         <path
@@ -792,10 +637,7 @@ export function UsersTable() {
               </TableRow>
             ) : displayedUsers.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={selectedRole === 'ALL' ? 6 : 5}
-                  className="py-12 text-center text-slate-400"
-                >
+                <TableCell colSpan={5} className="py-12 text-center text-slate-400">
                   <Span>No users match your filters.</Span>
                 </TableCell>
               </TableRow>
@@ -805,6 +647,7 @@ export function UsersTable() {
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
                 const isRowPending = Boolean(inFlightAction[u.id]);
+                const isPending = Boolean(u.mustChangePassword || !u.hasLoggedIn);
                 const deactivateTooltip = isSelf
                   ? 'Cannot deactivate your own account'
                   : isBlockedAdmin
@@ -819,7 +662,9 @@ export function UsersTable() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         const target = e.target as HTMLElement;
-                        if (!target.closest('button, input, [role="switch"], a')) {
+                        if (
+                          !target.closest('button, input, [role="switch"], a, [data-action-menu]')
+                        ) {
                           e.preventDefault();
                           router.push(`/admin/users/${u.id}`);
                         }
@@ -827,15 +672,17 @@ export function UsersTable() {
                     }}
                     onClick={(e) => {
                       const target = e.target as HTMLElement;
-                      if (!target.closest('button, input, [role="switch"], a')) {
+                      if (
+                        !target.closest('button, input, [role="switch"], a, [data-action-menu]')
+                      ) {
                         router.push(`/admin/users/${u.id}`);
                       }
                     }}
                     className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
                   >
-                    {/* User Column (Name only - Avatar circle removed) */}
-                    <TableCell className="w-[26%]">
-                      <div className="flex items-center gap-2.5 truncate">
+                    {/* User Column (Name only) */}
+                    <TableCell className="w-[32%]">
+                      <div className="flex items-center truncate">
                         <Link
                           href={`/admin/users/${u.id}`}
                           title={`View user profile for ${u.name}`}
@@ -845,37 +692,18 @@ export function UsersTable() {
                             {u.name || '—'}
                           </Span>
                         </Link>
-                        {u.mustChangePassword ? (
-                          <div className="flex shrink-0 items-center gap-1.5">
-                            <Span className="text-xs font-semibold text-amber-700">
-                              Invite pending
-                            </Span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={inFlightAction[u.id] === 'resend'}
-                              onClick={() => {
-                                void handleResendInvite(u.id, u.name);
-                              }}
-                              className="h-5.5 rounded-full border border-amber-300 bg-amber-50 px-2 text-[11px] font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-                            >
-                              {inFlightAction[u.id] === 'resend' ? 'Sending...' : 'Resend'}
-                            </Button>
-                          </div>
-                        ) : null}
                       </div>
                     </TableCell>
 
-                    {/* Email Column - Shifted to x=717, no awkward line breaks */}
-                    <TableCell className="w-[26%] truncate text-sm text-slate-600 select-all">
+                    {/* Email Column */}
+                    <TableCell className="w-[32%] truncate text-sm text-slate-600 select-all">
                       <Span title={u.email} className="block truncate">
                         {u.email}
                       </Span>
                     </TableCell>
 
                     {/* Role Column */}
-                    <TableCell className="w-[12%]">
+                    <TableCell className="w-[14%]">
                       <Span
                         className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ${
                           u.role === 'SUPER_ADMIN'
@@ -893,63 +721,210 @@ export function UsersTable() {
                       </Span>
                     </TableCell>
 
-                    {/* Dynamic Role-Specific Column */}
-                    <TableCell className="w-[14%] text-sm font-medium">
-                      {u.role === 'MENTEE' ? (
-                        u.batches.length > 0 ? (
-                          <div className="flex flex-col gap-1">
-                            <BatchBadges batches={u.batches} />
-                            {u.mentorName && u.mentorName !== '—' ? (
-                              <Span className="text-xs text-slate-400">Mentor: {u.mentorName}</Span>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <Span className="text-slate-700">{u.mentorName || '—'}</Span>
-                        )
-                      ) : (
-                        <BatchBadges batches={u.batches} />
-                      )}
-                    </TableCell>
-
-                    {/* Status Column with Switch Only (Tag Removed) */}
+                    {/* Status Column with Badge */}
                     <TableCell className="w-[12%] text-center">
                       <div className="flex items-center justify-center">
-                        <ToggleSwitch
-                          checked={u.status === 'ACTIVE'}
-                          disabled={isDeactivateDisabled || isRowPending}
-                          title={deactivateTooltip}
-                          ariaLabel={`${u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} account for ${u.name}`}
-                          onChange={() => void handleToggleStatus(u)}
-                        />
+                        {isPending ? (
+                          <Span className="inline-flex items-center rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                            Pending
+                          </Span>
+                        ) : u.status === 'ACTIVE' ? (
+                          <Span className="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                            Active
+                          </Span>
+                        ) : (
+                          <Span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                            Inactive
+                          </Span>
+                        )}
                       </div>
                     </TableCell>
 
-                    {/* Actions Column (Pencil Edit Icon Center-Aligned with Actions Title) */}
-                    <TableCell className="w-[10%] text-center">
-                      <div className="flex items-center justify-center">
+                    {/* Actions Column with Three-Dots Menu */}
+                    <TableCell className="w-[10%] text-center" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        data-action-menu
+                        className="relative inline-block text-left"
+                        ref={openActionMenuId === u.id ? actionMenuRef : undefined}
+                      >
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => setUserToEdit(u)}
-                          title="Edit user"
-                          aria-label={`Edit ${u.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenActionMenuId(openActionMenuId === u.id ? null : u.id);
+                          }}
+                          title="User actions"
+                          aria-label={`Actions for ${u.name}`}
                           className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={1.75}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-                            />
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                           </svg>
                         </Button>
+
+                        {openActionMenuId === u.id && (
+                          <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-48 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId(null);
+                                setUserToEdit(u);
+                              }}
+                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            >
+                              <svg
+                                className="h-3.5 w-3.5 text-slate-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                                />
+                              </svg>
+                              <Span>Edit Details</Span>
+                            </Button>
+
+                            {isPending ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={inFlightAction[u.id] === 'resend'}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenActionMenuId(null);
+                                  void handleResendInvite(u.id, u.name);
+                                }}
+                                className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
+                              >
+                                <svg
+                                  className="h-3.5 w-3.5 text-amber-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <Span>
+                                  {inFlightAction[u.id] === 'resend'
+                                    ? 'Sending...'
+                                    : 'Resend Invite'}
+                                </Span>
+                              </Button>
+                            ) : null}
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={isSelf || Boolean(u.isLastSuperAdmin)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId(null);
+                                setUserToChangeRole({
+                                  id: u.id,
+                                  name: u.name,
+                                  email: u.email,
+                                  role: u.role,
+                                  currentRole: u.role,
+                                });
+                              }}
+                              title={
+                                isSelf
+                                  ? 'Cannot change your own role'
+                                  : u.isLastSuperAdmin
+                                    ? 'Cannot change role of last Super Admin'
+                                    : undefined
+                              }
+                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <svg
+                                className="h-3.5 w-3.5 text-slate-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                              <Span>Change Role</Span>
+                            </Button>
+
+                            <div className="my-1 border-t border-slate-100" />
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={isDeactivateDisabled || isRowPending}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenActionMenuId(null);
+                                void handleToggleStatus(u);
+                              }}
+                              title={deactivateTooltip}
+                              className={`flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                u.status === 'ACTIVE'
+                                  ? 'text-red-600 hover:bg-red-50'
+                                  : 'text-emerald-700 hover:bg-emerald-50'
+                              }`}
+                            >
+                              {u.status === 'ACTIVE' ? (
+                                <>
+                                  <svg
+                                    className="h-3.5 w-3.5 text-red-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                                    />
+                                  </svg>
+                                  <Span>Deactivate User</Span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="h-3.5 w-3.5 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  <Span>Activate User</Span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -959,7 +934,7 @@ export function UsersTable() {
           </TableBody>
         </Table>
 
-        {/* LeadNest-Style Pagination Controls with Loading State */}
+        {/* Pagination Controls with Loading State */}
         {!usersError && (
           <PaginationControls
             page={page}
@@ -1021,7 +996,7 @@ export function UsersTable() {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth={2}
             >
               <path
                 strokeLinecap="round"
@@ -1035,7 +1010,7 @@ export function UsersTable() {
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>

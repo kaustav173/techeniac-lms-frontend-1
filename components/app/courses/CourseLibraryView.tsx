@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -34,7 +35,7 @@ import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
-import { cn } from '@/lib/cn';
+import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
 
@@ -75,6 +76,11 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
   );
 }
 
+const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+];
+
 interface CourseLibraryViewProps {
   portal: 'admin' | 'mentor';
 }
@@ -84,19 +90,38 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+
+  // Sorting state for Course Name column
+  const [sortField, setSortField] = useState<'title' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const resolvedIsActive = useMemo(() => {
+    if (selectedStatuses.includes('active') && !selectedStatuses.includes('inactive')) return true;
+    if (selectedStatuses.includes('inactive') && !selectedStatuses.includes('active')) return false;
+    return 'all' as const;
+  }, [selectedStatuses]);
 
   const courseQuery = useMemo(
     () => ({
       page,
       limit,
       search: search.trim() || undefined,
-      isActive: activeFilter === 'all' ? ('all' as const) : activeFilter === 'active',
+      isActive: resolvedIsActive,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
     }),
-    [page, limit, search, activeFilter],
+    [page, limit, search, resolvedIsActive, sortField, sortOrder],
   );
+
+  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
+  const handleClearFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setPage(1);
+  };
 
   const {
     courses,
@@ -109,20 +134,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     cloneCourse,
     getCourseImpact,
   } = useCourses(courseQuery);
-
-  const { total: totalAllCourses, error: totalCoursesError } = useCourses({ limit: 1 });
-  const { total: totalActiveTracks, error: activeTracksError } = useCourses({
-    isActive: true,
-    limit: 1,
-  });
-  const { total: totalDraftTracks, error: draftTracksError } = useCourses({
-    isActive: false,
-    limit: 1,
-  });
-
-  // Sorting state for Course Name column
-  const [sortField, setSortField] = useState<'title' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const handleSort = (field: 'title') => {
     if (sortField === field) {
@@ -138,16 +149,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     }
   };
 
-  const sortedCourses = useMemo(() => {
-    if (!sortField) return courses;
-    return [...courses].sort((a, b) => {
-      const valA = a.title || '';
-      const valB = b.title || '';
-      return sortOrder === 'asc'
-        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
-        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
-    });
-  }, [courses, sortField, sortOrder]);
+  const sortedCourses = courses;
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -202,7 +204,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       if (!isAuthenticated || !user) {
         router.replace('/login');
       } else if (user.role !== 'SUPER_ADMIN' && user.role !== 'MENTOR') {
-        router.replace('/mentee');
+        router.replace(getRolePortalPath('MENTEE'));
       }
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -325,10 +327,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     );
   }
 
-  const totalCountDisplay = totalCoursesError ? '—' : totalAllCourses;
-  const activeCountDisplay = activeTracksError ? '—' : totalActiveTracks;
-  const draftCountDisplay = draftTracksError ? '—' : totalDraftTracks;
-
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
 
   return (
@@ -350,44 +348,41 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               />
             </div>
 
-            <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              {[
-                {
-                  label: `All (${totalCountDisplay})`,
-                  value: 'all' as const,
-                },
-                {
-                  label: `Active (${activeCountDisplay})`,
-                  value: 'active' as const,
-                },
-                {
-                  label: `Inactive (${draftCountDisplay})`,
-                  value: 'inactive' as const,
-                },
-              ].map((tab) => {
-                const isActive = activeFilter === tab.value;
-                return (
-                  <Button
-                    key={tab.value}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setActiveFilter(tab.value);
-                      setPage(1);
-                    }}
-                    className={cn(
-                      'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-4 sm:text-sm',
-                      isActive
-                        ? 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
-                        : 'text-slate-600 hover:bg-white hover:text-slate-900',
-                    )}
-                  >
-                    <Span>{tab.label}</Span>
-                  </Button>
-                );
-              })}
-            </div>
+            {/* Status Dropdown Filter */}
+            <MultiSelectDropdown
+              label="Status"
+              options={COURSE_STATUS_OPTIONS}
+              selectedValues={selectedStatuses}
+              onChange={(vals) => {
+                setSelectedStatuses(vals);
+                setPage(1);
+              }}
+              align="left"
+            />
+
+            {/* Circular Red Cross Clear Button */}
+            {hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                title="Clear all filters"
+                aria-label="Clear all filters"
+                className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-3">
@@ -489,7 +484,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                           sortField={sortField}
                           sortOrder={sortOrder}
                           onSort={handleSort}
-                          tooltip="Sort visible courses by Title"
+                          tooltip="Sort all courses by Title"
                           className="w-[48%]"
                         />
                         <TableHead className="w-28 text-center">Topics</TableHead>

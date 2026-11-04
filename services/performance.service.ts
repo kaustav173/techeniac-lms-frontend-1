@@ -128,7 +128,7 @@ export const performanceService = {
       options.params = { batchId };
     }
     const res = await apiClient<{ success: boolean; data: LearningHistoryResult }>(
-      '/mentee/my-performance',
+      '/me/learning-history',
       options,
     );
     return res.data;

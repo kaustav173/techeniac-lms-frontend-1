@@ -28,6 +28,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
+import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
 import {
   Assignment,
@@ -879,7 +880,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
       return;
     }
     if (user.role !== 'SUPER_ADMIN' && user.role !== 'MENTOR') {
-      router.replace('/mentee');
+      router.replace(getRolePortalPath('MENTEE'));
     }
   }, [isLoading, isAuthenticated, user, router]);
 

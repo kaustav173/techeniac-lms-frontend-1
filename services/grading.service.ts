@@ -48,7 +48,7 @@ export const gradingService = {
       options.signal = signal;
     }
 
-    const res = await apiClient<QueueApiResponse>('/reviews/queue', options);
+    const res = await apiClient<QueueApiResponse>('/submissions/queue', options);
 
     return {
       items: res.data || [],
@@ -68,7 +68,7 @@ export const gradingService = {
       options.signal = signal;
     }
 
-    const res = await apiClient<ReviewApiResponse>(`/reviews/${submissionId}/review`, options);
+    const res = await apiClient<ReviewApiResponse>(`/submissions/${submissionId}/review`, options);
     return {
       ...res.data,
       submissionData: normalizeSubmissionData(
@@ -81,7 +81,7 @@ export const gradingService = {
     submissionId: string,
     payload: GradeSubmissionInput,
   ): Promise<SubmissionReviewDetails> {
-    const res = await apiClient<ReviewApiResponse>(`/reviews/${submissionId}/grade`, {
+    const res = await apiClient<ReviewApiResponse>(`/submissions/${submissionId}/grade`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -92,10 +92,13 @@ export const gradingService = {
     submissionId: string,
     payload: RequestResubmissionInput,
   ): Promise<SubmissionReviewDetails> {
-    const res = await apiClient<ReviewApiResponse>(`/reviews/${submissionId}/resubmit-request`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+    const res = await apiClient<ReviewApiResponse>(
+      `/submissions/${submissionId}/resubmit-request`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
     return res.data;
   },
 };

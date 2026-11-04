@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModal';
@@ -39,6 +39,13 @@ import { formatDateIST } from '@/lib/date';
 
 const EM_DASH = '—';
 
+const ALLOCATION_STATUS_OPTIONS: readonly SingleSelectOption<string>[] = [
+  { value: 'ALL', label: 'Status: All' },
+  { value: 'IN_PROGRESS', label: 'Active' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'OVERDUE', label: 'Overdue' },
+];
+
 export interface AllocationsTableProps {
   readonly userRole: 'SUPER_ADMIN' | 'MENTOR';
 }
@@ -57,6 +64,25 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const [revokingAllocation, setRevokingAllocation] = useState<CourseAllocation | null>(null);
   const [overridingAllocation, setOverridingAllocation] = useState<CourseAllocation | null>(null);
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(filters);
 
@@ -146,6 +172,16 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     }));
   };
 
+  const hasActiveFilters = Boolean(
+    searchInput.trim() || filters.courseId || filters.batchId || statusTab !== 'ALL',
+  );
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setStatusTab('ALL');
+    setFilters({ page: 1, limit: 15 });
+  };
+
   const toggleExpand = (id: string) => {
     setExpandedAllocId((prev) => (prev === id ? null : id));
   };
@@ -161,34 +197,49 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
             {pagination?.total ?? allocations.length}
           </div>
+          <div className="mt-1 text-xs text-slate-500">{kpis.active} active on current page</div>
         </div>
 
         <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Mentees
+            Mentees (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">
             {kpis.uniqueCadets}
           </div>
+          <div className="mt-1 text-xs text-slate-500">Unique learners on current page</div>
         </div>
 
         <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Avg Velocity
+            Avg Velocity (This Page)
           </div>
           <div className="mt-2 text-2xl font-extrabold tracking-tight text-emerald-600">
             {kpis.avgProgress}%
           </div>
+          <div className="mt-1 text-xs font-medium text-emerald-600">
+            {kpis.completed} completed tracks on page
+          </div>
         </div>
 
         <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs">
           <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Action Required
+            Action Required (This Page)
           </div>
           <div
             className={`mt-2 text-2xl font-extrabold tracking-tight ${kpis.overdue > 0 ? 'text-rose-600' : 'text-slate-800'}`}
           >
             {kpis.overdue < 10 ? `0${kpis.overdue}` : kpis.overdue}
+          </div>
+          <div
+            className={cn(
+              'mt-1 text-xs font-medium',
+              kpis.overdue > 0 ? 'text-rose-500' : 'text-slate-500',
+            )}
+          >
+            {kpis.overdue > 0
+              ? 'Overdue milestone allocations on page'
+              : 'All page records on schedule'}
           </div>
         </div>
       </div>
@@ -209,7 +260,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           </div>
 
           {/* Course Filter Dropdown */}
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-44">
             <SingleSelectDropdown
               value={filters.courseId ?? ''}
               onChange={(val) => handleCourseFilter(val)}
@@ -220,7 +271,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           </div>
 
           {/* Batch Filter Dropdown */}
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-44">
             <SingleSelectDropdown
               value={filters.batchId ?? ''}
               onChange={(val) => handleBatchFilter(val)}
@@ -229,42 +280,83 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               aria-label="Filter by Batch"
             />
           </div>
+
+          {/* Status Filter Dropdown */}
+          <div className="w-full sm:w-40">
+            <SingleSelectDropdown
+              value={statusTab}
+              onChange={(val) =>
+                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
+              }
+              options={ALLOCATION_STATUS_OPTIONS}
+              size="sm"
+              aria-label="Filter by Status"
+            />
+          </div>
+
+          {/* Circular Red Cross Clear Button */}
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          ) : null}
+
+          {/* Status Filter Dropdown */}
+          <div className="w-full sm:w-40">
+            <SingleSelectDropdown
+              value={statusTab}
+              onChange={(val) =>
+                handleStatusTabChange(val as 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE')
+              }
+              options={ALLOCATION_STATUS_OPTIONS}
+              size="sm"
+              aria-label="Filter by Status"
+            />
+          </div>
+
+          {/* Circular Red Cross Clear Button */}
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Status Tabs as Pill Filter */}
-          <div className="flex shrink-0 [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-slate-100/90 p-1 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {[
-              { key: 'ALL' as const, label: `All (${pagination?.total ?? allocations.length})` },
-              { key: 'IN_PROGRESS' as const, label: 'Active' },
-              { key: 'COMPLETED' as const, label: 'Completed' },
-              { key: 'OVERDUE' as const, label: 'Overdue' },
-            ].map((tab) => {
-              const isActive = statusTab === tab.key;
-              return (
-                <Button
-                  key={tab.key}
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleStatusTabChange(tab.key)}
-                  className={cn(
-                    'h-8 rounded-full px-3 text-xs font-semibold transition-all sm:h-9 sm:px-3.5 sm:text-sm',
-                    isActive
-                      ? tab.key === 'OVERDUE'
-                        ? 'bg-rose-600 text-white shadow-xs hover:bg-rose-700 hover:text-white'
-                        : 'bg-[#0044D3] text-white shadow-xs hover:bg-[#0039B3] hover:text-white'
-                      : tab.key === 'OVERDUE'
-                        ? 'text-rose-600 hover:bg-white hover:text-rose-700'
-                        : 'text-slate-600 hover:bg-white hover:text-slate-900',
-                  )}
-                >
-                  <Span>{tab.label}</Span>
-                </Button>
-              );
-            })}
-          </div>
-
           {userRole === 'SUPER_ADMIN' ? (
             <Button
               type="button"
@@ -332,18 +424,21 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     </div>
                   </TableCell>
                   <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-24 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
                     <Skeleton className="h-4 w-20 rounded-md" />
                   </TableCell>
                   <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-24 rounded-md" />
+                    <Skeleton className="h-4 w-20 rounded-md" />
                   </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <div className="space-y-1">
-                      <Skeleton className="h-2 w-32 rounded-full" />
-                      <Skeleton className="h-3 w-12 rounded-md" />
+                  <TableCell className="w-44 px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-2 flex-1 rounded-full" />
+                      <Skeleton className="h-3 w-8 rounded-md" />
                     </div>
                   </TableCell>
                   <TableCell className="px-4 py-4">
@@ -464,6 +559,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                               className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                               title="Allocation actions"
                               aria-label="Allocation actions"
+                              aria-haspopup="menu"
+                              aria-expanded={openActionMenuId === alloc.id}
                             >
                               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -471,11 +568,17 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             </Button>
 
                             {openActionMenuId === alloc.id && (
-                              <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                              <div
+                                ref={actionMenuRef}
+                                role="menu"
+                                aria-label="Allocation actions"
+                                className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl"
+                              >
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
+                                  role="menuitem"
                                   disabled={isTerminalAllocationStatus(alloc.status)}
                                   onClick={() => {
                                     setOpenActionMenuId(null);
@@ -503,6 +606,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   type="button"
                                   variant="ghost"
                                   size="sm"
+                                  role="menuitem"
                                   disabled={isTerminalAllocationStatus(alloc.status)}
                                   onClick={() => {
                                     setOpenActionMenuId(null);
@@ -532,6 +636,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   type="button"
                                   variant="ghost"
                                   size="sm"
+                                  role="menuitem"
                                   disabled={isTerminalAllocationStatus(alloc.status)}
                                   onClick={() => {
                                     setOpenActionMenuId(null);

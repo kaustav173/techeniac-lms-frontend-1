@@ -57,7 +57,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
       }}
       className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
-      <TableCell className="max-w-[240px] font-semibold text-slate-900 sm:max-w-xs md:max-w-sm">
+      <TableCell className="w-[32%] font-semibold text-slate-900">
         <Link
           href={`/admin/batches/${batch.id}`}
           onClick={(e) => e.stopPropagation()}
@@ -67,10 +67,10 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           {batch.name}
         </Link>
       </TableCell>
-      <TableCell className="text-xs font-semibold text-slate-600">
+      <TableCell className="w-[16%] text-xs font-semibold text-slate-600">
         <Span>{batch.code}</Span>
       </TableCell>
-      <TableCell>
+      <TableCell className="w-[14%]">
         <Span
           className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getBatchStatusBadgeClass(
             batch.status,
@@ -79,28 +79,15 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           {batch.status}
         </Span>
       </TableCell>
-      <TableCell className="text-xs text-slate-500">
+      <TableCell className="w-[26%] text-xs text-slate-500">
         <Span>
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
       </TableCell>
-      <TableCell className="text-xs font-semibold text-slate-700">
+      <TableCell className="w-[12%] text-xs font-semibold text-slate-700">
         <Span>
           {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
         </Span>
-      </TableCell>
-      <TableCell className="text-left">
-        <div className="flex items-center justify-start gap-2.5">
-          <Span className="w-9 text-xs font-semibold text-slate-700">
-            {batch.progressPercent ?? 0}%
-          </Span>
-          <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-[#0044D3]"
-              style={{ width: `${batch.progressPercent ?? 0}%` }}
-            />
-          </div>
-        </div>
       </TableCell>
     </TableRow>
   );
@@ -111,26 +98,20 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
     <>
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={`batch-skel-${idx}`} className="h-14">
-          <TableCell className="max-w-[240px] sm:max-w-xs md:max-w-sm">
+          <TableCell className="w-[32%]">
             <Skeleton className="h-4 w-44 rounded-md" />
           </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-16 rounded-md" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </TableCell>
-          <TableCell>
-            <Skeleton className="h-4 w-32 rounded-md" />
-          </TableCell>
-          <TableCell>
+          <TableCell className="w-[16%]">
             <Skeleton className="h-4 w-20 rounded-md" />
           </TableCell>
-          <TableCell className="text-left">
-            <div className="flex items-center justify-start gap-2.5">
-              <Skeleton className="h-3 w-8 rounded-md" />
-              <Skeleton className="h-2 w-24 rounded-full" />
-            </div>
+          <TableCell className="w-[14%]">
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </TableCell>
+          <TableCell className="w-[26%]">
+            <Skeleton className="h-4 w-36 rounded-md" />
+          </TableCell>
+          <TableCell className="w-[12%]">
+            <Skeleton className="h-4 w-16 rounded-md" />
           </TableCell>
         </TableRow>
       ))}
@@ -155,13 +136,12 @@ export function BatchesPageSkeleton() {
       {/* Table Skeleton */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         <div className="h-12 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-5 gap-4">
             <Skeleton className="h-4 w-28 rounded-md" />
             <Skeleton className="h-4 w-16 rounded-md" />
             <Skeleton className="h-4 w-16 rounded-md" />
             <Skeleton className="h-4 w-24 rounded-md" />
             <Skeleton className="h-4 w-20 rounded-md" />
-            <Skeleton className="h-4 w-24 rounded-md" />
           </div>
         </div>
         <div className="divide-y divide-slate-100">
@@ -172,7 +152,6 @@ export function BatchesPageSkeleton() {
               <Skeleton className="h-6 w-20 rounded-full" />
               <Skeleton className="h-4 w-32 rounded-md" />
               <Skeleton className="h-4 w-16 rounded-md" />
-              <Skeleton className="h-2 w-24 rounded-full" />
             </div>
           ))}
         </div>
@@ -193,6 +172,10 @@ export function BatchesTable() {
 
   const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
+  // Sorting state for Batch Name column
+  const [sortField, setSortField] = useState<'name' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const {
     data: batchesResponse,
     isLoading,
@@ -203,13 +186,11 @@ export function BatchesTable() {
     search: search.trim() || undefined,
     page,
     limit,
+    sortBy: sortField ?? undefined,
+    sortOrder: sortField ? sortOrder : undefined,
   });
 
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse?.items]);
-
-  // Sorting state for Batch Name column
-  const [sortField, setSortField] = useState<'name' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const handleSort = (field: 'name') => {
     if (sortField === field) {
@@ -225,16 +206,7 @@ export function BatchesTable() {
     }
   };
 
-  const sortedBatches = useMemo(() => {
-    if (!sortField) return batches;
-    return [...batches].sort((a, b) => {
-      const valA = a.name || '';
-      const valB = b.name || '';
-      return sortOrder === 'asc'
-        ? valA.localeCompare(valB, undefined, { sensitivity: 'base' })
-        : valB.localeCompare(valA, undefined, { sensitivity: 'base' });
-    });
-  }, [batches, sortField, sortOrder]);
+  const sortedBatches = batches;
 
   const isTableLoading = isLoading || isFetching;
   const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
@@ -308,19 +280,30 @@ export function BatchesTable() {
               setPage(1);
             }}
           />
-        </div>
-        <div className="flex items-center gap-3">
           {hasActiveFilters ? (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleClearFilters}
-              className="h-9 rounded-full border-slate-200 px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:h-10 sm:text-sm"
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
             >
-              <Span>Clear Filters</Span>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </Button>
           ) : null}
+        </div>
+        <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="primary"
@@ -344,7 +327,7 @@ export function BatchesTable() {
 
       {/* Batches Table View */}
       <TableContainer>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               <SortableColumnHeader<'name'>
@@ -353,14 +336,13 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort visible batches by Batch Name"
-                className="font-semibold text-slate-700"
+                tooltip="Sort all batches by Batch Name"
+                className="w-[32%] font-semibold text-slate-700"
               />
-              <TableHead className="font-semibold text-slate-700">Code</TableHead>
-              <TableHead className="font-semibold text-slate-700">Status</TableHead>
-              <TableHead className="font-semibold text-slate-700">Timeline</TableHead>
-              <TableHead className="font-semibold text-slate-700">Members</TableHead>
-              <TableHead className="font-semibold text-slate-700">Progress</TableHead>
+              <TableHead className="w-[16%] font-semibold text-slate-700">Code</TableHead>
+              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="w-[26%] font-semibold text-slate-700">Timeline</TableHead>
+              <TableHead className="w-[12%] font-semibold text-slate-700">Members</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -368,7 +350,7 @@ export function BatchesTable() {
               <BatchesTableSkeleton count={limit} />
             ) : batches.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-12 text-center text-slate-500">
+                <TableCell colSpan={5} className="py-12 text-center text-slate-500">
                   <Span>No batches match the applied filter.</Span>
                 </TableCell>
               </TableRow>

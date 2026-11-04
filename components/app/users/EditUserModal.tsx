@@ -15,12 +15,13 @@ import {
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useRoleImpact } from '@/hooks/useRoleImpact';
-import { formatRoleLabel } from '@/lib/roles';
+import { ALLOWED_ROLE_TRANSITIONS, formatRoleLabel } from '@/lib/roles';
 import {
   type ChangeRoleFormData,
   changeRoleSchema,
   editUserSchema,
   type UserRole,
+  userRoleEnum,
 } from '@/lib/validation';
 
 import { ReassignWizardModal } from './ReassignWizardModal';
@@ -29,7 +30,7 @@ export interface UserToEdit {
   id: string;
   name: string;
   email: string;
-  role?: string | undefined;
+  role?: UserRole | undefined;
   isLastSuperAdmin?: boolean | undefined;
 }
 
@@ -39,15 +40,8 @@ export interface EditUserModalProps {
   onClose: () => void;
   onSuccess: (userId: string, data: { name: string; email: string }) => Promise<void>;
   onRoleChangeSuccess?: ((userId: string, data: ChangeRoleFormData) => Promise<void>) | undefined;
-  onChangeRoleClick?: ((user: UserToEdit) => void) | undefined;
   canChangeRole?: boolean | undefined;
 }
-
-const ALLOWED_ROLE_TRANSITIONS: Record<UserRole, UserRole[]> = {
-  MENTEE: ['MENTOR'],
-  MENTOR: ['SUPER_ADMIN'],
-  SUPER_ADMIN: [],
-};
 
 function EditUserModalContent({
   user,
@@ -62,7 +56,8 @@ function EditUserModalContent({
   onRoleChangeSuccess?: ((userId: string, data: ChangeRoleFormData) => Promise<void>) | undefined;
   canChangeRole?: boolean | undefined;
 }) {
-  const currentRole: UserRole = (user.role as UserRole) || 'MENTEE';
+  const roleParse = userRoleEnum.safeParse(user.role);
+  const currentRole: UserRole = roleParse.success ? roleParse.data : 'MENTEE';
   const isSuperAdmin = currentRole === 'SUPER_ADMIN';
   const availableTargetRoles = useMemo(
     () => ALLOWED_ROLE_TRANSITIONS[currentRole] ?? [],
@@ -146,16 +141,26 @@ function EditUserModalContent({
     }
 
     setIsSubmitting(true);
+    let profileUpdated = false;
     try {
       if (name.trim() !== user.name.trim() || email.trim() !== user.email.trim()) {
         await onSuccess(user.id, parsedUser.data);
+        profileUpdated = true;
       }
       if (isRoleChanging && onRoleChangeSuccess) {
         await onRoleChangeSuccess(user.id, { newRole: selectedRole, reason: reason.trim() });
       }
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to update user');
+      if (profileUpdated) {
+        setError(
+          `Profile saved, but role transition failed: ${
+            err instanceof Error ? err.message : 'Unknown error'
+          }. Please retry updating the role.`,
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to update user');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -170,6 +175,7 @@ function EditUserModalContent({
         description="Update profile details and role permissions in a single view."
         size="md"
         isSubmitting={isSubmitting}
+        preventClose={isWizardOpen || isSubmitting}
         footer={
           <div className="flex w-full items-center justify-end gap-3">
             <Button variant="outline" size="md" onClick={onClose} disabled={isSubmitting}>

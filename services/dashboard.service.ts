@@ -12,17 +12,17 @@ interface ApiResponse<T> {
 
 export const dashboardService = {
   async getAdminDashboard(): Promise<AdminDashboardData> {
-    const res = await apiClient<ApiResponse<AdminDashboardData>>('/admin/dashboard');
+    const res = await apiClient<ApiResponse<AdminDashboardData>>('/dashboard/admin');
     return res.data;
   },
 
   async getMentorDashboard(): Promise<MentorDashboardData> {
-    const res = await apiClient<ApiResponse<MentorDashboardData>>('/mentor/dashboard');
+    const res = await apiClient<ApiResponse<MentorDashboardData>>('/dashboard/mentor');
     return res.data;
   },
 
   async getMenteeDashboard(): Promise<MenteeDashboardData> {
-    const res = await apiClient<ApiResponse<MenteeDashboardData>>('/mentee/dashboard');
+    const res = await apiClient<ApiResponse<MenteeDashboardData>>('/dashboard/mentee');
     return res.data;
   },
 };

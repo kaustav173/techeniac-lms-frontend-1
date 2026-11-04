@@ -23,6 +23,8 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly align?: 'left' | 'right' | undefined;
   readonly onScrollEnd?: (() => void) | undefined;
   readonly isLoadingMore?: boolean | undefined;
+  readonly onSearch?: ((query: string) => void) | undefined;
+  readonly isSearching?: boolean | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -35,6 +37,8 @@ export function MultiSelectDropdown<T extends string = string>({
   align = 'right',
   onScrollEnd,
   isLoadingMore = false,
+  onSearch,
+  isSearching = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -118,11 +122,20 @@ export function MultiSelectDropdown<T extends string = string>({
     return `${label} (${selectedValues.length})`;
   }, [label, options, selectedValues]);
 
+  useEffect(() => {
+    if (!onSearch) return;
+    const timer = setTimeout(() => {
+      onSearch(searchQuery);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery, onSearch]);
+
   const filteredOptions = useMemo(() => {
+    if (onSearch) return options;
     if (!searchQuery.trim()) return options;
     const q = searchQuery.toLowerCase().trim();
     return options.filter((o) => o.label.toLowerCase().includes(q));
-  }, [options, searchQuery]);
+  }, [options, searchQuery, onSearch]);
 
   return (
     <div
@@ -176,10 +189,9 @@ export function MultiSelectDropdown<T extends string = string>({
             align === 'left' ? 'left-0' : 'right-0',
           )}
         >
-          {/* Header Row: Title & Optional Clear */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-1.5">
-            <Span className="text-xs font-bold text-slate-700">{label}</Span>
-            {selectedValues.length > 0 ? (
+          {/* Header Row: Optional Clear only (Title removed per specification) */}
+          {selectedValues.length > 0 ? (
+            <div className="flex items-center justify-end border-b border-slate-100 px-2 pb-1.5">
               <button
                 type="button"
                 onClick={handleClear}
@@ -187,11 +199,11 @@ export function MultiSelectDropdown<T extends string = string>({
               >
                 <Span>Clear</Span>
               </button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
-          {/* Search Box inside Dropdown (for larger option lists) */}
-          {options.length > 5 ? (
+          {/* Search Box inside Dropdown (for larger option lists or when onSearch is provided) */}
+          {options.length > 5 || onSearch ? (
             <div className="pt-2 pb-1">
               <div className="relative">
                 <input
@@ -199,10 +211,14 @@ export function MultiSelectDropdown<T extends string = string>({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search ${label.toLowerCase()}...`}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
+                  placeholder="Search..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-7 pl-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0044D3] focus:bg-white focus:outline-none"
                 />
-                {searchQuery ? (
+                {isSearching ? (
+                  <div className="absolute inset-y-0 right-2 flex items-center">
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+                  </div>
+                ) : searchQuery ? (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}

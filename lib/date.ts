@@ -122,7 +122,4 @@ export function toISTDateInputValue(dateInput: string | Date | null | undefined)
 /**
  * Formats a date or ISO string into "DD MMM YYYY" format (e.g. "03 Nov 2026").
  */
-export function formatDateDMY(dateInput: string | Date | null | undefined): string {
-  if (!dateInput) return '-';
-  return formatDateIST(dateInput);
-}
+export const formatDateDMY = formatDateIST;

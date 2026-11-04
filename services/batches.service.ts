@@ -107,6 +107,8 @@ export interface BatchQueryFilters {
   search?: string | undefined;
   limit?: number | undefined;
   page?: number | undefined;
+  sortBy?: 'name' | 'createdAt' | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 interface ApiResponse<T> {
@@ -138,6 +140,12 @@ export const batchesService = {
     }
     if (filters.page) {
       params.page = filters.page;
+    }
+    if (filters.sortBy) {
+      params.sortBy = filters.sortBy;
+    }
+    if (filters.sortOrder) {
+      params.sortOrder = filters.sortOrder;
     }
 
     const res = await apiClient<
@@ -379,7 +387,7 @@ export const batchesService = {
     if (batchId) params.batchId = batchId;
 
     const res = await apiClient<ApiResponse<{ mentees: ApiMentorMappedMentee[] }>>(
-      '/mentor/my-mentees',
+      '/mentor/mentees',
       {
         method: 'GET',
         params,
