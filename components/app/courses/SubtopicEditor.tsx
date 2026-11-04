@@ -634,23 +634,25 @@ export function SubtopicEditor({
             >
               {isActive ? 'Active' : 'Inactive'}
             </Span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               role="switch"
               aria-checked={isActive}
               aria-label="Subtopic active status"
               onClick={() => handleChange(() => setIsActive(!isActive))}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
                 isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
               }`}
             >
-              <span
+              <Span
                 aria-hidden="true"
                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
                   isActive ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
-            </button>
+            </Button>
           </div>
         </div>
       </form>

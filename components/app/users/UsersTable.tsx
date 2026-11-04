@@ -78,7 +78,7 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
         checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
       } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
-      <span
+      <Span
         aria-hidden="true"
         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
           checked ? 'translate-x-5' : 'translate-x-0'
@@ -864,9 +864,9 @@ export function UsersTable() {
                         selectedRole === 'ALL' ? 'w-[25%]' : 'w-[30%]',
                       )}
                     >
-                      <span title={u.email} className="block truncate">
+                      <Span title={u.email} className="block truncate">
                         {u.email}
-                      </span>
+                      </Span>
                     </TableCell>
 
                     {/* Role Column (only displayed on ALL filter) */}

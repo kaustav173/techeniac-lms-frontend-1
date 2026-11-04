@@ -65,7 +65,7 @@ function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleS
         checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
       } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
-      <span
+      <Span
         aria-hidden="true"
         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
           checked ? 'translate-x-5' : 'translate-x-0'
@@ -580,8 +580,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
                                 {openActionMenuId === c.id && (
                                   <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="ghost"
+                                      size="sm"
                                       disabled={!c.isActive}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -593,7 +595,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                           ? 'Assign to batch or mentees'
                                           : 'Only active courses can be assigned'
                                       }
-                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                       <svg
                                         className="h-3.5 w-3.5 text-[#0044D3]"
@@ -609,16 +611,18 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                         />
                                       </svg>
                                       <Span>Assign</Span>
-                                    </button>
+                                    </Button>
 
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenActionMenuId(null);
                                         void cloneCourse(c.id);
                                       }}
-                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                     >
                                       <svg
                                         className="h-3.5 w-3.5 text-slate-600"
@@ -634,16 +638,18 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                         />
                                       </svg>
                                       <Span>Clone</Span>
-                                    </button>
+                                    </Button>
 
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenActionMenuId(null);
                                         router.push(`/${portal}/courses/${c.id}/builder`);
                                       }}
-                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                     >
                                       <svg
                                         className="h-3.5 w-3.5 text-slate-600"
@@ -659,18 +665,20 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                         />
                                       </svg>
                                       <Span>Edit</Span>
-                                    </button>
+                                    </Button>
 
                                     <div className="my-1 border-t border-slate-100" />
 
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setOpenActionMenuId(null);
                                         void onRequestDelete(c);
                                       }}
-                                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
                                     >
                                       <svg
                                         className="h-3.5 w-3.5 text-red-500"
@@ -686,7 +694,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                         />
                                       </svg>
                                       <Span>Delete</Span>
-                                    </button>
+                                    </Button>
                                   </div>
                                 )}
                               </div>

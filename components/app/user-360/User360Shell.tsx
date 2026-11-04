@@ -425,7 +425,7 @@ export function User360Shell({ userId }: User360ShellProps) {
         {isFetching && (
           <div className="absolute top-4 right-6 flex items-center gap-1.5 text-xs text-slate-400">
             <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
-            <span>Updating...</span>
+            <Span>Updating...</Span>
           </div>
         )}
         {/* 1. Profile Tab */}
@@ -435,9 +435,7 @@ export function User360Shell({ userId }: User360ShellProps) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">User ID</Span>
-                <P className="mt-1 font-mono text-sm font-bold break-all text-slate-900">
-                  {user.id}
-                </P>
+                <P className="mt-1 text-sm font-bold break-all text-slate-900">{user.id}</P>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Full Name</Span>
@@ -855,11 +853,11 @@ export function User360Shell({ userId }: User360ShellProps) {
                             {a.type}
                           </Span>
                         </TableCell>
-                        <TableCell className="font-mono text-[11px] font-semibold text-slate-800">
+                        <TableCell className="text-[11px] font-semibold text-slate-800">
                           {a.action}
                         </TableCell>
                         <TableCell
-                          className="max-w-xs truncate font-mono text-[11px] text-slate-600"
+                          className="max-w-xs truncate text-[11px] text-slate-600"
                           title={JSON.stringify(a.details, null, 2)}
                         >
                           {JSON.stringify(a.details)}

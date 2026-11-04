@@ -16,7 +16,15 @@ import {
   type SingleSelectOption,
 } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { TableCell, TableRow } from '@/components/ui/Table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
@@ -273,384 +281,383 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       </div>
 
       {/* Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
-              <tr>
-                <th scope="col" className="w-10 py-3.5 pr-2 pl-6"></th>
-                <th scope="col" className="px-4 py-3.5">
-                  Course
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Mentee
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Batch
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Started
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Due
-                </th>
-                <th scope="col" className="w-44 px-4 py-3.5">
-                  Progress
-                </th>
-                <th scope="col" className="px-4 py-3.5">
-                  Status
-                </th>
-                <th scope="col" className="py-3.5 pr-6 pl-4 text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              className={`divide-y divide-slate-100 ${
-                isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
-              }`}
-            >
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, idx) => (
-                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                    <TableCell className="py-4 pr-2 pl-6">
-                      <Skeleton className="h-6 w-6 rounded-lg" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-36 rounded-md" />
-                        <Skeleton className="h-3 w-48 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-28 rounded-md" />
-                        <Skeleton className="h-3 w-20 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-4 w-20 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-4 w-24 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-4 w-24 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1">
-                        <Skeleton className="h-2 w-32 rounded-full" />
-                        <Skeleton className="h-3 w-12 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell className="py-4 pr-6 pl-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-8 rounded-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center">
-                    <ErrorMessage
-                      error={error}
-                      title="Failed to load allocations"
-                      onRetry={() => void refetch()}
-                    />
-                  </td>
-                </tr>
-              ) : allocations.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center">
-                    <P className="text-sm font-medium text-slate-600">
-                      No course allocations found.
-                    </P>
-                    <Span className="mt-1 text-xs text-slate-400">
-                      {userRole === 'SUPER_ADMIN'
-                        ? 'Use the "Assign Course" button above to allocate an active course to a batch or mentee.'
-                        : 'No course allocations match your current filters.'}
-                    </Span>
-                  </td>
-                </tr>
-              ) : (
-                allocations.map((alloc) => {
-                  const isExpanded = expandedAllocId === alloc.id;
-                  return (
-                    <React.Fragment key={alloc.id}>
-                      <tr
-                        className={`transition-colors ${isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60'}`}
-                      >
-                        <td className="py-4 pr-2 pl-6 align-middle">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleExpand(alloc.id)}
-                            className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
-                            title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
-                          >
-                            <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
-                          </Button>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div
-                            className="max-w-[200px] truncate font-semibold text-slate-900 transition-all hover:overflow-visible hover:whitespace-normal"
-                            title={alloc.course?.title ?? 'Untitled Course'}
-                          >
-                            {alloc.course?.title ?? 'Untitled Course'}
+      <TableContainer className="rounded-3xl border border-slate-200/80 bg-white shadow-xs">
+        <Table className="w-full border-collapse text-left text-sm text-slate-700">
+          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+            <TableRow>
+              <TableHead scope="col" className="w-10 py-3.5 pr-2 pl-6" />
+              <TableHead scope="col" className="px-4 py-3.5">
+                Course
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Mentee
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Batch
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Started
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Due
+              </TableHead>
+              <TableHead scope="col" className="w-44 px-4 py-3.5">
+                Progress
+              </TableHead>
+              <TableHead scope="col" className="px-4 py-3.5">
+                Status
+              </TableHead>
+              <TableHead scope="col" className="py-3.5 pr-6 pl-4 text-right">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody
+            className={cn(
+              'divide-y divide-slate-100',
+              isFetching && !isLoading && 'opacity-60 transition-opacity',
+            )}
+          >
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                  <TableCell className="py-4 pr-2 pl-6">
+                    <Skeleton className="h-6 w-6 rounded-lg" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-36 rounded-md" />
+                      <Skeleton className="h-3 w-48 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-20 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1">
+                      <Skeleton className="h-2 w-32 rounded-full" />
+                      <Skeleton className="h-3 w-12 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </TableCell>
+                  <TableCell className="py-4 pr-6 pl-4 text-right">
+                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={9} className="px-6 py-8 text-center">
+                  <ErrorMessage
+                    error={error}
+                    title="Failed to load allocations"
+                    onRetry={() => void refetch()}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : allocations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="px-6 py-12 text-center">
+                  <P className="text-sm font-medium text-slate-600">No course allocations found.</P>
+                  <Span className="mt-1 block text-xs text-slate-400">
+                    {userRole === 'SUPER_ADMIN'
+                      ? 'Use the "Assign Course" button above to allocate an active course to a batch or mentee.'
+                      : 'No course allocations match your current filters.'}
+                  </Span>
+                </TableCell>
+              </TableRow>
+            ) : (
+              allocations.map((alloc) => {
+                const isExpanded = expandedAllocId === alloc.id;
+                return (
+                  <React.Fragment key={alloc.id}>
+                    <TableRow
+                      className={cn(
+                        'transition-colors',
+                        isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60',
+                      )}
+                    >
+                      <TableCell className="py-4 pr-2 pl-6 align-middle">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleExpand(alloc.id)}
+                          className="flex h-6 w-6 items-center justify-center p-0 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+                          title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
+                        >
+                          <Span className="text-sm font-bold">{isExpanded ? '▼' : '▶'}</Span>
+                        </Button>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <P
+                          className="max-w-[200px] truncate font-semibold text-slate-900 transition-all hover:overflow-visible hover:whitespace-normal"
+                          title={alloc.course?.title ?? 'Untitled Course'}
+                        >
+                          {alloc.course?.title ?? 'Untitled Course'}
+                        </P>
+                        <P className="mt-0.5 text-xs text-slate-400">
+                          {alloc.estimatedMinutes
+                            ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
+                            : 'Standard Duration'}
+                        </P>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <P className="font-semibold text-slate-900">
+                          {alloc.user?.name ?? 'Individual Mentee'}
+                        </P>
+                        <P className="text-xs text-slate-400">{alloc.user?.email}</P>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        {alloc.batch ? (
+                          <div>
+                            <P className="font-medium text-slate-800">{alloc.batch.name}</P>
+                            <P className="text-xs text-slate-400">{alloc.batch.code}</P>
                           </div>
-                          <div className="mt-0.5 text-xs text-slate-400">
-                            {alloc.estimatedMinutes
-                              ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m duration`
-                              : 'Standard Duration'}
+                        ) : (
+                          <Span className="text-slate-400">{EM_DASH}</Span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                        {formatDateIST(alloc.startDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle font-medium text-slate-800">
+                        {formatDateIST(alloc.dueDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full rounded-full bg-blue-600 transition-all"
+                              style={{
+                                width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
+                              }}
+                            />
                           </div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="font-semibold text-slate-900">
-                            {alloc.user?.name ?? 'Individual Mentee'}
-                          </div>
-                          <div className="text-xs text-slate-400">{alloc.user?.email}</div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          {alloc.batch ? (
-                            <div>
-                              <div className="font-medium text-slate-800">{alloc.batch.name}</div>
-                              <div className="text-xs text-slate-400">{alloc.batch.code}</div>
-                            </div>
-                          ) : (
-                            <Span className="text-slate-400">{EM_DASH}</Span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 align-middle font-medium text-slate-800">
-                          {formatDateIST(alloc.startDate)}
-                        </td>
-                        <td className="px-4 py-4 align-middle font-medium text-slate-800">
-                          {formatDateIST(alloc.dueDate)}
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-blue-600 transition-all"
-                                style={{
-                                  width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
-                                }}
-                              />
-                            </div>
-                            <Span className="w-9 text-right text-xs font-bold text-slate-700">
-                              {alloc.progressPercent}%
-                            </Span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 align-middle">
-                          <AllocationStatusBadge
-                            status={alloc.status}
-                            isOverdue={alloc.isOverdue}
-                          />
-                        </td>
-                        <td className="py-4 pr-6 pl-4 text-right align-middle">
-                          {userRole === 'SUPER_ADMIN' ? (
-                            <div className="relative flex items-center justify-end">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  setOpenActionMenuId(
-                                    openActionMenuId === alloc.id ? null : alloc.id,
-                                  )
-                                }
-                                className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                                title="Allocation actions"
-                                aria-label="Allocation actions"
-                              >
-                                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                </svg>
-                              </Button>
+                          <Span className="w-9 text-right text-xs font-bold text-slate-700">
+                            {alloc.progressPercent}%
+                          </Span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-4 align-middle">
+                        <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
+                      </TableCell>
+                      <TableCell className="py-4 pr-6 pl-4 text-right align-middle">
+                        {userRole === 'SUPER_ADMIN' ? (
+                          <div className="relative flex items-center justify-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setOpenActionMenuId(openActionMenuId === alloc.id ? null : alloc.id)
+                              }
+                              className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                              title="Allocation actions"
+                              aria-label="Allocation actions"
+                            >
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </Button>
 
-                              {openActionMenuId === alloc.id && (
-                                <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
-                                  <button
-                                    type="button"
-                                    disabled={isTerminalAllocationStatus(alloc.status)}
-                                    onClick={() => {
-                                      setOpenActionMenuId(null);
-                                      setEditingAllocation(alloc);
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            {openActionMenuId === alloc.id && (
+                              <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setEditingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-slate-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
                                   >
-                                    <svg
-                                      className="h-3.5 w-3.5 text-slate-600"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                      />
-                                    </svg>
-                                    <Span>Edit Dates</Span>
-                                  </button>
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                  <Span>Edit Dates</Span>
+                                </Button>
 
-                                  <button
-                                    type="button"
-                                    disabled={isTerminalAllocationStatus(alloc.status)}
-                                    onClick={() => {
-                                      setOpenActionMenuId(null);
-                                      setOverridingAllocation(alloc);
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setOverridingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-slate-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
                                   >
-                                    <svg
-                                      className="h-3.5 w-3.5 text-slate-600"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
-                                    <Span>Overrides</Span>
-                                  </button>
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  <Span>Overrides</Span>
+                                </Button>
 
-                                  <div className="my-1 border-t border-slate-100" />
+                                <div className="my-1 border-t border-slate-100" />
 
-                                  <button
-                                    type="button"
-                                    disabled={isTerminalAllocationStatus(alloc.status)}
-                                    onClick={() => {
-                                      setOpenActionMenuId(null);
-                                      setRevokingAllocation(alloc);
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isTerminalAllocationStatus(alloc.status)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setRevokingAllocation(alloc);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-red-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
                                   >
-                                    <svg
-                                      className="h-3.5 w-3.5 text-red-500"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                      />
-                                    </svg>
-                                    <Span>Revoke</Span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <Span className="text-xs text-slate-400">View only</Span>
-                          )}
-                        </td>
-                      </tr>
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                  <Span>Revoke</Span>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Span className="text-xs text-slate-400">View only</Span>
+                        )}
+                      </TableCell>
+                    </TableRow>
 
-                      {/* Expandable Cadet Breakdown Drawer */}
-                      {isExpanded ? (
-                        <tr>
-                          <td colSpan={9} className="bg-slate-50/80 p-0">
-                            <div className="border-t border-b border-slate-200/80 px-10 py-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Span className="text-xs font-bold text-slate-700 uppercase">
-                                    Enrolled Mentee Milestone Telemetry
-                                  </Span>
-                                  <Span className="text-xs text-slate-400">
-                                    • Active subscriber details
-                                  </Span>
-                                </div>
-                                <Span className="text-xs text-slate-500">
-                                  Allocation ID: {alloc.id.slice(0, 8)}...
+                    {/* Expandable Cadet Breakdown Drawer */}
+                    {isExpanded ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="bg-slate-50/80 p-0">
+                          <div className="border-t border-b border-slate-200/80 px-10 py-4">
+                            <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Span className="text-xs font-bold text-slate-700 uppercase">
+                                  Enrolled Mentee Milestone Telemetry
+                                </Span>
+                                <Span className="text-xs text-slate-400">
+                                  • Active subscriber details
                                 </Span>
                               </div>
+                              <Span className="text-xs text-slate-500">
+                                Allocation ID: {alloc.id.slice(0, 8)}...
+                              </Span>
+                            </div>
 
-                              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-                                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                                      {alloc.user?.name
-                                        ? alloc.user.name.slice(0, 2).toUpperCase()
-                                        : 'ME'}
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-semibold text-slate-900">
-                                        {alloc.user?.name ?? 'Assigned Mentee'}
-                                      </div>
-                                      <div className="text-xs text-slate-400">
-                                        {alloc.user?.email}
-                                      </div>
-                                    </div>
+                            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                                    {alloc.user?.name
+                                      ? alloc.user.name.slice(0, 2).toUpperCase()
+                                      : 'ME'}
                                   </div>
-
-                                  <div className="max-w-sm flex-1">
-                                    <div className="text-xs font-medium text-slate-700">
-                                      Course Allocation Pace
-                                    </div>
-                                    <div className="mt-0.5 text-[11px] text-slate-400">
-                                      {alloc.progressPercent >= 100
-                                        ? 'All active course topics verified & completed'
-                                        : `${alloc.progressPercent}% active curriculum completed`}
-                                    </div>
+                                  <div>
+                                    <P className="text-sm font-semibold text-slate-900">
+                                      {alloc.user?.name ?? 'Assigned Mentee'}
+                                    </P>
+                                    <P className="text-xs text-slate-400">{alloc.user?.email}</P>
                                   </div>
+                                </div>
 
-                                  <div className="flex w-44 items-center gap-3">
-                                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                                      <div
-                                        className="h-full rounded-full bg-emerald-500"
-                                        style={{ width: `${alloc.progressPercent}%` }}
-                                      />
-                                    </div>
-                                    <Span className="w-9 text-right text-xs font-bold text-slate-600">
-                                      {alloc.progressPercent}%
-                                    </Span>
-                                  </div>
+                                <div className="max-w-sm flex-1">
+                                  <P className="text-xs font-medium text-slate-700">
+                                    Course Allocation Pace
+                                  </P>
+                                  <P className="mt-0.5 text-[11px] text-slate-400">
+                                    {alloc.progressPercent >= 100
+                                      ? 'All active course topics verified & completed'
+                                      : `${alloc.progressPercent}% active curriculum completed`}
+                                  </P>
+                                </div>
 
-                                  <div className="w-28 text-center">
-                                    <AllocationStatusBadge
-                                      status={alloc.status}
-                                      isOverdue={alloc.isOverdue}
+                                <div className="flex w-44 items-center gap-3">
+                                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                    <div
+                                      className="h-full rounded-full bg-emerald-500"
+                                      style={{ width: `${alloc.progressPercent}%` }}
                                     />
                                   </div>
-
-                                  {userRole === 'SUPER_ADMIN' ? (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setOverridingAllocation(alloc)}
-                                      className="text-xs"
-                                    >
-                                      Overrides
-                                    </Button>
-                                  ) : (
-                                    <Span className="text-xs text-slate-400">View only</Span>
-                                  )}
+                                  <Span className="w-9 text-right text-xs font-bold text-slate-600">
+                                    {alloc.progressPercent}%
+                                  </Span>
                                 </div>
+
+                                <div className="w-28 text-center">
+                                  <AllocationStatusBadge
+                                    status={alloc.status}
+                                    isOverdue={alloc.isOverdue}
+                                  />
+                                </div>
+
+                                {userRole === 'SUPER_ADMIN' ? (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setOverridingAllocation(alloc)}
+                                    className="text-xs"
+                                  >
+                                    Overrides
+                                  </Button>
+                                ) : (
+                                  <Span className="text-xs text-slate-400">View only</Span>
+                                )}
                               </div>
                             </div>
-                          </td>
-                        </tr>
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
 
         {/* Attached Pagination Controls */}
         {pagination && pagination.total > 0 && (
@@ -666,7 +673,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             pageSizeOptions={[10, 15, 25, 50]}
           />
         )}
-      </div>
+      </TableContainer>
 
       {/* Modals */}
       <AssignCourseModal
