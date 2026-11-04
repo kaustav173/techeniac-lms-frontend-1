@@ -15,6 +15,7 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly value: T;
   readonly onChange: (value: T) => void;
   readonly options: readonly SingleSelectOption<T>[];
+  readonly label?: string | undefined;
   readonly placeholder?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
@@ -31,6 +32,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
   value,
   onChange,
   options,
+  label,
   placeholder = 'Select an option',
   disabled = false,
   className,
@@ -106,7 +108,16 @@ export function SingleSelectDropdown<T extends string | number = string>({
           triggerClassName,
         )}
       >
-        <Span className="truncate">{displayLabel}</Span>
+        <Span className="truncate">
+          {label ? (
+            <>
+              <Span className="font-normal text-slate-500">{label}: </Span>
+              <Span className="font-semibold text-slate-900">{displayLabel}</Span>
+            </>
+          ) : (
+            displayLabel
+          )}
+        </Span>
         <svg
           className={cn(
             'shrink-0 text-slate-400 transition-transform duration-200',

@@ -55,7 +55,17 @@ export interface PerformanceFilterParams {
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
   readonly sortBy?:
-    ('averageMarks' | 'completionPercentage' | 'onTimeRate' | 'overdueCount' | 'name') | undefined;
+    | (
+        | 'averageMarks'
+        | 'completionPercentage'
+        | 'onTimeRate'
+        | 'overdueCount'
+        | 'name'
+        | 'batch'
+        | 'courses'
+        | 'grade'
+      )
+    | undefined;
   readonly sortOrder?: ('ASC' | 'DESC') | undefined;
 }
 
@@ -115,11 +125,39 @@ export const performanceService = {
     if (params) {
       options.params = params as Record<string, string | number | boolean | undefined>;
     }
-    const res = await apiClient<{ success: boolean; data: PaginatedPerformanceData }>(
-      '/performance',
-      options,
-    );
-    return res.data;
+    const res = await apiClient<{
+      success: boolean;
+      data: {
+        metrics: PerformanceOverviewMetrics;
+        mentees: readonly MenteePerformanceRow[];
+        pagination?: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      };
+      meta?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>('/performance', options);
+
+    const pagination = res.data.pagination ??
+      res.meta ?? {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        total: res.data.mentees?.length ?? 0,
+        totalPages: Math.ceil((res.data.mentees?.length ?? 0) / (params?.limit ?? 10)) || 1,
+      };
+
+    return {
+      metrics: res.data.metrics,
+      mentees: res.data.mentees ?? [],
+      pagination,
+    };
   },
 
   async getLearningHistory(batchId?: string): Promise<LearningHistoryResult> {

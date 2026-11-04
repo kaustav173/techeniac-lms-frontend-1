@@ -30,8 +30,8 @@ export function PerformanceDashboardShell({
   const [filters, setFilters] = useState<PerformanceFilterParams>({
     page: 1,
     limit: 10,
-    sortBy: 'name',
-    sortOrder: 'DESC',
+    sortBy: undefined,
+    sortOrder: undefined,
   });
 
   const { data, isLoading, isFetching, isError, error, refetch } = usePerformanceQuery(filters);
@@ -45,8 +45,8 @@ export function PerformanceDashboardShell({
     setFilters({
       page: 1,
       limit: 10,
-      sortBy: 'name',
-      sortOrder: 'DESC',
+      sortBy: undefined,
+      sortOrder: undefined,
     });
   };
 
@@ -94,10 +94,17 @@ export function PerformanceDashboardShell({
           {/* Paginated Mentees Table */}
           <PerformanceTable
             mentees={data?.mentees ?? []}
-            total={data?.pagination?.total ?? 0}
-            page={data?.pagination?.page ?? 1}
-            limit={data?.pagination?.limit ?? 10}
-            totalPages={data?.pagination?.totalPages ?? 1}
+            total={data?.pagination?.total || (data?.mentees?.length ?? 0)}
+            page={data?.pagination?.page ?? filters.page ?? 1}
+            limit={data?.pagination?.limit ?? filters.limit ?? 10}
+            totalPages={
+              data?.pagination?.totalPages ||
+              Math.ceil(
+                (data?.pagination?.total || (data?.mentees?.length ?? 0)) /
+                  (data?.pagination?.limit ?? filters.limit ?? 10),
+              ) ||
+              1
+            }
             sortBy={filters.sortBy}
             sortOrder={filters.sortOrder}
             onSortChange={(sortBy, sortOrder) => handleFilterChange({ sortBy, sortOrder, page: 1 })}
