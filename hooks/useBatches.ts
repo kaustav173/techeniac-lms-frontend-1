@@ -254,7 +254,7 @@ export function useBatchesMentors(batchIds: string[]) {
 export function useAllBatchMembers(activeBatchIds?: string[]) {
   const shouldFetchSummaries = !activeBatchIds || activeBatchIds.length === 0;
   const { data: batchesResponse, isLoading: isBatchesLoading } = useBatchesList(
-    { limit: 100 },
+    { limit: 25 },
     { enabled: shouldFetchSummaries },
   );
 
@@ -271,7 +271,7 @@ export function useAllBatchMembers(activeBatchIds?: string[]) {
         b.status === 'ON_HOLD',
     );
     const selected = populated.length > 0 ? populated : items;
-    return selected.slice(0, 25).map((b) => b.id);
+    return selected.slice(0, 15).map((b) => b.id);
   }, [activeBatchIds, batchesResponse]);
 
   const batchDetailsQueries = useQueries({

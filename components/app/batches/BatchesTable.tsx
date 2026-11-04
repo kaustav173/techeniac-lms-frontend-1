@@ -387,6 +387,7 @@ export function BatchesTable() {
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
           isLoading={isTableLoading}
+          itemLabel="batches"
           pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
         />
       </TableContainer>

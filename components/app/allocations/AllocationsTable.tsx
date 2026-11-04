@@ -312,13 +312,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={cn(
-              'divide-y divide-slate-100',
-              isFetching && !isLoading && 'opacity-60 transition-opacity',
-            )}
-          >
-            {isLoading ? (
+          <TableBody className="divide-y divide-slate-100">
+            {isLoading || isFetching ? (
               Array.from({ length: 6 }).map((_, idx) => (
                 <TableRow key={`alloc-skel-${idx}`} className="h-16">
                   <TableCell className="py-4 pr-2 pl-6">

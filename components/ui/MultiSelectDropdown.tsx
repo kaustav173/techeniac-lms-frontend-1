@@ -21,6 +21,8 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly placeholder?: string | undefined;
   readonly className?: string | undefined;
   readonly align?: 'left' | 'right' | undefined;
+  readonly onScrollEnd?: (() => void) | undefined;
+  readonly isLoadingMore?: boolean | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -31,6 +33,8 @@ export function MultiSelectDropdown<T extends string = string>({
   singleSelect = false,
   className,
   align = 'right',
+  onScrollEnd,
+  isLoadingMore = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,7 +216,16 @@ export function MultiSelectDropdown<T extends string = string>({
           ) : null}
 
           {/* Option List */}
-          <div className="mt-1 max-h-52 space-y-0.5 overflow-y-auto">
+          <div
+            className="mt-1 max-h-52 space-y-0.5 overflow-y-auto"
+            onScroll={(e) => {
+              if (!onScrollEnd) return;
+              const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+              if (scrollHeight - scrollTop - clientHeight < 25) {
+                onScrollEnd();
+              }
+            }}
+          >
             {filteredOptions.length === 0 ? (
               <Span className="block px-2.5 py-3 text-center text-sm text-slate-400">
                 No matching options
@@ -266,6 +279,11 @@ export function MultiSelectDropdown<T extends string = string>({
                 );
               })
             )}
+            {isLoadingMore ? (
+              <div className="flex items-center justify-center py-2 text-xs text-slate-400">
+                <Span>Loading more...</Span>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
