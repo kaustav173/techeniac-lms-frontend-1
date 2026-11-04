@@ -96,7 +96,7 @@ export function DebouncedSearchInput({
         onChange={handleChange}
         placeholder={placeholder}
         className={cn(
-          'h-11 w-full rounded-xl pl-10 text-sm font-medium placeholder:font-medium placeholder:text-slate-400',
+          'h-11 w-full rounded-xl pl-10 text-sm font-medium placeholder:font-normal placeholder:text-slate-400',
           hasValue && 'pr-10',
         )}
       />

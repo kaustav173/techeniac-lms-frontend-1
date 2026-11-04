@@ -216,9 +216,9 @@ export function AuditLogTable() {
     <div className="space-y-6">
       {/* Filters Bar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
           {/* 1. Search across Type, Activity, Actor, Target Entity (with Search Icon) */}
-          <div className="sm:col-span-2 lg:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-1">
             <DebouncedSearchInput
               value={filters.search ?? ''}
               onSearchChange={handleSearchChange}
