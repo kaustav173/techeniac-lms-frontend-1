@@ -337,7 +337,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
           {/* Contact Metadata */}
           <div className="mt-6 rounded-2xl border border-[#E1E6EC] bg-[#F9FAFB] p-4 text-left">
             <div className="flex items-center justify-between text-xs sm:text-sm">
-              <span className="flex items-center gap-2 text-[#667085]">
+              <Span className="flex items-center gap-2 text-[#667085]">
                 <svg
                   className="h-4 w-4 shrink-0 text-slate-400"
                   fill="none"
@@ -352,9 +352,9 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                Email
-              </span>
-              <span className="truncate font-semibold text-[#111827]">{user.email}</span>
+                <Span>Email</Span>
+              </Span>
+              <Span className="truncate font-semibold text-[#111827]">{user.email}</Span>
             </div>
           </div>
         </div>

@@ -95,20 +95,22 @@ function SubmissionActionMenu({
 
   return (
     <div className="relative inline-flex items-center justify-end text-left" ref={menuRef}>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-label={`Actions for submission by ${submission.mentee.name}`}
         onClick={handleToggle}
         onMouseEnter={onPrefetch}
         onFocus={onPrefetch}
-        className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#E1E6EC] bg-white text-[#667085] shadow-2xs transition-colors hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+        className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#E1E6EC] bg-white p-0 text-[#667085] shadow-2xs hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
         </svg>
-      </button>
+      </Button>
 
       {isOpen ? (
         <div
@@ -118,14 +120,16 @@ function SubmissionActionMenu({
             shouldOpenUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
           )}
         >
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             role="menuitem"
             onClick={() => {
               setIsOpen(false);
               onOpenReview();
             }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
+            className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] hover:bg-blue-50/80 hover:text-[#0044D3]"
           >
             <svg
               className="h-4 w-4 text-[#0044D3]"
@@ -144,7 +148,7 @@ function SubmissionActionMenu({
             <Span>
               {submission.status === SubmissionStatus.GRADED ? 'View / Edit' : 'Review & Grade'}
             </Span>
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>
@@ -293,8 +297,10 @@ export function SubmissionQueueTable() {
             <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
               <tr>
                 <th className="px-6 py-3.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setNameSort((prev) => {
                         if (prev === null) return 'asc';
@@ -302,7 +308,7 @@ export function SubmissionQueueTable() {
                         return null;
                       });
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                    className="inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-xs font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                     title={
                       nameSort === 'asc'
                         ? 'Sorted A to Z (click for Z to A)'
@@ -311,7 +317,7 @@ export function SubmissionQueueTable() {
                           : 'Sort by mentee name'
                     }
                   >
-                    <span>Mentee</span>
+                    <Span>Mentee</Span>
                     <svg
                       className={cn('h-3.5 w-3.5', nameSort ? 'text-[#0044D3]' : 'text-slate-400')}
                       fill="none"
@@ -326,7 +332,7 @@ export function SubmissionQueueTable() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       )}
                     </svg>
-                  </button>
+                  </Button>
                 </th>
                 <th className="px-4 py-3.5 text-xs font-semibold text-[#667085]">
                   <Span>Assignment & Course</Span>
@@ -335,21 +341,23 @@ export function SubmissionQueueTable() {
                   <Span>Version</Span>
                 </th>
                 <th className="px-4 py-3.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setNameSort(null);
                       setSortDirection((prev) => (prev === 'latest' ? 'oldest' : 'latest'));
                       setPage(1);
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                    className="inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-xs font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                     title={
                       sortDirection === 'latest'
                         ? 'Sort by date (currently newest first)'
                         : 'Sort by date (currently oldest first)'
                     }
                   >
-                    <span>Submitted</span>
+                    <Span>Submitted</Span>
                     <svg
                       className="h-3.5 w-3.5 text-[#0044D3]"
                       fill="none"
@@ -364,7 +372,7 @@ export function SubmissionQueueTable() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                       )}
                     </svg>
-                  </button>
+                  </Button>
                 </th>
                 <th className="px-4 py-3.5 text-xs font-semibold text-[#667085]">
                   <Span>Status & Score</Span>
