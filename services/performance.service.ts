@@ -123,7 +123,46 @@ export const performanceService = {
   async getPerformance(params?: PerformanceFilterParams): Promise<PaginatedPerformanceData> {
     const options: RequestOptions = {};
     if (params) {
-      options.params = params as Record<string, string | number | boolean | undefined>;
+      const sanitizedParams: Record<string, string | number | undefined> = {};
+
+      if (params.page !== undefined && params.page !== null) {
+        sanitizedParams.page = params.page;
+      }
+      if (params.limit !== undefined && params.limit !== null) {
+        sanitizedParams.limit = params.limit;
+      }
+      if (params.sortBy) {
+        sanitizedParams.sortBy = params.sortBy;
+      }
+      if (params.sortOrder) {
+        sanitizedParams.sortOrder = params.sortOrder;
+      }
+      if (params.search && params.search.trim() !== '') {
+        sanitizedParams.search = params.search.trim();
+      }
+      if (params.batchId && params.batchId.trim() !== '') {
+        sanitizedParams.batchId = params.batchId.trim();
+      }
+      if (params.courseId && params.courseId.trim() !== '') {
+        sanitizedParams.courseId = params.courseId.trim();
+      }
+      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
+        sanitizedParams.gradeRange = params.gradeRange.trim();
+      }
+      if (params.status && params.status.trim() !== '') {
+        sanitizedParams.status = params.status.trim();
+      }
+      if (params.startDate && params.startDate.trim() !== '') {
+        sanitizedParams.startDate = params.startDate.trim();
+      }
+      if (params.endDate && params.endDate.trim() !== '') {
+        sanitizedParams.endDate = params.endDate.trim();
+      }
+      if (params.mentorId && params.mentorId.trim() !== '') {
+        sanitizedParams.mentorId = params.mentorId.trim();
+      }
+
+      options.params = sanitizedParams;
     }
     const res = await apiClient<{
       success: boolean;
@@ -177,15 +216,23 @@ export const performanceService = {
       format: 'csv',
     };
     if (params) {
-      if (params.search !== undefined) queryParams.search = params.search;
-      if (params.batchId !== undefined) queryParams.batchId = params.batchId;
-      if (params.courseId !== undefined) queryParams.courseId = params.courseId;
-      if (params.status !== undefined) queryParams.status = params.status;
-      if (params.gradeRange !== undefined) queryParams.gradeRange = params.gradeRange;
-      if (params.sortBy !== undefined) queryParams.sortBy = params.sortBy;
-      if (params.sortOrder !== undefined) queryParams.sortOrder = params.sortOrder;
-      if (params.startDate !== undefined) queryParams.startDate = params.startDate;
-      if (params.endDate !== undefined) queryParams.endDate = params.endDate;
+      if (params.sortBy) queryParams.sortBy = params.sortBy;
+      if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
+      if (params.search && params.search.trim() !== '') queryParams.search = params.search.trim();
+      if (params.batchId && params.batchId.trim() !== '')
+        queryParams.batchId = params.batchId.trim();
+      if (params.courseId && params.courseId.trim() !== '')
+        queryParams.courseId = params.courseId.trim();
+      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
+        queryParams.gradeRange = params.gradeRange.trim();
+      }
+      if (params.status && params.status.trim() !== '') queryParams.status = params.status.trim();
+      if (params.startDate && params.startDate.trim() !== '')
+        queryParams.startDate = params.startDate.trim();
+      if (params.endDate && params.endDate.trim() !== '')
+        queryParams.endDate = params.endDate.trim();
+      if (params.mentorId && params.mentorId.trim() !== '')
+        queryParams.mentorId = params.mentorId.trim();
     }
 
     const blob = await apiBlobClient('/performance/export', {

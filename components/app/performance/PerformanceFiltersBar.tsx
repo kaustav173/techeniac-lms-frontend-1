@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -90,6 +90,26 @@ export function PerformanceFiltersBar({
     [courses, isLoadingCourses, coursesError],
   );
 
+  const [searchInput, setSearchInput] = useState(filters.search ?? '');
+  const [prevSearch, setPrevSearch] = useState(filters.search);
+
+  if (prevSearch !== filters.search) {
+    setPrevSearch(filters.search);
+    setSearchInput(filters.search ?? '');
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const current = filters.search?.trim() ?? '';
+      if (trimmed !== current) {
+        onFilterChange({ search: trimmed || undefined, page: 1 });
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, filters.search, onFilterChange]);
+
   const hasActiveFilters = Boolean(
     (filters.search && filters.search.trim() !== '') ||
     (filters.batchId && filters.batchId !== '') ||
@@ -121,9 +141,9 @@ export function PerformanceFiltersBar({
             </svg>
             <Input
               type="search"
-              placeholder="Search mentee by name or email..."
-              value={filters.search ?? ''}
-              onChange={(e) => onFilterChange({ search: e.target.value || undefined, page: 1 })}
+              placeholder="Search by name or email..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="h-10 pl-9 text-xs"
             />
           </div>
@@ -214,7 +234,7 @@ export function PerformanceFiltersBar({
             <button
               type="button"
               onClick={onReset}
-              className="flex h-10 w-8 shrink-0 items-center justify-center text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
               title="Clear filters"
               aria-label="Clear filters"
             >
@@ -223,7 +243,7 @@ export function PerformanceFiltersBar({
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 aria-hidden="true"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

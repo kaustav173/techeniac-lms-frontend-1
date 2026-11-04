@@ -78,6 +78,12 @@ export function SingleSelectDropdown<T extends string | number = string>({
   );
 
   const displayLabel = selectedOption ? selectedOption.label : placeholder;
+  const isDefaultOrAll =
+    !value ||
+    value === '' ||
+    value === 'ALL' ||
+    selectedOption?.value === '' ||
+    selectedOption?.value === 'ALL';
 
   const handleSelect = (optionValue: T) => {
     onChange(optionValue);
@@ -110,10 +116,14 @@ export function SingleSelectDropdown<T extends string | number = string>({
       >
         <Span className="truncate">
           {label ? (
-            <>
-              <Span className="font-normal text-slate-500">{label}: </Span>
-              <Span className="font-semibold text-slate-900">{displayLabel}</Span>
-            </>
+            isDefaultOrAll ? (
+              <Span className="font-semibold text-slate-700">{label}</Span>
+            ) : (
+              <>
+                <Span className="font-normal text-slate-500">{label}: </Span>
+                <Span className="font-semibold text-slate-900">{displayLabel}</Span>
+              </>
+            )
           ) : (
             displayLabel
           )}

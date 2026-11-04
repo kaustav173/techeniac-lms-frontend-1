@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import type { PortalNavConfig } from '@/components/app/navigation/portal-nav.config';
 import { GradeDistributionChart } from '@/components/app/performance/GradeDistributionChart';
 import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceFiltersBar';
-import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
@@ -63,15 +62,6 @@ export function PerformanceDashboardShell({
       <Header title={title} {...navConfig} />
       <DashboardContent className="space-y-6">
         <div className="flex flex-col gap-6">
-          {/* KPI Metrics Summary Cards */}
-          <PerformanceMetricsCards
-            metrics={data?.metrics}
-            isLoading={isLoading}
-            isError={isError}
-            error={error}
-            onRetry={handleRetry}
-          />
-
           {/* Grade Scale Distribution Chart */}
           <GradeDistributionChart
             distribution={data?.metrics?.gradeDistribution}

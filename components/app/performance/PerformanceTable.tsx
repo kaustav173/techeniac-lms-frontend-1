@@ -68,7 +68,7 @@ export function PerformanceTable({
     if (!isActive) {
       return (
         <svg
-          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          className="h-4 w-4 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -81,7 +81,7 @@ export function PerformanceTable({
     }
     return (
       <svg
-        className="h-3.5 w-3.5 text-[#0044D3]"
+        className="h-4 w-4 text-[#0044D3]"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -105,22 +105,9 @@ export function PerformanceTable({
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
-        <div className="space-y-4 p-6">
-          <Skeleton className="h-6 w-48" />
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-xl" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isTableLoading = isLoading || isFetching;
 
-  if (mentees.length === 0) {
+  if (!isTableLoading && mentees.length === 0) {
     return (
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
@@ -134,10 +121,6 @@ export function PerformanceTable({
           </svg>
         </div>
         <P className="mt-3 text-sm font-semibold text-slate-800">No Mentees Found</P>
-        <P className="mt-1 text-xs text-slate-500">
-          No performance records match your current filter selection. Try adjusting or resetting
-          your filters.
-        </P>
       </div>
     );
   }
@@ -145,140 +128,112 @@ export function PerformanceTable({
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-xs">
       <div className="overflow-x-auto rounded-t-3xl">
-        <Table className="w-full text-left text-xs text-slate-600">
-          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold text-[#667085]">
+        <Table className="w-full text-left text-sm text-slate-600">
+          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-sm font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-6 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-6 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('name')}
-                  className="group inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'name' && sortOrder
                       ? `Sorted by name (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
                       : 'Sort by name'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Mentee
                   </Span>
                   {renderSortIcon('name')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
-                <button
-                  type="button"
-                  onClick={() => handleSort('batch')}
-                  className="group inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
-                  title={
-                    sortBy === 'batch' && sortOrder
-                      ? `Sorted by batch (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
-                      : 'Sort by batch'
-                  }
-                >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                    Batch
-                  </Span>
-                  {renderSortIcon('batch')}
-                </button>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                Batch
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
-                <button
-                  type="button"
-                  onClick={() => handleSort('courses')}
-                  className="group inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
-                  title={
-                    sortBy === 'courses' && sortOrder
-                      ? `Sorted by courses (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                      : 'Sort by courses'
-                  }
-                >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                    Courses
-                  </Span>
-                  {renderSortIcon('courses')}
-                </button>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                Courses
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('completionPercentage')}
-                  className="group inline-flex items-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'completionPercentage' && sortOrder
                       ? `Sorted by completion (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by completion'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Completion
                   </Span>
                   {renderSortIcon('completionPercentage')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('averageMarks')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'averageMarks' && sortOrder
                       ? `Sorted by average score (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by average score'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Avg Score
                   </Span>
                   {renderSortIcon('averageMarks')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('onTimeRate')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'onTimeRate' && sortOrder
                       ? `Sorted by submissions on-time rate (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by submissions'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Submissions
                   </Span>
                   {renderSortIcon('onTimeRate')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('overdueCount')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'overdueCount' && sortOrder
                       ? `Sorted by overdue tasks (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by overdue tasks'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Overdue
                   </Span>
                   {renderSortIcon('overdueCount')}
                 </button>
               </TableHead>
-              <TableHead className="px-6 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
+              <TableHead className="px-6 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                 <button
                   type="button"
                   onClick={() => handleSort('grade')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'grade' && sortOrder
                       ? `Sorted by grade (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by grade'
                   }
                 >
-                  <Span className="text-xs font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
                     Grade
                   </Span>
                   {renderSortIcon('grade')}
@@ -286,93 +241,147 @@ export function PerformanceTable({
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody
-            className={`divide-y divide-slate-100 ${
-              isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
-            }`}
-          >
-            {mentees.map((row) => (
-              <TableRow key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
-                {/* Mentee Identity */}
-                <TableCell className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <Span className="font-semibold text-slate-900">{row.menteeName}</Span>
-                    <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
-                  </div>
-                </TableCell>
+          <TableBody className="divide-y divide-slate-100">
+            {isTableLoading
+              ? Array.from({ length: Math.min(Math.max(limit || 5, 5), 8) }).map((_, idx) => (
+                  <TableRow key={`perf-skel-${idx}`} className="h-16">
+                    {/* Mentee Identity */}
+                    <TableCell className="px-6 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-4 w-32 rounded-md" />
+                        <Skeleton className="h-3 w-44 rounded-md" />
+                      </div>
+                    </TableCell>
 
-                {/* Batch Name */}
-                <TableCell className="px-4 py-4">
-                  <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                    {row.batchName ?? 'Unbatched'}
-                  </Span>
-                </TableCell>
+                    {/* Batch Name */}
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-5 w-20 rounded-md" />
+                    </TableCell>
 
-                {/* Courses Count */}
-                <TableCell className="px-4 py-4">
-                  <Span className="font-bold text-slate-800">{row.completedCoursesCount}</Span>
-                  <Span className="text-slate-400"> / {row.assignedCoursesCount} completed</Span>
-                </TableCell>
+                    {/* Courses Count */}
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </TableCell>
 
-                {/* Completion Progress Bar */}
-                <TableCell className="px-4 py-4">
-                  <div className="flex w-32 flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <Span className="font-bold text-slate-700">{row.completionPercentage}%</Span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, row.completionPercentage))}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </TableCell>
+                    {/* Completion Progress Bar */}
+                    <TableCell className="px-4 py-4">
+                      <div className="flex w-32 flex-col gap-1.5">
+                        <Skeleton className="h-3 w-10 rounded-md" />
+                        <Skeleton className="h-1.5 w-full rounded-full" />
+                      </div>
+                    </TableCell>
 
-                {/* Average Marks */}
-                <TableCell className="px-4 py-4 text-center">
-                  {row.averageMarks !== null ? (
-                    <Span className="font-bold text-slate-900">{row.averageMarks}</Span>
-                  ) : (
-                    <Span className="text-slate-400">—</Span>
-                  )}
-                </TableCell>
+                    {/* Average Marks */}
+                    <TableCell className="px-4 py-4 text-center">
+                      <Skeleton className="mx-auto h-4 w-10 rounded-md" />
+                    </TableCell>
 
-                {/* Submissions & On-time Rate */}
-                <TableCell className="px-4 py-4 text-center">
-                  <div className="flex flex-col items-center">
-                    <Span className="font-bold text-slate-800">{row.totalSubmissions}</Span>
-                    <Span className="text-xs font-semibold text-emerald-600">
-                      {row.onTimeRate}% on-time
-                    </Span>
-                  </div>
-                </TableCell>
+                    {/* Submissions & On-time Rate */}
+                    <TableCell className="px-4 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <Skeleton className="h-4 w-8 rounded-md" />
+                        <Skeleton className="h-3 w-16 rounded-md" />
+                      </div>
+                    </TableCell>
 
-                {/* Overdue Count */}
-                <TableCell className="px-4 py-4 text-center">
-                  {row.overdueCount > 0 ? (
-                    <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
-                      {row.overdueCount} overdue
-                    </Span>
-                  ) : (
-                    <Span className="text-xs text-slate-400">0</Span>
-                  )}
-                </TableCell>
+                    {/* Overdue Count */}
+                    <TableCell className="px-4 py-4 text-center">
+                      <Skeleton className="mx-auto h-5 w-16 rounded-full" />
+                    </TableCell>
 
-                {/* Latest Grade Badge */}
-                <TableCell className="px-6 py-4 text-center">
-                  {row.latestGrade ? (
-                    <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
-                      {row.latestGrade}
-                    </Span>
-                  ) : (
-                    <Span className="text-xs text-slate-400">—</Span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+                    {/* Latest Grade Badge */}
+                    <TableCell className="px-6 py-4 text-center">
+                      <Skeleton className="mx-auto h-6 w-9 rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : mentees.map((row) => (
+                  <TableRow key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
+                    {/* Mentee Identity */}
+                    <TableCell className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <Span className="font-semibold text-slate-900">{row.menteeName}</Span>
+                        <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
+                      </div>
+                    </TableCell>
+
+                    {/* Batch Name */}
+                    <TableCell className="px-4 py-4">
+                      <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                        {row.batchName ?? 'Unbatched'}
+                      </Span>
+                    </TableCell>
+
+                    {/* Courses Count */}
+                    <TableCell className="px-4 py-4">
+                      <Span className="font-bold text-slate-800">{row.completedCoursesCount}</Span>
+                      <Span className="text-slate-400">
+                        {' '}
+                        / {row.assignedCoursesCount} completed
+                      </Span>
+                    </TableCell>
+
+                    {/* Completion Progress Bar */}
+                    <TableCell className="px-4 py-4">
+                      <div className="flex w-32 flex-col gap-1">
+                        <div className="flex justify-between text-xs">
+                          <Span className="font-bold text-slate-700">
+                            {row.completionPercentage}%
+                          </Span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-blue-600"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, row.completionPercentage))}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Average Marks */}
+                    <TableCell className="px-4 py-4 text-center">
+                      {row.averageMarks !== null ? (
+                        <Span className="font-bold text-slate-900">{row.averageMarks}</Span>
+                      ) : (
+                        <Span className="text-slate-400">—</Span>
+                      )}
+                    </TableCell>
+
+                    {/* Submissions & On-time Rate */}
+                    <TableCell className="px-4 py-4 text-center">
+                      <div className="flex flex-col items-center">
+                        <Span className="font-bold text-slate-800">{row.totalSubmissions}</Span>
+                        <Span className="text-xs font-semibold text-emerald-600">
+                          {row.onTimeRate}% on-time
+                        </Span>
+                      </div>
+                    </TableCell>
+
+                    {/* Overdue Count */}
+                    <TableCell className="px-4 py-4 text-center">
+                      {row.overdueCount > 0 ? (
+                        <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
+                          {row.overdueCount} overdue
+                        </Span>
+                      ) : (
+                        <Span className="text-xs text-slate-400">0</Span>
+                      )}
+                    </TableCell>
+
+                    {/* Latest Grade Badge */}
+                    <TableCell className="px-6 py-4 text-center">
+                      {row.latestGrade ? (
+                        <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
+                          {row.latestGrade}
+                        </Span>
+                      ) : (
+                        <Span className="text-xs text-slate-400">—</Span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </div>

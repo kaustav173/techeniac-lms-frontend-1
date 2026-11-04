@@ -16,6 +16,8 @@ interface LearningHistoryViewProps {
   readonly history: LearningHistoryResult | undefined;
   readonly isLoading?: boolean;
   readonly isMentorPastView?: boolean;
+  readonly summaryOnly?: boolean;
+  readonly hideSummary?: boolean;
   readonly isError?: boolean;
   readonly error?: unknown;
   readonly onRetry?: () => void;
@@ -44,6 +46,8 @@ export function LearningHistoryView({
   history,
   isLoading = false,
   isMentorPastView = false,
+  summaryOnly = false,
+  hideSummary = false,
   isError = false,
   error,
   onRetry,
@@ -92,8 +96,8 @@ export function LearningHistoryView({
   }
 
   if (isLoading || !history || !summary || !user) {
-    return (
-      <div className="flex flex-col gap-6">
+    if (summaryOnly) {
+      return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div
@@ -106,6 +110,25 @@ export function LearningHistoryView({
             </div>
           ))}
         </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-6">
+        {!hideSummary && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs sm:p-6"
+              >
+                <Skeleton className="h-4 w-28 rounded-md" />
+                <Skeleton className="mt-3 h-8 w-16 rounded-md" />
+                <Skeleton className="mt-2 h-3.5 w-36 rounded-md" />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="h-64 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
           <Skeleton className="h-6 w-48 rounded-md" />
           <Skeleton className="mt-4 h-40 w-full rounded-xl" />
@@ -114,41 +137,9 @@ export function LearningHistoryView({
     );
   }
 
-  // Empty state handling
-  if (batches.length === 0) {
+  // Summary only mode (for dashboards)
+  if (summaryOnly) {
     return (
-      <div className="rounded-2xl border border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0044D3]">
-          <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.8"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-        </div>
-        <H3 className="mt-4 text-base font-bold text-[#111827]">
-          {isMentorPastView
-            ? 'No Past Mentee History Found'
-            : 'No Course Allocations or Grades Yet'}
-        </H3>
-        <P className="mx-auto mt-2 max-w-md text-xs text-[#667085]">
-          {isMentorPastView
-            ? 'You do not have any past course allocations or submission records from when you were enrolled as a mentee.'
-            : 'Your assigned curriculum, progress tracker, and assignment grades will appear here once allocated.'}
-        </P>
-      </div>
-    );
-  }
-
-  // Filter by selected batch
-  const displayedBatches =
-    selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
-
-  return (
-    <div className="flex flex-col gap-6">
-      {/* 1. Header Overview Summary Cards (Responsive 3-Card Grid) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {/* Total Allocations */}
         <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:p-6">
@@ -252,6 +243,150 @@ export function LearningHistoryView({
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Empty state handling
+  if (batches.length === 0) {
+    return (
+      <div className="rounded-2xl border border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0044D3]">
+          <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+        </div>
+        <H3 className="mt-4 text-base font-bold text-[#111827]">
+          {isMentorPastView
+            ? 'No Past Mentee History Found'
+            : 'No Course Allocations or Grades Yet'}
+        </H3>
+        {!isMentorPastView && (
+          <P className="mx-auto mt-2 max-w-md text-xs text-[#667085]">
+            Your assigned curriculum, progress tracker, and assignment grades will appear here once
+            allocated.
+          </P>
+        )}
+      </div>
+    );
+  }
+
+  // Filter by selected batch
+  const displayedBatches =
+    selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* 1. Header Overview Summary Cards (Responsive 3-Card Grid) */}
+      {!hideSummary && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {/* Total Allocations */}
+          <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+                  Courses Assigned
+                </Span>
+                <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827]">
+                  {summary.totalAllocations}
+                </H3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-4 space-y-1.5">
+              <span className="inline-flex w-fit items-center rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-1 text-xs font-semibold text-[#475467]">
+                {summary.completedAllocations} / {summary.totalAllocations} Completed
+              </span>
+              <p className="text-xs text-[#667085]">
+                {summary.totalAllocations > 0 &&
+                summary.completedAllocations === summary.totalAllocations
+                  ? 'All courses fully completed'
+                  : 'Assigned curriculum courses'}
+              </p>
+            </div>
+          </div>
+
+          {/* Overall Progress */}
+          <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+                  All Course Progress
+                </Span>
+                <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-[#0044D3]">
+                  {summary.overallProgress}%
+                </H3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-4 space-y-1.5">
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
+                <div
+                  className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.max(0, summary.overallProgress))}%` }}
+                />
+              </div>
+              <p className="text-xs text-[#667085]">
+                {summary.overallProgress === 100
+                  ? 'All assigned curriculum completed'
+                  : `${100 - summary.overallProgress}% remaining to complete`}
+              </p>
+            </div>
+          </div>
+
+          {/* Average Score */}
+          <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:col-span-2 sm:p-6 xl:col-span-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+                  Average Grade
+                </Span>
+                <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-emerald-600">
+                  {summary.averageMarks !== null ? summary.averageMarks : '—'}
+                </H3>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-4 space-y-1.5">
+              <span className="inline-flex w-fit items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                Cumulative Score
+              </span>
+              <p className="text-xs text-[#667085]">Across graded assignments</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. Batch Selector Filter Toolbar */}
       {batches.length > 1 ? (
