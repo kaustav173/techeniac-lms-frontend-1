@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import { MENTOR_REVIEWS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { SubmissionQueueTable } from '@/components/app/submissions/SubmissionQueueTable';
@@ -15,7 +16,9 @@ export default function MentorReviewsPage() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTOR_REVIEWS_NAV} />
       <DashboardContent>
-        <SubmissionQueueTable />
+        <Suspense>
+          <SubmissionQueueTable />
+        </Suspense>
       </DashboardContent>
     </div>
   );

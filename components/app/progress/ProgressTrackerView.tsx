@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
@@ -33,12 +34,22 @@ interface ProgressTrackerViewProps {
 }
 
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get('search') ?? '';
+
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>(urlSearch);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(20);
   const [selectedAllocationId, setSelectedAllocationId] = useState<string | null>(null);
+
+  if (urlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearch);
+    setSearch(urlSearch);
+    setPage(1);
+  }
 
   // Modal state for deadline adjustment
   const [deadlineModalTopic, setDeadlineModalTopic] = useState<TopicProgressItem | null>(null);

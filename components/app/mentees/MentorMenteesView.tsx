@@ -27,10 +27,11 @@ import { cn } from '@/lib/cn';
 
 interface MenteeActionMenuProps {
   readonly menteeName?: string | undefined;
+  readonly menteeId?: string | undefined;
   readonly openUpward?: boolean | undefined;
 }
 
-function MenteeActionMenu({ menteeName, openUpward }: MenteeActionMenuProps) {
+function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMeasuredUpward, setIsMeasuredUpward] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -98,7 +99,11 @@ function MenteeActionMenu({ menteeName, openUpward }: MenteeActionMenuProps) {
           )}
         >
           <Link
-            href="/mentor/progress"
+            href={
+              menteeName
+                ? `/mentor/progress?search=${encodeURIComponent(menteeName)}`
+                : '/mentor/progress'
+            }
             role="menuitem"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
@@ -119,7 +124,11 @@ function MenteeActionMenu({ menteeName, openUpward }: MenteeActionMenuProps) {
             <Span>Progress</Span>
           </Link>
           <Link
-            href="/mentor/reviews"
+            href={
+              menteeName
+                ? `/mentor/reviews?search=${encodeURIComponent(menteeName)}${menteeId ? `&menteeId=${encodeURIComponent(menteeId)}` : ''}`
+                : '/mentor/reviews'
+            }
             role="menuitem"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
@@ -222,7 +231,11 @@ export function MentorMenteesView() {
           strokeWidth={2}
           aria-hidden="true"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+          />
         </svg>
       );
     }
@@ -232,13 +245,21 @@ export function MentorMenteesView() {
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
-        strokeWidth={2.5}
+        strokeWidth={2}
         aria-hidden="true"
       >
         {order === 'asc' ? (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+          />
         ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+          />
         )}
       </svg>
     );
@@ -526,6 +547,7 @@ export function MentorMenteesView() {
                       actions={
                         <MenteeActionMenu
                           menteeName={mentee.name}
+                          menteeId={mentee.menteeId || mentee.id}
                           openUpward={index >= paginatedMentees.length - 2}
                         />
                       }

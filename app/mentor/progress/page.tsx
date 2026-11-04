@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import { ProgressTrackerView } from '@/components/app/progress/ProgressTrackerView';
 
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function MentorProgressPage() {
-  return <ProgressTrackerView portalType="mentor" />;
+  return (
+    <Suspense>
+      <ProgressTrackerView portalType="mentor" />
+    </Suspense>
+  );
 }

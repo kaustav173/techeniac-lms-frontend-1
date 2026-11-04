@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -156,16 +157,33 @@ function SubmissionActionMenu({
 }
 
 export function SubmissionQueueTable() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const prefetchReview = usePrefetchSubmissionReview();
   const searchInputId = useId();
 
-  const [search, setSearch] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const urlSearch = searchParams.get('search') ?? searchParams.get('mentee') ?? '';
+  const urlMenteeId = searchParams.get('menteeId') ?? undefined;
+
+  const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
+  const [prevUrlMenteeId, setPrevUrlMenteeId] = useState(urlMenteeId);
+  const [search, setSearch] = useState<string>(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(urlSearch);
+  const [menteeIdFilter, setMenteeIdFilter] = useState<string | undefined>(urlMenteeId);
   const [statusFilter, setStatusFilter] = useState<SubmissionStatus | 'ALL'>('ALL');
   const [submittedSort, setSubmittedSort] = useState<'asc' | 'desc' | null>(null);
   const [nameSort, setNameSort] = useState<'asc' | 'desc' | null>(null);
   const [page, setPage] = useState<number>(1);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+
+  if (urlSearch !== prevUrlSearch || urlMenteeId !== prevUrlMenteeId) {
+    setPrevUrlSearch(urlSearch);
+    setPrevUrlMenteeId(urlMenteeId);
+    setSearch(urlSearch);
+    setDebouncedSearch(urlSearch);
+    setMenteeIdFilter(urlMenteeId);
+    setPage(1);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -181,6 +199,7 @@ export function SubmissionQueueTable() {
   const { submissions, total, totalPages, isLoading, error } = useSubmissionQueue({
     status: statusFilter,
     search: debouncedSearch.trim() || undefined,
+    menteeId: menteeIdFilter,
     sort: sortParam,
     page,
     limit: 20,
@@ -190,6 +209,9 @@ export function SubmissionQueueTable() {
 
   const displayedSubmissions = useMemo(() => {
     let list = submissions;
+    if (menteeIdFilter) {
+      list = list.filter((sub) => sub.mentee.id === menteeIdFilter);
+    }
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((sub) => {
@@ -221,7 +243,7 @@ export function SubmissionQueueTable() {
       });
     }
     return list;
-  }, [submissions, search, nameSort, submittedSort]);
+  }, [submissions, search, nameSort, submittedSort, menteeIdFilter]);
 
   const rowsWithSpans = useMemo(() => {
     return displayedSubmissions.map((sub, i, arr) => {
@@ -276,7 +298,11 @@ export function SubmissionQueueTable() {
           strokeWidth={2}
           aria-hidden="true"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+          />
         </svg>
       );
     }
@@ -286,25 +312,39 @@ export function SubmissionQueueTable() {
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
-        strokeWidth={2.5}
+        strokeWidth={2}
         aria-hidden="true"
       >
         {order === 'asc' ? (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+          />
         ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+          />
         )}
       </svg>
     );
   };
 
-  const hasActiveFilters = Boolean(search.trim() !== '' || statusFilter !== 'ALL');
+  const hasActiveFilters = Boolean(
+    search.trim() !== '' || statusFilter !== 'ALL' || menteeIdFilter !== undefined,
+  );
 
   const handleClearFilters = () => {
     setSearch('');
     setDebouncedSearch('');
+    setMenteeIdFilter(undefined);
     setStatusFilter('ALL');
     setPage(1);
+    if (searchParams.has('search') || searchParams.has('mentee') || searchParams.has('menteeId')) {
+      router.replace('/mentor/reviews', { scroll: false });
+    }
   };
 
   return (
@@ -331,7 +371,10 @@ export function SubmissionQueueTable() {
             id={searchInputId}
             type="search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (menteeIdFilter) setMenteeIdFilter(undefined);
+            }}
             placeholder="Search by mentee name or email..."
             aria-label="Search by mentee name or email"
             className="h-[47px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
