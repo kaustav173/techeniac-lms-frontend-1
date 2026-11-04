@@ -261,9 +261,7 @@ export function LearningHistoryView({
           </svg>
         </div>
         <H3 className="mt-4 text-base font-bold text-[#111827]">
-          {isMentorPastView
-            ? 'No Past Mentee History Found'
-            : 'No Course Allocations or Grades Yet'}
+          {isMentorPastView ? 'No History' : 'No Course Allocations or Grades Yet'}
         </H3>
         {!isMentorPastView && (
           <P className="mx-auto mt-2 max-w-md text-xs text-[#667085]">

@@ -9,7 +9,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import { useMentorDashboard } from '@/hooks/useDashboard';
@@ -97,7 +97,7 @@ export default function MentorPage() {
     },
     {
       id: 'mentees',
-      href: '/mentor/mentees',
+      href: '/mentor/my-mentees',
       title: 'My Mentees',
       category: 'Learner Directory',
       badge: `${mentees.length} Mapped`,
@@ -336,7 +336,7 @@ export default function MentorPage() {
 
           {/* Tile 2: Mentees */}
           <Link
-            href="/mentor/mentees"
+            href="/mentor/my-mentees"
             className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
           >
             <div>
@@ -425,10 +425,6 @@ export default function MentorPage() {
 
         {/* Command Center: 6 Dedicated Portal Features */}
         <div className="mb-8">
-          <div className="mb-4">
-            <H1 className="text-2xl font-bold tracking-tight text-[#111827]">Mentor Workspace</H1>
-          </div>
-
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {portalCards.map((card) => (
               <Link

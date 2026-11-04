@@ -239,12 +239,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
 
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
-  const panelTitle = (() => {
-    if (user?.role === 'SUPER_ADMIN') return 'ADMIN PANEL';
-    if (user?.role === 'MENTOR') return 'MENTOR PANEL';
-    if (user?.role === 'MENTEE') return 'MENTEE PANEL';
-    return 'ADMIN PANEL';
-  })();
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -585,19 +579,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           </Button>
         </div>
 
-        {/* Navigation Category Label (Matching LeadNest Reference) */}
-        <div className="px-5 pt-5 pb-2">
-          {isLoading || !user ? (
-            <Skeleton className="h-3.5 w-24 rounded-md" />
-          ) : (
-            <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
-              {panelTitle}
-            </Span>
-          )}
-        </div>
-
         {/* Navigation List with Generous Spacing (Matching Reference) */}
-        <div className="flex-1 overflow-y-auto px-4 py-2">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Links">
             {isLoading || nav.length === 0
               ? Array.from({ length: 5 }).map((_, i) => (
@@ -661,9 +644,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             </div>
           ) : (
             <div className="min-w-0 flex-1">
-              <Span className="block truncate text-sm font-bold text-[#111827]">
-                {formattedRole}
-              </Span>
+              <Span className="block truncate text-sm font-bold text-[#111827]">{user.name}</Span>
               <Span className="mt-0.5 block truncate text-sm font-medium text-slate-600">
                 {user.email}
               </Span>
