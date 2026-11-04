@@ -89,17 +89,17 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
         </Span>
       </TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-2">
+      <TableCell className="text-left">
+        <div className="flex items-center justify-start gap-2.5">
+          <Span className="w-9 text-xs font-semibold text-slate-700">
+            {batch.progressPercent ?? 0}%
+          </Span>
           <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-[#0044D3]"
               style={{ width: `${batch.progressPercent ?? 0}%` }}
             />
           </div>
-          <Span className="text-xs font-semibold text-slate-700">
-            {batch.progressPercent ?? 0}%
-          </Span>
         </div>
       </TableCell>
     </TableRow>
@@ -126,10 +126,10 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
           <TableCell>
             <Skeleton className="h-4 w-20 rounded-md" />
           </TableCell>
-          <TableCell className="text-right">
-            <div className="flex items-center justify-end gap-2">
-              <Skeleton className="h-2 w-24 rounded-full" />
+          <TableCell className="text-left">
+            <div className="flex items-center justify-start gap-2.5">
               <Skeleton className="h-3 w-8 rounded-md" />
+              <Skeleton className="h-2 w-24 rounded-full" />
             </div>
           </TableCell>
         </TableRow>
@@ -161,7 +161,7 @@ export function BatchesPageSkeleton() {
             <Skeleton className="h-4 w-16 rounded-md" />
             <Skeleton className="h-4 w-24 rounded-md" />
             <Skeleton className="h-4 w-20 rounded-md" />
-            <Skeleton className="ml-auto h-4 w-24 rounded-md" />
+            <Skeleton className="h-4 w-24 rounded-md" />
           </div>
         </div>
         <div className="divide-y divide-slate-100">
@@ -196,6 +196,7 @@ export function BatchesTable() {
   const {
     data: batchesResponse,
     isLoading,
+    isFetching,
     error,
   } = useBatchesList({
     status: filterStatus,
@@ -235,7 +236,15 @@ export function BatchesTable() {
     });
   }, [batches, sortField, sortOrder]);
 
-  const isTableLoading = isLoading;
+  const isTableLoading = isLoading || isFetching;
+  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setPage(1);
+  };
+
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {
@@ -280,16 +289,16 @@ export function BatchesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Unified Toolbar Row: Search Input, Status MultiSelect Filter, and Create Batch Action */}
+      {/* Unified Toolbar Row: Search Input, Status MultiSelect Filter, and Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 pb-1">
-        <div className="w-full flex-1 sm:max-w-md lg:max-w-lg">
-          <DebouncedSearchInput
-            value={search}
-            onSearchChange={handleSearchChange}
-            placeholder="Search batches by name or code..."
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="w-full sm:max-w-md lg:max-w-lg">
+            <DebouncedSearchInput
+              value={search}
+              onSearchChange={handleSearchChange}
+              placeholder="Search batches by name or code..."
+            />
+          </div>
           <MultiSelectDropdown
             label="Status"
             options={BATCH_STATUS_FILTER_OPTIONS}
@@ -299,6 +308,19 @@ export function BatchesTable() {
               setPage(1);
             }}
           />
+        </div>
+        <div className="flex items-center gap-3">
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+              className="h-9 rounded-full border-slate-200 px-4 text-xs font-semibold text-slate-700 hover:bg-slate-100 sm:h-10 sm:text-sm"
+            >
+              <Span>Clear Filters</Span>
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="primary"
@@ -338,7 +360,7 @@ export function BatchesTable() {
               <TableHead className="font-semibold text-slate-700">Status</TableHead>
               <TableHead className="font-semibold text-slate-700">Timeline</TableHead>
               <TableHead className="font-semibold text-slate-700">Members</TableHead>
-              <TableHead className="text-right font-semibold text-slate-700">Progress</TableHead>
+              <TableHead className="font-semibold text-slate-700">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -365,7 +387,6 @@ export function BatchesTable() {
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
           isLoading={isTableLoading}
-          itemLabel="cohorts"
           pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
         />
       </TableContainer>
