@@ -127,7 +127,7 @@ export const ADMIN_AUDIT_LOGS_NAV: PortalNavConfig = {
     { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
-    { label: 'Curriculum', href: '/admin/courses', active: false },
+    { label: 'Courses', href: '/admin/courses', active: false },
     { label: 'Allocations', href: '/admin/allocations', active: false },
     { label: 'Progress', href: '/admin/progress', active: false },
     { label: 'Performance', href: '/admin/performance', active: false },
@@ -333,6 +333,7 @@ export const MENTEE_PERFORMANCE_NAV: PortalNavConfig = {
 };
 
 export const ADMIN_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Admin Console',
   homeUrl: '/admin',
   badgeColor: 'bg-purple-100 text-purple-800',
@@ -340,14 +341,16 @@ export const ADMIN_PROFILE_NAV: PortalNavConfig = {
     { label: 'Dashboard', href: '/admin', active: false },
     { label: 'Users', href: '/admin/users', active: false },
     { label: 'Batches', href: '/admin/batches', active: false },
-    { label: 'Curriculum', href: '/admin/courses', active: false },
+    { label: 'Courses', href: '/admin/courses', active: false },
     { label: 'Allocations', href: '/admin/allocations', active: false },
     { label: 'Progress', href: '/admin/progress', active: false },
     { label: 'Performance', href: '/admin/performance', active: false },
+    { label: 'Audit Logs', href: '/admin/audit-logs', active: false },
   ],
 };
 
 export const MENTOR_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Mentor Portal',
   homeUrl: '/mentor',
   badgeColor: 'bg-emerald-100 text-emerald-800',
@@ -364,6 +367,7 @@ export const MENTOR_PROFILE_NAV: PortalNavConfig = {
 };
 
 export const MENTEE_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Learning Portal',
   homeUrl: '/mentee',
   badgeColor: 'bg-blue-100 text-blue-800',
