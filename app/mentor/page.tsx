@@ -8,6 +8,7 @@ import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmis
 import { MenteeTableRow } from '@/components/app/mentees/MenteeTableRow';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { LearningHistoryView } from '@/components/app/performance/LearningHistoryView';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
@@ -24,6 +25,7 @@ import {
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useMentorDashboard } from '@/hooks/useDashboard';
+import { useLearningHistoryQuery } from '@/hooks/usePerformance';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
@@ -224,6 +226,14 @@ export default function MentorPage() {
     error: dashboardError,
   } = useMentorDashboard({ enabled: isAuthorized });
 
+  const {
+    data: history,
+    isLoading: isLoadingHistory,
+    isError: isHistoryError,
+    error: historyError,
+    refetch: refetchHistory,
+  } = useLearningHistoryQuery();
+
   if (!isAuthorized || !user) {
     return (
       <PortalSessionState
@@ -341,25 +351,31 @@ export default function MentorPage() {
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Assigned Cohorts
             </Span>
-            <P className="mt-1 text-3xl font-bold text-[#111827]">
-              {isLoadingBatches ? '—' : batches.length}
-            </P>
+            {isLoadingBatches ? (
+              <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
+            ) : (
+              <P className="mt-1 text-3xl font-bold text-[#111827]">{batches.length}</P>
+            )}
           </div>
           <div className="rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-              Mapped Mentees
+              Total Mapped Mentees
             </Span>
-            <P className="mt-1 text-3xl font-bold text-[#111827]">
-              {isLoadingMentees ? '—' : mentees.length}
-            </P>
+            {isLoadingMentees ? (
+              <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
+            ) : (
+              <P className="mt-1 text-3xl font-bold text-[#111827]">{mentees.length}</P>
+            )}
           </div>
           <div className="col-span-2 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs lg:col-span-1">
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
               Live Cohorts
             </Span>
-            <P className="mt-1 text-3xl font-bold text-[#0044D3]">
-              {isLoadingBatches ? '—' : liveBatchesCount}
-            </P>
+            {isLoadingBatches ? (
+              <Skeleton className="mt-2 h-9 w-16 rounded-lg" />
+            ) : (
+              <P className="mt-1 text-3xl font-bold text-[#0044D3]">{liveBatchesCount}</P>
+            )}
           </div>
         </div>
 
@@ -390,6 +406,26 @@ export default function MentorPage() {
         {/* Section 3: Latest Submissions Widget (FR-10.1, REV-01) */}
         <div className="mb-8">
           <LatestSubmissionsWidget />
+        </div>
+
+        {/* Section 4: My Learning & Performance History */}
+        <div className="mb-8 space-y-4">
+          <div>
+            <H2 className="text-xl font-bold text-[#111827]">My Learning History</H2>
+            <P className="mt-1 text-xs text-[#667085]">
+              Personal course allocations, progress velocity, and past assignment marks.
+            </P>
+          </div>
+
+          <LearningHistoryView
+            history={history}
+            isLoading={isLoadingHistory}
+            isMentorPastView={true}
+            summaryOnly={true}
+            isError={isHistoryError}
+            error={historyError}
+            onRetry={() => void refetchHistory()}
+          />
         </div>
 
         {/* Action Areas */}

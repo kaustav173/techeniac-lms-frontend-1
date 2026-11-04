@@ -22,6 +22,7 @@ export default function MentorMyPerformancePage() {
           history={history}
           isLoading={isLoading}
           isMentorPastView={true}
+          hideSummary={true}
           isError={isError}
           error={error}
           onRetry={() => void refetch()}
