@@ -45,38 +45,46 @@ export function SortableColumnHeader<T extends string>({
         )}
       >
         <Span className="text-inherit transition-colors group-hover:text-slate-900">{label}</Span>
-        <Span className="flex flex-col items-center justify-center -space-y-1">
+        {isSorted ? (
+          sortOrder === 'asc' ? (
+            <svg
+              className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m0 0l-5 5m5-5l5 5" />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m0 0l-5-5m5 5l5-5" />
+            </svg>
+          )
+        ) : (
           <svg
-            className={cn(
-              'h-3.5 w-3.5 transition-colors',
-              isSorted && sortOrder === 'asc'
-                ? 'text-[#0044D3]'
-                : 'text-slate-300 group-hover:text-slate-500',
-            )}
+            className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth={2.5}
+            strokeWidth={1.75}
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8 4v16m0 0l-4-4m4 4l4-4M16 20V4m0 0l-4 4m4-4l4 4"
+            />
           </svg>
-          <svg
-            className={cn(
-              'h-3.5 w-3.5 transition-colors',
-              isSorted && sortOrder === 'desc'
-                ? 'text-[#0044D3]'
-                : 'text-slate-300 group-hover:text-slate-500',
-            )}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </Span>
+        )}
       </Button>
     </TableHead>
   );

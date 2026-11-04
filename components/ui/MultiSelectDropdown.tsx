@@ -21,6 +21,7 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly placeholder?: string | undefined;
   readonly className?: string | undefined;
   readonly align?: 'left' | 'right' | undefined;
+  readonly showMenuLabel?: boolean | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -31,6 +32,7 @@ export function MultiSelectDropdown<T extends string = string>({
   singleSelect = false,
   className,
   align = 'right',
+  showMenuLabel = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,19 +186,28 @@ export function MultiSelectDropdown<T extends string = string>({
             align === 'left' ? 'left-0' : 'right-0',
           )}
         >
-          {/* Header Row: Title & Optional Clear */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-2 pb-1.5">
-            <Span className="text-xs font-bold text-slate-700">{label}</Span>
-            {selectedValues.length > 0 ? (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
-              >
-                <Span>Clear</Span>
-              </button>
-            ) : null}
-          </div>
+          {/* Header Row: Optional Title & Optional Clear */}
+          {(showMenuLabel || selectedValues.length > 0) && (
+            <div
+              className={cn(
+                'flex items-center border-b border-slate-100 px-2 pb-1.5',
+                showMenuLabel ? 'justify-between' : 'justify-end',
+              )}
+            >
+              {showMenuLabel ? (
+                <Span className="text-xs font-bold text-slate-700">{label}</Span>
+              ) : null}
+              {selectedValues.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
+                >
+                  <Span>Clear</Span>
+                </button>
+              ) : null}
+            </div>
+          )}
 
           {/* Search Box inside Dropdown (for larger option lists) */}
           {options.length > 5 ? (

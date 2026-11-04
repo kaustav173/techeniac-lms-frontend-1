@@ -39,7 +39,7 @@ export function PaginationControls({
   totalPages,
   onPageChange,
   onLimitChange,
-  itemLabel = 'entries',
+  itemLabel,
   pageSizeOptions = [10, 20, 50],
   isLoading = false,
   className,
@@ -87,13 +87,12 @@ export function PaginationControls({
         role="status"
         aria-live="polite"
       >
-        <Span>Showing</Span>
         <Span className="font-semibold text-slate-900">{startItem}</Span>
         <Span>to</Span>
         <Span className="font-semibold text-slate-900">{endItem}</Span>
         <Span>of</Span>
         <Span className="font-semibold text-slate-900">{total}</Span>
-        <Span>{itemLabel}</Span>
+        {itemLabel ? <Span>{itemLabel}</Span> : null}
       </div>
 
       {/* Right-aligned Controls: Page Navigation Buttons + Page Size Selector */}

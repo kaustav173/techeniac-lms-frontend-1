@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H2, P, Span } from '@/components/ui/Typography';
+import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import { resolveAuditTargetEntity } from '@/lib/audit';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
@@ -262,7 +262,7 @@ export function AuditLogTable() {
             onClick={handleResetFilters}
             title="Clear all filters"
             aria-label="Clear all filters"
-            className="h-11 w-11 shrink-0 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-300"
+            className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
           >
             <svg
               className="h-5 w-5"
@@ -358,24 +358,6 @@ export function AuditLogTable() {
                 <TableCell colSpan={6} className="px-5 py-14 text-center">
                   <div className="mx-auto max-w-sm space-y-2.5">
                     <H2 className="text-base font-bold text-slate-900">No audit events found</H2>
-                    <P className="text-xs text-slate-500">
-                      {hasActiveFilters
-                        ? 'No events match the selected filters. Try widening your date range or clearing filters.'
-                        : 'No audit records have been generated yet.'}
-                    </P>
-                    {hasActiveFilters && (
-                      <div className="pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleResetFilters}
-                          className="rounded-xl text-xs font-semibold"
-                        >
-                          Clear All Filters
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -499,7 +481,6 @@ export function AuditLogTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          itemLabel="audit events"
         />
       </TableContainer>
 
