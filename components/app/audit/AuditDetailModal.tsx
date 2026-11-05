@@ -240,12 +240,26 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
                   Target Entity
                 </Span>
-                <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
-                  {target.name || entry.entity}
-                </Span>
-                <Span className="mt-0.5 block truncate text-xs text-slate-500">
-                  {target.type ? `Category: ${target.type}` : `Entity: ${entry.entity}`}
-                </Span>
+                {target.isGrading ? (
+                  <>
+                    <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
+                      {target.studentName || target.type}
+                    </Span>
+                    <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                      {target.assignmentTitle ? `Assignment: ${target.assignmentTitle}` : ''}
+                      {target.grade ? ` • ${target.grade}` : ''}
+                    </Span>
+                  </>
+                ) : (
+                  <>
+                    <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
+                      {target.name || entry.entity}
+                    </Span>
+                    <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                      {target.type ? `Details: ${target.type}` : `Entity: ${entry.entity}`}
+                    </Span>
+                  </>
+                )}
               </div>
             </div>
           </div>

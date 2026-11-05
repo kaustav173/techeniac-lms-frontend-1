@@ -431,10 +431,27 @@ export function AuditLogTable() {
 
                     {/* Target Entity */}
                     <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap text-slate-700">
-                      <div className="flex flex-col">
-                        <Span className="text-sm font-semibold text-slate-900">{target.name}</Span>
+                      <div className="flex max-w-[240px] flex-col">
+                        <Span
+                          className="truncate text-sm font-semibold text-slate-900"
+                          title={target.name}
+                        >
+                          {target.name}
+                        </Span>
                         {target.type ? (
-                          <Span className="text-xs text-slate-500">{target.type}</Span>
+                          <div className="group/target relative inline-flex items-center">
+                            <Span
+                              className="cursor-default truncate text-xs text-slate-500"
+                              title={target.tooltip || target.type}
+                            >
+                              {target.type}
+                            </Span>
+                            {target.tooltip && target.tooltip.length > 25 ? (
+                              <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden w-max max-w-xs rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-medium break-words whitespace-normal text-white shadow-xl group-hover/target:block">
+                                {target.tooltip}
+                              </div>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </TableCell>
