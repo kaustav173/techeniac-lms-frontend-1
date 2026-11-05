@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import { AuditLogTable } from '@/components/app/audit';
 import { ADMIN_AUDIT_LOGS_NAV } from '@/components/app/navigation/portal-nav.config';
@@ -16,7 +17,9 @@ export default function AdminAuditLogsPage() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...ADMIN_AUDIT_LOGS_NAV} />
       <DashboardContent>
-        <AuditLogTable />
+        <Suspense fallback={null}>
+          <AuditLogTable />
+        </Suspense>
       </DashboardContent>
     </div>
   );

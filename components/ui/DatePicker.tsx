@@ -62,6 +62,20 @@ function formatTwoDigits(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+function parseDateString(val: string | undefined): Date | null {
+  if (!val) return null;
+  const parts = val.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0] ?? '0', 10);
+    const m = parseInt(parts[1] ?? '0', 10) - 1;
+    const d = parseInt(parts[2] ?? '0', 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+  return null;
+}
+
 export interface CalendarDay {
   dayNumber: number;
   isCurrentMonth: boolean;
@@ -328,6 +342,9 @@ export function DatePicker({
   const handleToggle = () => {
     if (disabled) return;
     if (!isOpen) {
+      if (!viewDate) {
+        setViewDate(parsedDate || new Date());
+      }
       updatePosition();
       setIsOpen(true);
     } else {
@@ -420,22 +437,16 @@ export function DatePicker({
   }, [isOpen, updatePosition]);
 
   // Parse initial view month/year from value, or default to current date
-  const parsedDate = useMemo(() => {
-    if (!value) return null;
-    const parts = value.split('-');
-    if (parts.length === 3) {
-      const y = parseInt(parts[0] ?? '0', 10);
-      const m = parseInt(parts[1] ?? '0', 10) - 1;
-      const d = parseInt(parts[2] ?? '0', 10);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        return new Date(y, m, d);
-      }
-    }
-    return null;
-  }, [value]);
+  const parsedDate = parseDateString(value);
 
-  const [viewDate, setViewDate] = useState<Date>(() => parsedDate || new Date());
+  const [viewDate, setViewDate] = useState<Date | null>(() => parsedDate);
   const [prevValue, setPrevValue] = useState(value);
+
+  useEffect(() => {
+    if (!viewDate) {
+      setViewDate(parsedDate || new Date());
+    }
+  }, [parsedDate, viewDate]);
 
   if (prevValue !== value) {
     setPrevValue(value);
@@ -444,8 +455,9 @@ export function DatePicker({
     }
   }
 
-  const viewYear = viewDate.getFullYear();
-  const viewMonth = viewDate.getMonth();
+  const effectiveViewDate = viewDate || parsedDate || new Date(2026, 0, 1);
+  const viewYear = effectiveViewDate.getFullYear();
+  const viewMonth = effectiveViewDate.getMonth();
 
   const handlePrevMonth = () => {
     setViewDate(new Date(viewYear, viewMonth - 1, 1));
