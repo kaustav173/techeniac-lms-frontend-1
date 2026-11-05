@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
@@ -438,8 +439,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             className="group flex items-center justify-center pt-1"
             title="TechEniac LMS"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
-              TL
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs transition-transform group-hover:scale-105">
+              <Logo size="sm" variant="white" priority />
             </div>
           </Link>
 
@@ -551,8 +552,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
             title="TechEniac LMS Home"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
-              TL
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs transition-transform group-hover:scale-105">
+              <Logo size="sm" variant="white" priority />
             </div>
             <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
               TechEniac LMS

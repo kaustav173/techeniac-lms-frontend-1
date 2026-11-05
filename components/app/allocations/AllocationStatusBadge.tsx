@@ -48,14 +48,14 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 whitespace-nowrap">
       <Span
-        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}
+        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${badgeStyle}`}
       >
         {label}
       </Span>
       {isOverdue && !isTerminalAllocationStatus(status) ? (
-        <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
+        <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold whitespace-nowrap text-red-800">
           OVERDUE
         </Span>
       ) : null}

@@ -174,7 +174,7 @@ export function MentorMenteesView() {
   // Pre-formatted dropdown options for course filter
   const courseOptions = useMemo<SingleSelectOption[]>(
     () => [
-      { value: '', label: 'All Assigned Courses' },
+      { value: '', label: 'All' },
       ...batches.map((b) => ({
         value: b.id,
         label: `${b.name} (${b.code})`,
@@ -369,13 +369,14 @@ export function MentorMenteesView() {
         {/* Course / Batch Filter & Clear Filters placed side by side */}
         <div className="flex items-center gap-3">
           <SingleSelectDropdown
+            label="Course"
             value={selectedBatchId}
             onChange={(val) => {
               setSelectedBatchId(val);
               setPage(1);
             }}
             options={courseOptions}
-            placeholder="All Assigned Courses"
+            placeholder="Course"
             aria-label="Filter by course"
             className="w-full shrink-0 sm:w-[219px]"
             triggerClassName={cn(

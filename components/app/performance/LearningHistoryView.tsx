@@ -78,7 +78,7 @@ export function LearningHistoryView({
   // Dropdown options for batch selector
   const batchOptions = useMemo<SingleSelectOption[]>(
     () => [
-      { value: 'ALL', label: 'All Enrolled Batches' },
+      { value: 'ALL', label: 'All' },
       ...batches.map((b) => ({
         value: b.batchId,
         label: `${b.batchName} (${b.status})`,
@@ -403,10 +403,11 @@ export function LearningHistoryView({
             </span>
             <div className="w-full sm:w-64">
               <SingleSelectDropdown
+                label="Batch"
                 value={selectedBatchId}
                 onChange={setSelectedBatchId}
                 options={batchOptions}
-                placeholder="All Enrolled Batches"
+                placeholder="Batch"
                 aria-label="Filter learning history by batch"
                 triggerClassName="h-10 rounded-2xl border-[#E1E6EC] bg-white px-3 text-xs font-semibold shadow-2xs hover:border-slate-300"
                 menuClassName="w-full sm:min-w-[260px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
