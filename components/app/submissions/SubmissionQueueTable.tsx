@@ -13,7 +13,11 @@ import { H3, Muted, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
-import { type SubmissionQueueItem, SubmissionStatus } from '@/types/grading';
+import {
+  type SubmissionQueueItem,
+  type SubmissionQueueMentee,
+  SubmissionStatus,
+} from '@/types/grading';
 
 import { SubmissionReviewModal } from './SubmissionReviewModal';
 import { SubmissionStatusBadge } from './SubmissionStatusBadge';
@@ -201,6 +205,8 @@ export function SubmissionQueueTable() {
     search: debouncedSearch.trim() || undefined,
     menteeId: menteeIdFilter,
     sort: sortParam,
+    sortBy: nameSort ? 'mentee' : submittedSort ? 'submittedAt' : undefined,
+    sortOrder: nameSort ?? submittedSort ?? undefined,
     page,
     limit: 20,
   });
@@ -212,7 +218,7 @@ export function SubmissionQueueTable() {
     if (menteeIdFilter) {
       list = list.filter((sub) => sub.mentee.id === menteeIdFilter);
     }
-    const q = search.trim().toLowerCase();
+    const q = debouncedSearch.trim().toLowerCase();
     if (q) {
       list = list.filter((sub) => {
         const menteeName = sub.mentee.name.toLowerCase();
@@ -229,35 +235,69 @@ export function SubmissionQueueTable() {
         );
       });
     }
-    if (nameSort) {
-      return [...list].sort((a, b) => {
-        const cmp = a.mentee.name.localeCompare(b.mentee.name);
-        return nameSort === 'asc' ? cmp : -cmp;
-      });
-    }
-    if (submittedSort) {
-      return [...list].sort((a, b) => {
-        const dateA = new Date(a.submittedAt).getTime();
-        const dateB = new Date(b.submittedAt).getTime();
-        return submittedSort === 'asc' ? dateA - dateB : dateB - dateA;
-      });
-    }
     return list;
-  }, [submissions, search, nameSort, submittedSort, menteeIdFilter]);
+  }, [submissions, debouncedSearch, menteeIdFilter]);
 
-  const rowsWithSpans = useMemo(() => {
-    return displayedSubmissions.map((sub, i, arr) => {
-      const isFirst = i === 0 || arr[i - 1]?.mentee.id !== sub.mentee.id;
-      let span = 1;
-      if (isFirst) {
-        while (i + span < arr.length && arr[i + span]?.mentee.id === sub.mentee.id) {
-          span++;
-        }
+  const filterKey = `${page}-${statusFilter}-${debouncedSearch}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  const [expandedMentees, setExpandedMentees] = useState<Record<string, boolean>>({});
+
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setExpandedMentees({});
+  }
+
+  const toggleMenteeExpand = (menteeId: string) => {
+    setExpandedMentees((prev) => ({
+      ...prev,
+      [menteeId]: !prev[menteeId],
+    }));
+  };
+
+  const menteeGroups = useMemo(() => {
+    const groups: Array<{
+      mentee: SubmissionQueueMentee;
+      batchName: string | null;
+      items: SubmissionQueueItem[];
+    }> = [];
+    const groupMap = new Map<string, (typeof groups)[number]>();
+
+    for (const sub of displayedSubmissions) {
+      let g = groupMap.get(sub.mentee.id);
+      if (!g) {
+        g = {
+          mentee: sub.mentee,
+          batchName: sub.batchName,
+          items: [],
+        };
+        groupMap.set(sub.mentee.id, g);
+        groups.push(g);
       }
-      const isLast = i === arr.length - 1 || arr[i + 1]?.mentee.id !== sub.mentee.id;
-      return { sub, isFirst, isLast, span: isFirst ? span : 0 };
-    });
-  }, [displayedSubmissions]);
+      g.items.push(sub);
+    }
+
+    for (const g of groups) {
+      if (!submittedSort) {
+        // Prioritize actionable items (SUBMITTED, RESUBMIT_REQUESTED) before GRADED
+        g.items.sort((a, b) => {
+          const aPending =
+            a.status === SubmissionStatus.SUBMITTED ||
+            a.status === SubmissionStatus.RESUBMIT_REQUESTED
+              ? 0
+              : 1;
+          const bPending =
+            b.status === SubmissionStatus.SUBMITTED ||
+            b.status === SubmissionStatus.RESUBMIT_REQUESTED
+              ? 0
+              : 1;
+          if (aPending !== bPending) return aPending - bPending;
+          return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+        });
+      }
+    }
+
+    return groups;
+  }, [displayedSubmissions, submittedSort]);
 
   useEffect(() => {
     if (!isLoading && submissions.length === 0 && page > 1) {
@@ -275,6 +315,7 @@ export function SubmissionQueueTable() {
       if (prev === 'asc') return 'desc';
       return null;
     });
+    setPage(1);
   };
 
   const handleSubmittedSort = () => {
@@ -544,88 +585,193 @@ export function SubmissionQueueTable() {
               )}
 
               {!isInitialLoading &&
-                rowsWithSpans.map(({ sub, isFirst, isLast, span }, index) => (
-                  <tr
-                    key={sub.id}
-                    className={cn(
-                      'transition-colors hover:bg-slate-50/60',
-                      isLast && 'border-b border-[#E1E6EC]',
-                    )}
-                  >
-                    {/* Mentee Column (Merged across consecutive submissions by same mentee) */}
-                    {isFirst ? (
-                      <td
-                        rowSpan={span}
-                        className="border-r border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
-                      >
-                        <div className="sticky top-16">
-                          <P className="font-semibold text-slate-900">{sub.mentee.name}</P>
-                          {sub.batchName && (
-                            <Span className="mt-1 inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-semibold text-[#111827]">
-                              {sub.batchName}
-                            </Span>
-                          )}
-                        </div>
-                      </td>
-                    ) : null}
+                menteeGroups.map((group, groupIndex) => {
+                  const isExpanded = Boolean(expandedMentees[group.mentee.id]);
+                  const totalItems = group.items.length;
+                  const hasMore = totalItems > 3;
+                  const displayedItems =
+                    isExpanded || !hasMore ? group.items : group.items.slice(0, 3);
+                  const rowSpan = displayedItems.length + (hasMore ? 1 : 0);
+                  const isLastGroup = groupIndex === menteeGroups.length - 1;
 
-                    {/* Assignment Column */}
-                    <td className="px-4 py-4">
-                      <P
-                        className="max-w-xs truncate font-semibold text-slate-800"
-                        title={sub.assignmentTitle}
-                      >
-                        {truncateText(sub.assignmentTitle, 6, 40)}
-                      </P>
-                      <P
-                        className="max-w-xs truncate text-xs text-slate-500"
-                        title={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
-                      >
-                        {truncateText(
-                          `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
-                          6,
-                          36,
-                        )}
-                      </P>
-                    </td>
+                  return (
+                    <React.Fragment key={group.mentee.id}>
+                      {displayedItems.map((sub, itemIndex) => {
+                        const isFirstItem = itemIndex === 0;
+                        const isLastItem = itemIndex === displayedItems.length - 1 && !hasMore;
 
-                    {/* Version Column */}
-                    <td className="px-3 py-4 text-center">
-                      <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-bold text-[#111827]">
-                        v{sub.version}
-                      </Span>
-                    </td>
+                        return (
+                          <tr
+                            key={sub.id}
+                            style={
+                              itemIndex >= 3
+                                ? {
+                                    animationDelay: `${Math.min(itemIndex - 3, 8) * 25}ms`,
+                                  }
+                                : undefined
+                            }
+                            className={cn(
+                              'transition-colors hover:bg-slate-50/60',
+                              itemIndex >= 3 && 'animate-row-expand',
+                              isLastItem && 'border-b border-[#E1E6EC]',
+                            )}
+                          >
+                            {/* Mentee Column (Rendered only on first item of group, spanning all group rows) */}
+                            {isFirstItem ? (
+                              <td
+                                rowSpan={rowSpan}
+                                className="border-r border-b border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
+                              >
+                                <div className="sticky top-16">
+                                  <P className="font-semibold text-slate-900">
+                                    {group.mentee.name}
+                                  </P>
+                                  {group.batchName && (
+                                    <Span className="mt-1 inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-semibold text-[#111827]">
+                                      {group.batchName}
+                                    </Span>
+                                  )}
+                                  {totalItems > 1 && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                      <Span className="text-xs font-medium text-slate-500">
+                                        {totalItems} assignments
+                                      </Span>
+                                      {hasMore && (
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleMenteeExpand(group.mentee.id)}
+                                          aria-expanded={isExpanded}
+                                          title={
+                                            isExpanded
+                                              ? 'Collapse to 3 assignments'
+                                              : `Show all ${totalItems} assignments`
+                                          }
+                                          className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-[#0044D3] transition-all hover:bg-blue-100 hover:text-[#0039B3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none active:scale-95"
+                                        >
+                                          <span>{isExpanded ? 'Less' : `+${totalItems - 3}`}</span>
+                                          <svg
+                                            className={cn(
+                                              'h-3 w-3 transition-transform duration-200',
+                                              isExpanded && 'rotate-180',
+                                            )}
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2.5}
+                                            aria-hidden="true"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                            />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            ) : null}
 
-                    {/* Submitted At Column */}
-                    <td className="px-4 py-4">
-                      <Span className="text-xs text-slate-700">
-                        {formatDateIST(sub.submittedAt)}
-                      </Span>
-                    </td>
+                            {/* Assignment Column */}
+                            <td className="px-4 py-4">
+                              <P
+                                className="max-w-xs truncate font-semibold text-slate-800"
+                                title={sub.assignmentTitle}
+                              >
+                                {truncateText(sub.assignmentTitle, 6, 40)}
+                              </P>
+                              <P
+                                className="max-w-xs truncate text-xs text-slate-500"
+                                title={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
+                              >
+                                {truncateText(
+                                  `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
+                                  6,
+                                  36,
+                                )}
+                              </P>
+                            </td>
 
-                    {/* Status & Score Column */}
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
-                        {sub.marks !== null && (
-                          <Span className="text-xs font-bold text-slate-800">
-                            {sub.marks}/{sub.maxMarks} ({sub.gradeLabel})
-                          </Span>
-                        )}
-                      </div>
-                    </td>
+                            {/* Version Column */}
+                            <td className="px-3 py-4 text-center">
+                              <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-bold text-[#111827]">
+                                v{sub.version}
+                              </Span>
+                            </td>
 
-                    {/* Action Column */}
-                    <td className="px-6 py-4 text-right">
-                      <SubmissionActionMenu
-                        submission={sub}
-                        onOpenReview={() => setSelectedSubmissionId(sub.id)}
-                        openUpward={index >= rowsWithSpans.length - 2}
-                        onPrefetch={() => prefetchReview(sub.id)}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                            {/* Submitted At Column */}
+                            <td className="px-4 py-4">
+                              <Span className="text-xs text-slate-700">
+                                {formatDateIST(sub.submittedAt)}
+                              </Span>
+                            </td>
+
+                            {/* Status & Score Column */}
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-2">
+                                <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
+                                {sub.marks !== null && (
+                                  <Span className="text-xs font-bold text-slate-800">
+                                    {sub.marks}/{sub.maxMarks} ({sub.gradeLabel})
+                                  </Span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Action Column */}
+                            <td className="px-6 py-4 text-right">
+                              <SubmissionActionMenu
+                                submission={sub}
+                                onOpenReview={() => setSelectedSubmissionId(sub.id)}
+                                openUpward={isLastGroup && itemIndex >= displayedItems.length - 2}
+                                onPrefetch={() => prefetchReview(sub.id)}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                      {/* Toggle Row for Mentee with > 3 Submissions */}
+                      {hasMore && (
+                        <tr className="border-b border-[#E1E6EC] bg-[#F8FAFC]/80 transition-colors">
+                          <td colSpan={5} className="px-4 py-2.5">
+                            <button
+                              type="button"
+                              onClick={() => toggleMenteeExpand(group.mentee.id)}
+                              aria-expanded={isExpanded}
+                              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-blue-200 bg-blue-50/70 px-4 py-1.5 text-xs font-semibold text-[#0044D3] shadow-2xs transition-all hover:border-blue-300 hover:bg-blue-100 hover:text-[#0039B3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none active:scale-98"
+                            >
+                              <span>
+                                {isExpanded
+                                  ? `Show fewer assignments for ${group.mentee.name}`
+                                  : `Show ${totalItems - 3} more assignments for ${group.mentee.name}`}
+                              </span>
+                              <svg
+                                className={cn(
+                                  'h-3.5 w-3.5 transition-transform duration-200',
+                                  isExpanded && 'rotate-180',
+                                )}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
             </tbody>
           </table>
         </div>

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { PasswordCriteriaChecklist } from '@/components/app/auth/PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from '@/components/app/auth/PasswordVisibilityToggle';
+import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -42,6 +43,7 @@ interface ProfilePasswordFieldProps {
   readonly onToggleVisibility: () => void;
   readonly disabled?: boolean | undefined;
   readonly autoComplete?: string | undefined;
+  readonly inputRef?: React.Ref<HTMLInputElement> | undefined;
 }
 
 function ProfilePasswordField({
@@ -56,6 +58,7 @@ function ProfilePasswordField({
   onToggleVisibility,
   disabled,
   autoComplete,
+  inputRef,
 }: Readonly<ProfilePasswordFieldProps>) {
   return (
     <div className="space-y-1.5">
@@ -64,6 +67,7 @@ function ProfilePasswordField({
       </Label>
       <div className="relative">
         <Input
+          ref={inputRef}
           id={id}
           name={name}
           type={isVisible ? 'text' : 'password'}
@@ -88,7 +92,7 @@ export interface ProfileViewProps {
 }
 
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
-  const { changePassword, updateProfile, refreshUser } = useAuth();
+  const { verifyCurrentPassword, changePassword, updateProfile, refreshUser } = useAuth();
 
   const [isEditingName, setIsEditingName] = useState(false);
 
@@ -105,6 +109,13 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     setProfileName(user.name);
   }
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordStep, setPasswordStep] = useState<'VERIFY_CURRENT' | 'NEW_PASSWORD'>(
+    'VERIFY_CURRENT',
+  );
+  const [isVerifyingCurrentPassword, setIsVerifyingCurrentPassword] = useState(false);
+  const currentPasswordInputRef = useRef<HTMLInputElement>(null);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -120,6 +131,53 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const criteria = usePasswordCriteria(newPassword);
   const userInitials = getUserInitials(user.name);
   const roleBadgeStyle = getRoleBadgeColor(user.role);
+
+  const handleOpenPasswordModal = () => {
+    setPasswordStep('VERIFY_CURRENT');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setErrors({});
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleClosePasswordModal = () => {
+    if (isSubmitting || isVerifyingCurrentPassword) return;
+    setIsPasswordModalOpen(false);
+    setPasswordStep('VERIFY_CURRENT');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setErrors({});
+  };
+
+  const handleVerifyCurrentPassword = async (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
+    if (isVerifyingCurrentPassword) return;
+
+    if (!currentPassword.trim()) {
+      setErrors({ currentPassword: 'Current password is required' });
+      return;
+    }
+
+    setIsVerifyingCurrentPassword(true);
+    setErrors({});
+
+    try {
+      await verifyCurrentPassword(currentPassword);
+      setPasswordStep('NEW_PASSWORD');
+    } catch (err) {
+      const message =
+        err instanceof ApiError && (err.status === 401 || err.status === 400)
+          ? 'Current password is incorrect. Please try again.'
+          : err instanceof ApiError
+            ? err.message
+            : 'Failed to verify current password. Please try again.';
+      setErrors({ currentPassword: message });
+    } finally {
+      setIsVerifyingCurrentPassword(false);
+    }
+  };
 
   const handleFieldChange =
     (setter: React.Dispatch<React.SetStateAction<string>>, fieldKey: string) => (val: string) => {
@@ -193,6 +251,8 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setPasswordStep('VERIFY_CURRENT');
+      setIsPasswordModalOpen(false);
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -293,6 +353,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             </Form>
           ) : (
             <div className="mt-4 flex items-center justify-center gap-2">
+              <span
+                className="pointer-events-none h-8 w-8 shrink-0 select-none"
+                aria-hidden="true"
+              />
               <H2 className="truncate text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
                 {user.name || 'User'}
               </H2>
@@ -305,7 +369,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                 }}
                 title="Edit name"
                 aria-label="Edit name"
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
               >
                 <svg
                   className="h-4 w-4"
@@ -357,88 +421,183 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
               <Span className="truncate font-semibold text-[#111827]">{user.email}</Span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Change Password Card */}
-      <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-        <div className="border-b border-[#E1E6EC] pb-4">
-          <H2 className="text-base font-bold text-[#111827]">Change Password</H2>
-        </div>
-
-        <Form
-          onSubmit={(e) => {
-            void handlePasswordSubmit(e);
-          }}
-          className="mt-6 space-y-4"
-        >
-          {errors.general ? (
-            <Alert variant="error" title="Update Failed" message={errors.general} />
-          ) : null}
-
-          {/* Current Password Field */}
-          <ProfilePasswordField
-            id="profile-currentPassword"
-            name="currentPassword"
-            label="Current"
-            value={currentPassword}
-            onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
-            placeholder="Enter current password"
-            error={errors.currentPassword}
-            isVisible={showCurrentPassword}
-            onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
-            disabled={isSubmitting}
-            autoComplete="current-password"
-          />
-
-          {/* New Password Field */}
-          <ProfilePasswordField
-            id="profile-newPassword"
-            name="newPassword"
-            label="New"
-            value={newPassword}
-            onChange={handleFieldChange(setNewPassword, 'newPassword')}
-            placeholder="Enter new strong password"
-            error={errors.newPassword}
-            isVisible={showNewPassword}
-            onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
-            disabled={isSubmitting}
-            autoComplete="new-password"
-          />
-
-          {/* Password Requirements Checklist */}
-          {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
-
-          {/* Confirm Password Field */}
-          <ProfilePasswordField
-            id="profile-confirmPassword"
-            name="confirmPassword"
-            label="Confirm"
-            value={confirmPassword}
-            onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
-            placeholder="Re-enter new password"
-            error={errors.confirmPassword}
-            isVisible={showConfirmPassword}
-            onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
-            disabled={isSubmitting}
-            autoComplete="new-password"
-          />
-
-          {/* Submit Button */}
-          <div className="flex justify-end pt-2">
+          {/* Change Password Trigger Button */}
+          <div className="mt-6 flex justify-end">
             <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={isSubmitting}
-              isLoading={isSubmitting}
-              className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPasswordModal}
+              className="flex items-center gap-2 rounded-full border border-[#D0D5DD] px-4 py-2 text-xs font-semibold text-[#344054] shadow-2xs transition-colors hover:bg-[#F9FAFB] hover:text-[#111827]"
             >
-              {isSubmitting ? 'Updating...' : 'Update'}
+              <svg
+                className="h-4 w-4 text-slate-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+              Change Password
             </Button>
           </div>
-        </Form>
+        </div>
       </div>
+
+      {/* Change Password Modal Popup */}
+      <Modal
+        isOpen={isPasswordModalOpen}
+        onClose={handleClosePasswordModal}
+        title="Change Password"
+        description={
+          passwordStep === 'VERIFY_CURRENT'
+            ? 'Enter your current password to continue.'
+            : 'Create and confirm your new strong password.'
+        }
+        size="sm"
+        initialFocusRef={currentPasswordInputRef}
+        isSubmitting={isSubmitting || isVerifyingCurrentPassword}
+        preventClose={isSubmitting || isVerifyingCurrentPassword}
+      >
+        {passwordStep === 'VERIFY_CURRENT' ? (
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleVerifyCurrentPassword(e);
+            }}
+            className="space-y-4"
+          >
+            {errors.currentPassword ? (
+              <Alert variant="error" title="Verification Failed" message={errors.currentPassword} />
+            ) : null}
+
+            <ProfilePasswordField
+              id="modal-currentPassword"
+              name="currentPassword"
+              label="Current Password"
+              value={currentPassword}
+              onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
+              placeholder="Enter your current password"
+              error={errors.currentPassword}
+              isVisible={showCurrentPassword}
+              onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
+              disabled={isVerifyingCurrentPassword}
+              autoComplete="current-password"
+              inputRef={currentPasswordInputRef}
+            />
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleClosePasswordModal}
+                disabled={isVerifyingCurrentPassword}
+                className="rounded-full px-4 text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={isVerifyingCurrentPassword || !currentPassword.trim()}
+                isLoading={isVerifyingCurrentPassword}
+                className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
+              >
+                {isVerifyingCurrentPassword ? 'Verifying...' : 'Continue'}
+              </Button>
+            </div>
+          </Form>
+        ) : (
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handlePasswordSubmit(e);
+            }}
+            className="space-y-4"
+          >
+            {errors.general ? (
+              <Alert variant="error" title="Update Failed" message={errors.general} />
+            ) : null}
+
+            {/* New Password Field */}
+            <ProfilePasswordField
+              id="modal-newPassword"
+              name="newPassword"
+              label="New Password"
+              value={newPassword}
+              onChange={handleFieldChange(setNewPassword, 'newPassword')}
+              placeholder="Enter new strong password"
+              error={errors.newPassword}
+              isVisible={showNewPassword}
+              onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
+              disabled={isSubmitting}
+              autoComplete="new-password"
+            />
+
+            {/* Password Requirements Checklist */}
+            {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
+
+            {/* Confirm Password Field */}
+            <ProfilePasswordField
+              id="modal-confirmPassword"
+              name="confirmPassword"
+              label="Confirm Password"
+              value={confirmPassword}
+              onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
+              placeholder="Re-enter new password"
+              error={errors.confirmPassword}
+              isVisible={showConfirmPassword}
+              onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
+              disabled={isSubmitting}
+              autoComplete="new-password"
+            />
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPasswordStep('VERIFY_CURRENT');
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  setErrors({});
+                }}
+                disabled={isSubmitting}
+                className="rounded-full px-4 text-xs font-semibold"
+              >
+                Back
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={
+                  isSubmitting ||
+                  !newPassword.trim() ||
+                  !confirmPassword.trim() ||
+                  !criteria.isValid
+                }
+                isLoading={isSubmitting}
+                className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
+              >
+                {isSubmitting ? 'Updating...' : 'Update Password'}
+              </Button>
+            </div>
+          </Form>
+        )}
+      </Modal>
     </div>
   );
 }
