@@ -793,17 +793,19 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                 {t.deadline ? (
                                   <Span
                                     className={`text-xs ${
-                                      t.isOverdue ? 'font-bold text-rose-600' : 'text-slate-500'
+                                      t.isOverdue && !isCompleted
+                                        ? 'font-bold text-rose-600'
+                                        : 'text-slate-500'
                                     }`}
                                   >
                                     Target: {formatDateDDMMYY(t.deadline)}
-                                    {t.isOverdue && ' (Overdue)'}
+                                    {t.isOverdue && !isCompleted && ' (Overdue)'}
                                   </Span>
-                                ) : (
+                                ) : !isCompleted ? (
                                   <Span className="text-xs text-slate-400">
                                     No topic deadline set
                                   </Span>
-                                )}
+                                ) : null}
                               </div>
                               {t.note && (
                                 <div className="mt-2 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600">
@@ -826,7 +828,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               {isCompleted ? 'Done' : isInProgress ? 'Active' : 'Unstarted'}
                             </Span>
 
-                            {!isEditingThisTopic && (
+                            {!isEditingThisTopic && !isCompleted && (
                               <Button
                                 variant="ghost"
                                 size="sm"
