@@ -326,12 +326,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           {/* Filters Bar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
-              {/* 1. Search cadet or course title */}
+              {/* 1. Search mentee or course title */}
               <div className="sm:col-span-2 lg:col-span-1">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
-                  placeholder="Search by cadet name or course title..."
+                  placeholder="Search by mentee name or course title..."
                 />
               </div>
 
@@ -412,7 +412,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
                 <TableRow>
                   <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                    Cadet
+                    Mentee
                   </TableHead>
                   <TableHead className="w-[26%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                     Course & Batch
@@ -421,7 +421,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     Progress
                   </TableHead>
                   <TableHead className="w-[12%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                    Clearance
+                    Topics Completed
                   </TableHead>
                   <TableHead className="w-[10%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                     Status
@@ -498,7 +498,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                           isSelected ? 'bg-blue-50/60' : 'hover:bg-[#F9FAFB]/80'
                         } focus:bg-slate-50 focus:outline-hidden`}
                       >
-                        {/* Cadet */}
+                        {/* Mentee */}
                         <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap">
                           <Span className="truncate font-semibold text-slate-900 hover:text-blue-600">
                             {item.menteeName}
@@ -609,45 +609,32 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 setLimit(newLimit);
                 setPage(1);
               }}
-              itemLabel="Cadets"
+              itemLabel="Mentees"
             />
           </TableContainer>
         </div>
       </DashboardContent>
 
-      {/* Cadet Syllabus & Topic Progress Modal (Audit Log Modal Style) */}
+      {/* Mentee Syllabus & Topic Progress Modal (Audit Log Modal Style) */}
       <Modal
         isOpen={Boolean(selectedItem)}
         onClose={() => setSelectedAllocationId(null)}
         size="xl"
         className="max-w-4xl"
-        title="Cadet Progress Details"
+        title="Mentee Progress Details"
         titleClassName="text-xl font-bold text-slate-900 sm:text-2xl"
       >
         {selectedItem && (
           <div className="space-y-6">
             {/* Event Header Hero Strip */}
             <div
-              className={`flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs transition-all duration-200 sm:flex-row sm:items-center sm:justify-between ${
+              className={`flex items-center rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs transition-all duration-200 ${
                 editingTopicId ? 'pointer-events-none opacity-40 blur-[1px]' : ''
               }`}
             >
-              <div className="flex min-w-0 items-center gap-2.5">
-                <Span className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wide text-[#0044D3]">
-                  Cadet Progress
-                </Span>
-                <Span className="cursor-default truncate text-base font-bold text-slate-900">
-                  {selectedItem.menteeName}
-                </Span>
-              </div>
-              <div className="group/course relative max-w-full min-w-0 sm:max-w-[50%]">
-                <Span className="block cursor-default truncate text-xs font-semibold text-slate-500 sm:text-right">
-                  {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
-                </Span>
-                <div className="pointer-events-none absolute top-full right-0 z-50 mt-1.5 hidden w-max max-w-sm rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium break-all whitespace-normal text-white shadow-2xl group-hover/course:block">
-                  {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
-                </div>
-              </div>
+              <Span className="cursor-default truncate text-base font-bold text-slate-900">
+                {selectedItem.menteeName}
+              </Span>
             </div>
 
             {/* Structured Metadata Grid (2x2): matches AuditDetailModal */}
@@ -777,14 +764,11 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         Flexible timeline (no window set)
                       </Span>
                     )}
-                    <Span className="mt-0.5 block truncate text-xs text-slate-500">
-                      Course start to completion window
-                    </Span>
                   </div>
                 </div>
               </div>
 
-              {/* Card 4: Assigned Cadet & Batch */}
+              {/* Card 4: Assigned Course & Batch */}
               <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
