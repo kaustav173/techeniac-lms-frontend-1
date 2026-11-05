@@ -237,14 +237,28 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
 
-  const activeNavItem = nav.find((item) => item.active);
+  const isItemActive = (item: HeaderNavItem) => {
+    if (!pathname || item.href === '#') return false;
+    if (
+      item.href === '/admin/dashboard' ||
+      item.href === '/mentor/dashboard' ||
+      item.href === '/mentee/dashboard'
+    ) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  };
+
+  const activeNavItem = nav.find((item) => isItemActive(item) || item.active);
   const navbarTitle =
     title ||
-    (activeNavItem
-      ? activeNavItem.label === 'Overview'
-        ? 'Dashboard'
-        : activeNavItem.label
-      : 'Dashboard');
+    (pathname?.includes('/builder')
+      ? 'Course Builder'
+      : activeNavItem
+        ? activeNavItem.label === 'Overview'
+          ? 'Dashboard'
+          : activeNavItem.label
+        : 'Dashboard');
 
   return (
     <>
@@ -447,7 +461,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   <Skeleton key={`rail-skel-${i}`} className="h-11 w-11 rounded-full" />
                 ))
               : nav.map((item) => {
-                  const isActive = Boolean(item.active);
+                  const isActive = isItemActive(item) || Boolean(item.active);
                   const icon = getNavIcon(item);
 
                   if (item.href !== '#') {
@@ -590,7 +604,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   </div>
                 ))
               : nav.map((item) => {
-                  const isActive = Boolean(item.active);
+                  const isActive = isItemActive(item) || Boolean(item.active);
                   const icon = getNavIcon(item);
 
                   if (item.href !== '#') {
