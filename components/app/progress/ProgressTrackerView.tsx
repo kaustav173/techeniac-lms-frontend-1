@@ -63,6 +63,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const {
     data: trackersResponse,
     isLoading: isTrackersLoading,
+    isFetching: isTrackersFetching,
     isError: isTrackersError,
     error: trackersError,
     refetch: refetchTrackers,
@@ -73,6 +74,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     page,
     limit,
   });
+
+  const isTableLoading = isTrackersLoading || isTrackersFetching;
 
   const trackers = useMemo<ProgressTrackerItem[]>(
     () => trackersResponse?.trackers ?? [],
@@ -329,8 +332,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-[#F2F4F7] font-normal">
-                {isTrackersLoading ? (
-                  Array.from({ length: 6 }).map((_, idx) => (
+                {isTableLoading ? (
+                  Array.from({ length: 10 }).map((_, idx) => (
                     <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
                       <TableCell className="w-[24%] px-4 py-3.5">
                         <Skeleton className="h-4 w-28 rounded-md" />
@@ -514,65 +517,217 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         isOpen={Boolean(selectedItem)}
         onClose={() => setSelectedAllocationId(null)}
         size="xl"
-        className="max-w-3xl"
-        title="Cadet Curriculum & Milestones"
+        className="max-w-4xl"
+        title="Cadet Progress Details"
         titleClassName="text-xl font-bold text-slate-900 sm:text-2xl"
       >
         {selectedItem && (
           <div className="space-y-6">
-            {/* Header Hero Card */}
-            <div className="rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white p-4.5 shadow-xs">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <Span className="text-base font-bold text-slate-900 sm:text-lg">
-                    {selectedItem.menteeName}
-                  </Span>
-                  <P className="text-xs text-slate-500">
-                    {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
-                  </P>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#0044D3]">
-                    {selectedItem.progressPercent}% Completed
-                  </Span>
-                  <Span className="text-xs font-medium text-slate-500">
-                    {selectedItem.completedTopicsCount} of {selectedItem.totalActiveTopics} Finished
-                  </Span>
+            {/* Event Header Hero Strip */}
+            <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <Span className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wide text-[#0044D3]">
+                  Cadet Progress
+                </Span>
+                <Span className="truncate text-base font-bold text-slate-900">
+                  {selectedItem.menteeName}
+                </Span>
+              </div>
+              <Span className="truncate text-xs font-semibold text-slate-500">
+                {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
+              </Span>
+            </div>
+
+            {/* Structured Metadata Grid (2x2): matches AuditDetailModal */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Card 1: Overall Completion */}
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                      Overall Completion
+                    </Span>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <Span className="truncate text-sm font-bold text-slate-900">
+                        {selectedItem.progressPercent}% Completed
+                      </Span>
+                      <Span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
+                        {selectedItem.completedTopicsCount} / {selectedItem.totalActiveTopics}{' '}
+                        Finished
+                      </Span>
+                    </div>
+                    {/* Sleek Progress bar */}
+                    <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
+                        style={{ width: `${selectedItem.progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                <div
-                  className="h-full rounded-full bg-[#0044D3]"
-                  style={{ width: `${selectedItem.progressPercent}%` }}
-                />
+              {/* Card 2: Clearance & Cadence */}
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                      selectedItem.isOverdue || selectedItem.overdueTopicsCount > 0
+                        ? 'bg-rose-50 text-rose-600'
+                        : 'bg-emerald-50 text-emerald-600'
+                    }`}
+                  >
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                      Clearance & Cadence
+                    </Span>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <Span
+                        className={`rounded-md border px-2 py-0.5 text-xs font-bold ${
+                          selectedItem.isOverdue || selectedItem.overdueTopicsCount > 0
+                            ? 'border-rose-200 bg-rose-50 text-rose-700'
+                            : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        }`}
+                      >
+                        {selectedItem.isOverdue || selectedItem.overdueTopicsCount > 0
+                          ? 'Overdue Cadence'
+                          : 'On Track'}
+                      </Span>
+                    </div>
+                    <Span className="mt-1 block truncate text-xs text-slate-500">
+                      {selectedItem.overdueTopicsCount > 0
+                        ? `${selectedItem.overdueTopicsCount} topic milestone(s) overdue`
+                        : 'All milestones aligned with pacing'}
+                    </Span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Allocation Window */}
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                      Allocation Window
+                    </Span>
+                    <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                      {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
+                      {maxDate ? formatDateDDMMYY(maxDate) : '—'}
+                    </Span>
+                    <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                      Course start to completion window
+                    </Span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Assigned Cadet & Batch */}
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+                      Curriculum Track
+                    </Span>
+                    <div className="mt-0.5 flex items-center gap-2">
+                      <Span className="truncate text-sm font-bold text-slate-900">
+                        {selectedItem.courseTitle}
+                      </Span>
+                    </div>
+                    <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                      {selectedItem.batchName
+                        ? `Batch: ${selectedItem.batchName}`
+                        : 'Individual Track'}
+                    </Span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Syllabus Topic Milestones List */}
-            <div className="space-y-3">
-              <H4 className="text-xs font-bold tracking-wider text-slate-400 uppercase">
-                Active Topic Milestones & Deadlines
-              </H4>
+            {/* Active Topic Milestones Container (matches AuditDetailModal payload cards) */}
+            <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-4 py-3">
+                <span className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold tracking-wider text-[#0044D3] uppercase">
+                  Active Topic Milestones & Deadlines
+                </span>
+                <Span className="text-xs font-semibold text-slate-500">
+                  {selectedItem.completedTopicsCount} of {selectedItem.totalActiveTopics} Finished
+                </Span>
+              </div>
 
               {isDrawerLoading ? (
-                <div className="flex flex-col gap-3">
-                  {Array.from({ length: 4 }).map((_, idx) => (
+                <div className="divide-y divide-slate-100 p-4">
+                  {Array.from({ length: 3 }).map((_, idx) => (
                     <div
                       key={`topic-skel-${idx}`}
-                      className="rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xs"
+                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5">
-                          <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
-                          <div className="space-y-1.5">
-                            <Skeleton className="h-4 w-32 rounded-md" />
-                            <Skeleton className="h-3 w-24 rounded-md" />
-                          </div>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-36 rounded-md" />
+                          <Skeleton className="h-3 w-24 rounded-md" />
                         </div>
-                        <Skeleton className="h-6 w-16 rounded-full" />
                       </div>
+                      <Skeleton className="h-6 w-16 rounded-full" />
                     </div>
                   ))}
                 </div>
@@ -581,7 +736,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   <ErrorMessage error={drawerError} onRetry={() => void refetchDrawerProgress()} />
                 </div>
               ) : !drawerProgressData?.topics.length ? (
-                <div className="flex h-40 flex-col items-center justify-center p-6 text-center">
+                <div className="flex h-36 flex-col items-center justify-center p-6 text-center">
                   <Span className="text-2xl">📚</Span>
                   <H4 className="mt-2 text-xs font-bold text-slate-800">No Active Topics</H4>
                   <P className="mt-1 text-xs text-slate-500">
@@ -589,19 +744,16 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   </P>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
+                <div className="divide-y divide-slate-100">
                   {drawerProgressData.topics.map((t, idx) => {
                     const isCompleted = t.status === 'COMPLETED';
                     const isInProgress = t.status === 'IN_PROGRESS';
                     const isEditingThisTopic = editingTopicId === t.topicId;
 
                     return (
-                      <div
-                        key={t.topicId}
-                        className="rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xs transition-colors hover:border-slate-300"
-                      >
+                      <div key={t.topicId} className="p-4 transition-colors hover:bg-slate-50/50">
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3">
+                          <div className="flex min-w-0 flex-1 items-start gap-3">
                             <Span
                               className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                                 isCompleted
@@ -613,22 +765,26 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             >
                               {isCompleted ? '✓' : idx + 1}
                             </Span>
-                            <div className="flex flex-col">
-                              <H4 className="text-sm font-bold text-slate-900">{t.title}</H4>
-                              {t.deadline ? (
-                                <Span
-                                  className={`mt-0.5 text-xs ${
-                                    t.isOverdue ? 'font-bold text-rose-600' : 'text-slate-500'
-                                  }`}
-                                >
-                                  Target: {formatDateDDMMYY(t.deadline)}
-                                  {t.isOverdue && ' (Overdue)'}
-                                </Span>
-                              ) : (
-                                <Span className="mt-0.5 text-xs text-slate-400">
-                                  No topic deadline set
-                                </Span>
-                              )}
+                            <div className="min-w-0 flex-1">
+                              <H4 className="text-sm font-bold break-words text-slate-900">
+                                {t.title}
+                              </H4>
+                              <div className="mt-1 flex flex-wrap items-center gap-2">
+                                {t.deadline ? (
+                                  <Span
+                                    className={`text-xs ${
+                                      t.isOverdue ? 'font-bold text-rose-600' : 'text-slate-500'
+                                    }`}
+                                  >
+                                    Target: {formatDateDDMMYY(t.deadline)}
+                                    {t.isOverdue && ' (Overdue)'}
+                                  </Span>
+                                ) : (
+                                  <Span className="text-xs text-slate-400">
+                                    No topic deadline set
+                                  </Span>
+                                )}
+                              </div>
                               {t.note && (
                                 <div className="mt-2 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600">
                                   📝 Mentee Note: {t.note}
@@ -637,7 +793,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             </div>
                           </div>
 
-                          <div className="flex shrink-0 flex-col items-end gap-2">
+                          <div className="flex shrink-0 items-center gap-2">
                             <Span
                               className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                                 isCompleted
@@ -656,24 +812,24 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                 size="sm"
                                 type="button"
                                 onClick={() => handleStartEditDeadline(t)}
-                                className="h-auto p-0 text-xs font-semibold text-[#0044D3] hover:underline"
+                                className="h-8 px-2 text-xs font-semibold text-[#0044D3] hover:underline"
                               >
-                                {t.deadline ? 'Edit Target Date' : '+ Set Target'}
+                                {t.deadline ? 'Edit Target' : '+ Set Target'}
                               </Button>
                             )}
                           </div>
                         </div>
 
-                        {/* Direct / Inline Target Date Setup inside first popup */}
+                        {/* Direct Inline Target Date Setup */}
                         {isEditingThisTopic && (
-                          <div className="mt-3.5 border-t border-slate-100 pt-3.5">
+                          <div className="mt-3.5 rounded-xl border border-blue-100 bg-blue-50/40 p-3.5">
                             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                               <div className="flex flex-col">
                                 <Span className="text-xs font-bold text-slate-800">
                                   Target Deadline Date (DD/MM/YY):
                                 </Span>
                                 {minDate && maxDate && (
-                                  <Span className="mt-0.5 text-[11px] text-slate-400">
+                                  <Span className="mt-0.5 text-[11px] text-slate-500">
                                     Window: {formatDateDDMMYY(minDate)} →{' '}
                                     {formatDateDDMMYY(maxDate)}
                                   </Span>
