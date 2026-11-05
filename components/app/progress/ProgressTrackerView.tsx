@@ -44,12 +44,23 @@ interface ProgressTrackerViewProps {
 }
 
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
-  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
-  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+  const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
+  const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
+  const [batchSearch, setBatchSearch] = useState<string>('');
+  const [courseSearch, setCourseSearch] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [selectedAllocationId, setSelectedAllocationId] = useState<string | null>(null);
+
+  const selectedBatchIds = useMemo(
+    () => selectedBatchOptions.map((o) => o.value),
+    [selectedBatchOptions],
+  );
+  const selectedCourseIds = useMemo(
+    () => selectedCourseOptions.map((o) => o.value),
+    [selectedCourseOptions],
+  );
 
   // Direct inline deadline editor state inside the popup
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
@@ -94,49 +105,65 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     [trackersResponse, page, limit, trackers.length],
   );
 
-  // 2. Fetch Batches for Filter Dropdown with Infinite Scroll (10 items per page)
+  // 2. Fetch Batches for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
   const {
     data: batchesInfiniteData,
     fetchNextPage: fetchNextBatches,
     hasNextPage: hasNextBatches,
+    isFetching: isFetchingBatches,
     isFetchingNextPage: isFetchingNextBatches,
-  } = useInfiniteBatches(10);
+  } = useInfiniteBatches(10, batchSearch);
 
   const batches = useMemo(
     () => batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [],
     [batchesInfiniteData],
   );
 
-  const batchOptions: readonly MultiSelectOption[] = useMemo(
-    () =>
-      batches.map((b) => ({
+  const batchOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const b of batches) {
+      optionsMap.set(b.id, {
         value: b.id,
         label: `${b.name} (${b.code})`,
-      })),
-    [batches],
-  );
+      });
+    }
+    for (const opt of selectedBatchOptions) {
+      if (!optionsMap.has(opt.value)) {
+        optionsMap.set(opt.value, opt);
+      }
+    }
+    return Array.from(optionsMap.values());
+  }, [batches, selectedBatchOptions]);
 
-  // 3. Fetch Courses for Filter Dropdown with Infinite Scroll (10 items per page)
+  // 3. Fetch Courses for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
   const {
     data: coursesInfiniteData,
     fetchNextPage: fetchNextCourses,
     hasNextPage: hasNextCourses,
+    isFetching: isFetchingCourses,
     isFetchingNextPage: isFetchingNextCourses,
-  } = useInfiniteCourses(10);
+  } = useInfiniteCourses(10, courseSearch);
 
   const courses = useMemo(
     () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
     [coursesInfiniteData],
   );
 
-  const courseOptions: readonly MultiSelectOption[] = useMemo(
-    () =>
-      courses.map((c) => ({
+  const courseOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const c of courses) {
+      optionsMap.set(c.id, {
         value: c.id,
         label: c.title,
-      })),
-    [courses],
-  );
+      });
+    }
+    for (const opt of selectedCourseOptions) {
+      if (!optionsMap.has(opt.value)) {
+        optionsMap.set(opt.value, opt);
+      }
+    }
+    return Array.from(optionsMap.values());
+  }, [courses, selectedCourseOptions]);
 
   // Filtered trackers from paginated query
   const filteredTrackers = trackers;
@@ -234,12 +261,30 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   };
 
   const handleBatchChange = (vals: string[]) => {
-    setSelectedBatchIds(vals);
+    const nextSelected: MultiSelectOption[] = [];
+    for (const val of vals) {
+      const match = batchOptions.find((o) => o.value === val);
+      if (match) {
+        nextSelected.push(match);
+      } else {
+        nextSelected.push({ value: val, label: val });
+      }
+    }
+    setSelectedBatchOptions(nextSelected);
     setPage(1);
   };
 
   const handleCourseChange = (vals: string[]) => {
-    setSelectedCourseIds(vals);
+    const nextSelected: MultiSelectOption[] = [];
+    for (const val of vals) {
+      const match = courseOptions.find((o) => o.value === val);
+      if (match) {
+        nextSelected.push(match);
+      } else {
+        nextSelected.push({ value: val, label: val });
+      }
+    }
+    setSelectedCourseOptions(nextSelected);
     setPage(1);
   };
 
@@ -256,14 +301,20 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   };
 
   const handleResetFilters = () => {
-    setSelectedBatchIds([]);
-    setSelectedCourseIds([]);
+    setSelectedBatchOptions([]);
+    setSelectedCourseOptions([]);
+    setBatchSearch('');
+    setCourseSearch('');
     setSearch('');
     setPage(1);
   };
 
   const hasActiveFilters = Boolean(
-    selectedBatchIds.length > 0 || selectedCourseIds.length > 0 || search.trim(),
+    selectedBatchOptions.length > 0 ||
+    selectedCourseOptions.length > 0 ||
+    batchSearch.trim() ||
+    courseSearch.trim() ||
+    search.trim(),
   );
 
   return (
@@ -284,7 +335,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 />
               </div>
 
-              {/* 2. Batch Filter (Multi-select dropdown with infinite scroll) */}
+              {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
               <div className="lg:col-span-1">
                 <MultiSelectDropdown
                   label="Batch"
@@ -296,10 +347,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   className="w-full"
                   onScrollEnd={handleBatchScrollEnd}
                   isLoadingMore={isFetchingNextBatches}
+                  onSearch={setBatchSearch}
+                  isSearching={
+                    isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())
+                  }
                 />
               </div>
 
-              {/* 3. Course Filter (Multi-select dropdown with infinite scroll) */}
+              {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
               <div className="lg:col-span-1">
                 <MultiSelectDropdown
                   label="Course"
@@ -311,6 +366,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   className="w-full"
                   onScrollEnd={handleCourseScrollEnd}
                   isLoadingMore={isFetchingNextCourses}
+                  onSearch={setCourseSearch}
+                  isSearching={
+                    isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
+                  }
                 />
               </div>
             </div>

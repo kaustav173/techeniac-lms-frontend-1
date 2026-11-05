@@ -378,11 +378,15 @@ export function useCourseBuilder(courseId: string) {
   };
 }
 
-export function useInfiniteCourses(pageSize: number = 10) {
+export function useInfiniteCourses(pageSize: number = 10, search?: string) {
+  const trimmedSearch = search?.trim() || undefined;
   return useInfiniteQuery({
-    queryKey: ['courses', 'infinite-dropdown', pageSize],
+    queryKey: ['courses', 'infinite-dropdown', pageSize, trimmedSearch],
     queryFn: ({ pageParam = 1, signal }) =>
-      coursesService.listCourses({ page: pageParam, limit: pageSize }, { signal }),
+      coursesService.listCourses(
+        { page: pageParam, limit: pageSize, search: trimmedSearch },
+        { signal },
+      ),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const { page, totalPages } = lastPage.pagination;
