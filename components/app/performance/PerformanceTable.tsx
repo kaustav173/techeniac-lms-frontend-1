@@ -7,13 +7,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
-import type { MenteePerformanceRow } from '@/services/performance.service';
+import type { MenteePerformanceRow, PerformanceFilterParams } from '@/services/performance.service';
 
 interface PerformanceTableProps {
   readonly mentees: readonly MenteePerformanceRow[];
@@ -23,6 +22,12 @@ interface PerformanceTableProps {
   readonly totalPages: number;
   readonly onPageChange: (page: number) => void;
   readonly onLimitChange: (limit: number) => void;
+  readonly sortBy?: PerformanceFilterParams['sortBy'];
+  readonly sortOrder?: PerformanceFilterParams['sortOrder'];
+  readonly onSortChange?: (
+    sortBy?: PerformanceFilterParams['sortBy'],
+    sortOrder?: PerformanceFilterParams['sortOrder'],
+  ) => void;
   readonly isLoading?: boolean;
   readonly isFetching?: boolean;
   readonly isError?: boolean;
@@ -82,12 +87,72 @@ export function PerformanceTable({
   totalPages,
   onPageChange,
   onLimitChange,
+  sortBy,
+  sortOrder,
+  onSortChange,
   isLoading = false,
   isFetching = false,
   isError = false,
   error,
   onRetry,
 }: PerformanceTableProps) {
+  const handleSort = (field: NonNullable<PerformanceFilterParams['sortBy']>) => {
+    if (!onSortChange) return;
+    if (sortBy !== field) {
+      onSortChange(field, 'ASC');
+    } else if (sortOrder === 'ASC') {
+      onSortChange(field, 'DESC');
+    } else {
+      onSortChange(undefined, undefined);
+    }
+  };
+
+  const renderSortIcon = (field: NonNullable<PerformanceFilterParams['sortBy']>) => {
+    const isActive = sortBy === field && sortOrder !== undefined;
+    if (!isActive) {
+      return (
+        <svg
+          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+          />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        className="h-3.5 w-3.5 text-[#0044D3]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+        aria-hidden="true"
+      >
+        {sortOrder === 'ASC' ? (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+          />
+        ) : (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+          />
+        )}
+      </svg>
+    );
+  };
+
   if (isError) {
     return (
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xs">
@@ -98,135 +163,232 @@ export function PerformanceTable({
 
   const isTableLoading = isLoading || isFetching;
 
+  if (!isTableLoading && mentees.length === 0) {
+    return (
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        </div>
+        <P className="mt-3 text-sm font-semibold text-slate-800">No Mentees Found</P>
+      </div>
+    );
+  }
+
   return (
-    <TableContainer className="rounded-3xl border border-slate-200 bg-white shadow-xs">
-      <Table className="table-fixed text-left text-xs text-slate-600">
-        <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-bold tracking-wider text-slate-500 uppercase">
-          <TableRow>
-            <TableHead scope="col" className="w-[22%] px-6 py-3.5">
-              Mentee
-            </TableHead>
-            <TableHead scope="col" className="w-[12%] px-4 py-3.5">
-              Batch
-            </TableHead>
-            <TableHead scope="col" className="w-[14%] px-4 py-3.5">
-              Courses
-            </TableHead>
-            <TableHead scope="col" className="w-[14%] px-4 py-3.5">
-              Completion
-            </TableHead>
-            <TableHead scope="col" className="w-[10%] px-4 py-3.5 text-center">
-              Avg Score
-            </TableHead>
-            <TableHead scope="col" className="w-[10%] px-4 py-3.5 text-center">
-              Submissions
-            </TableHead>
-            <TableHead scope="col" className="w-[8%] px-4 py-3.5 text-center">
-              Overdue
-            </TableHead>
-            <TableHead scope="col" className="w-[10%] px-6 py-3.5 text-center">
-              Grade
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="divide-y divide-slate-100">
-          {isTableLoading ? (
-            <PerformanceTableSkeleton count={limit} />
-          ) : mentees.length === 0 ? (
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-xs">
+      <div className="overflow-x-auto rounded-t-3xl">
+        <Table className="w-full text-left text-sm text-slate-600">
+          <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-sm font-semibold text-[#667085]">
             <TableRow>
-              <TableCell colSpan={8} className="py-12 text-center">
-                <P className="text-sm font-semibold text-slate-800">No Mentees Found</P>
-                <P className="mt-1 text-xs text-slate-500">
-                  No performance records match your current filter selection.
-                </P>
-              </TableCell>
-            </TableRow>
-          ) : (
-            mentees.map((row) => (
-              <TableRow key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
-                {/* Mentee Identity */}
-                <TableCell className="w-[22%] px-6 py-4">
-                  <div className="flex flex-col">
-                    <Span className="font-semibold text-slate-900">{row.menteeName}</Span>
-                    <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
-                  </div>
-                </TableCell>
-
-                {/* Batch Name */}
-                <TableCell className="w-[12%] px-4 py-4">
-                  <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                    {row.batchName ?? 'Unbatched'}
+              <TableHead className="px-6 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('name')}
+                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'name' && sortOrder
+                      ? `Sorted by name (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
+                      : 'Sort by name'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Mentee
                   </Span>
-                </TableCell>
-
-                {/* Courses Count */}
-                <TableCell className="w-[14%] px-4 py-4">
-                  <Span className="font-bold text-slate-800">{row.completedCoursesCount}</Span>
-                  <Span className="text-slate-400"> / {row.assignedCoursesCount} completed</Span>
-                </TableCell>
-
-                {/* Completion Progress Bar */}
-                <TableCell className="w-[14%] px-4 py-4">
-                  <div className="flex w-32 flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <Span className="font-bold text-slate-700">{row.completionPercentage}%</Span>
+                  {renderSortIcon('name')}
+                </button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                Batch
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                Courses
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('completionPercentage')}
+                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'completionPercentage' && sortOrder
+                      ? `Sorted by completion (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by completion'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Completion
+                  </Span>
+                  {renderSortIcon('completionPercentage')}
+                </button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('averageMarks')}
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'averageMarks' && sortOrder
+                      ? `Sorted by average score (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by average score'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Avg Score
+                  </Span>
+                  {renderSortIcon('averageMarks')}
+                </button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('onTimeRate')}
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'onTimeRate' && sortOrder
+                      ? `Sorted by submissions on-time rate (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by submissions'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Submissions
+                  </Span>
+                  {renderSortIcon('onTimeRate')}
+                </button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('overdueCount')}
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'overdueCount' && sortOrder
+                      ? `Sorted by overdue tasks (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by overdue tasks'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Overdue
+                  </Span>
+                  {renderSortIcon('overdueCount')}
+                </button>
+              </TableHead>
+              <TableHead className="px-6 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort('grade')}
+                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'grade' && sortOrder
+                      ? `Sorted by grade (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by grade'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Grade
+                  </Span>
+                  {renderSortIcon('grade')}
+                </button>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
+            {isTableLoading ? (
+              <PerformanceTableSkeleton count={Math.min(Math.max(limit || 5, 5), 8)} />
+            ) : (
+              mentees.map((row) => (
+                <TableRow key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
+                  {/* Mentee Identity */}
+                  <TableCell className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <Span className="font-semibold text-slate-900">{row.menteeName}</Span>
+                      <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, row.completionPercentage))}%`,
-                        }}
-                      />
+                  </TableCell>
+
+                  {/* Batch Name */}
+                  <TableCell className="px-4 py-4">
+                    <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                      {row.batchName ?? 'Unbatched'}
+                    </Span>
+                  </TableCell>
+
+                  {/* Courses Count */}
+                  <TableCell className="px-4 py-4">
+                    <Span className="font-bold text-slate-800">{row.completedCoursesCount}</Span>
+                    <Span className="text-slate-400"> / {row.assignedCoursesCount} completed</Span>
+                  </TableCell>
+
+                  {/* Completion Progress Bar */}
+                  <TableCell className="px-4 py-4">
+                    <div className="flex w-32 flex-col gap-1">
+                      <div className="flex justify-between text-xs">
+                        <Span className="font-bold text-slate-700">
+                          {row.completionPercentage}%
+                        </Span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-blue-600"
+                          style={{
+                            width: `${Math.min(100, Math.max(0, row.completionPercentage))}%`,
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
+                  </TableCell>
 
-                {/* Average Marks */}
-                <TableCell className="w-[10%] px-4 py-4 text-center">
-                  {row.averageMarks !== null ? (
-                    <Span className="font-bold text-slate-900">{row.averageMarks}</Span>
-                  ) : (
-                    <Span className="text-slate-400">—</Span>
-                  )}
-                </TableCell>
+                  {/* Average Marks */}
+                  <TableCell className="px-4 py-4 text-center">
+                    {row.averageMarks !== null ? (
+                      <Span className="font-bold text-slate-900">{row.averageMarks}</Span>
+                    ) : (
+                      <Span className="text-slate-400">—</Span>
+                    )}
+                  </TableCell>
 
-                {/* Submissions & On-time Rate */}
-                <TableCell className="w-[10%] px-4 py-4 text-center">
-                  <div className="flex flex-col items-center">
-                    <Span className="font-bold text-slate-800">{row.totalSubmissions}</Span>
-                    <Span className="text-xs font-semibold text-emerald-600">
-                      {row.onTimeRate}% on-time
-                    </Span>
-                  </div>
-                </TableCell>
+                  {/* Submissions & On-time Rate */}
+                  <TableCell className="px-4 py-4 text-center">
+                    <div className="flex flex-col items-center">
+                      <Span className="font-bold text-slate-800">{row.totalSubmissions}</Span>
+                      <Span className="text-xs font-semibold text-emerald-600">
+                        {row.onTimeRate}% on-time
+                      </Span>
+                    </div>
+                  </TableCell>
 
-                {/* Overdue Count */}
-                <TableCell className="w-[8%] px-4 py-4 text-center">
-                  {row.overdueCount > 0 ? (
-                    <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
-                      {row.overdueCount} overdue
-                    </Span>
-                  ) : (
-                    <Span className="text-xs text-slate-400">0</Span>
-                  )}
-                </TableCell>
+                  {/* Overdue Count */}
+                  <TableCell className="px-4 py-4 text-center">
+                    {row.overdueCount > 0 ? (
+                      <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
+                        {row.overdueCount} overdue
+                      </Span>
+                    ) : (
+                      <Span className="text-xs text-slate-400">0</Span>
+                    )}
+                  </TableCell>
 
-                {/* Latest Grade Badge */}
-                <TableCell className="w-[10%] px-6 py-4 text-center">
-                  {row.latestGrade ? (
-                    <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
-                      {row.latestGrade}
-                    </Span>
-                  ) : (
-                    <Span className="text-xs text-slate-400">—</Span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                  {/* Latest Grade Badge */}
+                  <TableCell className="px-6 py-4 text-center">
+                    {row.latestGrade ? (
+                      <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
+                        {row.latestGrade}
+                      </Span>
+                    ) : (
+                      <Span className="text-xs text-slate-400">—</Span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <PaginationControls
         page={page}
@@ -237,7 +399,8 @@ export function PerformanceTable({
         onLimitChange={onLimitChange}
         isLoading={isTableLoading}
         itemLabel="mentees"
+        className="rounded-b-3xl"
       />
-    </TableContainer>
+    </div>
   );
 }

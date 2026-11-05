@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   redirects() {
     return Promise.resolve([
       {
+        source: '/mentor/mentees',
+        destination: '/mentor/my-mentees',
+        permanent: true,
+      },
+      {
         source: '/admin',
         destination: '/admin/dashboard',
         permanent: false,

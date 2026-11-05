@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
@@ -176,11 +177,12 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // Automatically close profile dropdown whenever route / pathname changes (render-phase state adjustment per React docs)
+  // Automatically close profile dropdown and signout confirmation whenever route / pathname changes
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setIsProfileDropdownOpen(false);
+    setIsSignOutConfirmOpen(false);
   }
 
   // Close profile dropdown on outside click or touch
@@ -222,6 +224,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
     setLogoutError(null);
     try {
       await logout();
+      setIsSignOutConfirmOpen(false);
+      setIsProfileDropdownOpen(false);
       router.push('/login');
     } catch (err) {
       const msg =
@@ -236,12 +240,6 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
 
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
-  const panelTitle = (() => {
-    if (user?.role === 'SUPER_ADMIN') return 'ADMIN PANEL';
-    if (user?.role === 'MENTOR') return 'MENTOR PANEL';
-    if (user?.role === 'MENTEE') return 'MENTEE PANEL';
-    return 'ADMIN PANEL';
-  })();
 
   const activeNavItem = nav.find((item) => item.active);
   const navbarTitle =
@@ -327,7 +325,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                 aria-haspopup="true"
                 className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B7A9E] text-base font-bold text-white shadow-xs">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-base font-bold text-white shadow-xs">
                   {userInitials}
                 </div>
                 <div className="hidden text-left sm:block">
@@ -441,8 +439,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             className="group flex items-center justify-center pt-1"
             title="TechEniac LMS"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
-              TL
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs transition-transform group-hover:scale-105">
+              <Logo size="sm" variant="white" priority />
             </div>
           </Link>
 
@@ -554,8 +552,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             className="group flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-85"
             title="TechEniac LMS Home"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs transition-transform group-hover:scale-105">
-              TL
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs transition-transform group-hover:scale-105">
+              <Logo size="sm" variant="white" priority />
             </div>
             <Span className="text-xl font-bold tracking-tight text-[#111827] group-hover:text-[#0044D3]">
               TechEniac LMS
@@ -582,19 +580,8 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
           </Button>
         </div>
 
-        {/* Navigation Category Label (Matching LeadNest Reference) */}
-        <div className="px-5 pt-5 pb-2">
-          {isLoading || !user ? (
-            <Skeleton className="h-3.5 w-24 rounded-md" />
-          ) : (
-            <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
-              {panelTitle}
-            </Span>
-          )}
-        </div>
-
         {/* Navigation List with Generous Spacing (Matching Reference) */}
-        <div className="flex-1 overflow-y-auto px-4 py-2">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Links">
             {isLoading || nav.length === 0
               ? Array.from({ length: 5 }).map((_, i) => (
@@ -658,9 +645,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
             </div>
           ) : (
             <div className="min-w-0 flex-1">
-              <Span className="block truncate text-sm font-bold text-[#111827]">
-                {formattedRole}
-              </Span>
+              <Span className="block truncate text-sm font-bold text-[#111827]">{user.name}</Span>
               <Span className="mt-0.5 block truncate text-sm font-medium text-slate-600">
                 {user.email}
               </Span>

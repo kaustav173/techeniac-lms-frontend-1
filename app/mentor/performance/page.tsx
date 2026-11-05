@@ -10,7 +10,7 @@ export default function MentorMenteesPerformancePage() {
     <PerformanceDashboardShell
       navConfig={MENTOR_PERFORMANCE_NAV}
       role="MENTOR"
-      title="Mentees' Performance"
+      title="Mentee Performance"
       description="Performance analytics, submission timeliness, and scores for your mapped mentees in active batches (FR-11.3)."
     />
   );

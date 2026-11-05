@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 
 import { AuthContext, type AuthContextValue } from '@/context/AuthContext';
 import { authService } from '@/services/auth.service';
@@ -10,6 +10,7 @@ export interface UseAuthReturn extends AuthContextValue {
   resetPassword: (token: string, newPassword: string) => Promise<string>;
   verifyResetToken: (token: string) => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
+  verifyCurrentPassword: (password: string) => Promise<boolean>;
 }
 
 const forgotPassword = (email: string): Promise<string> => authService.forgotPassword(email);
@@ -25,6 +26,18 @@ export function useAuth(): UseAuthReturn {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
+  const verifyCurrentPassword = useCallback(
+    async (password: string): Promise<boolean> => {
+      const email = context.user?.email;
+      if (!email) {
+        throw new Error('User is not authenticated');
+      }
+      await authService.login({ email, password });
+      return true;
+    },
+    [context.user?.email],
+  );
+
   return useMemo(
     () => ({
       ...context,
@@ -32,7 +45,8 @@ export function useAuth(): UseAuthReturn {
       resetPassword,
       verifyResetToken,
       changePassword,
+      verifyCurrentPassword,
     }),
-    [context],
+    [context, verifyCurrentPassword],
   );
 }

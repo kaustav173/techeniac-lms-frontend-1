@@ -33,7 +33,7 @@ export function LatestSubmissionsWidget() {
           </Muted>
         </div>
         <Link
-          href="/mentor/submissions"
+          href="/mentor/reviews"
           className="text-xs font-semibold text-[#0044D3] hover:text-[#0036ab]"
         >
           View Full Queue →

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { Logo } from '@/components/ui/Logo';
 import { H1, Span } from '@/components/ui/Typography';
 
 export interface AuthShellProps {
@@ -16,8 +17,8 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
       {/* Mobile-Only Top Brand Bar (< md) */}
       <div className="flex w-full items-center justify-center border-b border-blue-600 bg-[#0044D3] px-6 py-4 text-white md:hidden">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-[#0044D3] shadow-sm">
-            TL
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm">
+            <Logo size="xs" variant="blue" priority />
           </div>
           <Span className="text-xl font-bold tracking-tight text-white">TechEniac LMS</Span>
         </Link>
@@ -35,8 +36,8 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
             href="/"
             className="group flex flex-col items-center gap-5 transition-transform hover:scale-102"
           >
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white text-3xl font-black text-[#0044D3] shadow-2xl transition-shadow group-hover:shadow-blue-900/30">
-              TL
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-2xl transition-shadow group-hover:shadow-blue-900/30">
+              <Logo size="xl" variant="blue" priority />
             </div>
             <H1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
               TechEniac LMS
