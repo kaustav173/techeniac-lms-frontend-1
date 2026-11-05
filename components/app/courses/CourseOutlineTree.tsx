@@ -554,6 +554,7 @@ export function CourseOutlineTree({
   onRequestDeleteNode,
 }: Readonly<CourseOutlineTreeProps>) {
   const [collapsedTopics, setCollapsedTopics] = useState<Record<string, boolean>>({});
+  const [isTopicsSectionCollapsed, setIsTopicsSectionCollapsed] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Active reordering IDs across all concurrent reordering operations
@@ -750,17 +751,31 @@ export function CourseOutlineTree({
             </div>
           </div>
 
-          {/* 2. Topics Section - Structured as a self-contained card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
-                  Topics
-                </Span>
+          {/* 2. Topics Section - Clean unboxed layout */}
+          <div className="mt-2">
+            <div className="flex items-center justify-between pb-2">
+              <button
+                type="button"
+                onClick={() => setIsTopicsSectionCollapsed((prev) => !prev)}
+                className="flex items-center gap-2 text-left transition-colors hover:opacity-80 focus-visible:outline-hidden"
+                title={isTopicsSectionCollapsed ? 'Expand topics' : 'Collapse topics'}
+              >
+                <svg
+                  className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
+                    isTopicsSectionCollapsed ? '-rotate-90' : 'rotate-0'
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+                <Span className="text-sm font-bold tracking-tight text-slate-900">Topics</Span>
                 <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
                   {topics.length}
                 </Span>
-              </div>
+              </button>
               <Button
                 type="button"
                 variant="ghost"
@@ -783,232 +798,238 @@ export function CourseOutlineTree({
             </div>
 
             {/* Topics List with blur state when saving topics */}
-            <div
-              className={`relative mt-2 transition-all duration-200 ${
-                isReorderingTopics ? 'pointer-events-none opacity-50 blur-[0.6px] select-none' : ''
-              }`}
-            >
-              <SortableContext
-                items={topics.map((t) => t.id)}
-                strategy={verticalListSortingStrategy}
+            {!isTopicsSectionCollapsed && (
+              <div
+                className={`relative mt-2 transition-all duration-200 ${
+                  isReorderingTopics
+                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                    : ''
+                }`}
               >
-                <div className="space-y-2">
-                  {topics.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
-                      No topics created yet. Click + Topic above to add your first topic.
-                    </div>
-                  ) : (
-                    topics.map((topic) => {
-                      const isCollapsed = collapsedTopics[topic.id] ?? false;
-                      const isSelected =
-                        selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
-                      const subtopics = [...(topic.subtopics || [])].sort(
-                        (a, b) => a.displayOrder - b.displayOrder,
-                      );
-                      const topicAssignments = [...(topic.assignments || [])].sort(
-                        (a, b) => a.displayOrder - b.displayOrder,
-                      );
+                <SortableContext
+                  items={topics.map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {topics.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
+                        No topics created yet. Click + Topic above to add your first topic.
+                      </div>
+                    ) : (
+                      topics.map((topic) => {
+                        const isCollapsed = collapsedTopics[topic.id] ?? false;
+                        const isSelected =
+                          selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
+                        const subtopics = [...(topic.subtopics || [])].sort(
+                          (a, b) => a.displayOrder - b.displayOrder,
+                        );
+                        const topicAssignments = [...(topic.assignments || [])].sort(
+                          (a, b) => a.displayOrder - b.displayOrder,
+                        );
 
-                      const isReorderingSubtopicsThisTopic = Boolean(
-                        reorderingSubtopicTopicIds?.includes(topic.id),
-                      );
-                      const isReorderingTopicTasksThisTopic = Boolean(
-                        reorderingTopicAssignmentTopicIds?.includes(topic.id),
-                      );
+                        const isReorderingSubtopicsThisTopic = Boolean(
+                          reorderingSubtopicTopicIds?.includes(topic.id),
+                        );
+                        const isReorderingTopicTasksThisTopic = Boolean(
+                          reorderingTopicAssignmentTopicIds?.includes(topic.id),
+                        );
 
-                      return (
-                        <SortableTopicItem
-                          key={topic.id}
-                          topic={topic}
-                          isSelected={isSelected}
-                          isCollapsed={isCollapsed}
-                          isDisabledDrag={isReorderingTopics}
-                          isBeingSaved={
-                            isReorderingTopics || activeReorderingIds.includes(topic.id)
-                          }
-                          reorderingId={reorderingId}
-                          onSelectNode={onSelectNode}
-                          onToggleCollapse={toggleCollapse}
-                          onRequestDeleteNode={onRequestDeleteNode}
-                        >
-                          {/* Subtopics Div & Topic Tasks Div */}
-                          <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
-                            {/* 1. Subtopics Section Div */}
-                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
-                                    Subtopics
-                                  </Span>
-                                  <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
-                                    {subtopics.length}
-                                  </Span>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  disabled={Boolean(isReorderingSubtopicsThisTopic)}
-                                  onClick={() => onAddSubtopic(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
-                                  title="Add Subtopic"
-                                >
-                                  <svg
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
+                        return (
+                          <SortableTopicItem
+                            key={topic.id}
+                            topic={topic}
+                            isSelected={isSelected}
+                            isCollapsed={isCollapsed}
+                            isDisabledDrag={isReorderingTopics}
+                            isBeingSaved={
+                              isReorderingTopics || activeReorderingIds.includes(topic.id)
+                            }
+                            reorderingId={reorderingId}
+                            onSelectNode={onSelectNode}
+                            onToggleCollapse={toggleCollapse}
+                            onRequestDeleteNode={onRequestDeleteNode}
+                          >
+                            {/* Subtopics Div & Topic Tasks Div */}
+                            <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
+                              {/* 1. Subtopics Section Div */}
+                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
+                                      Subtopics
+                                    </Span>
+                                    <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                      {subtopics.length}
+                                    </Span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    disabled={Boolean(isReorderingSubtopicsThisTopic)}
+                                    onClick={() => onAddSubtopic(topic.id)}
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
+                                    title="Add Subtopic"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 4v16m8-8H4"
-                                    />
-                                  </svg>
-                                  <Span>Subtopic</Span>
-                                </Button>
+                                    <svg
+                                      className="h-3 w-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 4v16m8-8H4"
+                                      />
+                                    </svg>
+                                    <Span>Subtopic</Span>
+                                  </Button>
+                                </div>
+
+                                <div
+                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                    isReorderingSubtopicsThisTopic
+                                      ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                                      : ''
+                                  }`}
+                                >
+                                  <SortableContext
+                                    items={subtopics.map((s) => s.id)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    <div className="space-y-1.5">
+                                      {subtopics.length === 0 ? (
+                                        <div className="py-2 text-center text-xs text-slate-400">
+                                          No subtopics yet
+                                        </div>
+                                      ) : (
+                                        subtopics.map((subtopic) => {
+                                          const isSubSelected =
+                                            selectedNode.type === 'SUBTOPIC' &&
+                                            selectedNode.id === subtopic.id;
+                                          return (
+                                            <SortableSubtopicItem
+                                              key={subtopic.id}
+                                              subtopic={subtopic}
+                                              parentTopicId={topic.id}
+                                              isSelected={isSubSelected}
+                                              isDisabledDrag={isReorderingSubtopicsThisTopic}
+                                              isBeingSaved={
+                                                isReorderingSubtopicsThisTopic ||
+                                                activeReorderingIds.includes(subtopic.id)
+                                              }
+                                              reorderingId={reorderingId}
+                                              isMenuOpen={
+                                                activeMenuId === `subtopic-${subtopic.id}`
+                                              }
+                                              onSelectNode={onSelectNode}
+                                              onToggleMenu={(id) =>
+                                                setActiveMenuId((prev) => (prev === id ? null : id))
+                                              }
+                                              onRequestDeleteNode={onRequestDeleteNode}
+                                            />
+                                          );
+                                        })
+                                      )}
+                                    </div>
+                                  </SortableContext>
+                                </div>
                               </div>
 
-                              <div
-                                className={`relative mt-1.5 transition-all duration-200 ${
-                                  isReorderingSubtopicsThisTopic
-                                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
-                                    : ''
-                                }`}
-                              >
-                                <SortableContext
-                                  items={subtopics.map((s) => s.id)}
-                                  strategy={verticalListSortingStrategy}
-                                >
-                                  <div className="space-y-1.5">
-                                    {subtopics.length === 0 ? (
-                                      <div className="py-2 text-center text-xs text-slate-400">
-                                        No subtopics yet
-                                      </div>
-                                    ) : (
-                                      subtopics.map((subtopic) => {
-                                        const isSubSelected =
-                                          selectedNode.type === 'SUBTOPIC' &&
-                                          selectedNode.id === subtopic.id;
-                                        return (
-                                          <SortableSubtopicItem
-                                            key={subtopic.id}
-                                            subtopic={subtopic}
-                                            parentTopicId={topic.id}
-                                            isSelected={isSubSelected}
-                                            isDisabledDrag={isReorderingSubtopicsThisTopic}
-                                            isBeingSaved={
-                                              isReorderingSubtopicsThisTopic ||
-                                              activeReorderingIds.includes(subtopic.id)
-                                            }
-                                            reorderingId={reorderingId}
-                                            isMenuOpen={activeMenuId === `subtopic-${subtopic.id}`}
-                                            onSelectNode={onSelectNode}
-                                            onToggleMenu={(id) =>
-                                              setActiveMenuId((prev) => (prev === id ? null : id))
-                                            }
-                                            onRequestDeleteNode={onRequestDeleteNode}
-                                          />
-                                        );
-                                      })
-                                    )}
+                              {/* 2. Topic Tasks Section Div */}
+                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
+                                      Tasks
+                                    </Span>
+                                    <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                      {topicAssignments.length}
+                                    </Span>
                                   </div>
-                                </SortableContext>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    disabled={Boolean(isReorderingTopicTasksThisTopic)}
+                                    onClick={() => onAddTopicAssignment(topic.id)}
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
+                                    title="Add Task"
+                                  >
+                                    <svg
+                                      className="h-3 w-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 4v16m8-8H4"
+                                      />
+                                    </svg>
+                                    <Span>Task</Span>
+                                  </Button>
+                                </div>
+
+                                <div
+                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                    isReorderingTopicTasksThisTopic
+                                      ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                                      : ''
+                                  }`}
+                                >
+                                  <SortableContext
+                                    items={topicAssignments.map((a) => a.id)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    <div className="space-y-1.5">
+                                      {topicAssignments.length === 0 ? (
+                                        <div className="py-2 text-center text-xs text-slate-400">
+                                          No tasks yet
+                                        </div>
+                                      ) : (
+                                        topicAssignments.map((tAssign) => {
+                                          const isAssignSelected =
+                                            selectedNode.type === 'ASSIGNMENT' &&
+                                            selectedNode.id === tAssign.id;
+                                          return (
+                                            <SortableAssignmentItem
+                                              key={tAssign.id}
+                                              assignment={tAssign}
+                                              parentTopicId={topic.id}
+                                              scope="TOPIC"
+                                              isSelected={isAssignSelected}
+                                              isDisabledDrag={isReorderingTopicTasksThisTopic}
+                                              isBeingSaved={
+                                                isReorderingTopicTasksThisTopic ||
+                                                activeReorderingIds.includes(tAssign.id)
+                                              }
+                                              reorderingId={reorderingId}
+                                              isMenuOpen={activeMenuId === `assign-${tAssign.id}`}
+                                              onSelectNode={onSelectNode}
+                                              onToggleMenu={(id) =>
+                                                setActiveMenuId((prev) => (prev === id ? null : id))
+                                              }
+                                              onRequestDeleteNode={onRequestDeleteNode}
+                                            />
+                                          );
+                                        })
+                                      )}
+                                    </div>
+                                  </SortableContext>
+                                </div>
                               </div>
                             </div>
-
-                            {/* 2. Topic Tasks Section Div */}
-                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
-                                    Tasks
-                                  </Span>
-                                  <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
-                                    {topicAssignments.length}
-                                  </Span>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  disabled={Boolean(isReorderingTopicTasksThisTopic)}
-                                  onClick={() => onAddTopicAssignment(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
-                                  title="Add Task"
-                                >
-                                  <svg
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 4v16m8-8H4"
-                                    />
-                                  </svg>
-                                  <Span>Task</Span>
-                                </Button>
-                              </div>
-
-                              <div
-                                className={`relative mt-1.5 transition-all duration-200 ${
-                                  isReorderingTopicTasksThisTopic
-                                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
-                                    : ''
-                                }`}
-                              >
-                                <SortableContext
-                                  items={topicAssignments.map((a) => a.id)}
-                                  strategy={verticalListSortingStrategy}
-                                >
-                                  <div className="space-y-1.5">
-                                    {topicAssignments.length === 0 ? (
-                                      <div className="py-2 text-center text-xs text-slate-400">
-                                        No tasks yet
-                                      </div>
-                                    ) : (
-                                      topicAssignments.map((tAssign) => {
-                                        const isAssignSelected =
-                                          selectedNode.type === 'ASSIGNMENT' &&
-                                          selectedNode.id === tAssign.id;
-                                        return (
-                                          <SortableAssignmentItem
-                                            key={tAssign.id}
-                                            assignment={tAssign}
-                                            parentTopicId={topic.id}
-                                            scope="TOPIC"
-                                            isSelected={isAssignSelected}
-                                            isDisabledDrag={isReorderingTopicTasksThisTopic}
-                                            isBeingSaved={
-                                              isReorderingTopicTasksThisTopic ||
-                                              activeReorderingIds.includes(tAssign.id)
-                                            }
-                                            reorderingId={reorderingId}
-                                            isMenuOpen={activeMenuId === `assign-${tAssign.id}`}
-                                            onSelectNode={onSelectNode}
-                                            onToggleMenu={(id) =>
-                                              setActiveMenuId((prev) => (prev === id ? null : id))
-                                            }
-                                            onRequestDeleteNode={onRequestDeleteNode}
-                                          />
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                </SortableContext>
-                              </div>
-                            </div>
-                          </div>
-                        </SortableTopicItem>
-                      );
-                    })
-                  )}
-                </div>
-              </SortableContext>
-            </div>
+                          </SortableTopicItem>
+                        );
+                      })
+                    )}
+                  </div>
+                </SortableContext>
+              </div>
+            )}
           </div>
 
           {/* 4. Course-Level Assignments Section (At bottom) */}

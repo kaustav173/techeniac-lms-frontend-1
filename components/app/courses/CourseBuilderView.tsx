@@ -671,19 +671,22 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
         {/* Top Command Bar Skeleton */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
+        <div className="flex items-center justify-between bg-white px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
               <Skeleton className="h-3.5 w-3.5 rounded-full" />
               <Skeleton className="h-3.5 w-24 rounded-md" />
             </div>
+            <div className="h-4 w-px bg-slate-200" aria-hidden="true" />
+            <Skeleton className="h-5 w-48 rounded-md" />
+            <Skeleton className="h-5 w-14 rounded-full" />
           </div>
         </div>
 
         {/* Dual Pane Layout Skeleton */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree Skeleton */}
-          <div className="hidden w-[450px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
+          <div className="hidden w-[330px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <Skeleton className="h-5 w-32 rounded-md" />
             </div>
@@ -1051,12 +1054,12 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
         {/* Builder Top Command Bar */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 sm:px-6">
-          <div className="flex items-center gap-2 truncate sm:gap-3">
+        <div className="flex items-center justify-between bg-white px-3 py-2 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2 truncate sm:gap-3">
             <Link
               href={`/${portal}/courses`}
               onClick={handleNavigateLibrary}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
               title="Return to Course Library"
             >
               <svg
@@ -1074,6 +1077,24 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
               </svg>
               <Span>Back to Courses</Span>
             </Link>
+
+            <div className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true" />
+
+            {/* Shifted Course Name & Status Badge */}
+            <div className="hidden min-w-0 items-center gap-2 truncate sm:flex">
+              <Span className="max-w-[280px] truncate text-sm font-bold text-slate-900 md:max-w-md lg:max-w-xl">
+                {course.title}
+              </Span>
+              <Span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  course.isActive
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border border-slate-200 bg-slate-100 text-slate-600'
+                }`}
+              >
+                {course.isActive ? 'Active' : 'Draft'}
+              </Span>
+            </div>
           </div>
 
           {/* View Switcher on < lg screens */}
@@ -1108,11 +1129,11 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
           </div>
         </div>
 
-        {/* Dual Pane Layout: 450px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
+        {/* Dual Pane Layout: 330px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree */}
           <div
-            className={`w-full lg:flex lg:w-[450px] lg:flex-none lg:flex-col ${
+            className={`w-full lg:flex lg:w-[330px] lg:flex-none lg:flex-col ${
               mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
             }`}
           >

@@ -887,6 +887,7 @@ export function UsersTable() {
             onLimitChange={handleLimitChange}
             isLoading={isTableLoading}
             pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+            itemLabel="users"
           />
         )}
       </TableContainer>
