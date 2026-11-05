@@ -52,6 +52,9 @@ function isAuthBypassEndpoint(endpoint: string): boolean {
 }
 
 async function requestTokenRefresh(): Promise<boolean> {
+  if (typeof window === 'undefined') {
+    return false;
+  }
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
       method: 'POST',

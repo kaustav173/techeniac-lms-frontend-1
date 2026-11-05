@@ -9,8 +9,7 @@ function makeQueryClient(): QueryClient {
         refetchOnWindowFocus: false,
       },
       dehydrate: {
-        shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) || query.state.status === 'pending',
+        shouldDehydrateQuery: defaultShouldDehydrateQuery,
       },
     },
   });

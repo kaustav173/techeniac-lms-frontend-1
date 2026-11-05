@@ -1,6 +1,6 @@
 'use client';
 
-import { type QueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { dashboardService } from '@/services/dashboard.service';
 import type {
@@ -23,16 +23,6 @@ export const dashboardKeys = {
   mentor: () => [...dashboardKeys.all, 'mentor'] as const,
   mentee: () => [...dashboardKeys.all, 'mentee'] as const,
 };
-
-export async function prefetchAdminDashboard(
-  queryClient: QueryClient,
-  authToken?: string,
-): Promise<void> {
-  await queryClient.fetchQuery({
-    queryKey: dashboardKeys.admin(),
-    queryFn: () => dashboardService.getAdminDashboard(authToken),
-  });
-}
 
 export function useAdminDashboard(options?: { enabled?: boolean }) {
   return useQuery<AdminDashboardData>({

@@ -8,10 +8,9 @@ import {
   AdminDashboardSkeleton,
   AdminDashboardView,
 } from '@/components/app/dashboard/AdminDashboardView';
-import { prefetchAdminDashboard } from '@/hooks/useDashboard';
-import { ApiError } from '@/lib/errors';
 import { getQueryClient } from '@/lib/query-client';
 import { verifyServerSession } from '@/lib/server/auth';
+import { prefetchAdminDashboard } from '@/lib/server/dashboard';
 
 export const metadata: Metadata = {
   title: 'Super Admin Control Center | TechEniac LMS',
@@ -27,7 +26,20 @@ async function AdminPageServerContent() {
     redirect('/login');
   }
 
-  const { user, accessToken } = await verifyServerSession(rawAccessToken, rawRefreshToken);
+  const queryClient = getQueryClient();
+
+  // Run session verification and dashboard prefetch in parallel when token is present
+  const [sessionResult] = await Promise.all([
+    verifyServerSession(rawAccessToken, rawRefreshToken).catch(() => ({
+      user: null,
+      accessToken: null,
+    })),
+    rawAccessToken
+      ? prefetchAdminDashboard(queryClient, rawAccessToken).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+
+  const { user, accessToken } = sessionResult;
 
   if (!user || user.role !== 'SUPER_ADMIN') {
     redirect('/login');
@@ -37,15 +49,12 @@ async function AdminPageServerContent() {
     redirect('/change-password');
   }
 
-  const queryClient = getQueryClient();
-
-  if (accessToken) {
+  // If token was refreshed during session verification, prefetch with new token
+  if (accessToken && accessToken !== rawAccessToken) {
     try {
       await prefetchAdminDashboard(queryClient, accessToken);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        redirect('/login');
-      }
+    } catch {
+      // Client useAdminDashboard handles if prefetch didn't complete
     }
   }
 

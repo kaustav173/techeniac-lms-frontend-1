@@ -13,7 +13,7 @@ interface ApiResponse<T> {
 export const dashboardService = {
   async getAdminDashboard(authToken?: string): Promise<AdminDashboardData> {
     const res = await apiClient<ApiResponse<AdminDashboardData>>(
-      '/dashboard/admin',
+      '/admin/dashboard',
       authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
     );
     return res.data;
@@ -21,7 +21,7 @@ export const dashboardService = {
 
   async getMentorDashboard(authToken?: string): Promise<MentorDashboardData> {
     const res = await apiClient<ApiResponse<MentorDashboardData>>(
-      '/dashboard/mentor',
+      '/mentor/dashboard',
       authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
     );
     return res.data;
@@ -29,7 +29,7 @@ export const dashboardService = {
 
   async getMenteeDashboard(authToken?: string): Promise<MenteeDashboardData> {
     const res = await apiClient<ApiResponse<MenteeDashboardData>>(
-      '/dashboard/mentee',
+      '/mentee/dashboard',
       authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
     );
     return res.data;
