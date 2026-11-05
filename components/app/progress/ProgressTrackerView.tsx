@@ -533,19 +533,18 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 <Span className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wide text-[#0044D3]">
                   Cadet Progress
                 </Span>
-                <Span
-                  title={selectedItem.menteeName}
-                  className="cursor-default truncate text-base font-bold text-slate-900"
-                >
+                <Span className="cursor-default truncate text-base font-bold text-slate-900">
                   {selectedItem.menteeName}
                 </Span>
               </div>
-              <Span
-                title={`${selectedItem.courseTitle} • ${selectedItem.batchName ?? 'Individual Track'}`}
-                className="cursor-default truncate text-xs font-semibold text-slate-500"
-              >
-                {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
-              </Span>
+              <div className="group/course relative max-w-full min-w-0 sm:max-w-[50%]">
+                <Span className="block cursor-default truncate text-xs font-semibold text-slate-500 sm:text-right">
+                  {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
+                </Span>
+                <div className="pointer-events-none absolute top-full right-0 z-50 mt-1.5 hidden w-max max-w-sm rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium break-all whitespace-normal text-white shadow-2xl group-hover/course:block">
+                  {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
+                </div>
+              </div>
             </div>
 
             {/* Structured Metadata Grid (2x2): matches AuditDetailModal */}
@@ -696,13 +695,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
                       Course Track
                     </Span>
-                    <div className="mt-0.5 flex items-center gap-2">
-                      <Span
-                        title={selectedItem.courseTitle}
-                        className="cursor-default truncate text-sm font-bold text-slate-900"
-                      >
+                    <div className="group/track relative mt-0.5">
+                      <Span className="block cursor-default truncate text-sm font-bold text-slate-900">
                         {selectedItem.courseTitle}
                       </Span>
+                      <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden w-max max-w-sm rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium break-all whitespace-normal text-white shadow-2xl group-hover/track:block">
+                        {selectedItem.courseTitle}
+                      </div>
                     </div>
                     <Span className="mt-0.5 block truncate text-xs text-slate-500">
                       {selectedItem.batchName
@@ -787,10 +786,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               {isCompleted ? '✓' : idx + 1}
                             </Span>
                             <div className="min-w-0 flex-1">
-                              <H4
-                                title={t.title}
-                                className="cursor-default text-sm font-bold break-words text-slate-900"
-                              >
+                              <H4 className="cursor-default text-sm font-bold break-words text-slate-900">
                                 {t.title}
                               </H4>
                               <div className="mt-1 flex flex-wrap items-center gap-2">
