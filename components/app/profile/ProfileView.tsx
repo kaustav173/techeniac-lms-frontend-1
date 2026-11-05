@@ -169,10 +169,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     } catch (err) {
       const message =
         err instanceof ApiError && (err.status === 401 || err.status === 400)
-          ? 'Current password is incorrect. Please try again.'
+          ? 'Current credentials are incorrect. Please try again.'
           : err instanceof ApiError
             ? err.message
-            : 'Failed to verify current password. Please try again.';
+            : 'Failed to verify current credentials. Please try again.';
       setErrors({ currentPassword: message });
     } finally {
       setIsVerifyingCurrentPassword(false);
@@ -458,8 +458,8 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
         title="Change Password"
         description={
           passwordStep === 'VERIFY_CURRENT'
-            ? 'Enter your current password to continue.'
-            : 'Create and confirm your new strong password.'
+            ? 'Verify your current credentials to continue.'
+            : 'Set and confirm your new credentials.'
         }
         size="sm"
         initialFocusRef={currentPasswordInputRef}
@@ -481,10 +481,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             <ProfilePasswordField
               id="modal-currentPassword"
               name="currentPassword"
-              label="Current Password"
+              label="Current"
               value={currentPassword}
               onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
-              placeholder="Enter your current password"
+              placeholder="••••••••"
               error={errors.currentPassword}
               isVisible={showCurrentPassword}
               onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
@@ -532,10 +532,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             <ProfilePasswordField
               id="modal-newPassword"
               name="newPassword"
-              label="New Password"
+              label="New"
               value={newPassword}
               onChange={handleFieldChange(setNewPassword, 'newPassword')}
-              placeholder="Enter new strong password"
+              placeholder="••••••••"
               error={errors.newPassword}
               isVisible={showNewPassword}
               onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
@@ -550,10 +550,10 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             <ProfilePasswordField
               id="modal-confirmPassword"
               name="confirmPassword"
-              label="Confirm Password"
+              label="Confirm"
               value={confirmPassword}
               onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
-              placeholder="Re-enter new password"
+              placeholder="••••••••"
               error={errors.confirmPassword}
               isVisible={showConfirmPassword}
               onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
@@ -592,7 +592,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                 isLoading={isSubmitting}
                 className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
               >
-                {isSubmitting ? 'Updating...' : 'Update Password'}
+                {isSubmitting ? 'Updating...' : 'Update'}
               </Button>
             </div>
           </Form>

@@ -108,7 +108,15 @@ export interface AllocationFilters {
   readonly dueDateFrom?: string | undefined;
   readonly dueDateTo?: string | undefined;
   readonly sortBy?:
-    'course' | 'mentee' | 'batch' | 'started' | 'due' | 'progress' | 'createdAt' | undefined;
+    | 'course'
+    | 'mentee'
+    | 'batch'
+    | 'started'
+    | 'due'
+    | 'progress'
+    | 'status'
+    | 'createdAt'
+    | undefined;
   readonly sortOrder?: 'asc' | 'desc' | undefined;
 }
 

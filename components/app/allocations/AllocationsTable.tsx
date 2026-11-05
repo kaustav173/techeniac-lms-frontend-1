@@ -31,7 +31,7 @@ import { formatDateIST } from '@/lib/date';
 
 const EM_DASH = '—';
 
-type SortField = 'course' | 'started' | 'due' | 'progress';
+type SortField = 'course' | 'mentee' | 'batch' | 'started' | 'due' | 'progress' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 const ALLOCATION_STATUS_OPTIONS: readonly SingleSelectOption<string>[] = [
@@ -398,11 +398,59 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     {renderSortIcon(sortField === 'course', sortOrder)}
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  Mentee
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  aria-sort={
+                    sortField === 'mentee'
+                      ? sortOrder === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : 'none'
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSort('mentee')}
+                    className="group inline-flex cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] transition-colors hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    title={
+                      sortField === 'mentee' && sortOrder
+                        ? `Sorted by mentee (${sortOrder === 'asc' ? 'A to Z' : 'Z to A'})`
+                        : 'Sort by mentee'
+                    }
+                  >
+                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                      Mentee
+                    </Span>
+                    {renderSortIcon(sortField === 'mentee', sortOrder)}
+                  </button>
                 </th>
-                <th scope="col" className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  Batch
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  aria-sort={
+                    sortField === 'batch'
+                      ? sortOrder === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : 'none'
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSort('batch')}
+                    className="group inline-flex cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] transition-colors hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    title={
+                      sortField === 'batch' && sortOrder
+                        ? `Sorted by batch (${sortOrder === 'asc' ? 'A to Z' : 'Z to A'})`
+                        : 'Sort by batch'
+                    }
+                  >
+                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                      Batch
+                    </Span>
+                    {renderSortIcon(sortField === 'batch', sortOrder)}
+                  </button>
                 </th>
                 <th
                   scope="col"
@@ -485,8 +533,32 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     {renderSortIcon(sortField === 'progress', sortOrder)}
                   </button>
                 </th>
-                <th scope="col" className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  Status
+                <th
+                  scope="col"
+                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  aria-sort={
+                    sortField === 'status'
+                      ? sortOrder === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : 'none'
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSort('status')}
+                    className="group inline-flex cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] transition-colors hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    title={
+                      sortField === 'status' && sortOrder
+                        ? `Sorted by status (${sortOrder === 'asc' ? 'A to Z' : 'Z to A'})`
+                        : 'Sort by status'
+                    }
+                  >
+                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                      Status
+                    </Span>
+                    {renderSortIcon(sortField === 'status', sortOrder)}
+                  </button>
                 </th>
                 <th
                   scope="col"
@@ -570,15 +642,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   return (
                     <React.Fragment key={alloc.id}>
                       <tr
+                        onClick={() => toggleExpand(alloc.id)}
                         className={cn(
-                          'transition-colors hover:bg-[#F9FAFB]/90',
+                          'cursor-pointer transition-colors hover:bg-[#F9FAFB]/90',
                           isExpanded && 'bg-slate-50/70',
                         )}
                       >
                         <td className="py-3.5 pr-2 pl-6 align-middle">
                           <button
                             type="button"
-                            onClick={() => toggleExpand(alloc.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(alloc.id);
+                            }}
                             className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md p-0 text-[#667085] transition-colors hover:bg-slate-100 hover:text-slate-900"
                             title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
                             aria-label={
@@ -646,7 +722,10 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             isOverdue={alloc.isOverdue}
                           />
                         </td>
-                        <td className="py-3.5 pr-6 pl-4 text-right align-middle">
+                        <td
+                          className="py-3.5 pr-6 pl-4 text-right align-middle"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {userRole === 'SUPER_ADMIN' ? (
                             <div
                               ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
@@ -855,156 +934,17 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                       {/* Expandable Breakdown Drawer */}
                       {isExpanded ? (
                         <tr>
-                          <td colSpan={9} className="bg-[#F8FAFC]/70 p-0">
-                            <div className="border-t border-b border-[#E1E6EC] px-6 py-5 sm:px-8">
-                              <div className="mb-4 flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-[#0044D3]">
-                                    <svg
-                                      className="h-3.5 w-3.5"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
-                                      aria-hidden="true"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 1118 0zm-9-3.75h.008v.008H12V8.25z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <Span className="text-xs font-bold tracking-wider text-slate-800 uppercase">
-                                    Allocation Overview & Progress
-                                  </Span>
-                                </div>
-                                <AllocationStatusBadge
-                                  status={alloc.status}
-                                  isOverdue={alloc.isOverdue}
-                                />
-                              </div>
-
-                              {/* 3-Column Structured Information Grid */}
-                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                {/* Card 1: Mentee & Batch Details */}
-                                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xs">
-                                  <Span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                                    Enrolled Mentee
-                                  </Span>
-                                  <div className="mt-3 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xs font-bold text-[#0044D3]">
-                                      {alloc.user?.name
-                                        ? alloc.user.name.slice(0, 2).toUpperCase()
-                                        : 'ME'}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                      <P className="truncate text-sm font-bold text-[#111827]">
-                                        {alloc.user?.name ?? 'Individual Mentee'}
-                                      </P>
-                                      <P className="truncate text-xs text-[#667085]">
-                                        {alloc.user?.email}
-                                      </P>
-                                    </div>
-                                  </div>
-                                  <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs">
-                                    <Span className="text-[#667085]">Batch</Span>
-                                    <Span className="font-semibold text-[#111827]">
-                                      {alloc.batch?.name
-                                        ? `${alloc.batch.name} (${alloc.batch.code})`
-                                        : 'Individual'}
-                                    </Span>
-                                  </div>
-                                </div>
-
-                                {/* Card 2: Timeline & Course Duration */}
-                                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xs">
-                                  <Span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                                    Timeline & Duration
-                                  </Span>
-                                  <div className="mt-3 space-y-2 text-xs">
-                                    <div className="flex items-center justify-between">
-                                      <Span className="text-[#667085]">Start Date</Span>
-                                      <Span className="font-semibold text-[#111827]">
-                                        {formatDateIST(alloc.startDate)}
-                                      </Span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                      <Span className="text-[#667085]">Due Date</Span>
-                                      <Span
-                                        className={cn(
-                                          'font-semibold',
-                                          alloc.isOverdue ? 'text-rose-600' : 'text-[#111827]',
-                                        )}
-                                      >
-                                        {formatDateIST(alloc.dueDate)}
-                                      </Span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-[#667085]">
-                                      <Span>Est. Duration</Span>
-                                      <Span className="font-semibold text-[#111827]">
-                                        {alloc.estimatedMinutes
-                                          ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m`
-                                          : 'Standard Duration'}
-                                      </Span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Card 3: Curriculum Progress & Action */}
-                                <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xs">
-                                  <div>
-                                    <div className="flex items-center justify-between">
-                                      <Span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                                        Curriculum Completion
-                                      </Span>
-                                      <Span className="text-sm font-bold text-[#111827]">
-                                        {alloc.progressPercent}%
-                                      </Span>
-                                    </div>
-                                    <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                                      <div
-                                        className={cn(
-                                          'h-full rounded-full transition-all duration-300',
-                                          alloc.progressPercent >= 100
-                                            ? 'bg-emerald-500'
-                                            : 'bg-[#0044D3]',
-                                        )}
-                                        style={{
-                                          width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <P className="mt-2 text-[11px] text-[#667085]">
-                                      {alloc.progressPercent >= 100
-                                        ? 'All active course topics verified & completed'
-                                        : `${alloc.progressPercent}% syllabus completed by mentee`}
-                                    </P>
-                                  </div>
-
-                                  <div className="mt-3 flex justify-end border-t border-slate-100 pt-2.5">
-                                    {userRole === 'SUPER_ADMIN' ? (
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setOverridingAllocation(alloc)}
-                                        className="h-8 rounded-full border-[#D0D5DD] px-3.5 text-xs font-semibold text-[#344054] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#111827]"
-                                      >
-                                        Manage Overrides
-                                      </Button>
-                                    ) : (
-                                      <Link
-                                        href={
-                                          alloc.user?.name
-                                            ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
-                                            : '/mentor/progress'
-                                        }
-                                        className="inline-flex items-center gap-1.5 rounded-full bg-[#0044D3] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#0039B3]"
-                                      >
-                                        <span>View Progress Tracker</span>
+                          <td colSpan={9} className="bg-[#F8FAFC]/90 p-0">
+                            <div className="border-t border-b border-[#E1E6EC] px-6 py-3.5 sm:px-8">
+                              <div className="rounded-xl border border-[#E1E6EC] bg-white p-3.5 shadow-2xs">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                  {/* Metric Chips (Duration & Schedule) */}
+                                  <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+                                    {/* Chip 1: Duration Benchmark */}
+                                    <div className="flex items-center gap-3 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] p-2.5">
+                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                                         <svg
-                                          className="h-3.5 w-3.5"
+                                          className="h-4 w-4"
                                           fill="none"
                                           viewBox="0 0 24 24"
                                           stroke="currentColor"
@@ -1014,10 +954,134 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                           <path
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
-                                            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                                            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                                           />
                                         </svg>
-                                      </Link>
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <Span className="block text-xs font-bold text-[#111827]">
+                                          {alloc.estimatedMinutes
+                                            ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m`
+                                            : 'Standard Duration'}
+                                        </Span>
+                                        <Span className="block text-[11px] text-[#667085]">
+                                          Estimated syllabus pace
+                                        </Span>
+                                      </div>
+                                    </div>
+
+                                    {/* Chip 2: Schedule / Overrides */}
+                                    <div className="flex items-center gap-3 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] p-2.5">
+                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                        <svg
+                                          className="h-4 w-4"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth={2}
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                          />
+                                        </svg>
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <Span className="block truncate text-xs font-bold text-[#111827]">
+                                          {alloc.completedAt
+                                            ? `Completed ${formatDateIST(alloc.completedAt)}`
+                                            : alloc.isOverdue
+                                              ? 'Overdue Target Date'
+                                              : 'On Target Schedule'}
+                                        </Span>
+                                        <Span className="block text-[11px] text-[#667085]">
+                                          {alloc.assignmentOverrides &&
+                                          alloc.assignmentOverrides.length > 0
+                                            ? `${alloc.assignmentOverrides.length} date override${alloc.assignmentOverrides.length > 1 ? 's' : ''} active`
+                                            : 'Standard milestone dates'}
+                                        </Span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Quick Actions Button Group */}
+                                  <div className="flex shrink-0 items-center gap-2">
+                                    {userRole === 'SUPER_ADMIN' ? (
+                                      <>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => setEditingAllocation(alloc)}
+                                          disabled={isTerminalAllocationStatus(alloc.status)}
+                                          className="h-8 rounded-lg border-[#D0D5DD] px-3 text-xs font-semibold text-[#344054] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#111827]"
+                                        >
+                                          Edit Dates
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => setOverridingAllocation(alloc)}
+                                          disabled={isTerminalAllocationStatus(alloc.status)}
+                                          className="h-8 rounded-lg border-[#D0D5DD] px-3 text-xs font-semibold text-[#344054] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#111827]"
+                                        >
+                                          Manage Overrides
+                                        </Button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Link
+                                          href={
+                                            alloc.user?.name
+                                              ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                              : '/mentor/reviews'
+                                          }
+                                          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#D0D5DD] bg-white px-3 text-xs font-semibold text-[#344054] shadow-2xs transition-colors hover:bg-[#F9FAFB] hover:text-[#111827]"
+                                        >
+                                          <svg
+                                            className="h-3.5 w-3.5 text-[#667085]"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            aria-hidden="true"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
+                                          </svg>
+                                          <span>Submissions</span>
+                                        </Link>
+                                        <Link
+                                          href={
+                                            alloc.user?.name
+                                              ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                              : '/mentor/progress'
+                                          }
+                                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#0044D3] px-3.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#0039B3]"
+                                        >
+                                          <span>Progress Tracker</span>
+                                          <svg
+                                            className="h-3.5 w-3.5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            aria-hidden="true"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                                            />
+                                          </svg>
+                                        </Link>
+                                      </>
                                     )}
                                   </div>
                                 </div>
