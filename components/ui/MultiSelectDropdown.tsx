@@ -115,15 +115,15 @@ export function MultiSelectDropdown<T extends string = string>({
     onChange([]);
   };
 
-  const triggerLabel = useMemo(() => {
-    if (selectedValues.length === 0) return label;
+  const { displayLabel, extraCount } = useMemo(() => {
+    if (selectedValues.length === 0) return { displayLabel: label, extraCount: 0 };
     const firstMatch = options.find((o) => o.value === selectedValues[0]);
     const firstName = firstMatch ? firstMatch.label : label;
 
-    if (selectedValues.length === 1) {
-      return firstName;
-    }
-    return `${firstName} + ${selectedValues.length - 1}`;
+    return {
+      displayLabel: firstName,
+      extraCount: selectedValues.length - 1,
+    };
   }, [label, options, selectedValues]);
 
   useEffect(() => {
@@ -164,7 +164,14 @@ export function MultiSelectDropdown<T extends string = string>({
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
       >
-        <Span className="truncate">{triggerLabel}</Span>
+        <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+          <Span className="truncate">{displayLabel}</Span>
+          {extraCount > 0 ? (
+            <Span className="inline-flex shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
+              +{extraCount}
+            </Span>
+          ) : null}
+        </div>
         <svg
           className={cn(
             'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
