@@ -11,5 +11,11 @@ export function AgentationToolbar() {
     return null;
   }
 
-  return <Agentation endpoint="http://localhost:4747" />;
+  const endpoint = process.env.NEXT_PUBLIC_AGENTATION_ENDPOINT;
+
+  if (endpoint) {
+    return <Agentation endpoint={endpoint} />;
+  }
+
+  return <Agentation />;
 }

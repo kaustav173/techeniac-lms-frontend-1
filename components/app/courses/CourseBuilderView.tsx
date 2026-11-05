@@ -24,7 +24,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { P, Span } from '@/components/ui/Typography';
+import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
@@ -45,8 +45,9 @@ import {
   UpdateTopicInput,
 } from '@/types/courses';
 
-interface CourseBuilderViewProps {
+export interface CourseBuilderViewProps {
   portal: 'admin' | 'mentor';
+  courseId?: string | undefined;
 }
 
 function findSubtopicAndParent(topics: Topic[] = [], id: string) {
@@ -694,13 +695,6 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
               <Skeleton className="h-9 w-full rounded-xl" />
             </div>
             <div className="mt-4 space-y-2.5">
-              {/* Course Root Node */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-2.5">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-md" />
-                  <Skeleton className="h-4 w-40 rounded-md" />
-                </div>
-              </div>
               {/* Topic 1 */}
               <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
                 <div className="flex items-center gap-2">
@@ -796,11 +790,14 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
   );
 }
 
-function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
+function CourseBuilderContent({
+  portal,
+  courseId: propCourseId,
+}: Readonly<CourseBuilderViewProps>) {
   const { contentMarginClass } = useSidebar();
   const params = useParams();
   const router = useRouter();
-  const rawId = params.id;
+  const rawId = propCourseId || params?.id;
   const courseId = (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -1080,9 +1077,18 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
 
             <div className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true" />
 
-            {/* Shifted Course Name & Status Badge */}
-            <div className="hidden min-w-0 items-center gap-2 truncate sm:flex">
-              <Span className="max-w-[280px] truncate text-sm font-bold text-slate-900 md:max-w-md lg:max-w-xl">
+            {/* Shifted Course Name & Status Badge - Clickable to open Course Details */}
+            <button
+              type="button"
+              onClick={() => handleSelectNode({ type: 'COURSE', id: course.id })}
+              className={`hidden min-w-0 items-center gap-2 truncate rounded-xl px-2.5 py-1 text-left transition-colors sm:flex ${
+                selectedNode.type === 'COURSE' && selectedNode.id === course.id
+                  ? 'bg-blue-50/90 text-blue-900 ring-1 ring-blue-500/40'
+                  : 'text-slate-800 hover:bg-slate-100/80'
+              }`}
+              title="Click to view & edit Course Details"
+            >
+              <Span className="max-w-[280px] truncate text-sm font-bold md:max-w-md lg:max-w-xl">
                 {course.title}
               </Span>
               <Span
@@ -1094,7 +1100,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
               >
                 {course.isActive ? 'Active' : 'Draft'}
               </Span>
-            </div>
+            </button>
           </div>
 
           {/* View Switcher on < lg screens */}
@@ -1282,19 +1288,10 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   );
 }
 
-export function CourseBuilderView({ portal }: Readonly<CourseBuilderViewProps>) {
+export function CourseBuilderView({ portal, courseId }: Readonly<CourseBuilderViewProps>) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <P className="text-xs font-medium text-slate-500">Loading Course Builder...</P>
-          </div>
-        </div>
-      }
-    >
-      <CourseBuilderContent portal={portal} />
+    <Suspense fallback={<CourseBuilderSkeleton portal={portal} />}>
+      <CourseBuilderContent portal={portal} courseId={courseId} />
     </Suspense>
   );
 }

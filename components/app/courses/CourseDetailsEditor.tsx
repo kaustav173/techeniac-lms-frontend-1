@@ -206,11 +206,11 @@ export function CourseDetailsEditor({
           <div>
             <Label className="block text-xs font-semibold text-slate-800">Description</Label>
             <textarea
-              rows={3}
+              rows={5}
               value={description}
               onChange={(e) => handleChange(() => setDescription(e.target.value))}
               placeholder="Provide a comprehensive syllabus overview, prerequisites, and target learning outcomes..."
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
+              className="mt-1 min-h-[140px] w-full resize-y rounded-xl border border-slate-300 bg-white p-3 text-sm leading-relaxed text-slate-900 placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 

@@ -11,18 +11,27 @@ interface ApiResponse<T> {
 }
 
 export const dashboardService = {
-  async getAdminDashboard(): Promise<AdminDashboardData> {
-    const res = await apiClient<ApiResponse<AdminDashboardData>>('/dashboard/admin');
+  async getAdminDashboard(authToken?: string): Promise<AdminDashboardData> {
+    const res = await apiClient<ApiResponse<AdminDashboardData>>(
+      '/dashboard/admin',
+      authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
+    );
     return res.data;
   },
 
-  async getMentorDashboard(): Promise<MentorDashboardData> {
-    const res = await apiClient<ApiResponse<MentorDashboardData>>('/dashboard/mentor');
+  async getMentorDashboard(authToken?: string): Promise<MentorDashboardData> {
+    const res = await apiClient<ApiResponse<MentorDashboardData>>(
+      '/dashboard/mentor',
+      authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
+    );
     return res.data;
   },
 
-  async getMenteeDashboard(): Promise<MenteeDashboardData> {
-    const res = await apiClient<ApiResponse<MenteeDashboardData>>('/dashboard/mentee');
+  async getMenteeDashboard(authToken?: string): Promise<MenteeDashboardData> {
+    const res = await apiClient<ApiResponse<MenteeDashboardData>>(
+      '/dashboard/mentee',
+      authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
+    );
     return res.data;
   },
 };

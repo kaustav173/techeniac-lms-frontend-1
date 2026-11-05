@@ -82,6 +82,99 @@ const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'inactive', label: 'Inactive' },
 ];
 
+export function CourseTableSkeletonRows({ count = 10 }: { count?: number }) {
+  const widths = ['w-56', 'w-72', 'w-48', 'w-64', 'w-60', 'w-52', 'w-80', 'w-44', 'w-68', 'w-50'];
+  return (
+    <>
+      {Array.from({ length: count }).map((_, idx) => (
+        <TableRow key={`course-skel-${idx}`} className="h-16">
+          <TableCell>
+            <div className="space-y-1.5">
+              <Skeleton className={`h-4 ${widths[idx % widths.length]} rounded-md`} />
+              <Skeleton className="h-3 w-28 rounded-md opacity-60" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="mx-auto h-6 w-16 rounded-full" />
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="mx-auto h-6 w-16 rounded-full" />
+          </TableCell>
+          <TableCell className="w-28 text-center">
+            <Skeleton className="mx-auto h-6 w-11 rounded-full" />
+          </TableCell>
+          <TableCell className="w-20 text-center">
+            <Skeleton className="mx-auto h-8 w-8 rounded-full" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+export function CourseLibrarySkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
+  return (
+    <div data-portal={portal} className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      {/* Top Navbar Header Skeleton */}
+      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-6 w-36 rounded-md" />
+        </div>
+        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+          <div className="hidden space-y-1.5 text-left sm:block">
+            <Skeleton className="h-3.5 w-20 rounded-md" />
+            <Skeleton className="h-2.5 w-14 rounded-md" />
+          </div>
+        </div>
+      </header>
+      <DashboardContent>
+        {/* Page Header Skeleton */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Skeleton className="h-8 w-44 rounded-xl" />
+            <Skeleton className="mt-2 h-4 w-80 rounded-md" />
+          </div>
+        </div>
+
+        {/* Search & Actions Bar Skeleton */}
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Skeleton className="h-10 w-full rounded-xl sm:w-72" />
+          <Skeleton className="h-10 w-40 rounded-full" />
+        </div>
+
+        {/* Courses Table Skeleton */}
+        <div className="mt-6">
+          <TableContainer className="w-full">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[48%]">Course</TableHead>
+                  <TableHead className="w-28 text-center">Topics</TableHead>
+                  <TableHead className="w-28 text-center">Tasks</TableHead>
+                  <TableHead className="w-28 text-center">Activate</TableHead>
+                  <TableHead className="w-20 text-center">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <CourseTableSkeletonRows count={10} />
+              </TableBody>
+            </Table>
+            <div className="flex w-full items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
+              <Skeleton className="h-4 w-32 rounded-md" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </div>
+            </div>
+          </TableContainer>
+        </div>
+      </DashboardContent>
+    </div>
+  );
+}
+
 interface CourseLibraryViewProps {
   portal: 'admin' | 'mentor';
 }
@@ -339,26 +432,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   };
 
   if (isLoading || !isAuthenticated || !user) {
-    const fallbackNav = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
-    return (
-      <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-        <Header {...fallbackNav} />
-        <DashboardContent>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-64 rounded-xl" />
-              <Skeleton className="h-4 w-96 rounded-md" />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Skeleton className="h-24 rounded-3xl" />
-              <Skeleton className="h-24 rounded-3xl" />
-              <Skeleton className="h-24 rounded-3xl" />
-            </div>
-            <Skeleton className="h-96 rounded-3xl" />
-          </div>
-        </DashboardContent>
-      </div>
-    );
+    return <CourseLibrarySkeleton portal={portal} />;
   }
 
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
@@ -457,25 +531,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 6 }).map((_, idx) => (
-                    <TableRow key={`course-skel-${idx}`} className="h-16">
-                      <TableCell>
-                        <Skeleton className="h-4 w-52 rounded-md" />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Skeleton className="mx-auto h-5 w-16 rounded-full" />
-                      </TableCell>
-                      <TableCell className="w-28 text-center">
-                        <Skeleton className="mx-auto h-6 w-11 rounded-full" />
-                      </TableCell>
-                      <TableCell className="w-20 text-center">
-                        <Skeleton className="mx-auto h-8 w-8 rounded-full" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <CourseTableSkeletonRows count={10} />
                 </TableBody>
               </Table>
               <PaginationControls
@@ -560,6 +616,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                           <TableRow
                             key={c.id}
                             style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
+                            onMouseEnter={() =>
+                              router.prefetch(`/${portal}/courses/${c.id}/builder`)
+                            }
                             onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
                             className="animate-row-enter cursor-pointer transition-colors hover:bg-slate-50/80"
                           >
@@ -567,6 +626,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
                                 <Link
                                   href={`/${portal}/courses/${c.id}/builder`}
+                                  prefetch={true}
                                   onClick={(e) => e.stopPropagation()}
                                   className="truncate text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
                                   title={c.title}

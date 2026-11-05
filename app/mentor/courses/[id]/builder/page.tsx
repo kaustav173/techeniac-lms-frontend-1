@@ -1,5 +1,26 @@
-import { CourseBuilderView } from '@/components/app/courses/CourseBuilderView';
+import type { Metadata } from 'next';
+import React, { Suspense } from 'react';
 
-export default function MentorCourseBuilderPage() {
-  return <CourseBuilderView portal="mentor" />;
+import {
+  CourseBuilderSkeleton,
+  CourseBuilderView,
+} from '@/components/app/courses/CourseBuilderView';
+
+export const metadata: Metadata = {
+  title: 'Course Builder | TechEniac LMS',
+  description: 'Design modular learning paths, structured topics, and benchmark assignments.',
+};
+
+export default async function MentorCourseBuilderPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
+    <Suspense fallback={<CourseBuilderSkeleton portal="mentor" />}>
+      <CourseBuilderView portal="mentor" courseId={id} />
+    </Suspense>
+  );
 }

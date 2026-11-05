@@ -73,7 +73,11 @@ function buildRequestUrl(
 ): string {
   const stripped = endpoint.replace(/^\/?(api\/v1\/)?/, '');
   const normalizedPath = `/${stripped}`;
-  let url = `${env.NEXT_PUBLIC_API_BASE_URL}${normalizedPath}`;
+  const baseUrl =
+    typeof window === 'undefined' && !env.NEXT_PUBLIC_API_BASE_URL.startsWith('http')
+      ? process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1'
+      : env.NEXT_PUBLIC_API_BASE_URL;
+  let url = `${baseUrl}${normalizedPath}`;
 
   if (!params) {
     return url;

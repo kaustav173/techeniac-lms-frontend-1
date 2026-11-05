@@ -726,33 +726,8 @@ export function CourseOutlineTree({
 
         {/* Tree Content with comfortable scroll area */}
         <div className="flex-1 [scrollbar-gutter:stable] space-y-2.5 overflow-y-auto p-3.5 pb-24">
-          {/* 1. Course Root Item */}
-          <div
-            onClick={() => onSelectNode({ type: 'COURSE', id: course.id })}
-            className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-              selectedNode.type === 'COURSE' && selectedNode.id === course.id
-                ? 'border-2 border-blue-500 bg-blue-50/80 text-blue-900 shadow-xs'
-                : 'border border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-              <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
-                Course
-              </Span>
-              <Span className="truncate text-base font-bold text-slate-900">{course.title}</Span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Span className="text-xs font-medium text-slate-500">
-                {course.isActive ? 'Active' : 'Draft'}
-              </Span>
-              <Span
-                className={`h-2.5 w-2.5 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
-              />
-            </div>
-          </div>
-
-          {/* 2. Topics Section - Clean unboxed layout */}
-          <div className="mt-2">
+          {/* Topics Section - Clean unboxed layout */}
+          <div>
             <div className="flex items-center justify-between pb-2">
               <button
                 type="button"
