@@ -192,7 +192,7 @@ export function MultiSelectDropdown<T extends string = string>({
         <div
           role="listbox"
           className={cn(
-            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-lg duration-100',
+            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 max-w-[calc(100vw-2rem)] min-w-full rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-xl duration-100 sm:max-w-md sm:min-w-[280px]',
             align === 'left' ? 'left-0' : 'right-0',
           )}
         >
@@ -275,11 +275,13 @@ export function MultiSelectDropdown<T extends string = string>({
                       aria-selected={isChecked}
                       onClick={() => toggleOption(opt.value)}
                       className={cn(
-                        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50',
+                        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50',
                         isChecked ? 'bg-blue-50 font-semibold text-[#0044D3]' : 'text-slate-700',
                       )}
                     >
-                      <Span className="truncate">{opt.label}</Span>
+                      <Span title={opt.label} className="min-w-0 flex-1 truncate">
+                        {opt.label}
+                      </Span>
                     </button>
                   );
                 }
@@ -298,16 +300,18 @@ export function MultiSelectDropdown<T extends string = string>({
                       }
                     }}
                     className={cn(
-                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none',
+                      'flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >
                     <Checkbox
                       checked={isChecked}
                       onChange={() => {}} // handled by parent container click
-                      className="pointer-events-none"
+                      className="pointer-events-none shrink-0"
                     />
-                    <Span className="truncate">{opt.label}</Span>
+                    <Span title={opt.label} className="min-w-0 flex-1 truncate">
+                      {opt.label}
+                    </Span>
                   </div>
                 );
               })

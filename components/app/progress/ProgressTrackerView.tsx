@@ -33,6 +33,7 @@ import {
   type ProgressTrackerItem,
   type TopicProgressItem,
   useAllocationProgress,
+  usePrefetchAllocationProgress,
   useProgressTrackers,
   useUpdateTopicDeadlineMutation,
 } from '@/hooks/useProgress';
@@ -47,7 +48,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(20);
+  const [limit, setLimit] = useState<number>(10);
   const [selectedAllocationId, setSelectedAllocationId] = useState<string | null>(null);
 
   // Direct inline deadline editor state inside the popup
@@ -56,6 +57,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [inlineError, setInlineError] = useState<string | null>(null);
 
   const updateDeadlineMutation = useUpdateTopicDeadlineMutation();
+  const prefetchProgress = usePrefetchAllocationProgress();
 
   const navConfig = portalType === 'admin' ? ADMIN_PROGRESS_NAV : MENTOR_PROGRESS_NAV;
 
@@ -268,7 +270,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   selectedValues={selectedCourseId ? [selectedCourseId] : []}
                   onChange={handleCourseChange}
                   singleSelect={true}
-                  align="left"
+                  align="right"
                   className="w-full"
                 />
               </div>
@@ -384,6 +386,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                       <TableRow
                         key={item.allocationId}
                         onClick={() => setSelectedAllocationId(item.allocationId)}
+                        onMouseEnter={() => prefetchProgress(item.allocationId)}
+                        onFocus={() => prefetchProgress(item.allocationId)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
@@ -462,6 +466,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                 e.stopPropagation();
                                 setSelectedAllocationId(item.allocationId);
                               }}
+                              onMouseEnter={() => prefetchProgress(item.allocationId)}
                               title="Inspect syllabus outline"
                               aria-label={`Inspect syllabus outline for ${item.menteeName}`}
                               className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-blue-50 hover:text-[#0044D3]"
@@ -662,10 +667,18 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
                       Allocation Window
                     </Span>
-                    <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
-                      {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
-                      {maxDate ? formatDateDDMMYY(maxDate) : '—'}
-                    </Span>
+                    {isDrawerLoading ? (
+                      <Skeleton className="mt-1 h-5 w-36 rounded-md" />
+                    ) : minDate || maxDate ? (
+                      <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                        {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
+                        {maxDate ? formatDateDDMMYY(maxDate) : '—'}
+                      </Span>
+                    ) : (
+                      <Span className="mt-0.5 block truncate text-xs text-slate-400">
+                        Flexible timeline (no window set)
+                      </Span>
+                    )}
                     <Span className="mt-0.5 block truncate text-xs text-slate-500">
                       Course start to completion window
                     </Span>

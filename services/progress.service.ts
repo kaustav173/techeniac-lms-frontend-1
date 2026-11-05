@@ -110,7 +110,7 @@ interface ApiResponse<T> {
 }
 
 const BASE = '/course-allocations';
-const DEFAULT_PAGE_LIMIT = 20;
+const DEFAULT_PAGE_LIMIT = 10;
 
 function buildFallbackPagination(
   filters: ProgressTrackerFilters,
