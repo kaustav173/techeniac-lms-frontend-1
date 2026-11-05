@@ -17,7 +17,7 @@ import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
-import { Header } from '@/components/layout/Header';
+import { Header, HeaderSkeleton } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -45,7 +45,7 @@ import {
   UpdateTopicInput,
 } from '@/types/courses';
 
-export interface CourseBuilderViewProps {
+interface CourseBuilderViewProps {
   portal: 'admin' | 'mentor';
   courseId?: string | undefined;
 }
@@ -652,21 +652,7 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
       data-portal={portal}
       className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
     >
-      {/* Top Navbar Header Skeleton */}
-      <header
-        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
-      >
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-36 rounded-md" />
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
-          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-          <div className="hidden space-y-1.5 text-left sm:block">
-            <Skeleton className="h-3.5 w-20 rounded-md" />
-            <Skeleton className="h-2.5 w-14 rounded-md" />
-          </div>
-        </div>
-      </header>
+      <HeaderSkeleton title="Course Builder" />
 
       <div
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
@@ -797,8 +783,8 @@ function CourseBuilderContent({
   const { contentMarginClass } = useSidebar();
   const params = useParams();
   const router = useRouter();
-  const rawId = propCourseId || params?.id;
-  const courseId = (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
+  const rawId = params.id;
+  const courseId = propCourseId ?? (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const {
@@ -829,14 +815,17 @@ function CourseBuilderContent({
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'outline' | 'editor'>('outline');
 
-  // Form states
+  // Form and outline dirty states
   const [isDirty, setIsDirty] = useState(false);
+  const [isOrderDirty, setIsOrderDirty] = useState(false);
   const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
 
-  // Intercept browser back/refresh/close when form is dirty
+  const hasUnsavedChanges = isDirty || isOrderDirty;
+
+  // Intercept browser back/refresh/close when form or outline order is dirty
   useEffect(() => {
-    if (!isDirty) return;
+    if (!hasUnsavedChanges) return;
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
@@ -845,7 +834,7 @@ function CourseBuilderContent({
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isDirty]);
+  }, [hasUnsavedChanges]);
 
   // Add Item Modals State
   const [isAddTopicOpen, setIsAddTopicOpen] = useState(false);
@@ -900,7 +889,7 @@ function CourseBuilderContent({
   };
 
   const handleNavigateLibrary = (e: React.MouseEvent) => {
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       e.preventDefault();
       setPendingNavigation(`/${portal}/courses`);
       setIsUnsavedModalOpen(true);
@@ -909,6 +898,7 @@ function CourseBuilderContent({
 
   const confirmDiscardChanges = () => {
     setIsDirty(false);
+    setIsOrderDirty(false);
     setIsUnsavedModalOpen(false);
     if (pendingNavigation) {
       const target = pendingNavigation;
@@ -921,6 +911,33 @@ function CourseBuilderContent({
       setPendingSelection(null);
       setMobileTab('editor');
     }
+  };
+
+  // Batch reorder persistence handler
+  const handleBatchSaveOrder = async (payload: {
+    topicItems?: { id: string; displayOrder: number }[];
+    subtopicItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+    topicAssignmentItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+    courseAssignmentItems?: { id: string; displayOrder: number }[];
+  }) => {
+    const promises: Promise<unknown>[] = [];
+    if (payload.topicItems && payload.topicItems.length > 0) {
+      promises.push(reorderTopics(payload.topicItems));
+    }
+    if (payload.subtopicItems && payload.subtopicItems.length > 0) {
+      for (const sub of payload.subtopicItems) {
+        promises.push(reorderSubtopics(sub.topicId, sub.items));
+      }
+    }
+    if (payload.topicAssignmentItems && payload.topicAssignmentItems.length > 0) {
+      for (const tAssign of payload.topicAssignmentItems) {
+        promises.push(reorderAssignments(tAssign.items, tAssign.topicId));
+      }
+    }
+    if (payload.courseAssignmentItems && payload.courseAssignmentItems.length > 0) {
+      promises.push(reorderAssignments(payload.courseAssignmentItems));
+    }
+    await Promise.all(promises);
   };
 
   // Reorder handlers
@@ -1176,6 +1193,8 @@ function CourseBuilderContent({
               onReorderAssignments={(targetId, orderedIds, topicId) => {
                 void handleReorderAssignments(targetId, orderedIds, topicId);
               }}
+              onBatchReorder={handleBatchSaveOrder}
+              onOrderDirtyChange={setIsOrderDirty}
               onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
             />
           </div>

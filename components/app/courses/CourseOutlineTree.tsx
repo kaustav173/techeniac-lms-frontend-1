@@ -26,6 +26,13 @@ import { Button } from '@/components/ui/Button';
 import { H2, Span } from '@/components/ui/Typography';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
+export interface BatchReorderPayload {
+  topicItems?: { id: string; displayOrder: number }[];
+  subtopicItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+  topicAssignmentItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+  courseAssignmentItems?: { id: string; displayOrder: number }[];
+}
+
 interface CourseOutlineTreeProps {
   course: Course;
   selectedNode: ActiveNodeSelection;
@@ -40,17 +47,19 @@ interface CourseOutlineTreeProps {
   onAddSubtopic: (topicId: string) => void;
   onAddTopicAssignment: (topicId: string) => void;
   onAddCourseAssignment: () => void;
-  onReorderTopics: (targetTopicId: string, topicIdsInOrder: string[]) => void;
-  onReorderSubtopics: (
+  onReorderTopics?: (targetTopicId: string, topicIdsInOrder: string[]) => void;
+  onReorderSubtopics?: (
     targetSubtopicId: string,
     topicId: string,
     subtopicIdsInOrder: string[],
   ) => void;
-  onReorderAssignments: (
+  onReorderAssignments?: (
     targetAssignmentId: string,
     assignmentIdsInOrder: string[],
     topicId?: string,
   ) => void;
+  onBatchReorder?: (payload: BatchReorderPayload) => Promise<void>;
+  onOrderDirtyChange?: (isDirty: boolean) => void;
   onRequestDeleteNode: (
     type: 'TOPIC' | 'SUBTOPIC' | 'ASSIGNMENT',
     id: string,
@@ -551,15 +560,86 @@ export function CourseOutlineTree({
   onReorderTopics,
   onReorderSubtopics,
   onReorderAssignments,
+  onBatchReorder,
+  onOrderDirtyChange,
   onRequestDeleteNode,
 }: Readonly<CourseOutlineTreeProps>) {
   const [collapsedTopics, setCollapsedTopics] = useState<Record<string, boolean>>({});
   const [isTopicsSectionCollapsed, setIsTopicsSectionCollapsed] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
+  // Local reorder buffering state
+  const [topics, setTopics] = useState<Topic[]>(() =>
+    [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder),
+  );
+  const [courseAssignments, setCourseAssignments] = useState<Assignment[]>(() =>
+    [...(course.courseAssignments || course.assignments || [])].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    ),
+  );
+  const [isOrderDirty, setIsOrderDirty] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [saveOrderSuccess, setSaveOrderSuccess] = useState(false);
+
+  // Sync from props when course changes and order is clean (render-phase adjustment per React docs)
+  const [prevCourse, setPrevCourse] = useState(course);
+  if (prevCourse !== course) {
+    setPrevCourse(course);
+    if (!isOrderDirty) {
+      setTopics([...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder));
+      setCourseAssignments(
+        [...(course.courseAssignments || course.assignments || [])].sort(
+          (a, b) => a.displayOrder - b.displayOrder,
+        ),
+      );
+    }
+  }
+
+  const handleSaveOrder = async () => {
+    if (!isOrderDirty || isSavingOrder || !onBatchReorder) return;
+    setIsSavingOrder(true);
+    setSaveOrderSuccess(false);
+    try {
+      const topicItems = topics.map((t, index) => ({ id: t.id, displayOrder: index }));
+      const subtopicItems = topics
+        .filter((t) => t.subtopics && t.subtopics.length > 0)
+        .map((t) => ({
+          topicId: t.id,
+          items: t.subtopics!.map((s, index) => ({ id: s.id, displayOrder: index })),
+        }));
+      const topicAssignmentItems = topics
+        .filter((t) => t.assignments && t.assignments.length > 0)
+        .map((t) => ({
+          topicId: t.id,
+          items: t.assignments!.map((a, index) => ({ id: a.id, displayOrder: index })),
+        }));
+      const courseAssignmentItems = courseAssignments.map((a, index) => ({
+        id: a.id,
+        displayOrder: index,
+      }));
+
+      await onBatchReorder({
+        topicItems,
+        subtopicItems,
+        topicAssignmentItems,
+        courseAssignmentItems,
+      });
+
+      setIsOrderDirty(false);
+      onOrderDirtyChange?.(false);
+      setSaveOrderSuccess(true);
+      setTimeout(() => setSaveOrderSuccess(false), 3000);
+    } catch {
+      // Error handled by parent or alert
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
   // Active reordering IDs across all concurrent reordering operations
   const activeReorderingIds = reorderingIds ?? (reorderingId ? [reorderingId] : []);
   const hasActiveReorder =
+    isSavingOrder ||
     activeReorderingIds.length > 0 ||
     Boolean(isReorderingTopics) ||
     Boolean(isReorderingCourseAssignments) ||
@@ -610,12 +690,7 @@ export function CourseOutlineTree({
     setCollapsedTopics((prev) => ({ ...prev, [topicId]: !prev[topicId] }));
   };
 
-  const topics = [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder);
-  const courseAssignments = [...(course.courseAssignments || course.assignments || [])].sort(
-    (a, b) => a.displayOrder - b.displayOrder,
-  );
-
-  // Drag End handler with non-blocking reordering across topics, subtopics, and tasks
+  // Drag End handler with local buffering and optional direct persistence
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -630,10 +705,16 @@ export function CourseOutlineTree({
       const newIndex = topics.findIndex((t) => t.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(topics, oldIndex, newIndex);
-        onReorderTopics(
-          String(active.id),
-          reordered.map((t) => t.id),
-        );
+        setTopics(reordered);
+        if (onBatchReorder) {
+          setIsOrderDirty(true);
+          onOrderDirtyChange?.(true);
+        } else if (onReorderTopics) {
+          onReorderTopics(
+            String(active.id),
+            reordered.map((t) => t.id),
+          );
+        }
       }
       return;
     }
@@ -648,16 +729,26 @@ export function CourseOutlineTree({
       const targetTopicId = activeData.topicId;
       const topic = topics.find((t) => t.id === targetTopicId);
       if (topic && topic.subtopics) {
-        const subtopics = [...topic.subtopics].sort((a, b) => a.displayOrder - b.displayOrder);
-        const oldIndex = subtopics.findIndex((s) => s.id === active.id);
-        const newIndex = subtopics.findIndex((s) => s.id === over.id);
+        const currentSubtopics = [...topic.subtopics].sort(
+          (a, b) => a.displayOrder - b.displayOrder,
+        );
+        const oldIndex = currentSubtopics.findIndex((s) => s.id === active.id);
+        const newIndex = currentSubtopics.findIndex((s) => s.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(subtopics, oldIndex, newIndex);
-          onReorderSubtopics(
-            String(active.id),
-            targetTopicId,
-            reordered.map((s) => s.id),
+          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex);
+          setTopics((prev) =>
+            prev.map((t) => (t.id === targetTopicId ? { ...t, subtopics: reordered } : t)),
           );
+          if (onBatchReorder) {
+            setIsOrderDirty(true);
+            onOrderDirtyChange?.(true);
+          } else if (onReorderSubtopics) {
+            onReorderSubtopics(
+              String(active.id),
+              targetTopicId,
+              reordered.map((s) => s.id),
+            );
+          }
         }
       }
       return;
@@ -673,18 +764,26 @@ export function CourseOutlineTree({
       const targetTopicId = activeData.topicId;
       const topic = topics.find((t) => t.id === targetTopicId);
       if (topic && topic.assignments) {
-        const topicAssignments = [...topic.assignments].sort(
+        const currentAssignments = [...topic.assignments].sort(
           (a, b) => a.displayOrder - b.displayOrder,
         );
-        const oldIndex = topicAssignments.findIndex((a) => a.id === active.id);
-        const newIndex = topicAssignments.findIndex((a) => a.id === over.id);
+        const oldIndex = currentAssignments.findIndex((a) => a.id === active.id);
+        const newIndex = currentAssignments.findIndex((a) => a.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(topicAssignments, oldIndex, newIndex);
-          onReorderAssignments(
-            String(active.id),
-            reordered.map((a) => a.id),
-            targetTopicId,
+          const reordered = arrayMove(currentAssignments, oldIndex, newIndex);
+          setTopics((prev) =>
+            prev.map((t) => (t.id === targetTopicId ? { ...t, assignments: reordered } : t)),
           );
+          if (onBatchReorder) {
+            setIsOrderDirty(true);
+            onOrderDirtyChange?.(true);
+          } else if (onReorderAssignments) {
+            onReorderAssignments(
+              String(active.id),
+              reordered.map((a) => a.id),
+              targetTopicId,
+            );
+          }
         }
       }
       return;
@@ -696,10 +795,16 @@ export function CourseOutlineTree({
       const newIndex = courseAssignments.findIndex((a) => a.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(courseAssignments, oldIndex, newIndex);
-        onReorderAssignments(
-          String(active.id),
-          reordered.map((a) => a.id),
-        );
+        setCourseAssignments(reordered);
+        if (onBatchReorder) {
+          setIsOrderDirty(true);
+          onOrderDirtyChange?.(true);
+        } else if (onReorderAssignments) {
+          onReorderAssignments(
+            String(active.id),
+            reordered.map((a) => a.id),
+          );
+        }
       }
       return;
     }
@@ -713,15 +818,39 @@ export function CourseOutlineTree({
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full flex-col border-b border-slate-200 bg-slate-50/60 lg:border-r lg:border-b-0">
-        {/* Outline Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3.5">
+        {/* Outline Header with Batch Save Changes Button */}
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <H2 className="text-base font-bold text-slate-900 sm:text-lg">Course Outline</H2>
-          {hasActiveReorder && (
-            <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
-              <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <Span>Saving order...</Span>
-            </Span>
-          )}
+          <div className="flex items-center gap-2">
+            {saveOrderSuccess && (
+              <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <Span>Saved</Span>
+              </Span>
+            )}
+            {hasActiveReorder && !onBatchReorder && (
+              <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+                <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                <Span>Saving order...</Span>
+              </Span>
+            )}
+            {onBatchReorder && (
+              <Button
+                type="button"
+                disabled={!isOrderDirty || isSavingOrder}
+                isLoading={isSavingOrder}
+                onClick={() => void handleSaveOrder()}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-xs transition-colors focus-visible:ring-[#0044D3] ${
+                  isOrderDirty && !isSavingOrder
+                    ? 'cursor-pointer bg-[#0044D3] text-white hover:bg-[#0039B3]'
+                    : 'cursor-not-allowed bg-slate-200 text-slate-400'
+                }`}
+                title={isOrderDirty ? 'Save reordered outline' : 'No order changes to save'}
+              >
+                {isSavingOrder ? 'Saving...' : 'Save Order'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Tree Content with comfortable scroll area */}

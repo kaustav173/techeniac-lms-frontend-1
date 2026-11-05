@@ -228,8 +228,11 @@ export function LearningHistoryView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {alloc.assignments.map((assign) => (
-                          <tr key={assign.assignmentId} className="bg-white">
+                        {alloc.assignments.map((assign, idx) => (
+                          <tr
+                            key={`${alloc.allocationId}-${assign.assignmentId}-v${assign.version}-${idx}`}
+                            className="bg-white"
+                          >
                             <td className="px-4 py-3">
                               <Span className="font-semibold text-slate-900">
                                 {assign.assignmentTitle}

@@ -5,7 +5,7 @@ import React from 'react';
 
 import { ADMIN_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { DashboardContent } from '@/components/layout/DashboardContent';
-import { Header } from '@/components/layout/Header';
+import { Header, HeaderSkeleton } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -17,19 +17,7 @@ import type { AuthUser } from '@/services/auth.service';
 export function AdminDashboardSkeleton() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
-      {/* Header Skeleton */}
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-36 rounded-md" />
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
-          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-          <div className="hidden space-y-1.5 text-left sm:block">
-            <Skeleton className="h-3.5 w-20 rounded-md" />
-            <Skeleton className="h-2.5 w-14 rounded-md" />
-          </div>
-        </div>
-      </header>
+      <HeaderSkeleton title="Dashboard" />
 
       <DashboardContent>
         {/* Welcome Section Skeleton */}
@@ -207,13 +195,13 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 </span>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#111827]">
-                {dashboard?.users.totalUsers ?? 0}
+                {dashboard?.users?.totalUsers ?? 0}
               </P>
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.users.menteesCount ?? 0} Mentees • {dashboard?.users.mentorsCount ?? 0}{' '}
-                Mentors
+                {dashboard?.users?.menteesCount ?? 0} Mentees •{' '}
+                {dashboard?.users?.mentorsCount ?? 0} Mentors
               </Span>
             </div>
           </Link>
@@ -233,13 +221,13 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 </span>
               </div>
               <P className="mt-1 text-3xl font-bold text-emerald-600">
-                {dashboard?.batches.liveBatches ?? 0}
+                {dashboard?.batches?.liveBatches ?? 0}
               </P>
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.batches.totalBatches ?? 0} total •{' '}
-                {dashboard?.batches.draftBatches ?? 0} draft
+                {dashboard?.batches?.totalBatches ?? 0} total •{' '}
+                {dashboard?.batches?.draftBatches ?? 0} draft
               </Span>
             </div>
           </Link>
@@ -259,12 +247,12 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 </span>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#0044D3]">
-                {dashboard?.courses.publishedCourses ?? 0}
+                {dashboard?.courses?.publishedCourses ?? 0}
               </P>
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.courses.totalCourses ?? 0} total curriculum tracks
+                {dashboard?.courses?.totalCourses ?? 0} total curriculum tracks
               </Span>
             </div>
           </Link>
@@ -284,12 +272,12 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 </span>
               </div>
               <P className="mt-1 text-3xl font-bold text-amber-600">
-                {dashboard?.allocations.activeAllocations ?? 0}
+                {dashboard?.allocations?.activeAllocations ?? 0}
               </P>
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.allocations.completedAllocations ?? 0} completed
+                {dashboard?.allocations?.completedAllocations ?? 0} completed
               </Span>
             </div>
           </Link>
@@ -309,13 +297,13 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 </span>
               </div>
               <P className="mt-1 text-3xl font-bold text-rose-600">
-                {dashboard?.submissions.pendingReviewCount ?? 0}
+                {dashboard?.submissions?.pendingReviewCount ?? 0}
               </P>
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.submissions.gradedCount ?? 0} graded •{' '}
-                {dashboard?.submissions.resubmitRequestedCount ?? 0} resubmits
+                {dashboard?.submissions?.gradedCount ?? 0} graded •{' '}
+                {dashboard?.submissions?.resubmitRequestedCount ?? 0} resubmits
               </Span>
             </div>
           </Link>
@@ -355,7 +343,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   </svg>
                 </div>
                 <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#0044D3]">
-                  {dashboard?.users.totalUsers ?? 0} Users
+                  {dashboard?.users?.totalUsers ?? 0} Users
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-[#0044D3]">
@@ -404,7 +392,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   </svg>
                 </div>
                 <Span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                  {dashboard?.batches.liveBatches ?? 0} Live
+                  {dashboard?.batches?.liveBatches ?? 0} Live
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-emerald-700">
@@ -453,7 +441,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   </svg>
                 </div>
                 <Span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
-                  {dashboard?.courses.totalCourses ?? 0} Tracks
+                  {dashboard?.courses?.totalCourses ?? 0} Tracks
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-sky-700">
@@ -502,7 +490,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   </svg>
                 </div>
                 <Span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-                  {dashboard?.allocations.activeAllocations ?? 0} Active
+                  {dashboard?.allocations?.activeAllocations ?? 0} Active
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-amber-700">
@@ -551,7 +539,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   </svg>
                 </div>
                 <Span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
-                  {dashboard?.submissions.pendingReviewCount ?? 0} Pending
+                  {dashboard?.submissions?.pendingReviewCount ?? 0} Pending
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-purple-700">

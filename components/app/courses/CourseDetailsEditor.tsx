@@ -46,8 +46,21 @@ export function CourseDetailsEditor({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Compute dirty state comparing current values against initial course props
+  const isDirty =
+    title.trim() !== course.title.trim() ||
+    description.trim() !== (course.description || '').trim() ||
+    (totalEstimatedMins ?? null) !== (course.estimatedMinutes ?? null) ||
+    isActive !== course.isActive;
+
+  React.useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!isDirty || isSaving) return;
+
     if (!title.trim()) {
       setErrorMsg('Course title cannot be empty.');
       return;
@@ -121,16 +134,33 @@ export function CourseDetailsEditor({
 
   const handleChange = (updater: () => void) => {
     updater();
-    onDirtyChange(true);
   };
 
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
     <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-6 lg:p-8">
+      {/* Course Name & Status Banner directly above Course Details form */}
+      <div className="mb-4 flex w-full max-w-6xl flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <H2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+            {title || course.title}
+          </H2>
+          <Span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              isActive
+                ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border border-slate-200 bg-slate-100 text-slate-600'
+            }`}
+          >
+            {isActive ? 'Active' : 'Inactive'}
+          </Span>
+        </div>
+      </div>
+
       {/* Live Impact Notice on Open Allocations */}
       {affectedMentees > 0 && (
-        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 shadow-xs">
+        <div className="mb-4 max-w-6xl rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 shadow-xs">
           <div className="flex items-center gap-2 text-xs font-bold">
             <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             <Span>Live Impact Notice</Span>
@@ -146,7 +176,7 @@ export function CourseDetailsEditor({
       {errorMsg && (
         <FieldError
           error={errorMsg}
-          className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 shadow-xs"
+          className="mb-4 max-w-6xl rounded-2xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-700 shadow-xs"
         />
       )}
 
@@ -156,7 +186,7 @@ export function CourseDetailsEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="w-full max-w-4xl rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs sm:p-6"
+        className="w-full max-w-6xl rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-8"
       >
         {/* Card Header with Save Changes Button */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
@@ -176,9 +206,13 @@ export function CourseDetailsEditor({
 
             <Button
               type="submit"
-              disabled={isSaving}
+              disabled={!isDirty || isSaving}
               isLoading={isSaving}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] disabled:opacity-50"
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold shadow-xs transition-colors focus-visible:ring-[#0044D3] ${
+                isDirty && !isSaving
+                  ? 'bg-[#0044D3] text-white hover:bg-[#0039B3]'
+                  : 'bg-slate-200 text-slate-400'
+              }`}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
