@@ -524,22 +524,36 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         {selectedItem && (
           <div className="space-y-6">
             {/* Event Header Hero Strip */}
-            <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className={`flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs transition-all duration-200 sm:flex-row sm:items-center sm:justify-between ${
+                editingTopicId ? 'pointer-events-none opacity-40 blur-[1px]' : ''
+              }`}
+            >
               <div className="flex min-w-0 items-center gap-2.5">
                 <Span className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wide text-[#0044D3]">
                   Cadet Progress
                 </Span>
-                <Span className="truncate text-base font-bold text-slate-900">
+                <Span
+                  title={selectedItem.menteeName}
+                  className="cursor-default truncate text-base font-bold text-slate-900"
+                >
                   {selectedItem.menteeName}
                 </Span>
               </div>
-              <Span className="truncate text-xs font-semibold text-slate-500">
+              <Span
+                title={`${selectedItem.courseTitle} • ${selectedItem.batchName ?? 'Individual Track'}`}
+                className="cursor-default truncate text-xs font-semibold text-slate-500"
+              >
                 {selectedItem.courseTitle} • {selectedItem.batchName ?? 'Individual Track'}
               </Span>
             </div>
 
             {/* Structured Metadata Grid (2x2): matches AuditDetailModal */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div
+              className={`grid grid-cols-1 gap-4 transition-all duration-200 sm:grid-cols-2 ${
+                editingTopicId ? 'pointer-events-none opacity-40 blur-[1px]' : ''
+              }`}
+            >
               {/* Card 1: Overall Completion */}
               <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                 <div className="flex items-center gap-3">
@@ -623,11 +637,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                           : 'On Track'}
                       </Span>
                     </div>
-                    <Span className="mt-1 block truncate text-xs text-slate-500">
-                      {selectedItem.overdueTopicsCount > 0
-                        ? `${selectedItem.overdueTopicsCount} topic milestone(s) overdue`
-                        : 'All milestones aligned with pacing'}
-                    </Span>
                   </div>
                 </div>
               </div>
@@ -685,10 +694,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   </div>
                   <div className="min-w-0 flex-1">
                     <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                      Curriculum Track
+                      Course Track
                     </Span>
                     <div className="mt-0.5 flex items-center gap-2">
-                      <Span className="truncate text-sm font-bold text-slate-900">
+                      <Span
+                        title={selectedItem.courseTitle}
+                        className="cursor-default truncate text-sm font-bold text-slate-900"
+                      >
                         {selectedItem.courseTitle}
                       </Span>
                     </div>
@@ -751,7 +763,16 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     const isEditingThisTopic = editingTopicId === t.topicId;
 
                     return (
-                      <div key={t.topicId} className="p-4 transition-colors hover:bg-slate-50/50">
+                      <div
+                        key={t.topicId}
+                        className={`p-4 transition-all duration-200 ${
+                          isEditingThisTopic
+                            ? 'relative z-10 rounded-xl bg-white shadow-xs ring-2 ring-[#0044D3]/20'
+                            : editingTopicId
+                              ? 'pointer-events-none opacity-35 blur-[1px] select-none'
+                              : 'hover:bg-slate-50/50'
+                        }`}
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <Span
@@ -766,7 +787,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               {isCompleted ? '✓' : idx + 1}
                             </Span>
                             <div className="min-w-0 flex-1">
-                              <H4 className="text-sm font-bold break-words text-slate-900">
+                              <H4
+                                title={t.title}
+                                className="cursor-default text-sm font-bold break-words text-slate-900"
+                              >
                                 {t.title}
                               </H4>
                               <div className="mt-1 flex flex-wrap items-center gap-2">
