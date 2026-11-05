@@ -27,8 +27,8 @@ import {
   TableRow,
 } from '@/components/ui/Table';
 import { H2, H4, P, Span } from '@/components/ui/Typography';
-import { useBatchesList } from '@/hooks/useBatches';
-import { useCourses } from '@/hooks/useCourses';
+import { useInfiniteBatches } from '@/hooks/useBatches';
+import { useInfiniteCourses } from '@/hooks/useCourses';
 import {
   type ProgressTrackerItem,
   type TopicProgressItem,
@@ -44,8 +44,8 @@ interface ProgressTrackerViewProps {
 }
 
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
-  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
@@ -70,8 +70,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     error: trackersError,
     refetch: refetchTrackers,
   } = useProgressTrackers({
-    batchId: selectedBatchId || undefined,
-    courseId: selectedCourseId || undefined,
+    batchIds: selectedBatchIds.length > 0 ? selectedBatchIds : undefined,
+    courseIds: selectedCourseIds.length > 0 ? selectedCourseIds : undefined,
     search: search.trim() || undefined,
     page,
     limit,
@@ -94,9 +94,19 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     [trackersResponse, page, limit, trackers.length],
   );
 
-  // 2. Fetch Batches for Filter Dropdown
-  const { data: batchesData } = useBatchesList({ limit: 100 });
-  const batches = useMemo(() => batchesData?.items ?? [], [batchesData]);
+  // 2. Fetch Batches for Filter Dropdown with Infinite Scroll (10 items per page)
+  const {
+    data: batchesInfiniteData,
+    fetchNextPage: fetchNextBatches,
+    hasNextPage: hasNextBatches,
+    isFetchingNextPage: isFetchingNextBatches,
+  } = useInfiniteBatches(10);
+
+  const batches = useMemo(
+    () => batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [],
+    [batchesInfiniteData],
+  );
+
   const batchOptions: readonly MultiSelectOption[] = useMemo(
     () =>
       batches.map((b) => ({
@@ -106,8 +116,19 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     [batches],
   );
 
-  // 3. Fetch Courses for Filter Dropdown
-  const { courses } = useCourses({ limit: 100 });
+  // 3. Fetch Courses for Filter Dropdown with Infinite Scroll (10 items per page)
+  const {
+    data: coursesInfiniteData,
+    fetchNextPage: fetchNextCourses,
+    hasNextPage: hasNextCourses,
+    isFetchingNextPage: isFetchingNextCourses,
+  } = useInfiniteCourses(10);
+
+  const courses = useMemo(
+    () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
+    [coursesInfiniteData],
+  );
+
   const courseOptions: readonly MultiSelectOption[] = useMemo(
     () =>
       courses.map((c) => ({
@@ -213,23 +234,37 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   };
 
   const handleBatchChange = (vals: string[]) => {
-    setSelectedBatchId(vals[0] ?? '');
+    setSelectedBatchIds(vals);
     setPage(1);
   };
 
   const handleCourseChange = (vals: string[]) => {
-    setSelectedCourseId(vals[0] ?? '');
+    setSelectedCourseIds(vals);
     setPage(1);
   };
 
+  const handleBatchScrollEnd = () => {
+    if (hasNextBatches && !isFetchingNextBatches) {
+      void fetchNextBatches();
+    }
+  };
+
+  const handleCourseScrollEnd = () => {
+    if (hasNextCourses && !isFetchingNextCourses) {
+      void fetchNextCourses();
+    }
+  };
+
   const handleResetFilters = () => {
-    setSelectedBatchId('');
-    setSelectedCourseId('');
+    setSelectedBatchIds([]);
+    setSelectedCourseIds([]);
     setSearch('');
     setPage(1);
   };
 
-  const hasActiveFilters = Boolean(selectedBatchId || selectedCourseId || search.trim());
+  const hasActiveFilters = Boolean(
+    selectedBatchIds.length > 0 || selectedCourseIds.length > 0 || search.trim(),
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
@@ -249,29 +284,33 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 />
               </div>
 
-              {/* 2. Batch Filter (Single-select dropdown styled like Audit Logs) */}
+              {/* 2. Batch Filter (Multi-select dropdown with infinite scroll) */}
               <div className="lg:col-span-1">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
-                  selectedValues={selectedBatchId ? [selectedBatchId] : []}
+                  selectedValues={selectedBatchIds}
                   onChange={handleBatchChange}
-                  singleSelect={true}
+                  singleSelect={false}
                   align="left"
                   className="w-full"
+                  onScrollEnd={handleBatchScrollEnd}
+                  isLoadingMore={isFetchingNextBatches}
                 />
               </div>
 
-              {/* 3. Course Filter (Single-select dropdown styled like Audit Logs) */}
+              {/* 3. Course Filter (Multi-select dropdown with infinite scroll) */}
               <div className="lg:col-span-1">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
-                  selectedValues={selectedCourseId ? [selectedCourseId] : []}
+                  selectedValues={selectedCourseIds}
                   onChange={handleCourseChange}
-                  singleSelect={true}
+                  singleSelect={false}
                   align="right"
                   className="w-full"
+                  onScrollEnd={handleCourseScrollEnd}
+                  isLoadingMore={isFetchingNextCourses}
                 />
               </div>
             </div>

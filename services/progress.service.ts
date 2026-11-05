@@ -90,8 +90,11 @@ export interface ProgressTrackerResponse {
 
 export interface ProgressTrackerFilters {
   readonly batchId?: string | undefined;
+  readonly batchIds?: readonly string[] | string[] | undefined;
   readonly menteeId?: string | undefined;
+  readonly menteeIds?: readonly string[] | string[] | undefined;
   readonly courseId?: string | undefined;
+  readonly courseIds?: readonly string[] | string[] | undefined;
   readonly search?: string | undefined;
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
@@ -178,8 +181,17 @@ export const progressService = {
   ): Promise<ProgressTrackerResponse> {
     const params: Record<string, string> = {};
     if (filters.batchId) params.batchId = filters.batchId;
+    if (filters.batchIds && filters.batchIds.length > 0) {
+      params.batchIds = filters.batchIds.join(',');
+    }
     if (filters.menteeId) params.menteeId = filters.menteeId;
+    if (filters.menteeIds && filters.menteeIds.length > 0) {
+      params.menteeIds = filters.menteeIds.join(',');
+    }
     if (filters.courseId) params.courseId = filters.courseId;
+    if (filters.courseIds && filters.courseIds.length > 0) {
+      params.courseIds = filters.courseIds.join(',');
+    }
     if (filters.search) params.search = filters.search;
     if (filters.page) params.page = String(filters.page);
     if (filters.limit) params.limit = String(filters.limit);

@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, noop, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  noop,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback } from 'react';
 
 import { coursesService } from '@/services/courses.service';
@@ -370,4 +376,18 @@ export function useCourseBuilder(courseId: string) {
     deleteAssignment,
     reorderAssignments,
   };
+}
+
+export function useInfiniteCourses(pageSize: number = 10) {
+  return useInfiniteQuery({
+    queryKey: ['courses', 'infinite-dropdown', pageSize],
+    queryFn: ({ pageParam = 1, signal }) =>
+      coursesService.listCourses({ page: pageParam, limit: pageSize }, { signal }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
