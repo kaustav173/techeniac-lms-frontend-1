@@ -82,26 +82,26 @@ export function MenteeCoursesView() {
   ).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
       <DashboardContent>
         {/* Top Header & Search Area (Stitch Screen 11570786783180349238) */}
-        <div className="border-b border-slate-200 pb-6">
+        <div className="border-b border-[#E1E6EC] pb-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
+                <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-[#0044D3]">
                   📚
                 </Span>
-                <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
+                <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
                   Cohort Curricula
                 </Span>
               </div>
-              <PageTitle className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+              <PageTitle className="text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
                 My Courses
               </PageTitle>
-              <SubText className="mt-1 max-w-2xl">
+              <SubText className="mt-1 max-w-2xl text-[#667085]">
                 Track ongoing curriculum modules, verify milestone progress, and reference archived
                 materials with deliberate focus (M7, M8).
               </SubText>
@@ -114,27 +114,27 @@ export function MenteeCoursesView() {
                 placeholder="Search courses or cohort codes..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-10 w-full bg-white pl-3.5 text-xs shadow-xs"
+                className="h-10 w-full rounded-full border-[#E1E6EC] bg-white pl-4 text-xs shadow-xs focus-visible:ring-2 focus-visible:ring-[#0044D3]"
               />
             </div>
           </div>
 
           {/* Segmented Tabs & Summary Strip */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-            <div className="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-slate-100 p-1">
+            <div className="inline-flex gap-1 rounded-full border border-[#E1E6EC] bg-[#F6F8FC] p-1 shadow-xs">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setStatusTab('active')}
-                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'active'
-                    ? 'bg-white text-blue-600 shadow-xs hover:bg-white hover:text-blue-600'
-                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
+                    ? 'bg-white text-[#0044D3] shadow-xs hover:bg-white hover:text-[#0044D3]'
+                    : 'text-[#667085] hover:bg-white/60 hover:text-[#111827]'
                 }`}
               >
                 <Span>Active</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-800">
+                <Span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2 py-0.5 font-mono text-xs font-bold text-blue-800">
                   {activeCount}
                 </Span>
               </Button>
@@ -144,14 +144,14 @@ export function MenteeCoursesView() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setStatusTab('completed')}
-                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'completed'
                     ? 'bg-white text-emerald-600 shadow-xs hover:bg-white hover:text-emerald-600'
-                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
+                    : 'text-[#667085] hover:bg-white/60 hover:text-[#111827]'
                 }`}
               >
                 <Span>Completed</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-emerald-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-800">
+                <Span className="inline-flex items-center justify-center rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">
                   {completedCount}
                 </Span>
               </Button>
@@ -161,14 +161,14 @@ export function MenteeCoursesView() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setStatusTab('closed')}
-                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'closed'
-                    ? 'bg-white text-slate-800 shadow-xs hover:bg-white hover:text-slate-800'
-                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
+                    ? 'bg-white text-[#111827] shadow-xs hover:bg-white hover:text-[#111827]'
+                    : 'text-[#667085] hover:bg-white/60 hover:text-[#111827]'
                 }`}
               >
                 <Span>Closed</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-700">
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-[#667085]">
                   {closedCount}
                 </Span>
               </Button>
@@ -178,20 +178,20 @@ export function MenteeCoursesView() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setStatusTab('all')}
-                className={`flex h-auto items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                className={`flex h-auto items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
                   statusTab === 'all'
-                    ? 'bg-white text-slate-900 shadow-xs hover:bg-white hover:text-slate-900'
-                    : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900'
+                    ? 'bg-white text-[#111827] shadow-xs hover:bg-white hover:text-[#111827]'
+                    : 'text-[#667085] hover:bg-white/60 hover:text-[#111827]'
                 }`}
               >
                 <Span>All Tracks</Span>
-                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-bold text-slate-700">
+                <Span className="inline-flex items-center justify-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-[#667085]">
                   {allocations.length}
                 </Span>
               </Button>
             </div>
 
-            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 sm:flex">
+            <div className="hidden items-center gap-2 rounded-full border border-[#E1E6EC] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#667085] shadow-xs sm:flex">
               <Span className="h-2 w-2 rounded-full bg-emerald-500" />
               <Span>Enrolled Curriculum Telemetry Active</Span>
             </div>
@@ -278,10 +278,10 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
     <div
       className={`relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
         isOverdue
-          ? 'border-2 border-rose-300'
+          ? 'border border-rose-300 ring-1 ring-rose-200'
           : isCompleted
             ? 'border border-emerald-200'
-            : 'border-2 border-blue-600 shadow-blue-500/5'
+            : 'border border-[#E1E6EC] hover:border-[#0044D3]/40'
       }`}
     >
       <div>
@@ -289,21 +289,21 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-xl font-bold ${
+              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-xl font-bold ${
                 isCompleted
                   ? 'bg-emerald-50 text-emerald-600'
                   : isOverdue
                     ? 'bg-rose-50 text-rose-600'
-                    : 'bg-blue-50 text-blue-600'
+                    : 'bg-[#F6F8FC] text-[#0044D3]'
               }`}
             >
               📖
             </div>
             <div className="flex flex-col">
-              <Span className="max-w-[160px] truncate text-xs font-bold tracking-wide text-blue-600 uppercase">
+              <Span className="max-w-[160px] truncate text-xs font-bold tracking-wide text-[#0044D3] uppercase">
                 {allocation.batch ? allocation.batch.name : 'Individual Track'}
               </Span>
-              <Span className="text-xs text-slate-400">
+              <Span className="text-xs text-[#667085]">
                 {allocation.batch?.code ?? 'Core Curriculum'}
               </Span>
             </div>
@@ -314,34 +314,34 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
         {/* Title & Description */}
         <Link href={`/mentee/courses/${allocation.id}`} {...hoverProps} className="group">
-          <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">
+          <H3 className="line-clamp-1 text-lg font-bold tracking-tight text-[#111827] transition-colors group-hover:text-[#0044D3]">
             {allocation.course?.title ?? 'Course Track'}
           </H3>
         </Link>
-        <P className="mt-1 line-clamp-2 min-h-[2rem] text-xs text-slate-500">
+        <P className="mt-1 line-clamp-2 min-h-[2rem] text-xs text-[#667085]">
           Structured learning modules, milestone task submissions, and topic reviews.
         </P>
 
         {/* Progress Section */}
-        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3.5">
+        <div className="mt-4 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5">
           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
-            <Span className="text-slate-700">Course Pace</Span>
+            <Span className="text-[#667085]">Course Pace</Span>
             <Span
               className={`${
                 isCompleted
                   ? 'font-bold text-emerald-600'
                   : isOverdue
                     ? 'font-bold text-rose-600'
-                    : 'font-bold text-blue-600'
+                    : 'font-bold text-[#0044D3]'
               }`}
             >
               {allocation.progressPercent}%
             </Span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+          <div className="h-2 overflow-hidden rounded-full bg-[#E1E6EC]">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-blue-600'
+                isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-[#0044D3]'
               }`}
               style={{ width: `${Math.min(100, Math.max(0, allocation.progressPercent))}%` }}
             />
@@ -349,9 +349,9 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         </div>
 
         {/* Metadata Row */}
-        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <Span className="text-slate-400">⏱</Span>
+        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-[#E1E6EC] pt-3 text-xs">
+          <div className="flex items-center gap-1.5 text-[#667085]">
+            <Span className="text-[#667085]">⏱</Span>
             <Span className="text-xs">
               {allocation.estimatedMinutes != null
                 ? `${Math.floor(allocation.estimatedMinutes / 60)}h ${allocation.estimatedMinutes % 60}m est.`
@@ -359,18 +359,18 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
             </Span>
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 text-right font-medium text-slate-700">
-            <Span className="text-slate-400">📅</Span>
+          <div className="flex items-center justify-end gap-1.5 text-right font-medium text-[#111827]">
+            <Span className="text-[#667085]">📅</Span>
             <Span className="truncate text-xs">Due {formattedDueDate}</Span>
           </div>
         </div>
       </div>
 
       {/* Footer CTA */}
-      <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-5 flex flex-col gap-2 border-t border-[#E1E6EC] pt-3">
         <Link
           href={`/mentee/assignments?courseId=${allocation.courseId}`}
-          className="flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/70 p-2 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+          className="flex items-center justify-center rounded-full border border-[#0044D3]/20 bg-blue-50/70 p-2.5 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-100"
         >
           <Span>View Course Assignments →</Span>
         </Link>
@@ -378,7 +378,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <Link
             href={`/mentee/courses/${allocation.id}`}
             {...hoverProps}
-            className="flex items-center justify-center rounded-xl bg-slate-100 p-2.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200"
+            className="flex items-center justify-center rounded-full bg-slate-100 p-2.5 text-xs font-semibold text-[#667085] transition-colors hover:bg-slate-200"
           >
             <Span>Course Closed • View Syllabus</Span>
           </Link>
@@ -386,7 +386,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <Link
             href={`/mentee/courses/${allocation.id}`}
             {...hoverProps}
-            className="flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
+            className="flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
           >
             <Span>✓ Track Completed • Review Material</Span>
           </Link>
@@ -394,7 +394,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           <Link
             href={`/mentee/courses/${allocation.id}`}
             {...hoverProps}
-            className="flex items-center justify-center rounded-xl bg-blue-600 p-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700"
+            className="flex items-center justify-center rounded-full bg-[#0044D3] p-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3]"
           >
             <Span>Continue Learning →</Span>
           </Link>

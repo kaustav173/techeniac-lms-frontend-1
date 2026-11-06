@@ -55,15 +55,17 @@ function MenteeAssignmentsContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
       <DashboardContent>
         {/* Page Header */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <PageTitle>My Course Assignments</PageTitle>
-            <SubText className="mt-1">
+            <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
+              My Course Assignments
+            </PageTitle>
+            <SubText className="mt-1 text-[#667085]">
               Submit assignment deliverables, review mentor grades, and inspect revision history in
               Indian Standard Time (IST).
             </SubText>
@@ -71,16 +73,11 @@ function MenteeAssignmentsContent() {
 
           {activeCourseId ? (
             <div className="flex items-center gap-2">
-              <Span className="text-xs text-slate-500">Filtered by course:</Span>
-              <Span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+              <Span className="text-xs text-[#667085]">Filtered by course:</Span>
+              <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0044D3]">
                 {assignments[0]?.courseTitle ?? activeCourseId}
               </Span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearCourseFilter}
-                className="h-8 px-3 text-xs"
-              >
+              <Button variant="outline" size="sm" onClick={handleClearCourseFilter}>
                 Clear Filter
               </Button>
             </div>

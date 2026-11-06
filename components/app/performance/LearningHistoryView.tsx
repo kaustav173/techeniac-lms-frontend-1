@@ -83,66 +83,66 @@ export function LearningHistoryView({
       {/* 1. Header Overview Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Allocations */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <Span className="text-xs font-semibold tracking-wider text-[#667085] uppercase">
             Courses Assigned
           </Span>
-          <H3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+          <H3 className="mt-2 text-3xl font-bold tracking-tight text-[#111827]">
             {summary.totalAllocations}
           </H3>
-          <P className="mt-1 text-xs text-slate-500">
+          <P className="mt-1 text-xs text-[#667085]">
             {summary.completedAllocations} of {summary.totalAllocations} completed
           </P>
         </div>
 
         {/* Overall Progress */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <Span className="text-xs font-semibold tracking-wider text-[#667085] uppercase">
             Overall Curriculum Progress
           </Span>
-          <H3 className="mt-2 text-3xl font-bold tracking-tight text-blue-600">
+          <H3 className="mt-2 text-3xl font-bold tracking-tight text-[#0044D3]">
             {summary.overallProgress}%
           </H3>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
             <div
-              className="h-full rounded-full bg-blue-600"
+              className="h-full rounded-full bg-[#0044D3]"
               style={{ width: `${Math.min(100, Math.max(0, summary.overallProgress))}%` }}
             />
           </div>
         </div>
 
         {/* Average Score */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <Span className="text-xs font-semibold tracking-wider text-[#667085] uppercase">
             Overall Average Grade
           </Span>
           <H3 className="mt-2 text-3xl font-bold tracking-tight text-emerald-600">
             {summary.averageMarks !== null ? summary.averageMarks : '—'}
           </H3>
-          <P className="mt-1 text-xs text-slate-500">Cumulative graded assignment score</P>
+          <P className="mt-1 text-xs text-[#667085]">Cumulative graded assignment score</P>
         </div>
 
         {/* Profile Context */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+        <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+          <Span className="text-xs font-semibold tracking-wider text-[#667085] uppercase">
             Learner Profile
           </Span>
-          <H3 className="mt-2 truncate text-lg font-bold text-slate-900">{user.name}</H3>
-          <P className="truncate text-xs text-slate-500">{user.email}</P>
+          <H3 className="mt-2 truncate text-lg font-bold text-[#111827]">{user.name}</H3>
+          <P className="truncate text-xs text-[#667085]">{user.email}</P>
         </div>
       </div>
 
       {/* 2. Batch Selector Filter (PER-09) */}
       {batches.length > 1 && (
-        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs">
-          <Span className="text-xs font-medium text-slate-600">
+        <div className="flex items-center justify-between rounded-2xl border border-[#E1E6EC] bg-white px-5 py-3.5 shadow-xs">
+          <Span className="text-xs font-medium text-[#667085]">
             Filter learning history by batch:
           </Span>
           <div className="w-56">
             <Select
               value={selectedBatchId}
               onChange={(e) => setSelectedBatchId(e.target.value)}
-              className="h-8 text-xs font-semibold"
+              className="h-9 rounded-full text-xs font-semibold"
             >
               <option value="ALL">All Enrolled Batches</option>
               {batches.map((b) => (
@@ -159,31 +159,31 @@ export function LearningHistoryView({
       {displayedBatches.map((batch) => (
         <section
           key={batch.batchId}
-          className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs"
+          className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs"
         >
           {/* Batch Header Bar */}
-          <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/75 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1 border-b border-[#E1E6EC] bg-[#F6F8FC] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <H2 className="text-base font-bold text-slate-900">{batch.batchName}</H2>
-              <P className="text-xs text-slate-500">
+              <H2 className="text-base font-bold text-[#111827]">{batch.batchName}</H2>
+              <P className="text-xs text-[#667085]">
                 Started {formatDateIST(batch.startDate)}
                 {batch.endDate && ` • Completed ${formatDateIST(batch.endDate)}`}
               </P>
             </div>
-            <Span className="inline-flex w-fit items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
+            <Span className="inline-flex w-fit items-center rounded-full border border-[#E1E6EC] bg-white px-3 py-1 text-xs font-semibold text-[#111827]">
               Batch Status: {batch.status}
             </Span>
           </div>
 
           {/* Allocations under this Batch */}
-          <div className="divide-y divide-slate-100 p-6">
+          <div className="divide-y divide-[#E1E6EC] p-6">
             {batch.courseAllocations.map((alloc) => (
               <div key={alloc.allocationId} className="py-6 first:pt-0 last:pb-0">
                 {/* Course Header */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <H3 className="text-sm font-bold text-slate-900">{alloc.courseTitle}</H3>
-                    <P className="text-xs text-slate-500">
+                    <H3 className="text-sm font-bold text-[#111827]">{alloc.courseTitle}</H3>
+                    <P className="text-xs text-[#667085]">
                       Assigned: {formatDateIST(alloc.startDate)} • Due:{' '}
                       {formatDateIST(alloc.dueDate)}
                       {alloc.completedAt && ` • Completed: ${formatDateIST(alloc.completedAt)}`}
@@ -194,15 +194,15 @@ export function LearningHistoryView({
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                         alloc.status === 'COMPLETED'
                           ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : 'border border-blue-200 bg-blue-50 text-blue-700'
+                          : 'border border-blue-200 bg-blue-50 text-[#0044D3]'
                       }`}
                     >
                       {alloc.status}
                     </Span>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                      <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#111827]">
+                      <div className="h-2 w-20 overflow-hidden rounded-full bg-[#E1E6EC]">
                         <div
-                          className="h-full rounded-full bg-blue-600"
+                          className="h-full rounded-full bg-[#0044D3]"
                           style={{
                             width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
                           }}
@@ -215,30 +215,30 @@ export function LearningHistoryView({
 
                 {/* Submissions Table for this Allocation */}
                 {alloc.assignments.length > 0 ? (
-                  <div className="mt-4 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/40">
-                    <table className="w-full text-left text-xs text-slate-600">
-                      <thead className="border-b border-slate-200 bg-slate-100/60 text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
+                  <div className="mt-4 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white">
+                    <table className="w-full text-left text-xs text-[#667085]">
+                      <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] text-xs font-semibold tracking-wider text-[#667085] uppercase">
                         <tr>
-                          <th className="px-4 py-2.5">Assignment</th>
-                          <th className="px-4 py-2.5">Submitted</th>
-                          <th className="px-4 py-2.5 text-center">Version</th>
-                          <th className="px-4 py-2.5 text-center">Score</th>
-                          <th className="px-4 py-2.5 text-center">Grade</th>
-                          <th className="px-4 py-2.5">Mentor Feedback</th>
+                          <th className="px-4 py-3">Assignment</th>
+                          <th className="px-4 py-3">Submitted</th>
+                          <th className="px-4 py-3 text-center">Version</th>
+                          <th className="px-4 py-3 text-center">Score</th>
+                          <th className="px-4 py-3 text-center">Grade</th>
+                          <th className="px-4 py-3">Mentor Feedback</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-[#E1E6EC]">
                         {alloc.assignments.map((assign, idx) => (
                           <tr
                             key={`${alloc.allocationId}-${assign.assignmentId}-v${assign.version}-${idx}`}
-                            className="bg-white"
+                            className="transition-colors hover:bg-[#F6F8FC]/60"
                           >
                             <td className="px-4 py-3">
-                              <Span className="font-semibold text-slate-900">
+                              <Span className="font-semibold text-[#111827]">
                                 {assign.assignmentTitle}
                               </Span>
                             </td>
-                            <td className="px-4 py-3 text-xs text-slate-500">
+                            <td className="px-4 py-3 text-xs text-[#667085]">
                               <div className="flex flex-col">
                                 <Span>{formatDateIST(assign.submittedAt)}</Span>
                                 {assign.isLate && (
@@ -251,31 +251,33 @@ export function LearningHistoryView({
                             <td className="px-4 py-3 text-center text-xs font-medium">
                               v{assign.version}
                             </td>
-                            <td className="px-4 py-3 text-center text-xs font-bold text-slate-800">
+                            <td className="px-4 py-3 text-center text-xs font-bold text-[#111827]">
                               {assign.marks !== null ? (
                                 <Span>
                                   {assign.marks} / {assign.maxMarks}
                                 </Span>
                               ) : (
-                                <Span className="text-slate-400">Pending Review</Span>
+                                <Span className="text-[#667085]">Pending Review</Span>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {assign.gradeLabel ? (
-                                <Span className="inline-block w-8 rounded border border-emerald-200 bg-emerald-50 py-0.5 text-center text-xs font-bold text-emerald-700">
+                                <Span className="inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-center text-xs font-bold text-emerald-700">
                                   {assign.gradeLabel}
                                 </Span>
                               ) : (
-                                <Span className="text-slate-400">—</Span>
+                                <Span className="text-[#667085]">—</Span>
                               )}
                             </td>
                             <td className="px-4 py-3">
                               {assign.feedback ? (
-                                <P className="text-xs whitespace-pre-wrap text-slate-700 italic">
+                                <P className="text-xs text-[#111827] italic">
                                   &ldquo;{assign.feedback}&rdquo;
                                 </P>
                               ) : (
-                                <Span className="text-xs text-slate-400">No feedback provided</Span>
+                                <Span className="text-xs text-[#667085] italic">
+                                  No feedback provided
+                                </Span>
                               )}
                             </td>
                           </tr>
@@ -284,8 +286,8 @@ export function LearningHistoryView({
                     </table>
                   </div>
                 ) : (
-                  <div className="mt-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-center">
-                    <P className="text-xs text-slate-400">
+                  <div className="mt-3 rounded-2xl border border-dashed border-[#E1E6EC] bg-[#F6F8FC] p-4 text-center">
+                    <P className="text-xs text-[#667085]">
                       No assignments submitted for this course allocation yet.
                     </P>
                   </div>

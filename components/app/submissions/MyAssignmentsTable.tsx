@@ -97,19 +97,19 @@ export function MyAssignmentsTable({
             placeholder="Search assignments by title, course, or topic..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 rounded-xl bg-white text-xs shadow-xs"
+            className="h-10 rounded-full border-[#E1E6EC] bg-white pl-4 text-xs shadow-xs focus-visible:ring-2 focus-visible:ring-[#0044D3]"
           />
         </div>
         {isFetching && !isLoading && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <div className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-r-transparent" />
+          <div className="flex items-center gap-1.5 text-xs text-[#667085]">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0044D3] border-r-transparent" />
             <Span>Updating...</Span>
           </div>
         )}
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex scrollbar-none items-center gap-1.5 overflow-x-auto border-b border-slate-200 pb-2">
+      <div className="flex scrollbar-none items-center gap-2 overflow-x-auto border-b border-[#E1E6EC] pb-3">
         {STATUS_FILTERS.map((tab) => {
           const isActive = selectedStatus === tab.value;
           return (
@@ -120,7 +120,7 @@ export function MyAssignmentsTable({
               size="sm"
               aria-pressed={isActive}
               onClick={() => onStatusChange?.(tab.value)}
-              className="h-auto px-3 py-1.5 text-xs whitespace-nowrap"
+              className="h-auto rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap"
             >
               {tab.label}
             </Button>
@@ -133,10 +133,10 @@ export function MyAssignmentsTable({
       ) : null}
 
       {isLoading ? (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600">
+              <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
                 <tr>
                   <th scope="col" className="px-5 py-3.5">
                     Assignment & Course
@@ -155,7 +155,7 @@ export function MyAssignmentsTable({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#E1E6EC]">
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <TableRow key={`assign-skel-${idx}`} className="h-16">
                     <TableCell className="px-5 py-4">
@@ -177,7 +177,7 @@ export function MyAssignmentsTable({
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
                     <TableCell className="px-5 py-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+                      <Skeleton className="ml-auto h-8 w-24 rounded-full" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -186,19 +186,19 @@ export function MyAssignmentsTable({
           </div>
         </div>
       ) : filteredAssignments.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center">
-          <P className="text-sm font-semibold text-slate-700">No assignments found</P>
-          <P className="mt-1 text-xs text-slate-500">
+        <div className="rounded-3xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center">
+          <P className="text-sm font-semibold text-[#111827]">No assignments found</P>
+          <P className="mt-1 text-xs text-[#667085]">
             {selectedStatus || searchQuery
               ? 'Try adjusting your filters or search keywords.'
               : 'You have no assignments allocated in your current courses.'}
           </P>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs">
+        <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 bg-slate-50/75 font-semibold text-slate-600">
+              <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
                 <tr>
                   <th scope="col" className="px-5 py-3.5">
                     Assignment & Course
@@ -218,26 +218,26 @@ export function MyAssignmentsTable({
                 </tr>
               </thead>
               <tbody
-                className={`divide-y divide-slate-100 ${
+                className={`divide-y divide-[#E1E6EC] ${
                   isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
                 }`}
               >
                 {filteredAssignments.map((assignment, idx) => (
                   <tr
                     key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                    className="transition-colors hover:bg-slate-50/50"
+                    className="transition-colors hover:bg-[#F6F8FC]/60"
                   >
                     <td className="px-5 py-4">
                       <div className="space-y-1">
                         <Link
                           href={`/mentee/assignments/${assignment.id}`}
                           {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                          className="line-clamp-1 font-semibold text-slate-900 hover:text-blue-600"
+                          className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
                         >
                           {assignment.title}
                         </Link>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <Span className="font-medium text-slate-700">
+                        <div className="flex items-center gap-2 text-xs text-[#667085]">
+                          <Span className="font-medium text-[#111827]">
                             {assignment.courseTitle}
                           </Span>
                           {assignment.topicTitle ? (
@@ -247,7 +247,7 @@ export function MyAssignmentsTable({
                             </>
                           ) : null}
                           <Span>•</Span>
-                          <Span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
+                          <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
                             {assignment.scope}
                           </Span>
                         </div>
@@ -256,11 +256,11 @@ export function MyAssignmentsTable({
 
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="space-y-0.5">
-                        <Span className="font-medium text-slate-900">
+                        <Span className="font-medium text-[#111827]">
                           {formatDateTimeIST(assignment.dueDate)}
                         </Span>
                         {assignment.allowLate ? (
-                          <Span className="block text-xs text-slate-400">
+                          <Span className="block text-xs text-[#667085]">
                             Late submissions accepted
                           </Span>
                         ) : (
@@ -270,7 +270,7 @@ export function MyAssignmentsTable({
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-xs text-slate-600">
+                      <div className="space-y-0.5 text-xs text-[#667085]">
                         <div>
                           Est:{' '}
                           <Span className="font-semibold">{assignment.estimatedMinutes} mins</Span>
