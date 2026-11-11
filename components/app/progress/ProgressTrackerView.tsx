@@ -130,14 +130,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     [trackersResponse, page, limit, trackers.length],
   );
 
-  // 2. Fetch Batches for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
+  // 2. Fetch Batches for Filter Dropdown with Infinite Scroll & Server Search (15 items per page)
   const {
     data: batchesInfiniteData,
     fetchNextPage: fetchNextBatches,
     hasNextPage: hasNextBatches,
     isFetching: isFetchingBatches,
     isFetchingNextPage: isFetchingNextBatches,
-  } = useInfiniteBatches(10, batchSearch);
+  } = useInfiniteBatches(15, batchSearch);
 
   const batches = useMemo(
     () => batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [],
@@ -160,14 +160,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     return Array.from(optionsMap.values());
   }, [batches, selectedBatchOptions]);
 
-  // 3. Fetch Courses for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
+  // 3. Fetch Courses for Filter Dropdown with Infinite Scroll & Server Search (15 items per page)
   const {
     data: coursesInfiniteData,
     fetchNextPage: fetchNextCourses,
     hasNextPage: hasNextCourses,
     isFetching: isFetchingCourses,
     isFetchingNextPage: isFetchingNextCourses,
-  } = useInfiniteCourses(10, courseSearch);
+  } = useInfiniteCourses(15, courseSearch);
 
   const courses = useMemo(
     () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],

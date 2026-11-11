@@ -38,7 +38,6 @@ export function MultiSelectDropdown<T extends string = string>({
   align = 'right',
   showMenuLabel = false,
   onScrollEnd,
-  isLoadingMore = false,
   onSearch,
   isSearching = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
@@ -47,6 +46,13 @@ export function MultiSelectDropdown<T extends string = string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const lastScrollTopRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      lastScrollTopRef.current = 0;
+    }
+  }, [isOpen]);
 
   // Close when clicking outside
   useClickOutside(
@@ -254,8 +260,15 @@ export function MultiSelectDropdown<T extends string = string>({
             onScroll={(e) => {
               if (!onScrollEnd) return;
               const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-              if (scrollHeight - scrollTop - clientHeight < 25) {
-                onScrollEnd();
+              const isScrollingDown = scrollTop > lastScrollTopRef.current;
+              lastScrollTopRef.current = scrollTop;
+
+              if (isScrollingDown) {
+                const remaining = scrollHeight - scrollTop - clientHeight;
+                // Proactively trigger next page as soon as user starts scrolling down without waiting for bottom
+                if (remaining < 450) {
+                  onScrollEnd();
+                }
               }
             }}
           >
@@ -316,11 +329,6 @@ export function MultiSelectDropdown<T extends string = string>({
                 );
               })
             )}
-            {isLoadingMore ? (
-              <div className="flex items-center justify-center py-2 text-xs text-slate-400">
-                <Span>Loading more...</Span>
-              </div>
-            ) : null}
           </div>
         </div>
       ) : null}
