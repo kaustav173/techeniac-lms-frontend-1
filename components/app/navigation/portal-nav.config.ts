@@ -333,6 +333,7 @@ export const MENTEE_PERFORMANCE_NAV: PortalNavConfig = {
 };
 
 export const ADMIN_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Admin Console',
   homeUrl: '/admin/dashboard',
   badgeColor: 'bg-purple-100 text-purple-800',
@@ -348,6 +349,7 @@ export const ADMIN_PROFILE_NAV: PortalNavConfig = {
 };
 
 export const MENTOR_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Mentor Portal',
   homeUrl: '/mentor/dashboard',
   badgeColor: 'bg-emerald-100 text-emerald-800',
@@ -364,6 +366,7 @@ export const MENTOR_PROFILE_NAV: PortalNavConfig = {
 };
 
 export const MENTEE_PROFILE_NAV: PortalNavConfig = {
+  title: 'Profile',
   subtitle: 'Learning Portal',
   homeUrl: '/mentee/dashboard',
   badgeColor: 'bg-blue-100 text-blue-800',

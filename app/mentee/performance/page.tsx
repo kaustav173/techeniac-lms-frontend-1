@@ -18,14 +18,13 @@ export default function MenteePerformancePage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTEE_PERFORMANCE_NAV} />
-      <DashboardContent>
-        <div className="mb-6">
+      <DashboardContent className="animate-slide-up space-y-6">
+        <div>
           <PageTitle className="text-2xl font-bold tracking-tight sm:text-3xl">
             My Grades & Performance
           </PageTitle>
           <SubText className="mt-1">
-            Track your curriculum completion, assignment scores, letter grades, and mentor feedback
-            (FR-11.4).
+            Track your curriculum completion, assignment scores, letter grades, and mentor feedback.
           </SubText>
         </div>
 

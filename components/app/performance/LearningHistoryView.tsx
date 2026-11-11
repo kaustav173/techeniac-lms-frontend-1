@@ -78,12 +78,14 @@ export function LearningHistoryView({
   const displayedBatches =
     selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
 
+  const formattedProgress = Math.round(Number(summary.overallProgress || 0) * 10) / 10;
+
   return (
     <div className="flex flex-col gap-6">
       {/* 1. Header Overview Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Allocations */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="animate-slide-up stagger-1 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Courses Assigned
           </Span>
@@ -96,34 +98,34 @@ export function LearningHistoryView({
         </div>
 
         {/* Overall Progress */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="animate-slide-up stagger-2 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Overall Curriculum Progress
           </Span>
           <H3 className="mt-2 text-3xl font-bold tracking-tight text-blue-600">
-            {summary.overallProgress}%
+            {formattedProgress}%
           </H3>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-blue-600"
-              style={{ width: `${Math.min(100, Math.max(0, summary.overallProgress))}%` }}
+              style={{ width: `${Math.min(100, Math.max(0, formattedProgress))}%` }}
             />
           </div>
         </div>
 
         {/* Average Score */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="animate-slide-up stagger-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Overall Average Grade
           </Span>
           <H3 className="mt-2 text-3xl font-bold tracking-tight text-emerald-600">
-            {summary.averageMarks !== null ? summary.averageMarks : '—'}
+            {summary.averageMarks !== null ? `${summary.averageMarks} / 100` : '—'}
           </H3>
           <P className="mt-1 text-xs text-slate-500">Cumulative graded assignment score</P>
         </div>
 
         {/* Profile Context */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+        <div className="animate-slide-up stagger-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
           <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Learner Profile
           </Span>
@@ -159,7 +161,7 @@ export function LearningHistoryView({
       {displayedBatches.map((batch) => (
         <section
           key={batch.batchId}
-          className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs"
+          className="animate-slide-up overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs"
         >
           {/* Batch Header Bar */}
           <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/75 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -229,7 +231,10 @@ export function LearningHistoryView({
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {alloc.assignments.map((assign) => (
-                          <tr key={assign.assignmentId} className="bg-white">
+                          <tr
+                            key={`${assign.assignmentId}-v${assign.version}-${assign.submittedAt}`}
+                            className="bg-white"
+                          >
                             <td className="px-4 py-3">
                               <Span className="font-semibold text-slate-900">
                                 {assign.assignmentTitle}

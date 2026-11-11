@@ -58,9 +58,9 @@ function MenteeAssignmentsContent() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
-      <DashboardContent>
+      <DashboardContent className="animate-slide-up space-y-6">
         {/* Page Header */}
-        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <PageTitle>My Course Assignments</PageTitle>
             <SubText className="mt-1">

@@ -248,7 +248,7 @@ export default function MenteePage() {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header {...MENTEE_PORTAL_NAV} />
 
-      <DashboardContent>
+      <DashboardContent className="animate-slide-up space-y-8">
         {/* Minimal Top Section: Welcome, Mentor & Batch */}
         <MenteeHeaderSection
           userName={user.name}
@@ -273,7 +273,7 @@ export default function MenteePage() {
         ) : null}
 
         {/* Full-Width Learning Progress Section */}
-        <div className="mb-8">
+        <div>
           <div className="mb-4">
             <H2 className="text-xl font-bold text-[#111827]">Learning Progress</H2>
           </div>
@@ -282,103 +282,105 @@ export default function MenteePage() {
         </div>
 
         {/* Learning Tracks / Modules */}
-        <div className="mb-6">
-          <H2 className="text-base font-bold text-slate-900">Your Learning Tracks</H2>
-          <P variant="muted" className="text-xs text-slate-500">
-            Enrolled courses, submissions, and milestone tracking
-          </P>
-        </div>
+        <div>
+          <div className="mb-4">
+            <H2 className="text-base font-bold text-slate-900">Your Learning Tracks</H2>
+            <P variant="muted" className="text-xs text-slate-500">
+              Enrolled courses, submissions, and milestone tracking
+            </P>
+          </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {/* Card 1: Course Progress */}
-          <Link
-            href="/mentee/courses"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-blue-600 uppercase">
-                  Curriculum
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                  Active Tracks
-                </Span>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            {/* Card 1: Course Progress */}
+            <Link
+              href="/mentee/courses"
+              className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <Span className="text-[10px] font-bold tracking-wider text-blue-600 uppercase">
+                    Curriculum
+                  </Span>
+                  <Span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                    Active Tracks
+                  </Span>
+                </div>
+                <H3 className="mt-3 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                  My Courses & Topics
+                </H3>
+                <P className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Access your allocated curriculum tracks, topic checklists, deadlines, and hands-on
+                  coding modules.
+                </P>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
-                My Courses & Topics
-              </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Access your allocated curriculum tracks, topic checklists, deadlines, and hands-on
-                coding modules.
-              </P>
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
-                View Enrolled Courses →
-              </Span>
-              <Span className="text-xs text-slate-400">M7 Allocation</Span>
-            </div>
-          </Link>
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3.5">
+                <Span className="text-xs font-semibold text-blue-600 group-hover:underline">
+                  View Enrolled Courses →
+                </Span>
+                <Span className="text-xs text-slate-400">Curriculum</Span>
+              </div>
+            </Link>
 
-          {/* Card 2: Assignments & Deadlines */}
-          <Link
-            href="/mentee/assignments"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Tasks
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                  Module 4
-                </Span>
+            {/* Card 2: Assignments & Deadlines */}
+            <Link
+              href="/mentee/assignments"
+              className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <Span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                    Tasks
+                  </Span>
+                  <Span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
+                    Submissions
+                  </Span>
+                </div>
+                <H3 className="mt-3 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                  Assignments & Due Dates
+                </H3>
+                <P className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Submit assignment deliverables, review mentor feedback, and track your submission
+                  history.
+                </P>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
-                Assignments & Due Dates
-              </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Submit assignment deliverables, review mentor feedback, and track your submission
-                history.
-              </P>
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
-                Go to Assignments →
-              </Span>
-              <Span className="text-xs text-slate-400">Submissions</Span>
-            </div>
-          </Link>
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3.5">
+                <Span className="text-xs font-semibold text-blue-600 group-hover:underline">
+                  Go to Assignments →
+                </Span>
+                <Span className="text-xs text-slate-400">Review</Span>
+              </div>
+            </Link>
 
-          {/* Card 3: Performance & Grades */}
-          <Link
-            href="/mentee/performance"
-            className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md"
-          >
-            <div>
-              <div className="flex items-center justify-between">
-                <Span className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
-                  Analytics
-                </Span>
-                <Span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                  FR-11.4
-                </Span>
+            {/* Card 3: Performance & Grades */}
+            <Link
+              href="/mentee/performance"
+              className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <Span className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                    Analytics
+                  </Span>
+                  <Span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    Performance
+                  </Span>
+                </div>
+                <H3 className="mt-3 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                  My Grades & Performance
+                </H3>
+                <P className="mt-1 text-xs leading-relaxed text-slate-600">
+                  Review your course milestone percentages, marks breakdown, graded assignments, and
+                  mentor feedback.
+                </P>
               </div>
-              <H3 className="mt-2 text-base font-bold text-slate-900 transition-colors group-hover:text-blue-600">
-                My Grades & Performance
-              </H3>
-              <P className="mt-1 text-xs leading-relaxed text-slate-600">
-                Review your course milestone percentages, marks breakdown, graded assignments, and
-                mentor feedback.
-              </P>
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-              <Span className="text-[11px] font-semibold text-blue-600 group-hover:underline">
-                View Performance & Grades →
-              </Span>
-              <Span className="text-xs text-slate-400">Learning History</Span>
-            </div>
-          </Link>
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3.5">
+                <Span className="text-xs font-semibold text-blue-600 group-hover:underline">
+                  View Performance & Grades →
+                </Span>
+                <Span className="text-xs text-slate-400">History</Span>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Upcoming Deadlines Widget */}

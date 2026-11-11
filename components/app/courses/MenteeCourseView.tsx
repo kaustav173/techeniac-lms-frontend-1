@@ -191,7 +191,16 @@ export function CourseOutlineSidebar({
         {courseAssignments.length > 0 && (
           <div className="mt-6 border-t border-slate-100 pt-4">
             <div className="mb-3 flex items-center gap-1.5">
-              <Span className="text-sm">🎯</Span>
+              <Span className="inline-flex h-4 w-4 items-center justify-center text-slate-500">
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </Span>
               <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                 Course Capstone & Milestones
               </H4>
@@ -256,10 +265,17 @@ export function ProgressControlStrip({
       <div className="-mx-6 mt-10 -mb-6 rounded-b-3xl border-t border-slate-200 bg-slate-50 p-6 sm:-mx-10 sm:-mb-10 sm:p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
-            <Span className="font-bold text-blue-600">📝</Span>
-            <H4 className="text-xs font-bold text-slate-900">
-              Mentee Progress Status Controls (FR-8.3)
-            </H4>
+            <Span className="inline-flex h-4 w-4 items-center justify-center text-blue-600">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </Span>
+            <H4 className="text-xs font-bold text-slate-900">Topic Progress Status</H4>
           </div>
 
           {/* Segmented Status Selector */}
@@ -372,9 +388,16 @@ export function TopicReadingPane({
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <Span className="text-xs text-slate-400">
-                ⏱{' '}
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <Span>
                 {currentTopic?.estimatedMinutes != null
                   ? `${currentTopic.estimatedMinutes} mins`
                   : 'Flexible'}
@@ -476,7 +499,22 @@ export function TopicReadingPane({
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                  <Span>⏱ {assignment.estimatedMinutes}m est.</Span>
+                  <div className="flex items-center gap-1.5">
+                    <svg
+                      className="h-3 w-3 text-slate-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <Span>{assignment.estimatedMinutes}m est.</Span>
+                  </div>
                   <Span className="font-semibold text-blue-600">Pass: {assignment.passMarks}</Span>
                 </div>
               </div>
@@ -664,12 +702,21 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
-      <DashboardContent className="space-y-6">
-        {/* Read-Only State Awareness Banner (Stitch Screen 5701db0470ab457abdb95e73661bc5dc) */}
+      <DashboardContent className="animate-slide-up space-y-6">
+        {/* Read-Only State Awareness Banner */}
         {isReadOnly && (
           <div className="flex items-start gap-3.5 rounded-3xl border border-amber-200 bg-amber-50 p-4 shadow-xs">
-            <Span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-700">
-              ⏸
+            <Span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
+              </svg>
             </Span>
             <div className="flex flex-col gap-0.5">
               <Span className="text-xs font-bold tracking-wider text-amber-900 uppercase">
@@ -677,8 +724,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               </Span>
               <P className="text-xs leading-relaxed text-amber-800">
                 This curriculum allocation is currently in read-only review state. Syllabus modules
-                and notes remain fully readable, while automated progress advancement is locked
-                (FR-8.8).
+                and notes remain fully readable, while automated progress advancement is locked.
               </P>
             </div>
           </div>
@@ -722,12 +768,32 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-600">
                 <div className="flex items-center gap-1.5">
-                  <Span className="text-slate-400">📅</Span>
+                  <svg
+                    className="h-3.5 w-3.5 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
                   <Span>Due {formattedDueDate}</Span>
                 </div>
                 <Span className="text-slate-300">•</Span>
                 <div className="flex items-center gap-1.5">
-                  <Span className="text-slate-400">⏱</Span>
+                  <svg
+                    className="h-3.5 w-3.5 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                   <Span>
                     {courseData?.estimatedMinutes != null
                       ? `${Math.floor(courseData.estimatedMinutes / 60)}h ${courseData.estimatedMinutes % 60}m duration`
@@ -736,10 +802,18 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                 </div>
                 <Span className="text-slate-300">•</Span>
                 <div className="flex items-center gap-1.5">
-                  <Span className="text-slate-400">👤</Span>
+                  <svg
+                    className="h-3.5 w-3.5 text-slate-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
                   <Span>
-                    Curriculum Track •{' '}
-                    <Span className="font-semibold text-slate-900">Standard</Span>
+                    Track • <Span className="font-semibold text-slate-900">Standard</Span>
                   </Span>
                 </div>
               </div>
@@ -803,9 +877,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   }`}
                 >
                   {allocation.status === 'COMPLETED'
-                    ? '✓ Fully Certified'
+                    ? 'Fully Certified'
                     : allocation.isOverdue
-                      ? '⚠️ Overdue'
+                      ? 'Overdue'
                       : 'On Track'}
                 </Span>
               </div>

@@ -31,6 +31,8 @@ export interface Assignment {
   zipMode: SubmissionMode;
   urlMode: SubmissionMode;
   resources?: ResourceItem[] | null | undefined;
+  course?: { id: string; title: string } | undefined;
+  topic?: { id: string; title: string } | null | undefined;
   displayOrder: number;
   createdAt: string;
   updatedAt: string;

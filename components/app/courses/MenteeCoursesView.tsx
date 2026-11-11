@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePrefetchCourse } from '@/hooks/useCourses';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAllocationProgress } from '@/hooks/useProgress';
+import { formatDateDMY } from '@/lib/date';
 
 export function MenteeCoursesView() {
   const { user } = useAuth();
@@ -91,8 +92,20 @@ export function MenteeCoursesView() {
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-blue-600">
-                  📚
+                <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
                 </Span>
                 <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                   Cohort Curricula
@@ -103,7 +116,7 @@ export function MenteeCoursesView() {
               </PageTitle>
               <SubText className="mt-1 max-w-2xl">
                 Track ongoing curriculum modules, verify milestone progress, and reference archived
-                materials with deliberate focus (M7, M8).
+                materials.
               </SubText>
             </div>
 
@@ -191,9 +204,9 @@ export function MenteeCoursesView() {
               </Button>
             </div>
 
-            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 sm:flex">
+            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 sm:flex">
               <Span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <Span>Enrolled Curriculum Telemetry Active</Span>
+              <Span>All Curricula Synchronized</Span>
             </div>
           </div>
         </div>
@@ -245,8 +258,8 @@ export function MenteeCoursesView() {
             </div>
           ) : (
             <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredAllocations.map((alloc) => (
-                <MenteeAllocationCard key={alloc.id} allocation={alloc} />
+              {filteredAllocations.map((alloc, idx) => (
+                <MenteeAllocationCard key={alloc.id} allocation={alloc} index={idx} />
               ))}
             </div>
           )}
@@ -256,7 +269,10 @@ export function MenteeCoursesView() {
   );
 }
 
-function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAllocation }>) {
+function MenteeAllocationCard({
+  allocation,
+  index = 0,
+}: Readonly<{ allocation: CourseAllocation; index?: number }>) {
   const prefetchProgress = usePrefetchAllocationProgress();
   const prefetchCourse = usePrefetchCourse();
   const isCompleted = allocation.status === 'COMPLETED';
@@ -264,7 +280,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
   const isOverdue = Boolean(allocation.isOverdue) && !isCompleted && !isRevokedOrClosed;
 
-  const formattedDueDate = new Date(allocation.dueDate).toLocaleDateString();
+  const formattedDueDate = allocation.dueDate ? formatDateDMY(allocation.dueDate) : 'No deadline';
 
   const prefetchCourseProgress = useCallback(() => {
     prefetchProgress(allocation.id);
@@ -273,15 +289,16 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
   const { getHoverHandlers } = useHoverPrefetch();
   const hoverProps = getHoverHandlers(prefetchCourseProgress);
+  const staggerClass = index < 6 ? `stagger-${index + 1}` : '';
 
   return (
     <div
-      className={`relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
+      className={`animate-slide-up ${staggerClass} relative flex flex-col justify-between overflow-hidden rounded-3xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${
         isOverdue
-          ? 'border-2 border-rose-300'
+          ? 'border border-rose-200 hover:border-rose-300'
           : isCompleted
-            ? 'border border-emerald-200'
-            : 'border-2 border-blue-600 shadow-blue-500/5'
+            ? 'border border-emerald-200 hover:border-emerald-300'
+            : 'border border-slate-200 hover:border-blue-400'
       }`}
     >
       <div>
@@ -289,7 +306,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl text-xl font-bold ${
+              className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${
                 isCompleted
                   ? 'bg-emerald-50 text-emerald-600'
                   : isOverdue
@@ -297,7 +314,19 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
                     : 'bg-blue-50 text-blue-600'
               }`}
             >
-              📖
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.75}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
             </div>
             <div className="flex flex-col">
               <Span className="max-w-[160px] truncate text-xs font-bold tracking-wide text-blue-600 uppercase">
@@ -351,7 +380,16 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         {/* Metadata Row */}
         <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
           <div className="flex items-center gap-1.5 text-slate-500">
-            <Span className="text-slate-400">⏱</Span>
+            <svg
+              className="h-3.5 w-3.5 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.75}
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5V12l3 1.75" />
+            </svg>
             <Span className="text-xs">
               {allocation.estimatedMinutes != null
                 ? `${Math.floor(allocation.estimatedMinutes / 60)}h ${allocation.estimatedMinutes % 60}m est.`
@@ -360,7 +398,16 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
           </div>
 
           <div className="flex items-center justify-end gap-1.5 text-right font-medium text-slate-700">
-            <Span className="text-slate-400">📅</Span>
+            <svg
+              className="h-3.5 w-3.5 text-slate-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.75}
+            >
+              <rect x="3" y="5" width="18" height="16" rx="2.5" />
+              <path strokeLinecap="round" d="M16 3v4M8 3v4M3 10h18" />
+            </svg>
             <Span className="truncate text-xs">Due {formattedDueDate}</Span>
           </div>
         </div>
