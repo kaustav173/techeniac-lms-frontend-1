@@ -76,6 +76,7 @@ export interface CourseAllocation {
     | {
         readonly id: string;
         readonly title: string;
+        readonly description?: string | null | undefined;
         readonly estimatedMinutes?: number | null | undefined;
       }
     | undefined;
@@ -124,6 +125,9 @@ export interface AllocationFilters {
   readonly search?: string | undefined;
   readonly dueDateFrom?: string | undefined;
   readonly dueDateTo?: string | undefined;
+  readonly sortBy?:
+    'course' | 'batch' | 'mentee' | 'startDate' | 'dueDate' | 'createdAt' | undefined;
+  readonly sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 export interface AllocationListResponse {
@@ -210,6 +214,8 @@ export const allocationsService = {
     if (filters.search) params.search = filters.search;
     if (filters.dueDateFrom) params.dueDateFrom = filters.dueDateFrom;
     if (filters.dueDateTo) params.dueDateTo = filters.dueDateTo;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
 
     const res = await apiClient<ApiResponse<readonly CourseAllocation[]>>(BASE, {
       method: 'GET',

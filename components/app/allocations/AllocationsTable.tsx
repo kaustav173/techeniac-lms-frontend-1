@@ -9,6 +9,7 @@ import { EditAllocationModal } from '@/components/app/allocations/EditAllocation
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import {
@@ -85,7 +86,21 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     };
   }, [openActionMenuId]);
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(filters);
+  // Sorting state for course, batches, mentee, start and due
+  type AllocationSortField = 'course' | 'mentee' | 'batch' | 'startDate' | 'dueDate';
+  const [sortField, setSortField] = useState<AllocationSortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const queryFilters: AllocationFilters = useMemo(
+    () => ({
+      ...filters,
+      sortBy: sortField ?? undefined,
+      sortOrder: sortField ? sortOrder : undefined,
+    }),
+    [filters, sortField, sortOrder],
+  );
+
+  const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(queryFilters);
 
   const isMentor = userRole === 'MENTOR';
   const { data: adminBatchesData } = useBatchesList({ limit: 100 }, { enabled: !isMentor });
@@ -117,6 +132,26 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
   const pagination = data?.pagination;
+
+  const handleSort = (field: AllocationSortField) => {
+    let nextField: AllocationSortField | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
+      } else {
+        nextField = null;
+        nextOrder = 'asc';
+      }
+    }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setFilters((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const sortedAllocations = allocations;
 
   // Telemetry KPIs
   const kpis = useMemo(() => {
@@ -185,6 +220,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const handleClearFilters = () => {
     setSearchInput('');
     setStatusTab('ALL');
+    setSortField(null);
+    setSortOrder('asc');
     setFilters({ page: 1, limit: 15 });
   };
 
@@ -384,21 +421,56 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold tracking-wider text-slate-500 uppercase">
             <TableRow>
               <TableHead scope="col" className="w-10 py-3.5 pr-2 pl-6" />
-              <TableHead scope="col" className="px-4 py-3.5">
-                Course
-              </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
-                Mentee
-              </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
-                Batch
-              </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
-                Started
-              </TableHead>
-              <TableHead scope="col" className="px-4 py-3.5">
-                Due
-              </TableHead>
+              <SortableColumnHeader<AllocationSortField>
+                field="course"
+                label="Course"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort allocations by Course Name"
+                className="px-4 py-3.5"
+                labelClassName="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+              />
+              <SortableColumnHeader<AllocationSortField>
+                field="mentee"
+                label="Mentee"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort allocations by Mentee Name"
+                className="px-4 py-3.5"
+                labelClassName="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+              />
+              <SortableColumnHeader<AllocationSortField>
+                field="batch"
+                label="Batch"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort allocations by Batch Name"
+                className="px-4 py-3.5"
+                labelClassName="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+              />
+              <SortableColumnHeader<AllocationSortField>
+                field="startDate"
+                label="Started"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort allocations by Start Date"
+                className="px-4 py-3.5"
+                labelClassName="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+              />
+              <SortableColumnHeader<AllocationSortField>
+                field="dueDate"
+                label="Due"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort allocations by Due Date"
+                className="px-4 py-3.5"
+                labelClassName="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+              />
               <TableHead scope="col" className="w-44 px-4 py-3.5">
                 Progress
               </TableHead>
@@ -477,13 +549,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              allocations.map((alloc) => {
+              sortedAllocations.map((alloc, idx) => {
                 const isExpanded = expandedAllocId === alloc.id;
                 return (
                   <React.Fragment key={alloc.id}>
                     <TableRow
+                      style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                       className={cn(
-                        'transition-colors',
+                        'animate-row-enter transition-colors',
                         isExpanded ? 'bg-slate-50/70' : 'hover:bg-slate-50/60',
                       )}
                     >

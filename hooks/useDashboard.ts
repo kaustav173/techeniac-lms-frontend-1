@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+import { dashboardKeys } from '@/lib/dashboard-keys';
 import { dashboardService } from '@/services/dashboard.service';
 import type {
   AdminDashboardData,
@@ -17,12 +18,7 @@ import type {
  * They trade real-time precision for reduced load on heavy aggregation endpoints.
  * Specific mutations may invalidate `dashboardKeys.all` when immediate UI synchronization is required.
  */
-export const dashboardKeys = {
-  all: ['dashboard'] as const,
-  admin: () => [...dashboardKeys.all, 'admin'] as const,
-  mentor: () => [...dashboardKeys.all, 'mentor'] as const,
-  mentee: () => [...dashboardKeys.all, 'mentee'] as const,
-};
+export { dashboardKeys };
 
 export function useAdminDashboard(options?: { enabled?: boolean }) {
   return useQuery<AdminDashboardData>({

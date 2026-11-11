@@ -15,6 +15,7 @@ export interface SortableColumnHeaderProps<T extends string> {
   readonly onSort: (field: T) => void;
   readonly className?: string;
   readonly buttonClassName?: string;
+  readonly labelClassName?: string;
   readonly tooltip?: string;
 }
 
@@ -26,6 +27,7 @@ export function SortableColumnHeader<T extends string>({
   onSort,
   className,
   buttonClassName,
+  labelClassName,
   tooltip,
 }: Readonly<SortableColumnHeaderProps<T>>) {
   const isSorted = sortField === field;
@@ -44,7 +46,12 @@ export function SortableColumnHeader<T extends string>({
           buttonClassName,
         )}
       >
-        <Span className="text-[length:inherit] font-semibold text-inherit transition-colors group-hover:text-slate-900">
+        <Span
+          className={cn(
+            'text-[length:inherit] font-semibold text-inherit transition-colors group-hover:text-slate-900',
+            labelClassName,
+          )}
+        >
           {label}
         </Span>
         <Span className="flex items-center justify-center">

@@ -38,7 +38,10 @@ const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
   { value: 'ARCHIVED', label: 'Archived' },
 ];
 
-function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
+function BatchesTableRow({
+  batch,
+  index = 0,
+}: Readonly<{ batch: ApiBatchSummary; index?: number }>) {
   const router = useRouter();
   const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
 
@@ -46,6 +49,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
     <TableRow
       tabIndex={0}
       role="link"
+      style={{ animationDelay: `${Math.min(index * 35, 350)}ms` }}
       onClick={() => {
         router.push(`/admin/batches/${batch.id}`);
       }}
@@ -55,7 +59,7 @@ function BatchesTableRow({ batch }: Readonly<{ batch: ApiBatchSummary }>) {
           router.push(`/admin/batches/${batch.id}`);
         }
       }}
-      className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+      className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
       <TableCell className="w-[32%] font-semibold text-slate-900">
         <Link
@@ -386,7 +390,7 @@ export function BatchesTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              sortedBatches.map((b) => <BatchesTableRow key={b.id} batch={b} />)
+              sortedBatches.map((b, idx) => <BatchesTableRow key={b.id} batch={b} index={idx} />)
             )}
           </TableBody>
         </Table>
