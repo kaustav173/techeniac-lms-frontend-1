@@ -13,7 +13,7 @@ import { prefetchAdminDashboard } from '@/lib/server/dashboard';
 
 export const metadata: Metadata = {
   title: 'Super Admin Control Center | TechEniac LMS',
-  description: 'Manage curriculum standards, allocations, progress metrics, and system audit logs.',
+  description: 'Manage courses, allocations, progress metrics, and system logs.',
 };
 
 async function AdminPageServerContent() {

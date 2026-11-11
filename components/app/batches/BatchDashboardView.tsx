@@ -903,7 +903,7 @@ export function BatchDashboardView({
               </svg>
               <H3 className="mt-3 text-base font-bold text-slate-900">No Courses Allocated Yet</H3>
               <P className="mx-auto mt-1 max-w-md text-xs text-slate-500">
-                Allocate active curriculum from the Course Library to this cohort.
+                Allocate active courses from the Course Library to this batch.
               </P>
               <div className="mt-4">
                 <Button

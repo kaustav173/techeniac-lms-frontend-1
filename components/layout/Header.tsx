@@ -176,11 +176,12 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // Automatically close profile dropdown whenever route / pathname changes (render-phase state adjustment per React docs)
+  // Automatically close profile dropdown and modals whenever route / pathname changes (render-phase state adjustment per React docs)
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setIsProfileDropdownOpen(false);
+    setIsSignOutConfirmOpen(false);
   }
 
   // Close profile dropdown on outside click or touch

@@ -816,7 +816,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create New Course"
-        description="Initialize a curriculum standard. You will be redirected to the Course Builder to add topics and assignments."
+        description="Initialize a new course. You will be redirected to the Course Builder to add topics and assignments."
         size="md"
         footer={
           <>
