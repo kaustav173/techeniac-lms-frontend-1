@@ -495,7 +495,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     Progress
                   </TableHead>
                   <TableHead className="w-[12%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                    Topics Completed
+                    Topics Done
                   </TableHead>
                   <TableHead className="w-[10%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                     Status
@@ -759,7 +759,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 </div>
               </div>
 
-              {/* Card 2: Clearance & Cadence */}
+              {/* Card 2: Timeline Status */}
               <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                 <div className="flex items-center gap-3">
                   <div
@@ -785,7 +785,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   </div>
                   <div className="min-w-0 flex-1">
                     <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                      Clearance & Cadence
+                      Timeline Status
                     </Span>
                     <div className="mt-0.5 flex items-center gap-2">
                       <Span
@@ -796,7 +796,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         }`}
                       >
                         {selectedItem.isOverdue || selectedItem.overdueTopicsCount > 0
-                          ? 'Overdue Cadence'
+                          ? 'Overdue'
                           : 'On Track'}
                       </Span>
                     </div>
