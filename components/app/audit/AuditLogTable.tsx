@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -17,82 +19,111 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H2, P, Span } from '@/components/ui/Typography';
+import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
-import { resolveAuditTargetEntity } from '@/lib/audit';
-import { formatDateTimeISTWithSeconds } from '@/lib/date';
+import {
+  AuditTypeValue,
+  formatAuditAction,
+  formatAuditType,
+  getAuditTypeBadge,
+  resolveAuditTargetEntity,
+} from '@/lib/audit';
+import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
 
 import { AuditDetailModal } from './AuditDetailModal';
 
-const AUDIT_TYPE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'ALL', label: 'All Event Types' },
-  { value: 'AUTH', label: 'Authentication (AUTH)' },
-  { value: 'USER', label: 'User & Roles (USER)' },
-  { value: 'COURSE', label: 'Courses (COURSE)' },
-  { value: 'BATCH', label: 'Batches (BATCH)' },
-  { value: 'MENTOR_MAPPING', label: 'Mentor Mapping (MENTOR_MAPPING)' },
-  { value: 'COURSE_ALLOCATION', label: 'Allocations (COURSE_ALLOCATION)' },
-  { value: 'SUBMISSION', label: 'Submissions (SUBMISSION)' },
-  { value: 'GRADING', label: 'Grading (GRADING)' },
-];
+function formatAuditDate(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '-';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '-';
 
-function getAuditTypeBadge(type: AuditType): string {
-  switch (type) {
-    case 'AUTH':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'USER':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'COURSE':
-      return 'bg-violet-100 text-violet-800 border-violet-200';
-    case 'BATCH':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'MENTOR_MAPPING':
-      return 'bg-teal-100 text-teal-800 border-teal-200';
-    case 'COURSE_ALLOCATION':
-      return 'bg-sky-100 text-sky-800 border-sky-200';
-    case 'SUBMISSION':
-      return 'bg-rose-100 text-rose-800 border-rose-200';
-    case 'GRADING':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    default:
-      return 'bg-slate-100 text-slate-800 border-slate-200';
-  }
+  const day = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(
+    date,
+  );
+  const month = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    month: 'short',
+  }).format(date);
+  const year = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+  }).format(date);
+  return `${day} ${month}, ${year}`;
 }
+
+function formatAuditTime(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
+function formatActorRole(role?: string | null): string | null {
+  return role ? formatRoleLabel(role) : null;
+}
+
+const AUDIT_TYPE_OPTIONS: readonly MultiSelectOption<AuditType>[] = [
+  { value: AuditTypeValue.AUTH, label: 'Auth' },
+  { value: AuditTypeValue.USER, label: 'User' },
+  { value: AuditTypeValue.COURSE, label: 'Course' },
+  { value: AuditTypeValue.BATCH, label: 'Batch' },
+  { value: AuditTypeValue.MENTOR_MAPPING, label: 'Mentor Mapping' },
+  { value: AuditTypeValue.COURSE_ALLOCATION, label: 'Course Allocation' },
+  { value: AuditTypeValue.SUBMISSION, label: 'Submission' },
+  { value: AuditTypeValue.GRADING, label: 'Grading' },
+];
 
 export function AuditLogTable() {
   const [filters, setFilters] = useState<AuditQueryFilters>({
     page: 1,
     limit: 10,
-    type: undefined,
-    action: undefined,
+    types: undefined,
+    search: undefined,
     startDate: undefined,
     endDate: undefined,
+    sortOrder: 'desc',
   });
 
-  const [actionInput, setActionInput] = useState<string>('');
   const [selectedEntry, setSelectedEntry] = useState<ApiAuditItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debounce action input to avoid firing requests per keystroke
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters((prev) => {
-        const trimmed = actionInput.trim();
-        const nextAction = trimmed ? trimmed : undefined;
-        if (prev.action === nextAction) return prev;
-        return {
-          ...prev,
-          page: 1,
-          action: nextAction,
-        };
-      });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [actionInput]);
-
   const { logs, pagination, isLoading, isFetching, error, refetch } = useAuditLogs(filters);
+
+  const selectedTypes = filters.types ?? [];
+
+  const handleSearchChange = (val: string) => {
+    const trimmed = val.trim();
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      search: trimmed ? trimmed : undefined,
+    }));
+  };
+
+  const handleTypesChange = (newTypes: AuditType[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      types: newTypes.length > 0 ? newTypes : undefined,
+    }));
+  };
+
+  const handleSort = () => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc',
+    }));
+  };
 
   const handleFilterChange = (key: keyof AuditQueryFilters, value: string | number | undefined) => {
     setFilters((prev) => {
@@ -108,6 +139,14 @@ export function AuditLogTable() {
         String(value) > String(nextFilters.endDate)
       ) {
         nextFilters.endDate = undefined;
+      }
+      if (
+        key === 'endDate' &&
+        nextFilters.startDate &&
+        value &&
+        String(value) < String(nextFilters.startDate)
+      ) {
+        nextFilters.startDate = undefined;
       }
       return nextFilters;
     });
@@ -134,282 +173,307 @@ export function AuditLogTable() {
   };
 
   const handleResetFilters = () => {
-    setActionInput('');
     setFilters({
       page: 1,
       limit: 10,
-      type: undefined,
-      action: undefined,
+      types: undefined,
+      search: undefined,
       startDate: undefined,
       endDate: undefined,
+      sortOrder: 'desc',
     });
   };
 
   const hasActiveFilters = Boolean(
-    filters.type || filters.action || filters.startDate || filters.endDate,
+    (filters.types && filters.types.length > 0) ||
+    filters.search ||
+    filters.startDate ||
+    filters.endDate,
   );
 
   return (
     <div className="space-y-6">
       {/* Filters Bar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Type Filter */}
-          <div>
-            <Label htmlFor="audit-type-filter" className="text-xs font-semibold text-slate-700">
-              Event Type
-            </Label>
-            <Select
-              id="audit-type-filter"
-              value={filters.type ?? 'ALL'}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
-              className="mt-1.5 h-10 w-full rounded-xl text-xs"
-            >
-              {AUDIT_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          {/* Action Search with Debounce */}
-          <div>
-            <Label htmlFor="audit-action-filter" className="text-xs font-semibold text-slate-700">
-              Filter by Action
-            </Label>
-            <Input
-              id="audit-action-filter"
-              type="text"
-              placeholder="e.g. ROLE_CHANGE, LOGIN, LIVE_EDIT"
-              value={actionInput}
-              onChange={(e) => setActionInput(e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
+          {/* 1. Search across Type, Activity, Actor, Target Entity (with Search Icon) */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <DebouncedSearchInput
+              value={filters.search ?? ''}
+              onSearchChange={handleSearchChange}
+              placeholder="Search by Type, Activity, Actor, Target Entity"
             />
           </div>
 
-          {/* Date Range Start */}
-          <div>
-            <Label htmlFor="audit-start-date" className="text-xs font-semibold text-slate-700">
-              From Date
-            </Label>
-            <Input
+          {/* 2. Type Filter (Multi-select with Checkboxes & Clear Button) */}
+          <div className="lg:col-span-1">
+            <MultiSelectDropdown<AuditType>
+              label="Type"
+              options={AUDIT_TYPE_OPTIONS}
+              selectedValues={selectedTypes}
+              onChange={handleTypesChange}
+              align="left"
+              className="w-full"
+            />
+          </div>
+
+          {/* 3. Date Range Start */}
+          <div className="lg:col-span-1">
+            <DatePicker
               id="audit-start-date"
-              type="date"
-              value={filters.startDate ?? ''}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+              value={filters.startDate}
+              onChange={(val) => handleFilterChange('startDate', val || undefined)}
+              maxDate={filters.endDate}
+              placeholder="From date"
+              className="h-11 text-sm"
             />
           </div>
 
-          {/* Date Range End */}
-          <div>
-            <Label htmlFor="audit-end-date" className="text-xs font-semibold text-slate-700">
-              To Date
-            </Label>
-            <Input
+          {/* 4. Date Range End */}
+          <div className="lg:col-span-1">
+            <DatePicker
               id="audit-end-date"
-              type="date"
-              min={filters.startDate}
-              value={filters.endDate ?? ''}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="mt-1.5 h-10 rounded-xl text-xs"
+              value={filters.endDate}
+              onChange={(val) => handleFilterChange('endDate', val || undefined)}
+              minDate={filters.startDate}
+              placeholder="To date"
+              className="h-11 text-sm"
             />
           </div>
         </div>
 
-        {/* Filter Summary & Actions */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Span className="font-semibold text-slate-700">{pagination.total}</Span> total events
-            recorded
-            {isFetching && !isLoading && (
-              <Span className="animate-pulse text-blue-600">· Refreshing...</Span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {hasActiveFilters && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetFilters}
-                className="text-xs text-slate-600 hover:text-slate-900"
-              >
-                Reset Filters
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void refetch()}
-              className="text-xs"
+        {/* Clear Filters (Cross Icon Button - appears only when any filter is active) */}
+        {hasActiveFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+            title="Clear all filters"
+            aria-label="Clear all filters"
+            className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
             >
-              Refresh
-            </Button>
-          </div>
-        </div>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
+        )}
       </div>
 
-      {/* Error Banner */}
+      {/* Error Banner with Retry */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
-          <Span className="font-bold">Error loading audit records: </Span>
-          {error}
+        <div className="mb-4">
+          <ErrorMessage
+            error={error}
+            title="Failed to load audit records"
+            onRetry={() => void refetch()}
+          />
         </div>
       )}
 
       {/* Audit Log Table using UI Primitives */}
       <TableContainer>
-        <Table className="w-full table-fixed text-left text-xs">
+        <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="w-[16%] px-5 py-3.5 text-xs font-semibold">
-                Timestamp (IST)
+              <SortableColumnHeader<'createdAt'>
+                field="createdAt"
+                label="Date & Time (IST)"
+                sortField="createdAt"
+                sortOrder={filters.sortOrder ?? 'desc'}
+                onSort={handleSort}
+                tooltip="Sort by Date & Time (IST)"
+                className="w-[16%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+              />
+              <TableHead className="w-[14%] px-4 py-3.5 pr-6 text-left text-xs font-semibold text-[#667085]">
+                Type
               </TableHead>
-              <TableHead className="w-[10%] px-5 py-3.5 text-xs font-semibold">Type</TableHead>
-              <TableHead className="w-[14%] px-5 py-3.5 text-xs font-semibold">Action</TableHead>
-              <TableHead className="w-[18%] px-5 py-3.5 text-xs font-semibold">Actor</TableHead>
-              <TableHead className="w-[14%] px-5 py-3.5 text-xs font-semibold">
+              <TableHead className="w-[18%] px-4 py-3.5 pl-6 text-left text-xs font-semibold text-[#667085] sm:pl-8">
+                Activity
+              </TableHead>
+              <TableHead className="w-[17%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                Actor
+              </TableHead>
+              <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                 Target Entity
               </TableHead>
-              <TableHead className="w-[18%] px-5 py-3.5 text-xs font-semibold">
-                Payload Preview
-              </TableHead>
-              <TableHead className="w-[10%] px-5 py-3.5 text-right text-xs font-semibold">
-                Details
+              <TableHead className="w-[11%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
+                Action
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-[#F2F4F7] font-normal">
             {isLoading || isFetching ? (
-              // Skeleton rows
-              Array.from({ length: 6 }).map((_, idx) => (
+              // Skeleton rows (matches default 10-row page size)
+              Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`} className="animate-pulse">
-                  <TableCell className="w-[16%] px-5 py-4">
+                  <TableCell className="w-[16%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-24 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[14%] px-4 py-3.5 pr-6">
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                  </TableCell>
+                  <TableCell className="w-[18%] px-4 py-3.5 pl-6 sm:pl-8">
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
-                  <TableCell className="w-[10%] px-5 py-4">
-                    <Skeleton className="h-5 w-20 rounded-full" />
+                  <TableCell className="w-[17%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
                   </TableCell>
-                  <TableCell className="w-[14%] px-5 py-4">
-                    <Skeleton className="h-4 w-24 rounded-md" />
+                  <TableCell className="w-[24%] px-4 py-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <Skeleton className="h-4 w-40 rounded-md" />
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                    </div>
                   </TableCell>
-                  <TableCell className="w-[18%] px-5 py-4">
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                  </TableCell>
-                  <TableCell className="w-[14%] px-5 py-4">
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell className="w-[18%] px-5 py-4">
-                    <Skeleton className="h-4 w-40 rounded-md" />
-                  </TableCell>
-                  <TableCell className="w-[10%] px-5 py-4 text-right">
-                    <Skeleton className="ml-auto h-7 w-16 rounded-md" />
+                  <TableCell className="w-[11%] px-4 py-3.5 text-center">
+                    <div className="flex items-center justify-center">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : error ? null : logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="px-5 py-12 text-center">
-                  <div className="mx-auto max-w-sm space-y-2">
-                    <H2 className="text-sm font-semibold text-slate-800">No audit events found</H2>
-                    <P className="text-xs text-slate-500">
-                      {hasActiveFilters
-                        ? 'No events match the selected filters. Try widening your date range or clearing filters.'
-                        : 'No audit records have been generated yet.'}
-                    </P>
-                    {hasActiveFilters && (
-                      <div className="pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleResetFilters}
-                        >
-                          Clear All Filters
-                        </Button>
-                      </div>
-                    )}
+                <TableCell colSpan={6} className="px-5 py-14 text-center">
+                  <div className="mx-auto max-w-sm space-y-2.5">
+                    <H2 className="text-base font-bold text-slate-900">No audit events found</H2>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
               logs.map((item) => {
-                const formattedTime = formatDateTimeISTWithSeconds(item.createdAt);
+                const formattedDate = formatAuditDate(item.createdAt);
+                const formattedTime = formatAuditTime(item.createdAt);
                 const actorName = item.actor?.name || 'Anonymous / System';
-                const actorRole = item.actor?.role;
-                const previewText = item.newValue
-                  ? JSON.stringify(item.newValue).slice(0, 50) + '...'
-                  : item.oldValue
-                    ? JSON.stringify(item.oldValue).slice(0, 50) + '...'
-                    : '—';
-
+                const actorRole = formatActorRole(item.actor?.role);
                 const target = resolveAuditTargetEntity(item);
 
                 return (
-                  <TableRow key={item.id} className="transition-colors hover:bg-[#F9FAFB]/80">
-                    {/* Timestamp */}
-                    <TableCell className="w-[16%] px-5 py-3.5 text-[11px] whitespace-nowrap text-slate-600">
-                      {formattedTime}
+                  <TableRow
+                    key={item.id}
+                    onClick={() => handleOpenModal(item)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleOpenModal(item);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    className="cursor-pointer transition-colors hover:bg-[#F9FAFB]/80 focus:bg-slate-50 focus:outline-hidden"
+                  >
+                    {/* Date & Time */}
+                    <TableCell className="w-[16%] px-4 py-3.5 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <Span className="text-sm font-semibold text-slate-900">
+                          {formattedDate}
+                        </Span>
+                        <Span className="text-xs text-slate-500">{formattedTime}</Span>
+                      </div>
                     </TableCell>
 
                     {/* Type */}
-                    <TableCell className="w-[10%] px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[14%] px-4 py-3.5 pr-6 whitespace-nowrap">
                       <Span
-                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getAuditTypeBadge(
+                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${getAuditTypeBadge(
                           item.type,
                         )}`}
                       >
-                        {item.type}
+                        {formatAuditType(item.type)}
                       </Span>
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="w-[14%] px-5 py-3.5 font-semibold whitespace-nowrap text-slate-900">
-                      {item.action}
+                    <TableCell className="w-[18%] px-4 py-3.5 pl-6 text-[11px] font-semibold whitespace-nowrap text-slate-800 sm:pl-8">
+                      {formatAuditAction(item.action)}
                     </TableCell>
 
                     {/* Actor */}
-                    <TableCell className="w-[18%] px-5 py-3.5 whitespace-nowrap">
+                    <TableCell className="w-[17%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <Span className="font-semibold text-slate-800">{actorName}</Span>
+                        <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
-                          <Span className="text-[10px] text-slate-500">{actorRole}</Span>
+                          <Span className="text-xs text-slate-500">{actorRole}</Span>
                         ) : null}
                       </div>
                     </TableCell>
 
                     {/* Target Entity */}
-                    <TableCell className="w-[14%] px-5 py-3.5 whitespace-nowrap text-slate-700">
-                      <div className="flex flex-col">
-                        <Span className="font-semibold text-slate-900">{target.name}</Span>
+                    <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap text-slate-700">
+                      <div className="flex max-w-[240px] flex-col">
+                        <Span
+                          className="truncate text-sm font-semibold text-slate-900"
+                          title={target.name}
+                        >
+                          {target.name}
+                        </Span>
                         {target.type ? (
-                          <Span className="text-[10px] text-slate-500">{target.type}</Span>
+                          <div className="group/target relative inline-flex items-center">
+                            <Span
+                              className="cursor-default truncate text-xs text-slate-500"
+                              title={target.tooltip || target.type}
+                            >
+                              {target.type}
+                            </Span>
+                            {target.tooltip && target.tooltip.length > 25 ? (
+                              <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden w-max max-w-xs rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-medium break-words whitespace-normal text-white shadow-xl group-hover/target:block">
+                                {target.tooltip}
+                              </div>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </TableCell>
 
-                    {/* Payload Preview */}
-                    <TableCell className="w-[18%] max-w-xs truncate px-5 py-3.5 text-[11px] text-slate-500">
-                      <Span className="block truncate text-xs" title={previewText}>
-                        {previewText}
-                      </Span>
-                    </TableCell>
-
                     {/* View Payload Details Button */}
-                    <TableCell className="w-[10%] px-5 py-3.5 text-right whitespace-nowrap">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenModal(item)}
-                        className="h-8 rounded-lg px-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                      >
-                        View Diff
-                      </Button>
+                    <TableCell className="w-[11%] px-4 py-3.5 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(item);
+                          }}
+                          title="View audit event details"
+                          aria-label={`View audit details for ${formatAuditAction(item.action)}`}
+                          className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-blue-50 hover:text-[#0044D3]"
+                        >
+                          <svg
+                            className="h-4.5 w-4.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -426,7 +490,8 @@ export function AuditLogTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          itemLabel="audit events"
+          itemLabel="Audit Logs"
+          isLoading={isLoading || isFetching}
         />
       </TableContainer>
 

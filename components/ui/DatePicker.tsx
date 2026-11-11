@@ -29,7 +29,7 @@ export interface DatePickerProps {
   readonly rangeEnd?: string | undefined;
 }
 
-const POPOVER_WIDTH_PX = 340;
+const POPOVER_WIDTH_PX = 360;
 const POPOVER_HEIGHT_PX = 380;
 const POPOVER_GUTTER_PX = 6;
 const POPOVER_Z_INDEX = 9999;
@@ -58,11 +58,24 @@ const YEAR_OPTIONS: readonly SingleSelectOption<number>[] = Array.from({ length:
   const y = 1970 + i;
   return { value: y, label: String(y) };
 });
-
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function formatTwoDigits(n: number): string {
   return String(n).padStart(2, '0');
+}
+
+function parseDateString(val: string | undefined): Date | null {
+  if (!val) return null;
+  const parts = val.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0] ?? '0', 10);
+    const m = parseInt(parts[1] ?? '0', 10) - 1;
+    const d = parseInt(parts[2] ?? '0', 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+  return null;
 }
 
 export interface CalendarDay {
@@ -70,6 +83,7 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
   dateString: string;
   isSelected: boolean;
+  isDisabled?: boolean;
   isRangeStart: boolean;
   isRangeEnd: boolean;
   isInRange: boolean;
@@ -84,6 +98,8 @@ export function buildCalendarGrid(
   viewYear: number,
   viewMonth: number,
   value?: string,
+  minDate?: string,
+  maxDate?: string,
   rangeStart?: string,
   rangeEnd?: string,
 ): CalendarDay[] {
@@ -93,6 +109,9 @@ export function buildCalendarGrid(
 
   const daysInCurrentMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+  const isCellDisabled = (ds: string) =>
+    Boolean((minDate && ds < minDate) || (maxDate && ds > maxDate));
 
   const days: CalendarDay[] = [];
 
@@ -116,6 +135,7 @@ export function buildCalendarGrid(
       isCurrentMonth,
       dateString,
       isSelected,
+      isDisabled: isCellDisabled(dateString),
       isRangeStart,
       isRangeEnd,
       isInRange,
@@ -314,11 +334,15 @@ function CalendarPopover({
                 type="button"
                 variant="ghost"
                 size="sm"
-                disabled={isOutOfRange}
-                onClick={() => onSelectDay(cell.dateString)}
+                disabled={cell.isDisabled || isOutOfRange}
+                onClick={() => {
+                  if (!cell.isDisabled && !isOutOfRange) {
+                    onSelectDay(cell.dateString);
+                  }
+                }}
                 className={cn(
                   'relative z-10 mx-auto flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                  isOutOfRange
+                  cell.isDisabled || isOutOfRange
                     ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
                     : isDaySelected
                       ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
@@ -377,6 +401,9 @@ export function DatePicker({
   const handleToggle = () => {
     if (disabled) return;
     if (!isOpen) {
+      if (!viewDate) {
+        setViewDate(parsedDate || new Date());
+      }
       updatePosition();
       setIsOpen(true);
     } else {
@@ -469,22 +496,16 @@ export function DatePicker({
   }, [isOpen, updatePosition]);
 
   // Parse initial view month/year from value, or default to current date
-  const parsedDate = useMemo(() => {
-    if (!value) return null;
-    const parts = value.split('-');
-    if (parts.length === 3) {
-      const y = parseInt(parts[0] ?? '0', 10);
-      const m = parseInt(parts[1] ?? '0', 10) - 1;
-      const d = parseInt(parts[2] ?? '0', 10);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        return new Date(y, m, d);
-      }
-    }
-    return null;
-  }, [value]);
+  const parsedDate = parseDateString(value);
 
-  const [viewDate, setViewDate] = useState<Date>(() => parsedDate || new Date());
+  const [viewDate, setViewDate] = useState<Date | null>(() => parsedDate);
   const [prevValue, setPrevValue] = useState(value);
+
+  useEffect(() => {
+    if (!viewDate) {
+      setViewDate(parsedDate || new Date());
+    }
+  }, [parsedDate, viewDate]);
 
   if (prevValue !== value) {
     setPrevValue(value);
@@ -493,8 +514,9 @@ export function DatePicker({
     }
   }
 
-  const viewYear = viewDate.getFullYear();
-  const viewMonth = viewDate.getMonth();
+  const effectiveViewDate = viewDate || parsedDate || new Date();
+  const viewYear = effectiveViewDate.getFullYear();
+  const viewMonth = effectiveViewDate.getMonth();
 
   const handlePrevMonth = () => {
     setViewDate(new Date(viewYear, viewMonth - 1, 1));
@@ -513,8 +535,8 @@ export function DatePicker({
   };
 
   const calendarDays = useMemo(
-    () => buildCalendarGrid(viewYear, viewMonth, value, rangeStart, rangeEnd),
-    [viewYear, viewMonth, value, rangeStart, rangeEnd],
+    () => buildCalendarGrid(viewYear, viewMonth, value, minDate, maxDate, rangeStart, rangeEnd),
+    [viewYear, viewMonth, value, minDate, maxDate, rangeStart, rangeEnd],
   );
 
   const handleSelectDay = (dateString: string) => {
