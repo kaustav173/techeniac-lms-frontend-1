@@ -29,6 +29,7 @@ import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
   type CourseAllocation,
+  CourseAllocationStatus,
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
@@ -150,7 +151,12 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     setStatusTab(tab);
     setFilters((prev) => ({
       ...prev,
-      status: tab === 'IN_PROGRESS' || tab === 'COMPLETED' ? tab : undefined,
+      status:
+        tab === 'IN_PROGRESS'
+          ? CourseAllocationStatus.IN_PROGRESS
+          : tab === 'COMPLETED'
+            ? CourseAllocationStatus.COMPLETED
+            : undefined,
       isOverdue: tab === 'OVERDUE' ? true : undefined,
       page: 1,
     }));
