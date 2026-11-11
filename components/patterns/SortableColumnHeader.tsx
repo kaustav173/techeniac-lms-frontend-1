@@ -45,30 +45,38 @@ export function SortableColumnHeader<T extends string>({
           {isSorted ? (
             sortOrder === 'asc' ? (
               <svg
-                className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+                className="h-3.5 w-3.5 shrink-0 text-[#0044D3] transition-colors"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                strokeWidth={2}
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+                />
               </svg>
             ) : (
               <svg
-                className="h-4 w-4 shrink-0 text-[#0044D3] transition-colors"
+                className="h-3.5 w-3.5 shrink-0 text-[#0044D3] transition-colors"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                strokeWidth={2}
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+                />
               </svg>
             )
           ) : (
             <svg
-              className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500"
+              className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -78,7 +86,7 @@ export function SortableColumnHeader<T extends string>({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                d="M7.5 3v18M3 16.5L7.5 21l4.5-4.5M16.5 21V3M12 7.5L16.5 3l4.5 4.5"
               />
             </svg>
           )}
