@@ -79,8 +79,9 @@ export function SingleSelectDropdown<T extends string | number = string>({
 
   const displayLabel = selectedOption ? selectedOption.label : placeholder;
   const isDefaultOrAll =
-    !value ||
     value === '' ||
+    value === undefined ||
+    value === null ||
     value === 'ALL' ||
     selectedOption?.value === '' ||
     selectedOption?.value === 'ALL';

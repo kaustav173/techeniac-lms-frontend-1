@@ -92,7 +92,7 @@ export interface ProfileViewProps {
 }
 
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
-  const { verifyCurrentPassword, changePassword, updateProfile, refreshUser } = useAuth();
+  const { changePassword, updateProfile, refreshUser } = useAuth();
 
   const [isEditingName, setIsEditingName] = useState(false);
 
@@ -110,10 +110,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   }
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [passwordStep, setPasswordStep] = useState<'VERIFY_CURRENT' | 'NEW_PASSWORD'>(
-    'VERIFY_CURRENT',
-  );
-  const [isVerifyingCurrentPassword, setIsVerifyingCurrentPassword] = useState(false);
   const currentPasswordInputRef = useRef<HTMLInputElement>(null);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -133,7 +129,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const roleBadgeStyle = getRoleBadgeColor(user.role);
 
   const handleOpenPasswordModal = () => {
-    setPasswordStep('VERIFY_CURRENT');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -142,41 +137,12 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   };
 
   const handleClosePasswordModal = () => {
-    if (isSubmitting || isVerifyingCurrentPassword) return;
+    if (isSubmitting) return;
     setIsPasswordModalOpen(false);
-    setPasswordStep('VERIFY_CURRENT');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
     setErrors({});
-  };
-
-  const handleVerifyCurrentPassword = async (e?: React.SyntheticEvent) => {
-    if (e) e.preventDefault();
-    if (isVerifyingCurrentPassword) return;
-
-    if (!currentPassword.trim()) {
-      setErrors({ currentPassword: 'Current password is required' });
-      return;
-    }
-
-    setIsVerifyingCurrentPassword(true);
-    setErrors({});
-
-    try {
-      await verifyCurrentPassword(currentPassword);
-      setPasswordStep('NEW_PASSWORD');
-    } catch (err) {
-      const message =
-        err instanceof ApiError && (err.status === 401 || err.status === 400)
-          ? 'Current credentials are incorrect. Please try again.'
-          : err instanceof ApiError
-            ? err.message
-            : 'Failed to verify current credentials. Please try again.';
-      setErrors({ currentPassword: message });
-    } finally {
-      setIsVerifyingCurrentPassword(false);
-    }
   };
 
   const handleFieldChange =
@@ -251,14 +217,20 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setPasswordStep('VERIFY_CURRENT');
       setIsPasswordModalOpen(false);
     } catch (err) {
       const message =
         err instanceof ApiError
           ? err.message
           : 'Failed to update password. Please verify current password and try again.';
-      setErrors({ general: message });
+      if (
+        err instanceof ApiError &&
+        (err.status === 401 || message.toLowerCase().includes('current password'))
+      ) {
+        setErrors({ currentPassword: 'Current password is incorrect. Please try again.' });
+      } else {
+        setErrors({ general: message });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -456,147 +428,101 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
         isOpen={isPasswordModalOpen}
         onClose={handleClosePasswordModal}
         title="Change Password"
-        description={
-          passwordStep === 'VERIFY_CURRENT'
-            ? 'Verify your current credentials to continue.'
-            : 'Set and confirm your new credentials.'
-        }
+        description="Set and confirm your new credentials."
         size="sm"
         initialFocusRef={currentPasswordInputRef}
-        isSubmitting={isSubmitting || isVerifyingCurrentPassword}
-        preventClose={isSubmitting || isVerifyingCurrentPassword}
+        isSubmitting={isSubmitting}
+        preventClose={isSubmitting}
       >
-        {passwordStep === 'VERIFY_CURRENT' ? (
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handleVerifyCurrentPassword(e);
-            }}
-            className="space-y-4"
-          >
-            {errors.currentPassword ? (
-              <Alert variant="error" title="Verification Failed" message={errors.currentPassword} />
-            ) : null}
+        <Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handlePasswordSubmit(e);
+          }}
+          className="space-y-4"
+        >
+          {errors.general ? (
+            <Alert variant="error" title="Update Failed" message={errors.general} />
+          ) : null}
 
-            <ProfilePasswordField
-              id="modal-currentPassword"
-              name="currentPassword"
-              label="Current"
-              value={currentPassword}
-              onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
-              placeholder="••••••••"
-              error={errors.currentPassword}
-              isVisible={showCurrentPassword}
-              onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
-              disabled={isVerifyingCurrentPassword}
-              autoComplete="current-password"
-              inputRef={currentPasswordInputRef}
-            />
+          <ProfilePasswordField
+            id="modal-currentPassword"
+            name="currentPassword"
+            label="Current"
+            value={currentPassword}
+            onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
+            placeholder="••••••••"
+            error={errors.currentPassword}
+            isVisible={showCurrentPassword}
+            onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="current-password"
+            inputRef={currentPasswordInputRef}
+          />
 
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleClosePasswordModal}
-                disabled={isVerifyingCurrentPassword}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="sm"
-                disabled={isVerifyingCurrentPassword || !currentPassword.trim()}
-                isLoading={isVerifyingCurrentPassword}
-                className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
-              >
-                {isVerifyingCurrentPassword ? 'Verifying...' : 'Continue'}
-              </Button>
-            </div>
-          </Form>
-        ) : (
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handlePasswordSubmit(e);
-            }}
-            className="space-y-4"
-          >
-            {errors.general ? (
-              <Alert variant="error" title="Update Failed" message={errors.general} />
-            ) : null}
+          {/* New Password Field */}
+          <ProfilePasswordField
+            id="modal-newPassword"
+            name="newPassword"
+            label="New"
+            value={newPassword}
+            onChange={handleFieldChange(setNewPassword, 'newPassword')}
+            placeholder="••••••••"
+            error={errors.newPassword}
+            isVisible={showNewPassword}
+            onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="new-password"
+          />
 
-            {/* New Password Field */}
-            <ProfilePasswordField
-              id="modal-newPassword"
-              name="newPassword"
-              label="New"
-              value={newPassword}
-              onChange={handleFieldChange(setNewPassword, 'newPassword')}
-              placeholder="••••••••"
-              error={errors.newPassword}
-              isVisible={showNewPassword}
-              onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
+          {/* Password Requirements Checklist */}
+          {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
+
+          {/* Confirm Password Field */}
+          <ProfilePasswordField
+            id="modal-confirmPassword"
+            name="confirmPassword"
+            label="Confirm"
+            value={confirmPassword}
+            onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
+            placeholder="••••••••"
+            error={errors.confirmPassword}
+            isVisible={showConfirmPassword}
+            onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="new-password"
+          />
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClosePasswordModal}
               disabled={isSubmitting}
-              autoComplete="new-password"
-            />
-
-            {/* Password Requirements Checklist */}
-            {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
-
-            {/* Confirm Password Field */}
-            <ProfilePasswordField
-              id="modal-confirmPassword"
-              name="confirmPassword"
-              label="Confirm"
-              value={confirmPassword}
-              onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
-              placeholder="••••••••"
-              error={errors.confirmPassword}
-              isVisible={showConfirmPassword}
-              onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setPasswordStep('VERIFY_CURRENT');
-                  setCurrentPassword('');
-                  setNewPassword('');
-                  setConfirmPassword('');
-                  setErrors({});
-                }}
-                disabled={isSubmitting}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="sm"
-                disabled={
-                  isSubmitting ||
-                  !newPassword.trim() ||
-                  !confirmPassword.trim() ||
-                  !criteria.isValid
-                }
-                isLoading={isSubmitting}
-                className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
-              >
-                {isSubmitting ? 'Updating...' : 'Update'}
-              </Button>
-            </div>
-          </Form>
-        )}
+              className="rounded-full px-4 text-xs font-semibold"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={
+                isSubmitting ||
+                !currentPassword.trim() ||
+                !newPassword.trim() ||
+                !confirmPassword.trim() ||
+                !criteria.isValid
+              }
+              isLoading={isSubmitting}
+              className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Password'}
+            </Button>
+          </div>
+        </Form>
       </Modal>
     </div>
   );

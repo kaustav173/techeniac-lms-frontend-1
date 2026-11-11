@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       {
         source: '/mentor/mentees',
         destination: '/mentor/my-mentees',
-        permanent: true,
+        permanent: false,
       },
       {
         source: '/admin',

@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H3, P, Span } from '@/components/ui/Typography';
+import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import { useMentorDashboard } from '@/hooks/useDashboard';
@@ -50,6 +51,11 @@ export default function MentorPage() {
       />
     );
   }
+
+  const isZeroState =
+    mentorDashboard?.isZeroState ??
+    (batches.filter((b) => !['COMPLETED', 'ARCHIVED'].includes(b.status)).length === 0 &&
+      mentees.length === 0);
 
   const liveBatchesCount = batches.filter((b) => b.status === 'LIVE').length;
   const pendingReviewsCount = mentorDashboard?.pendingReviewCount ?? 0;
@@ -239,6 +245,54 @@ export default function MentorPage() {
           </div>
         ) : null}
 
+        {/* Empty-State Guidance for New Mentors (DSH-08) */}
+        {isZeroState &&
+        !isLoadingBatches &&
+        !isLoadingMentees &&
+        !isLoadingDashboard &&
+        !batchesError &&
+        !menteesError &&
+        !dashboardError ? (
+          <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50/70 p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0044D3] text-white">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <H2 className="text-base font-bold text-[#111827]">
+                  Welcome to Techeniac LMS, Mentor!
+                </H2>
+                <P className="mt-1 text-sm leading-relaxed text-[#667085]">
+                  Once an administrator assigns you to an active batch or pairs you with learners,
+                  you will be able to review assignment submissions, track syllabus progress, and
+                  evaluate grades directly from this dashboard.
+                </P>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href="/mentor/courses"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+                  >
+                    Explore Course Catalog →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* Top KPI Ribbon (Clickable Feature Summaries) */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Tile 1: Reviews */}
@@ -418,6 +472,11 @@ export default function MentorPage() {
               </Link>
             ))}
           </div>
+        </div>
+
+        {/* Latest Submissions Awaiting Review (FR-10.1, REV-01) */}
+        <div className="mt-8">
+          <LatestSubmissionsWidget />
         </div>
       </DashboardContent>
     </div>

@@ -107,6 +107,13 @@ export function PerformanceTable({
     }
   };
 
+  const getAriaSort = (
+    field: NonNullable<PerformanceFilterParams['sortBy']>,
+  ): 'ascending' | 'descending' | 'none' => {
+    if (sortBy !== field || !sortOrder) return 'none';
+    return sortOrder.toLowerCase() === 'asc' ? 'ascending' : 'descending';
+  };
+
   const renderSortIcon = (field: NonNullable<PerformanceFilterParams['sortBy']>) => {
     const isActive = sortBy === field && sortOrder !== undefined;
     if (!isActive) {
@@ -187,7 +194,10 @@ export function PerformanceTable({
         <Table className="w-full text-left text-sm text-slate-600">
           <TableHeader className="border-b border-slate-200 bg-slate-50/75 text-sm font-semibold text-[#667085]">
             <TableRow>
-              <TableHead className="px-6 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('name')}
+                className="px-6 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('name')}
@@ -210,7 +220,10 @@ export function PerformanceTable({
               <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
                 Courses
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('completionPercentage')}
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('completionPercentage')}
@@ -227,7 +240,10 @@ export function PerformanceTable({
                   {renderSortIcon('completionPercentage')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('averageMarks')}
+                className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('averageMarks')}
@@ -244,7 +260,10 @@ export function PerformanceTable({
                   {renderSortIcon('averageMarks')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('onTimeRate')}
+                className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('onTimeRate')}
@@ -261,7 +280,10 @@ export function PerformanceTable({
                   {renderSortIcon('onTimeRate')}
                 </button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('overdueCount')}
+                className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('overdueCount')}
@@ -278,7 +300,10 @@ export function PerformanceTable({
                   {renderSortIcon('overdueCount')}
                 </button>
               </TableHead>
-              <TableHead className="px-6 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+              <TableHead
+                aria-sort={getAriaSort('grade')}
+                className="px-6 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
+              >
                 <button
                   type="button"
                   onClick={() => handleSort('grade')}

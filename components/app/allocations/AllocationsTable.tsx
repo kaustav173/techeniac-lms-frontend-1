@@ -21,6 +21,7 @@ import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
   type CourseAllocation,
+  type CourseAllocationStatus,
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
@@ -34,8 +35,7 @@ const EM_DASH = '—';
 type SortField = 'course' | 'mentee' | 'batch' | 'started' | 'due' | 'progress';
 type SortOrder = 'asc' | 'desc';
 
-type AllocationStatusFilter =
-  'ALL' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | 'REVOKED';
+type AllocationStatusFilter = CourseAllocationStatus | 'ALL' | 'OVERDUE';
 
 const ALLOCATION_STATUS_OPTIONS: readonly SingleSelectOption<string>[] = [
   { value: 'ALL', label: 'All' },
@@ -873,9 +873,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   </Link>
                                   <Link
                                     href={
-                                      alloc.user?.name
-                                        ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                        : '/mentor/reviews'
+                                      alloc.user?.id
+                                        ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
+                                        : alloc.user?.name
+                                          ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                          : '/mentor/reviews'
                                     }
                                     role="menuitem"
                                     onClick={() => setOpenActionMenuId(null)}
@@ -999,9 +1001,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   <>
                                     <Link
                                       href={
-                                        alloc.user?.name
-                                          ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                          : '/mentor/reviews'
+                                        alloc.user?.id
+                                          ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
+                                          : alloc.user?.name
+                                            ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                            : '/mentor/reviews'
                                       }
                                       className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D0D5DD] bg-white px-3 text-xs font-semibold text-[#344054] shadow-2xs transition-colors hover:bg-slate-50 hover:text-[#111827]"
                                     >

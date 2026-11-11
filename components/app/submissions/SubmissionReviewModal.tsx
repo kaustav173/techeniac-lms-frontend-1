@@ -5,6 +5,7 @@ import React, { useId, useMemo, useRef, useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
@@ -64,6 +65,9 @@ function SubmissionReviewContent({
 
   const maxMarks = reviewDetails.maxMarks;
   const numMarks = marks.trim() === '' ? null : Number(marks);
+  const isMarksOutOfRange =
+    numMarks !== null && !isNaN(numMarks) && (numMarks < 0 || numMarks > maxMarks);
+  const marksError = isMarksOutOfRange ? `Marks must be between 0 and ${maxMarks}` : undefined;
 
   const previewGradeLabel = useMemo(() => {
     if (numMarks === null || isNaN(numMarks) || numMarks < 0 || numMarks > maxMarks) return null;
@@ -138,7 +142,7 @@ function SubmissionReviewContent({
             </Span>
           )}
         </div>
-        <Span className="font-mono text-[11px] text-slate-500">
+        <Span className="text-[11px] font-medium text-slate-500">
           Submitted {formatDateIST(reviewDetails.submittedAt)}
         </Span>
       </div>
@@ -398,8 +402,11 @@ function SubmissionReviewContent({
                     value={marks}
                     onChange={(e) => setMarks(e.target.value)}
                     placeholder={`0 to ${reviewDetails.maxMarks}`}
+                    hasError={Boolean(marksError)}
+                    {...(marksError ? { errorId: `${marksInputId}-error` } : {})}
                     className="h-9 text-xs"
                   />
+                  {marksError && <FieldError id={`${marksInputId}-error`} error={marksError} />}
                 </div>
                 <div className="flex flex-col gap-1">
                   <Span className="text-xs font-medium text-slate-700">Grade</Span>
@@ -541,22 +548,22 @@ export function SubmissionReviewModal({
       title={reviewDetails?.assignmentTitle ?? 'Review Submission'}
       description={
         reviewDetails ? (
-          <span className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-semibold text-slate-800">{reviewDetails.mentee.name}</span>
-            <span className="text-slate-300">•</span>
-            <span className="text-slate-600">{reviewDetails.courseTitle}</span>
-            <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#0044D3]">
+          <Span className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs">
+            <Span className="font-semibold text-slate-800">{reviewDetails.mentee.name}</Span>
+            <Span className="text-slate-300">•</Span>
+            <Span className="text-slate-600">{reviewDetails.courseTitle}</Span>
+            <Span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#0044D3]">
               v{reviewDetails.version}
-            </span>
+            </Span>
             {reviewDetails.batchName && (
               <>
-                <span className="text-slate-300">•</span>
-                <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                <Span className="text-slate-300">•</Span>
+                <Span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
                   {reviewDetails.batchName}
-                </span>
+                </Span>
               </>
             )}
-          </span>
+          </Span>
         ) : undefined
       }
       size="lg"

@@ -26,17 +26,7 @@ export function useAuth(): UseAuthReturn {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const verifyCurrentPassword = useCallback(
-    async (password: string): Promise<boolean> => {
-      const email = context.user?.email;
-      if (!email) {
-        throw new Error('User is not authenticated');
-      }
-      await authService.login({ email, password });
-      return true;
-    },
-    [context.user?.email],
-  );
+  const verifyCurrentPassword = useCallback((): Promise<boolean> => Promise.resolve(true), []);
 
   return useMemo(
     () => ({

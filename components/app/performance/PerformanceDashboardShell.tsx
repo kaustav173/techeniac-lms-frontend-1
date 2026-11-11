@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import type { PortalNavConfig } from '@/components/app/navigation/portal-nav.config';
 import { GradeDistributionChart } from '@/components/app/performance/GradeDistributionChart';
 import { PerformanceFiltersBar } from '@/components/app/performance/PerformanceFiltersBar';
+import { PerformanceMetricsCards } from '@/components/app/performance/PerformanceMetricsCards';
 import { PerformanceTable } from '@/components/app/performance/PerformanceTable';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
@@ -40,9 +41,9 @@ export function PerformanceDashboardShell({
   const { data, isLoading, isFetching, isError, error, refetch } = usePerformanceQuery(filters);
   const exportMutation = useExportPerformanceMutation();
 
-  const handleFilterChange = (updated: Partial<PerformanceFilterParams>) => {
+  const handleFilterChange = useCallback((updated: Partial<PerformanceFilterParams>) => {
     setFilters((prev) => ({ ...prev, ...updated }));
-  };
+  }, []);
 
   const handleResetFilters = () => {
     setFilters({
@@ -63,6 +64,23 @@ export function PerformanceDashboardShell({
 
   const totalMentees = data?.pagination?.total || (data?.mentees?.length ?? 0);
 
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const nextView = activeView === 'table' ? 'chart' : 'table';
+      setActiveView(nextView);
+      document.getElementById(nextView === 'table' ? 'tab-table' : 'tab-chart')?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      setActiveView('table');
+      document.getElementById('tab-table')?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      setActiveView('chart');
+      document.getElementById('tab-chart')?.focus();
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header title={title} {...navConfig} />
@@ -73,6 +91,7 @@ export function PerformanceDashboardShell({
             <div
               role="tablist"
               aria-label="Performance views"
+              onKeyDown={handleTabKeyDown}
               className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-2xs"
             >
               <button
@@ -179,6 +198,15 @@ export function PerformanceDashboardShell({
               aria-labelledby="tab-table"
               className="flex flex-col gap-6"
             >
+              {/* Overview Metrics Cards */}
+              <PerformanceMetricsCards
+                metrics={data?.metrics}
+                isLoading={isLoading}
+                isError={isError}
+                error={error}
+                onRetry={handleRetry}
+              />
+
               {/* Filtering Toolbar */}
               <PerformanceFiltersBar
                 filters={filters}

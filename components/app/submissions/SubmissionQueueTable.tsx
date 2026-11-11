@@ -197,14 +197,10 @@ export function SubmissionQueueTable() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const sortParam =
-    submittedSort === 'asc' ? 'oldest' : submittedSort === 'desc' ? 'latest' : undefined;
-
-  const { submissions, total, totalPages, isLoading, error } = useSubmissionQueue({
+  const { submissions, total, totalPages, isLoading, error, refetch } = useSubmissionQueue({
     status: statusFilter,
     search: debouncedSearch.trim() || undefined,
     menteeId: menteeIdFilter,
-    sort: sortParam,
     sortBy: nameSort ? 'mentee' : submittedSort ? 'submittedAt' : undefined,
     sortOrder: nameSort ?? submittedSort ?? undefined,
     page,
@@ -212,31 +208,6 @@ export function SubmissionQueueTable() {
   });
 
   const isInitialLoading = isLoading && submissions.length === 0;
-
-  const displayedSubmissions = useMemo(() => {
-    let list = submissions;
-    if (menteeIdFilter) {
-      list = list.filter((sub) => sub.mentee.id === menteeIdFilter);
-    }
-    const q = debouncedSearch.trim().toLowerCase();
-    if (q) {
-      list = list.filter((sub) => {
-        const menteeName = sub.mentee.name.toLowerCase();
-        const menteeEmail = sub.mentee.email.toLowerCase();
-        const assignment = sub.assignmentTitle.toLowerCase();
-        const course = sub.courseTitle.toLowerCase();
-        const batch = sub.batchName?.toLowerCase() ?? '';
-        return (
-          menteeName.includes(q) ||
-          menteeEmail.includes(q) ||
-          assignment.includes(q) ||
-          course.includes(q) ||
-          batch.includes(q)
-        );
-      });
-    }
-    return list;
-  }, [submissions, debouncedSearch, menteeIdFilter]);
 
   const filterKey = `${page}-${statusFilter}-${debouncedSearch}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
@@ -262,7 +233,7 @@ export function SubmissionQueueTable() {
     }> = [];
     const groupMap = new Map<string, (typeof groups)[number]>();
 
-    for (const sub of displayedSubmissions) {
+    for (const sub of submissions) {
       let g = groupMap.get(sub.mentee.id);
       if (!g) {
         g = {
@@ -297,7 +268,7 @@ export function SubmissionQueueTable() {
     }
 
     return groups;
-  }, [displayedSubmissions, submittedSort]);
+  }, [submissions, submittedSort]);
 
   useEffect(() => {
     if (!isLoading && submissions.length === 0 && page > 1) {
@@ -467,7 +438,14 @@ export function SubmissionQueueTable() {
       </div>
 
       {error && (
-        <ErrorMessage title="Could not load submission queue" error={error} className="my-2" />
+        <ErrorMessage
+          title="Could not load submission queue"
+          error={error}
+          onRetry={() => {
+            void refetch();
+          }}
+          className="my-2"
+        />
       )}
 
       {/* Queue Table */}
@@ -577,7 +555,7 @@ export function SubmissionQueueTable() {
                   </TableRow>
                 ))}
 
-              {!isInitialLoading && displayedSubmissions.length === 0 && (
+              {!isInitialLoading && !error && submissions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-10 text-center">
                     <H3 className="text-sm font-semibold text-slate-700">No submissions found</H3>
@@ -744,7 +722,7 @@ export function SubmissionQueueTable() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
             <Muted className="text-xs">
-              Showing {displayedSubmissions.length} of {total} submissions
+              Showing {submissions.length} of {total} submissions
             </Muted>
 
             <div className="flex items-center gap-2">

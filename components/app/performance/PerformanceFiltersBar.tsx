@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -98,17 +98,22 @@ export function PerformanceFiltersBar({
     setSearchInput(filters.search ?? '');
   }
 
+  const onFilterChangeRef = useRef(onFilterChange);
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const trimmed = searchInput.trim();
       const current = filters.search?.trim() ?? '';
       if (trimmed !== current) {
-        onFilterChange({ search: trimmed || undefined, page: 1 });
+        onFilterChangeRef.current({ search: trimmed || undefined, page: 1 });
       }
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [searchInput, filters.search, onFilterChange]);
+  }, [searchInput, filters.search]);
 
   const hasActiveFilters = Boolean(
     (filters.search && filters.search.trim() !== '') ||
