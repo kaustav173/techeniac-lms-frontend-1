@@ -1,18 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { Input } from '@/components/ui/Input';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { TableCell, TableRow } from '@/components/ui/Table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
 import { formatDateTimeIST } from '@/lib/date';
+import { useClickOutside } from '@/lib/useClickOutside';
 import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
 
 import { SubmissionStatusBadge } from './SubmissionStatusBadge';
@@ -37,15 +48,16 @@ interface MyAssignmentsTableProps {
   pagination?: MyAssignmentsPaginationConfig | undefined;
 }
 
-const STATUS_FILTERS: Array<{ label: string; value?: AssignmentDerivedStatus | undefined }> = [
-  { label: 'All Assignments', value: undefined },
-  { label: 'Pending', value: AssignmentDerivedStatus.PENDING },
-  { label: 'Submitted', value: AssignmentDerivedStatus.SUBMITTED },
-  { label: 'Resubmit Requested', value: AssignmentDerivedStatus.RESUBMIT_REQUESTED },
-  { label: 'Graded', value: AssignmentDerivedStatus.GRADED },
-  { label: 'Overdue', value: AssignmentDerivedStatus.OVERDUE },
-  { label: 'Closed', value: AssignmentDerivedStatus.CLOSED },
+const STATUS_OPTIONS: MultiSelectOption<AssignmentDerivedStatus>[] = [
+  { value: AssignmentDerivedStatus.PENDING, label: 'Pending' },
+  { value: AssignmentDerivedStatus.SUBMITTED, label: 'Submitted' },
+  { value: AssignmentDerivedStatus.RESUBMIT_REQUESTED, label: 'Resubmit Requested' },
+  { value: AssignmentDerivedStatus.GRADED, label: 'Graded' },
+  { value: AssignmentDerivedStatus.OVERDUE, label: 'Overdue' },
+  { value: AssignmentDerivedStatus.CLOSED, label: 'Closed' },
 ];
+
+type SortField = 'title' | 'courseTitle' | 'dueDate' | 'maxMarks' | 'status';
 
 export function MyAssignmentsTable({
   assignments,
@@ -60,6 +72,21 @@ export function MyAssignmentsTable({
   const prefetchAssignment = usePrefetchAssignmentDetails();
   const { getHoverHandlers } = useHoverPrefetch();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField | null>('dueDate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(actionMenuRef, () => setOpenActionMenuId(null), openActionMenuId !== null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
 
   const filteredAssignments = useMemo(() => {
     const seen = new Set<string>();
@@ -86,20 +113,80 @@ export function MyAssignmentsTable({
     });
   }, [assignments, searchQuery]);
 
+  const sortedAssignments = useMemo(() => {
+    if (!sortField) return filteredAssignments;
+    return [...filteredAssignments].sort((a, b) => {
+      let cmp = 0;
+      if (sortField === 'title') {
+        cmp = (a.title || '').localeCompare(b.title || '');
+      } else if (sortField === 'courseTitle') {
+        cmp = (a.courseTitle || '').localeCompare(b.courseTitle || '');
+      } else if (sortField === 'dueDate') {
+        cmp = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      } else if (sortField === 'maxMarks') {
+        cmp = (a.maxMarks || 0) - (b.maxMarks || 0);
+      } else if (sortField === 'status') {
+        cmp = (a.status || '').localeCompare(b.status || '');
+      }
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+  }, [filteredAssignments, sortField, sortOrder]);
+
+  const hasActiveFilters = Boolean(searchQuery.trim() || selectedStatus);
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    onStatusChange?.(undefined);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Search Bar (Left-aligned, prominent) */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="w-full max-w-lg sm:w-[471px]">
-          <Input
-            type="search"
-            aria-label="Search assignments"
-            placeholder="Search assignments by title, course, or topic..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 rounded-full border-[#E1E6EC] bg-white pl-4 text-xs shadow-xs focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+    <div className="space-y-4">
+      {/* Search & Status Filter Toolbar (Admin Style) */}
+      <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="w-full sm:w-72 lg:w-80">
+            <DebouncedSearchInput
+              value={searchQuery}
+              onSearchChange={setSearchQuery}
+              placeholder="Search assignments by title, course, or topic..."
+            />
+          </div>
+
+          <MultiSelectDropdown
+            label="Status"
+            options={STATUS_OPTIONS}
+            selectedValues={selectedStatus ? [selectedStatus] : []}
+            onChange={(vals) => {
+              onStatusChange?.(vals[0]);
+            }}
+            singleSelect={true}
+            align="left"
           />
+
+          {hasActiveFilters ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-8.5 w-8.5 rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          ) : null}
         </div>
+
         {isFetching && !isLoading && (
           <div className="flex items-center gap-1.5 text-xs text-[#667085]">
             <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0044D3] border-r-transparent" />
@@ -108,85 +195,57 @@ export function MyAssignmentsTable({
         )}
       </div>
 
-      {/* Status Filter Tabs */}
-      <div className="flex scrollbar-none items-center gap-2 overflow-x-auto border-b border-[#E1E6EC] pb-3">
-        {STATUS_FILTERS.map((tab) => {
-          const isActive = selectedStatus === tab.value;
-          return (
-            <Button
-              key={tab.label}
-              type="button"
-              variant={isActive ? 'primary' : 'secondary'}
-              size="sm"
-              aria-pressed={isActive}
-              onClick={() => onStatusChange?.(tab.value)}
-              className="h-auto rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap"
-            >
-              {tab.label}
-            </Button>
-          );
-        })}
-      </div>
-
       {error ? (
         <ErrorMessage error={error} title="Failed to load assignments" onRetry={onRetry} />
       ) : null}
 
       {isLoading ? (
-        <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
-                <tr>
-                  <th scope="col" className="px-5 py-3.5">
-                    Assignment & Course
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Due Date (IST)
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Est. Time & Marks
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Status
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-right">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E1E6EC]">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <TableRow key={`assign-skel-${idx}`} className="h-16">
-                    <TableCell className="px-5 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-44 rounded-md" />
-                        <Skeleton className="h-3 w-32 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-4 w-28 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1">
-                        <Skeleton className="h-3 w-20 rounded-md" />
-                        <Skeleton className="h-3 w-16 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-24 rounded-full" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : filteredAssignments.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center">
+        <TableContainer className="w-full">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[30%] px-5 py-3.5">Assignment</TableHead>
+                <TableHead className="w-[20%] px-4 py-3.5">Course</TableHead>
+                <TableHead className="w-[18%] px-4 py-3.5">Due Date (IST)</TableHead>
+                <TableHead className="w-[16%] px-4 py-3.5">Est. Time & Marks</TableHead>
+                <TableHead className="w-[10%] px-4 py-3.5">Status</TableHead>
+                <TableHead className="w-16 px-5 py-3.5 text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow key={`assign-skel-${idx}`} className="h-16">
+                  <TableCell className="px-5 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-44 rounded-md" />
+                      <Skeleton className="h-3 w-32 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-36 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-28 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-20 rounded-md" />
+                      <Skeleton className="h-3 w-16 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-right">
+                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : sortedAssignments.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
           <P className="text-sm font-semibold text-[#111827]">No assignments found</P>
           <P className="mt-1 text-xs text-[#667085]">
             {selectedStatus || searchQuery
@@ -195,148 +254,216 @@ export function MyAssignmentsTable({
           </P>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
-                <tr>
-                  <th scope="col" className="px-5 py-3.5">
-                    Assignment & Course
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Due Date (IST)
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Est. Time & Marks
-                  </th>
-                  <th scope="col" className="px-4 py-3.5">
-                    Status
-                  </th>
-                  <th scope="col" className="px-5 py-3.5 text-right">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                className={`divide-y divide-[#E1E6EC] ${
-                  isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''
-                }`}
-              >
-                {filteredAssignments.map((assignment, idx) => (
-                  <tr
-                    key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                    className="transition-colors hover:bg-[#F6F8FC]/60"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="space-y-1">
-                        <Link
-                          href={`/mentee/assignments/${assignment.id}`}
-                          {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                          className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
-                        >
-                          {assignment.title}
-                        </Link>
-                        <div className="flex items-center gap-2 text-xs text-[#667085]">
-                          <Span className="font-medium text-[#111827]">
-                            {assignment.courseTitle}
-                          </Span>
-                          {assignment.topicTitle ? (
-                            <>
-                              <Span>•</Span>
-                              <Span>{assignment.topicTitle}</Span>
-                            </>
-                          ) : null}
-                          <Span>•</Span>
-                          <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
-                            {assignment.scope}
-                          </Span>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5">
-                        <Span className="font-medium text-[#111827]">
-                          {formatDateTimeIST(assignment.dueDate)}
-                        </Span>
-                        {assignment.allowLate ? (
-                          <Span className="block text-xs text-[#667085]">
-                            Late submissions accepted
-                          </Span>
-                        ) : (
-                          <Span className="block text-xs text-rose-500">Strict deadline</Span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-xs text-[#667085]">
-                        <div>
-                          Est:{' '}
-                          <Span className="font-semibold">{assignment.estimatedMinutes} mins</Span>
-                        </div>
-                        <div>
-                          Max Marks: <Span className="font-semibold">{assignment.maxMarks}</Span>
-                          {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <SubmissionStatusBadge
-                        status={assignment.status}
-                        isLate={assignment.latestSubmission?.isLate}
-                      />
-                      {assignment.latestSubmission?.marks !== null &&
-                      assignment.latestSubmission?.marks !== undefined ? (
-                        <div className="mt-1 text-xs font-semibold text-emerald-600">
-                          Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
-                        </div>
-                      ) : null}
-                    </td>
-
-                    <td className="px-5 py-4 text-right whitespace-nowrap">
+        <TableContainer
+          className={`w-full ${isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''}`}
+        >
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow>
+                <SortableColumnHeader<SortField>
+                  field="title"
+                  label="Assignment"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[30%] px-5 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="courseTitle"
+                  label="Course"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[20%] px-4 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="dueDate"
+                  label="Due Date (IST)"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[18%] px-4 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="maxMarks"
+                  label="Est. Time & Marks"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[16%] px-4 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="status"
+                  label="Status"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[10%] px-4 py-3.5"
+                />
+                <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
+                  Action
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedAssignments.map((assignment, idx) => (
+                <TableRow
+                  key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
+                  className="transition-colors hover:bg-[#F6F8FC]/60"
+                >
+                  {/* Assignment Column (Title, Topic, Scope) */}
+                  <TableCell className="px-5 py-4">
+                    <div className="space-y-1">
                       <Link
                         href={`/mentee/assignments/${assignment.id}`}
                         {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                        className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
                       >
-                        <Button
-                          variant={
-                            assignment.status === AssignmentDerivedStatus.PENDING ||
-                            assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
-                              ? 'primary'
-                              : 'secondary'
-                          }
-                          size="sm"
-                        >
-                          {assignment.status === AssignmentDerivedStatus.PENDING
-                            ? 'Start & Submit'
-                            : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
-                              ? 'Resubmit'
-                              : 'View Details'}
-                        </Button>
+                        {assignment.title}
                       </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <div className="flex items-center gap-2 text-xs text-[#667085]">
+                        {assignment.topicTitle ? <Span>{assignment.topicTitle}</Span> : null}
+                        {assignment.topicTitle ? <Span>•</Span> : null}
+                        <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
+                          {assignment.scope}
+                        </Span>
+                      </div>
+                    </div>
+                  </TableCell>
 
-          {pagination && !error ? (
-            <PaginationControls
-              page={pagination.page}
-              limit={pagination.limit}
-              total={pagination.total}
-              totalPages={pagination.totalPages}
-              onPageChange={pagination.onPageChange}
-              onLimitChange={pagination.onLimitChange}
-              itemLabel="assignments"
-              pageSizeOptions={[10, 20, 50]}
-            />
-          ) : null}
-        </div>
+                  {/* Course Column (Separate Column) */}
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-0.5">
+                      <Span className="line-clamp-1 font-semibold text-[#111827]">
+                        {assignment.courseTitle}
+                      </Span>
+                      <Span className="block text-xs text-[#667085]">Curriculum Track</Span>
+                    </div>
+                  </TableCell>
+
+                  {/* Due Date Column */}
+                  <TableCell className="px-4 py-4 whitespace-nowrap">
+                    <div className="space-y-0.5">
+                      <Span className="font-medium text-[#111827]">
+                        {formatDateTimeIST(assignment.dueDate)}
+                      </Span>
+                      {assignment.allowLate ? (
+                        <Span className="block text-xs text-[#667085]">
+                          Late submissions accepted
+                        </Span>
+                      ) : (
+                        <Span className="block text-xs text-rose-500">Strict deadline</Span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  {/* Est. Time & Marks Column */}
+                  <TableCell className="px-4 py-4 whitespace-nowrap">
+                    <div className="space-y-0.5 text-xs text-[#667085]">
+                      <div>
+                        Est:{' '}
+                        <Span className="font-semibold text-[#111827]">
+                          {assignment.estimatedMinutes} mins
+                        </Span>
+                      </div>
+                      <div>
+                        Max Marks:{' '}
+                        <Span className="font-semibold text-[#111827]">{assignment.maxMarks}</Span>
+                        {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  {/* Status Column */}
+                  <TableCell className="px-4 py-4 whitespace-nowrap">
+                    <SubmissionStatusBadge
+                      status={assignment.status}
+                      isLate={assignment.latestSubmission?.isLate}
+                    />
+                    {assignment.latestSubmission?.marks !== null &&
+                    assignment.latestSubmission?.marks !== undefined ? (
+                      <div className="mt-1 text-xs font-semibold text-emerald-600">
+                        Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
+                      </div>
+                    ) : null}
+                  </TableCell>
+
+                  {/* 3-Dots Action Menu */}
+                  <TableCell
+                    className="px-5 py-4 text-right whitespace-nowrap"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div
+                      className="relative inline-block text-left"
+                      ref={openActionMenuId === assignment.id ? actionMenuRef : undefined}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenActionMenuId(
+                            openActionMenuId === assignment.id ? null : assignment.id,
+                          );
+                        }}
+                        title="Assignment actions"
+                        aria-label={`Actions for ${assignment.title}`}
+                        className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      >
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                      </Button>
+
+                      {openActionMenuId === assignment.id && (
+                        <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl">
+                          <Link
+                            href={`/mentee/assignments/${assignment.id}`}
+                            {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                            onClick={() => setOpenActionMenuId(null)}
+                            className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                          >
+                            <Span>
+                              {assignment.status === AssignmentDerivedStatus.PENDING
+                                ? 'Start & Submit'
+                                : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
+                                  ? 'Resubmit'
+                                  : 'View Details'}
+                            </Span>
+                          </Link>
+                          {assignment.courseId ? (
+                            <Link
+                              href={`/mentee/courses/${assignment.courseId}`}
+                              onClick={() => setOpenActionMenuId(null)}
+                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            >
+                              <Span>Go to Course</Span>
+                            </Link>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
+
+      {pagination && !error && sortedAssignments.length > 0 ? (
+        <PaginationControls
+          page={pagination.page}
+          limit={pagination.limit}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.onPageChange}
+          onLimitChange={pagination.onLimitChange}
+          itemLabel="assignments"
+          pageSizeOptions={[10, 20, 50]}
+        />
+      ) : null}
     </div>
   );
 }
