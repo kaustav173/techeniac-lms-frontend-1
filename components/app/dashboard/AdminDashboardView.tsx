@@ -587,7 +587,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
 
           {/* Module 7: Security Audit Logs */}
           <Link
-            href="/admin/audit-logs"
+            href="/admin/logs"
             className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-700 hover:shadow-md"
           >
             <div>

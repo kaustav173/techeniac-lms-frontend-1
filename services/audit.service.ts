@@ -89,7 +89,7 @@ export const auditService = {
       params.sortOrder = validated.sortOrder;
     }
 
-    const res = await apiClient<AuditLogsResponse>('/audit-logs', {
+    const res = await apiClient<AuditLogsResponse>('/logs', {
       method: 'GET',
       params,
     });
