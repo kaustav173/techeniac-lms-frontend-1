@@ -93,6 +93,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRowResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(
     null,
@@ -133,6 +134,37 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     setImportResult(null);
     setImportProgress(null);
     parseCsv(selected);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isProcessing && !isImporting) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (isProcessing || isImporting) return;
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      const selected = droppedFiles[0];
+      if (selected && selected.name.toLowerCase().endsWith('.csv')) {
+        setFile(selected);
+        setImportResult(null);
+        setImportProgress(null);
+        parseCsv(selected);
+      }
+    }
   };
 
   const parseCsv = (csvFile: File) => {
@@ -226,7 +258,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
       isOpen={isOpen}
       onClose={handleClose}
       isSubmitting={isImporting}
-      title="Bulk Import Users (CSV)"
+      title="Import CSV"
       size="xl"
       footer={
         <>
@@ -343,18 +375,37 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
 
       {/* Upload and Sample Actions (visible when not importing) */}
       {!isImporting && !importResult ? (
-        <>
-          <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row">
-            <div>
-              <P className="text-sm font-semibold text-slate-800">Upload CSV File</P>
-              <P className="text-xs text-slate-500">Supported format: UTF-8 CSV with header row</P>
+        <div className="space-y-4">
+          {/* Upper Section: Drag and Drop CSV Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all ${
+              isDragging
+                ? 'scale-[1.01] border-[#0044D3] bg-blue-50/70'
+                : 'border-slate-300 bg-slate-50/60 hover:border-slate-400 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#0044D3]">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
             </div>
-            <div className="flex items-center gap-3">
-              <Button type="button" variant="outline" size="sm" onClick={handleDownloadSample}>
-                Download Sample CSV
-              </Button>
-              <Label className="cursor-pointer rounded-full bg-[#0044D3] px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3]">
-                Choose File
+            <P className="mt-3 text-sm font-semibold text-slate-800">
+              Drag and drop your CSV file here, or{' '}
+              <Label className="cursor-pointer font-bold text-[#0044D3] hover:underline">
+                browse files
                 <input
                   type="file"
                   accept=".csv"
@@ -363,7 +414,31 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                   disabled={isProcessing}
                 />
               </Label>
+            </P>
+            <P className="mt-1 text-xs text-slate-500">
+              Supported format: UTF-8 CSV with header row (name, email, role)
+            </P>
+          </div>
+
+          {/* Down Section: Download Sample Button (Primary) */}
+          <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:flex-row">
+            <div>
+              <P className="text-xs font-semibold text-slate-800">
+                Need the correct column format?
+              </P>
+              <P className="text-[11px] text-slate-500">
+                Download the pre-formatted CSV template with sample users
+              </P>
             </div>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handleDownloadSample}
+              className="rounded-xl bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+            >
+              Download Sample CSV
+            </Button>
           </div>
 
           {file ? (
@@ -451,7 +526,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
           ) : isProcessing ? (
             <P className="py-4 text-center text-xs text-slate-500">Parsing CSV contents...</P>
           ) : null}
-        </>
+        </div>
       ) : null}
     </Modal>
   );
