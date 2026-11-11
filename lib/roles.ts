@@ -24,9 +24,5 @@ export function formatRoleLabel(role?: string): string {
   if (clean === 'MENTEE') {
     return 'Mentee';
   }
-  return (
-    (ROLE_LABELS as Record<string, string>)[clean] ??
-    (ROLE_LABELS as Record<string, string>)[role] ??
-    role
-  );
+  return role;
 }

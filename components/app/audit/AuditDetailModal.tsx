@@ -4,10 +4,15 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { H4, Span } from '@/components/ui/Typography';
-import { formatAuditAction, formatAuditType, resolveAuditTargetEntity } from '@/lib/audit';
+import {
+  formatAuditAction,
+  formatAuditType,
+  getAuditTypeBadge,
+  resolveAuditTargetEntity,
+} from '@/lib/audit';
 import { formatDateTimeISTWithSeconds } from '@/lib/date';
 import { formatRoleLabel } from '@/lib/roles';
-import type { ApiAuditItem, AuditType } from '@/lib/validation';
+import type { ApiAuditItem } from '@/lib/validation';
 
 export interface AuditDetailModalProps {
   entry: ApiAuditItem | null;
@@ -60,29 +65,6 @@ function renderPayloadDetails(data: Record<string, unknown> | null) {
       })}
     </div>
   );
-}
-
-function getAuditTypeBadge(type: AuditType): string {
-  switch (type) {
-    case 'AUTH':
-      return 'bg-blue-50 text-[#0044D3] border-blue-200';
-    case 'USER':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'COURSE':
-      return 'bg-violet-50 text-violet-700 border-violet-200';
-    case 'BATCH':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'MENTOR_MAPPING':
-      return 'bg-teal-50 text-teal-700 border-teal-200';
-    case 'COURSE_ALLOCATION':
-      return 'bg-sky-50 text-sky-700 border-sky-200';
-    case 'SUBMISSION':
-      return 'bg-rose-50 text-rose-700 border-rose-200';
-    case 'GRADING':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
-    default:
-      return 'bg-slate-100 text-slate-700 border-slate-200';
-  }
 }
 
 export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalProps) {
@@ -142,7 +124,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
                   Timestamp (IST)
                 </Span>
-                <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
                   {formattedDate}
                 </Span>
               </div>
@@ -171,7 +153,7 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
                 <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
                   Client IP & Country
                 </Span>
-                <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
                   {entry.ipAddress || 'Not recorded (historical)'}
                 </Span>
                 <Span className="mt-0.5 block truncate text-xs text-slate-500">
@@ -275,9 +257,9 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             {/* Previous State Card */}
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
               <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
-                <span className="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold tracking-wider text-amber-800 uppercase">
+                <Span className="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold tracking-wider text-amber-800 uppercase">
                   Previous State
-                </span>
+                </Span>
               </div>
 
               {entry.oldValue ? (
@@ -294,9 +276,9 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
             {/* New State Card */}
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
               <div className="border-b border-slate-200 bg-slate-50/90 px-4 py-3">
-                <span className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold tracking-wider text-emerald-800 uppercase">
+                <Span className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold tracking-wider text-emerald-800 uppercase">
                   New State
-                </span>
+                </Span>
               </div>
 
               {entry.newValue ? (

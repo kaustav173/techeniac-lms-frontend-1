@@ -68,12 +68,15 @@ export function useInfiniteBatches(pageSize: number = 10, search?: string) {
   const trimmedSearch = search?.trim() || undefined;
   return useInfiniteQuery({
     queryKey: ['batches', 'infinite-dropdown', pageSize, trimmedSearch],
-    queryFn: ({ pageParam = 1 }) =>
-      batchesService.listBatches({
-        page: pageParam,
-        limit: pageSize,
-        search: trimmedSearch,
-      }),
+    queryFn: ({ pageParam = 1, signal }) =>
+      batchesService.listBatches(
+        {
+          page: pageParam,
+          limit: pageSize,
+          search: trimmedSearch,
+        },
+        { signal },
+      ),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const { page, totalPages } = lastPage.pagination;

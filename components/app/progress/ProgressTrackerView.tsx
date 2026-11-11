@@ -58,6 +58,13 @@ const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
   { value: CourseAllocationStatus.REVOKED, label: AllocationDisplayStatus.REVOKED },
 ];
 
+function resolveSelectedOptions<T extends string>(
+  vals: readonly T[],
+  options: readonly MultiSelectOption<T>[],
+): MultiSelectOption<T>[] {
+  return vals.map((val) => options.find((o) => o.value === val) ?? { value: val, label: val });
+}
+
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
   const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
   const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
@@ -98,7 +105,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const {
     data: trackersResponse,
     isLoading: isTrackersLoading,
-    isFetching: isTrackersFetching,
     isError: isTrackersError,
     error: trackersError,
     refetch: refetchTrackers,
@@ -113,7 +119,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     limit,
   });
 
-  const isTableLoading = isTrackersLoading || isTrackersFetching;
+  const isTableLoading = isTrackersLoading;
 
   const trackers = useMemo<ProgressTrackerItem[]>(
     () => trackersResponse?.trackers ?? [],
@@ -291,7 +297,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
       setEditingTopicId(null);
       setInlineDeadline('');
       setInlineError(null);
-      void refetchDrawerProgress();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update topic deadline';
       setInlineError(msg);
@@ -304,44 +309,17 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   };
 
   const handleBatchChange = (vals: string[]) => {
-    const nextSelected: MultiSelectOption[] = [];
-    for (const val of vals) {
-      const match = batchOptions.find((o) => o.value === val);
-      if (match) {
-        nextSelected.push(match);
-      } else {
-        nextSelected.push({ value: val, label: val });
-      }
-    }
-    setSelectedBatchOptions(nextSelected);
+    setSelectedBatchOptions(resolveSelectedOptions(vals, batchOptions));
     setPage(1);
   };
 
   const handleCourseChange = (vals: string[]) => {
-    const nextSelected: MultiSelectOption[] = [];
-    for (const val of vals) {
-      const match = courseOptions.find((o) => o.value === val);
-      if (match) {
-        nextSelected.push(match);
-      } else {
-        nextSelected.push({ value: val, label: val });
-      }
-    }
-    setSelectedCourseOptions(nextSelected);
+    setSelectedCourseOptions(resolveSelectedOptions(vals, courseOptions));
     setPage(1);
   };
 
   const handleStatusChange = (vals: string[]) => {
-    const nextSelected: MultiSelectOption[] = [];
-    for (const val of vals) {
-      const match = STATUS_FILTER_OPTIONS.find((o) => o.value === val);
-      if (match) {
-        nextSelected.push(match);
-      } else {
-        nextSelected.push({ value: val, label: val });
-      }
-    }
-    setSelectedStatusOptions(nextSelected);
+    setSelectedStatusOptions(resolveSelectedOptions(vals, STATUS_FILTER_OPTIONS));
     setPage(1);
   };
 
@@ -399,12 +377,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           {/* Filters Bar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-              {/* 1. Search mentee, course, batch, or status */}
+              {/* 1. Search mentee, course, batch */}
               <div className="min-w-0 sm:col-span-2 lg:col-span-1">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
-                  placeholder="Search by mentee, course, batch, or status..."
+                  placeholder="Search by mentee, course, or batch..."
                 />
               </div>
 
@@ -419,7 +397,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   align="left"
                   className="w-full"
                   onScrollEnd={handleBatchScrollEnd}
-                  isLoadingMore={isFetchingNextBatches}
                   onSearch={setBatchSearch}
                   isSearching={
                     isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())
@@ -438,7 +415,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   align="left"
                   className="w-full"
                   onScrollEnd={handleCourseScrollEnd}
-                  isLoadingMore={isFetchingNextCourses}
                   onSearch={setCourseSearch}
                   isSearching={
                     isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
@@ -711,6 +687,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
       <Modal
         isOpen={Boolean(selectedItem)}
         onClose={handleCloseModal}
+        isSubmitting={updateDeadlineMutation.isPending}
         size="xl"
         className="max-w-4xl"
         title="Mentee Progress Details"
@@ -847,7 +824,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     {isDrawerLoading ? (
                       <Skeleton className="mt-1 h-5 w-36 rounded-md" />
                     ) : minDate || maxDate ? (
-                      <Span className="mt-0.5 block truncate font-mono text-sm font-bold text-slate-900">
+                      <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
                         {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
                         {maxDate ? formatDateDDMMYY(maxDate) : '—'}
                       </Span>
@@ -903,9 +880,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             {/* Active Topic Milestones Container (matches AuditDetailModal payload cards) */}
             <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
               <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-4 py-3">
-                <span className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold tracking-wider text-[#0044D3] uppercase">
+                <Span className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold tracking-wider text-[#0044D3] uppercase">
                   Active Topic Milestones & Deadlines
-                </span>
+                </Span>
                 <Span className="text-xs font-semibold text-slate-500">
                   {selectedItem.completedTopicsCount} of {selectedItem.totalActiveTopics} Finished
                 </Span>

@@ -455,7 +455,7 @@ export function DatePicker({
     }
   }
 
-  const effectiveViewDate = viewDate || parsedDate || new Date(2026, 0, 1);
+  const effectiveViewDate = viewDate || parsedDate || new Date();
   const viewYear = effectiveViewDate.getFullYear();
   const viewMonth = effectiveViewDate.getMonth();
 

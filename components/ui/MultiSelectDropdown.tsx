@@ -23,7 +23,6 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly align?: 'left' | 'right' | undefined;
   readonly showMenuLabel?: boolean | undefined;
   readonly onScrollEnd?: (() => void) | undefined;
-  readonly isLoadingMore?: boolean | undefined;
   readonly onSearch?: ((query: string) => void) | undefined;
   readonly isSearching?: boolean | undefined;
 }

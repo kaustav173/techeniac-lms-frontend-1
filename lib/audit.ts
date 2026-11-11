@@ -1,4 +1,40 @@
-import type { ApiAuditItem } from '@/lib/validation';
+import type { ApiAuditItem, AuditType } from '@/lib/validation';
+
+export const AuditTypeValue = {
+  AUTH: 'AUTH',
+  USER: 'USER',
+  COURSE: 'COURSE',
+  BATCH: 'BATCH',
+  MENTOR_MAPPING: 'MENTOR_MAPPING',
+  COURSE_ALLOCATION: 'COURSE_ALLOCATION',
+  SUBMISSION: 'SUBMISSION',
+  GRADING: 'GRADING',
+} as const;
+
+export type AuditTypeValue = (typeof AuditTypeValue)[keyof typeof AuditTypeValue];
+
+export function getAuditTypeBadge(type: AuditType): string {
+  switch (type) {
+    case AuditTypeValue.AUTH:
+      return 'bg-blue-50 text-[#0044D3] border-blue-200';
+    case AuditTypeValue.USER:
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case AuditTypeValue.COURSE:
+      return 'bg-violet-50 text-violet-700 border-violet-200';
+    case AuditTypeValue.BATCH:
+      return 'bg-amber-50 text-amber-700 border-amber-200';
+    case AuditTypeValue.MENTOR_MAPPING:
+      return 'bg-teal-50 text-teal-700 border-teal-200';
+    case AuditTypeValue.COURSE_ALLOCATION:
+      return 'bg-sky-50 text-sky-700 border-sky-200';
+    case AuditTypeValue.SUBMISSION:
+      return 'bg-rose-50 text-rose-700 border-rose-200';
+    case AuditTypeValue.GRADING:
+      return 'bg-purple-50 text-purple-700 border-purple-200';
+    default:
+      return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+}
 
 /**
  * Formats raw SNAKE_CASE or UPPER_CASE audit action strings into clean Title Case

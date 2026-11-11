@@ -7,6 +7,7 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -20,7 +21,13 @@ import {
 } from '@/components/ui/Table';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
-import { formatAuditAction, formatAuditType, resolveAuditTargetEntity } from '@/lib/audit';
+import {
+  AuditTypeValue,
+  formatAuditAction,
+  formatAuditType,
+  getAuditTypeBadge,
+  resolveAuditTargetEntity,
+} from '@/lib/audit';
 import { formatRoleLabel } from '@/lib/roles';
 import type { ApiAuditItem, AuditType } from '@/lib/validation';
 import type { AuditQueryFilters } from '@/services/audit.service';
@@ -61,47 +68,19 @@ function formatAuditTime(dateInput: string | Date | null | undefined): string {
 }
 
 function formatActorRole(role?: string | null): string | null {
-  if (!role) return null;
-  const clean = role.trim().toUpperCase();
-  if (clean === 'SUPER_ADMIN' || clean === 'SUPERADMIN' || clean === 'ADMIN') return 'Super Admin';
-  if (clean === 'MENTOR') return 'Mentor';
-  if (clean === 'MENTEE') return 'Mentee';
-  return formatRoleLabel(role);
+  return role ? formatRoleLabel(role) : null;
 }
 
 const AUDIT_TYPE_OPTIONS: readonly MultiSelectOption<AuditType>[] = [
-  { value: 'AUTH', label: 'Auth' },
-  { value: 'USER', label: 'User' },
-  { value: 'COURSE', label: 'Course' },
-  { value: 'BATCH', label: 'Batch' },
-  { value: 'MENTOR_MAPPING', label: 'Mentor Mapping' },
-  { value: 'COURSE_ALLOCATION', label: 'Course Allocation' },
-  { value: 'SUBMISSION', label: 'Submission' },
-  { value: 'GRADING', label: 'Grading' },
+  { value: AuditTypeValue.AUTH, label: 'Auth' },
+  { value: AuditTypeValue.USER, label: 'User' },
+  { value: AuditTypeValue.COURSE, label: 'Course' },
+  { value: AuditTypeValue.BATCH, label: 'Batch' },
+  { value: AuditTypeValue.MENTOR_MAPPING, label: 'Mentor Mapping' },
+  { value: AuditTypeValue.COURSE_ALLOCATION, label: 'Course Allocation' },
+  { value: AuditTypeValue.SUBMISSION, label: 'Submission' },
+  { value: AuditTypeValue.GRADING, label: 'Grading' },
 ];
-
-function getAuditTypeBadge(type: AuditType): string {
-  switch (type) {
-    case 'AUTH':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'USER':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'COURSE':
-      return 'bg-violet-100 text-violet-800 border-violet-200';
-    case 'BATCH':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'MENTOR_MAPPING':
-      return 'bg-teal-100 text-teal-800 border-teal-200';
-    case 'COURSE_ALLOCATION':
-      return 'bg-sky-100 text-sky-800 border-sky-200';
-    case 'SUBMISSION':
-      return 'bg-rose-100 text-rose-800 border-rose-200';
-    case 'GRADING':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    default:
-      return 'bg-slate-100 text-slate-800 border-slate-200';
-  }
-}
 
 export function AuditLogTable() {
   const [filters, setFilters] = useState<AuditQueryFilters>({
@@ -117,7 +96,7 @@ export function AuditLogTable() {
   const [selectedEntry, setSelectedEntry] = useState<ApiAuditItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { logs, pagination, isLoading, isFetching, error } = useAuditLogs(filters);
+  const { logs, pagination, isLoading, isFetching, error, refetch } = useAuditLogs(filters);
 
   const selectedTypes = filters.types ?? [];
 
@@ -288,11 +267,14 @@ export function AuditLogTable() {
         )}
       </div>
 
-      {/* Error Banner */}
+      {/* Error Banner with Retry */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
-          <Span className="font-bold">Error loading audit records: </Span>
-          {error}
+        <div className="mb-4">
+          <ErrorMessage
+            error={error}
+            title="Failed to load audit records"
+            onRetry={() => void refetch()}
+          />
         </div>
       )}
 
