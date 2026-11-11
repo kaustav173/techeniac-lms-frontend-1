@@ -473,6 +473,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                       <Link
                         key={item.label}
                         href={item.href}
+                        prefetch={true}
                         title={item.label}
                         aria-label={item.label}
                         className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
@@ -616,6 +617,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                       <Link
                         key={item.label}
                         href={item.href}
+                        prefetch={true}
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           if (typeof window !== 'undefined' && window.innerWidth < 1024) {

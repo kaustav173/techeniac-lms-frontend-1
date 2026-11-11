@@ -64,19 +64,41 @@ export function useAvailableBatches() {
   });
 }
 
-export function useInfiniteBatches(pageSize: number = 10, search?: string) {
+export function useInfiniteBatches(
+  pageSize: number = 10,
+  search?: string,
+  portalType?: 'mentor' | 'admin',
+) {
   const trimmedSearch = search?.trim() || undefined;
   return useInfiniteQuery({
-    queryKey: ['batches', 'infinite-dropdown', pageSize, trimmedSearch],
-    queryFn: ({ pageParam = 1, signal }) =>
-      batchesService.listBatches(
+    queryKey: ['batches', 'infinite-dropdown', portalType ?? 'admin', pageSize, trimmedSearch],
+    queryFn: async ({ pageParam = 1, signal }) => {
+      if (portalType === 'mentor') {
+        const items = await batchesService.listMentorBatches({
+          page: pageParam,
+          limit: pageSize,
+          search: trimmedSearch,
+        });
+        const hasMore = items.length >= pageSize;
+        return {
+          items,
+          pagination: {
+            page: pageParam,
+            limit: pageSize,
+            total: items.length,
+            totalPages: hasMore ? pageParam + 1 : pageParam,
+          },
+        };
+      }
+      return batchesService.listBatches(
         {
           page: pageParam,
           limit: pageSize,
           search: trimmedSearch,
         },
         { signal },
-      ),
+      );
+    },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const { page, totalPages } = lastPage.pagination;

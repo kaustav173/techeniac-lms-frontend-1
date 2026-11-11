@@ -172,7 +172,7 @@ export default function MentorPage() {
     {
       id: 'progress',
       href: '/mentor/progress',
-      title: 'Progress Tracker',
+      title: 'Progress',
       badge: 'Milestones',
       badgeClass: 'bg-cyan-100 text-cyan-800',
       iconBg: 'bg-cyan-50 text-cyan-700 group-hover:bg-cyan-700 group-hover:text-white',
@@ -188,7 +188,7 @@ export default function MentorPage() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      action: 'Open Progress Tracker',
+      action: 'Open Progress',
     },
     {
       id: 'performance',
