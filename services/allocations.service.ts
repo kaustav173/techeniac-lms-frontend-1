@@ -59,6 +59,7 @@ export interface CourseAllocation {
     | {
         readonly id: string;
         readonly title: string;
+        readonly description?: string | null | undefined;
         readonly estimatedMinutes?: number | null | undefined;
       }
     | undefined;

@@ -119,6 +119,49 @@ export function toISTDateInputValue(dateInput: string | Date | null | undefined)
   }).format(date);
 }
 
+const SHORT_MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+/**
+ * Formats a date or ISO string into "DD MMM YYYY" format (e.g. "03 Nov 2026", "15 Sep 2026")
+ * in IST with strictly 3-character month abbreviations.
+ */
+export function formatDateShortDMY(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '-';
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
+    const parts = dateInput.trim().split('-');
+    const year = parts[0] ?? '';
+    const monthIndex = parseInt(parts[1] ?? '0', 10) - 1;
+    const day = (parts[2] ?? '').padStart(2, '0');
+    const month = SHORT_MONTH_NAMES[monthIndex];
+    if (year && month && day) {
+      return `${day} ${month} ${year}`;
+    }
+  }
+
+  const istDateStr = toISTDateInputValue(dateInput);
+  if (!istDateStr) return '-';
+  const parts = istDateStr.split('-');
+  const year = parts[0] ?? '';
+  const monthIndex = parseInt(parts[1] ?? '0', 10) - 1;
+  const day = (parts[2] ?? '').padStart(2, '0');
+  const month = SHORT_MONTH_NAMES[monthIndex];
+  if (!year || !month || !day) return '-';
+  return `${day} ${month} ${year}`;
+}
+
 /**
  * Formats a date or ISO string into "DD MMM YYYY" format (e.g. "03 Nov 2026").
  */

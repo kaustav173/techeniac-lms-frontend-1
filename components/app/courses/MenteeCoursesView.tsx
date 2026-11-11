@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePrefetchCourse } from '@/hooks/useCourses';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAllocationProgress } from '@/hooks/useProgress';
+import { formatDateShortDMY } from '@/lib/date';
 
 const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'active', label: 'Active' },
@@ -29,44 +30,56 @@ const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'closed', label: 'Closed' },
 ];
 
+const MAX_DESCRIPTION_CHARS = 90;
+const DEFAULT_COURSE_DESCRIPTION =
+  'Structured learning modules, milestone task submissions, and topic reviews.';
+
+function truncateDescription(text: string, maxChars = MAX_DESCRIPTION_CHARS): string {
+  const normalized = text.trim();
+  if (normalized.length <= maxChars) return normalized;
+  return `${normalized.slice(0, maxChars).trimEnd()}...`;
+}
+
 export function MenteeCoursesSkeleton() {
   return (
     <div>
       <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <Skeleton className="h-10 w-full rounded-xl sm:w-80" />
-          <Skeleton className="h-10 w-32 rounded-full" />
+          <Skeleton className="h-11 w-full rounded-xl sm:w-96 lg:w-[492px]" />
+          <Skeleton className="h-11 w-[140px] rounded-xl" />
         </div>
       </div>
       <div className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, idx) => (
           <div
             key={`course-skel-${idx}`}
-            className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
+            className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5"
           >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-4 w-28 rounded-md" />
-                <Skeleton className="h-6 w-20 rounded-full" />
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-5 w-24 rounded-full" />
+                <Skeleton className="h-5 w-20 rounded-full" />
               </div>
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-44 rounded-md" />
-                <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="mt-3.5 h-5 w-44 rounded-md" />
+              <div className="mt-2 space-y-1.5">
+                <Skeleton className="h-3.5 w-full rounded-md" />
+                <Skeleton className="h-3.5 w-4/5 rounded-md" />
               </div>
-              <div className="space-y-2 pt-2">
+              <div className="mt-4 space-y-1.5">
                 <div className="flex justify-between">
-                  <Skeleton className="h-3 w-16 rounded-md" />
-                  <Skeleton className="h-3 w-10 rounded-md" />
+                  <Skeleton className="h-3 w-14 rounded-md" />
+                  <Skeleton className="h-3 w-8 rounded-md" />
                 </div>
-                <Skeleton className="h-2 w-full rounded-full" />
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <Skeleton className="h-3.5 w-16 rounded-md" />
+                <Skeleton className="h-3.5 w-24 rounded-md" />
               </div>
             </div>
-            <div className="mt-6 space-y-3 border-t border-[#E1E6EC] pt-4">
-              <div className="flex justify-between">
-                <Skeleton className="h-3 w-20 rounded-md" />
-                <Skeleton className="h-3 w-24 rounded-md" />
-              </div>
-              <Skeleton className="h-9 w-full rounded-full" />
+            <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3.5">
+              <Skeleton className="h-3.5 w-20 rounded-md" />
+              <Skeleton className="h-3.5 w-16 rounded-md" />
             </div>
           </div>
         ))}
@@ -147,11 +160,11 @@ export function MenteeCoursesView() {
             {/* Search & Status Filter Toolbar (Admin Style) */}
             <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="w-full sm:w-72 lg:w-80">
+                <div className="w-full sm:w-96 lg:w-[492px]">
                   <DebouncedSearchInput
                     value={search}
                     onSearchChange={setSearch}
-                    placeholder="Search courses or cohort codes..."
+                    placeholder="Search courses..."
                   />
                 </div>
 
@@ -230,7 +243,9 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
   const isRevokedOrClosed = isTerminalAllocationStatus(allocation.status) && !isCompleted;
   const isOverdue = Boolean(allocation.isOverdue) && !isCompleted && !isRevokedOrClosed;
 
-  const formattedDueDate = new Date(allocation.dueDate).toLocaleDateString();
+  const formattedDueDate = formatDateShortDMY(allocation.dueDate);
+  const rawDescription = allocation.course?.description?.trim() || DEFAULT_COURSE_DESCRIPTION;
+  const truncatedDescription = truncateDescription(rawDescription);
 
   const prefetchCourseProgress = useCallback(() => {
     prefetchProgress(allocation.id);
@@ -240,52 +255,58 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
   const { getHoverHandlers } = useHoverPrefetch();
   const hoverProps = getHoverHandlers(prefetchCourseProgress);
 
+  const actionLabel = isRevokedOrClosed ? 'View syllabus' : isCompleted ? 'Review' : 'Continue';
+
   return (
     <div
-      className={`group relative flex flex-col justify-between rounded-2xl bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative flex flex-col justify-between rounded-2xl bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
         isOverdue
-          ? 'border border-rose-300 ring-1 ring-rose-200'
+          ? 'border border-rose-200 hover:border-rose-300'
           : isCompleted
-            ? 'border border-emerald-200'
+            ? 'border border-emerald-200 hover:border-emerald-300'
             : 'border border-[#E1E6EC] hover:border-[#0044D3]/40'
       }`}
     >
       <div>
         {/* Top Header: Badge & Status */}
         <div className="flex items-center justify-between gap-2">
-          <Span className="inline-flex items-center rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-[#0044D3]">
+          <Span className="inline-flex items-center rounded-full bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-medium text-[#0044D3]">
             {allocation.batch ? allocation.batch.name : 'Individual Track'}
           </Span>
           <AllocationStatusBadge status={allocation.status} isOverdue={isOverdue} />
         </div>
 
-        {/* Title & Description */}
-        <Link href={`/mentee/courses/${allocation.id}`} {...hoverProps} className="mt-3 block">
+        {/* Title (Stretched Link making the whole card clickable) & Description */}
+        <Link
+          href={`/mentee/courses/${allocation.id}`}
+          {...hoverProps}
+          className="mt-3.5 block after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0044D3]"
+        >
           <H3 className="line-clamp-1 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
             {allocation.course?.title ?? 'Course Track'}
           </H3>
         </Link>
-        <P className="mt-1 line-clamp-2 min-h-[2.5rem] text-xs text-[#667085]">
-          Structured learning modules, milestone task submissions, and topic reviews.
+        <P className="mt-1.5 line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-[#667085]">
+          {truncatedDescription}
         </P>
 
         {/* Minimal Progress Bar */}
         <div className="mt-4 space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-medium">
-            <Span className="text-[#667085]">Progress</Span>
+          <div className="flex items-center justify-between text-xs">
+            <Span className="font-medium text-[#667085]">Progress</Span>
             <Span
               className={
                 isCompleted
-                  ? 'font-bold text-emerald-600'
+                  ? 'font-semibold text-emerald-600'
                   : isOverdue
-                    ? 'font-bold text-rose-600'
-                    : 'font-bold text-[#0044D3]'
+                    ? 'font-semibold text-rose-600'
+                    : 'font-semibold text-[#0044D3]'
               }
             >
               {allocation.progressPercent}%
             </Span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#F6F8FC]">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-[#0044D3]'
@@ -296,21 +317,18 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
         </div>
 
         {/* Metadata Row */}
-        <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3 text-xs text-[#667085]">
+        <div className="mt-4 flex items-center justify-between text-xs text-[#667085]">
           <div className="flex items-center gap-1.5">
             <svg
-              className="h-3.5 w-3.5 text-slate-400"
+              className="h-4 w-4 shrink-0 text-[#667085]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              strokeWidth={1.75}
               aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+              <circle cx="12" cy="12" r="9" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5V12l3 1.75" />
             </svg>
             <Span>
               {allocation.estimatedMinutes != null
@@ -321,59 +339,52 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
 
           <div className="flex items-center gap-1.5 font-medium text-[#111827]">
             <svg
-              className="h-3.5 w-3.5 text-slate-400"
+              className="h-4 w-4 shrink-0 text-[#667085]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              strokeWidth={1.75}
               aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+              <rect x="3" y="5" width="18" height="16" rx="2.5" />
+              <path strokeLinecap="round" d="M16 3v4M8 3v4M3 10h18" />
             </svg>
             <Span>Due {formattedDueDate}</Span>
           </div>
         </div>
       </div>
 
-      {/* Footer CTA */}
-      <div className="mt-5 space-y-2 border-t border-[#E1E6EC] pt-3">
-        {isRevokedOrClosed ? (
-          <Link
-            href={`/mentee/courses/${allocation.id}`}
-            {...hoverProps}
-            className="flex h-9 w-full items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-[#667085] transition-colors hover:bg-slate-200"
+      {/* Minimal Footer */}
+      <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3.5">
+        <Link
+          href={`/mentee/assignments?courseId=${allocation.courseId}`}
+          onClick={(e) => e.stopPropagation()}
+          className="relative z-10 inline-flex items-center text-xs font-semibold text-[#667085] transition-colors hover:text-[#0044D3] hover:underline"
+        >
+          <Span>Assignments</Span>
+        </Link>
+
+        <Span
+          className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+            isRevokedOrClosed
+              ? 'text-[#667085]'
+              : isCompleted
+                ? 'text-emerald-700'
+                : 'text-[#0044D3]'
+          }`}
+        >
+          <Span>{actionLabel}</Span>
+          <svg
+            className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
           >
-            <Span>Course Closed • View Syllabus</Span>
-          </Link>
-        ) : isCompleted ? (
-          <Link
-            href={`/mentee/courses/${allocation.id}`}
-            {...hoverProps}
-            className="flex h-9 w-full items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
-          >
-            <Span>✓ Track Completed • Review Material</Span>
-          </Link>
-        ) : (
-          <Link
-            href={`/mentee/courses/${allocation.id}`}
-            {...hoverProps}
-            className="flex h-9 w-full items-center justify-center rounded-full bg-[#0044D3] text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3]"
-          >
-            <Span>Continue Learning →</Span>
-          </Link>
-        )}
-        <div className="text-center">
-          <Link
-            href={`/mentee/assignments?courseId=${allocation.courseId}`}
-            className="inline-block text-xs font-semibold text-[#0044D3] hover:underline"
-          >
-            View Course Assignments →
-          </Link>
-        </div>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </Span>
       </div>
     </div>
   );

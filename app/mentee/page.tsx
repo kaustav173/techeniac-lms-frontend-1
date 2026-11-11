@@ -263,10 +263,10 @@ export default function MenteePage() {
           <div className="mb-6">
             <Alert
               variant="error"
-              title="Error Loading Cohort Enrollment"
+              title="Error Loading Course Enrollment"
               message={
                 batchError.message ||
-                'An error occurred while fetching your active cohort assignment.'
+                'An error occurred while fetching your active course assignment.'
               }
             />
           </div>
