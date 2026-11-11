@@ -345,6 +345,7 @@ export const ADMIN_PROFILE_NAV: PortalNavConfig = {
     { label: 'Allocations', href: '/admin/allocations', active: false },
     { label: 'Progress', href: '/admin/progress', active: false },
     { label: 'Performance', href: '/admin/performance', active: false },
+    { label: 'Audit Logs', href: '/admin/audit-logs', active: false },
   ],
 };
 

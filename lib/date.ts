@@ -22,7 +22,7 @@ export function formatDateTimeIST(dateInput: string | Date | null | undefined): 
     hour12: true,
   }).format(date);
 
-  return `${formatted} IST`;
+  return `${formatted}`;
 }
 
 /**
@@ -45,14 +45,14 @@ export function formatDateTime(dateInput: string | Date | null | undefined): str
 }
 
 /**
- * Formats a date or ISO string into IST date & time with seconds: "27 Oct 2026, 04:30:15 PM IST"
+ * Formats a date or ISO string into IST date & time with seconds: "27 Oct 2026, 04:30:15 PM"
  */
 export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return '-';
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   if (isNaN(date.getTime())) return '-';
 
-  const formatted = new Intl.DateTimeFormat('en-IN', {
+  return new Intl.DateTimeFormat('en-IN', {
     timeZone: IST_TIMEZONE,
     day: '2-digit',
     month: 'short',
@@ -62,8 +62,6 @@ export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | u
     second: '2-digit',
     hour12: true,
   }).format(date);
-
-  return `${formatted} IST`;
 }
 
 /**
@@ -127,7 +125,7 @@ export function formatTimeIST(dateInput: string | Date | null | undefined): stri
     hour12: true,
   }).format(date);
 
-  return `${formatted} IST`;
+  return `${formatted}`;
 }
 
 /**
@@ -160,3 +158,33 @@ export function toISTDateInputValue(dateInput: string | Date | null | undefined)
  * Formats a date or ISO string into "DD MMM YYYY" format (e.g. "03 Nov 2026").
  */
 export const formatDateDMY = formatDateIST;
+
+/**
+ * Formats a date or ISO string into "DD/MM/YY" format (e.g. "04/12/26").
+ */
+export function formatDateDDMMYY(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '-';
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
+    const parts = dateInput.trim().split('-');
+    const y = parts[0] ?? '00';
+    const m = parts[1] ?? '00';
+    const d = parts[2] ?? '00';
+    const shortYear = y.length === 4 ? y.slice(2) : y;
+    return `${d}/${m}/${shortYear}`;
+  }
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return '-';
+
+  const day = new Intl.DateTimeFormat('en-IN', { timeZone: IST_TIMEZONE, day: '2-digit' }).format(
+    date,
+  );
+  const month = new Intl.DateTimeFormat('en-IN', {
+    timeZone: IST_TIMEZONE,
+    month: '2-digit',
+  }).format(date);
+  const year = new Intl.DateTimeFormat('en-IN', { timeZone: IST_TIMEZONE, year: '2-digit' }).format(
+    date,
+  );
+
+  return `${day}/${month}/${year}`;
+}

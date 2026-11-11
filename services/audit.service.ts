@@ -10,11 +10,14 @@ export interface AuditQueryFilters {
   page?: number | undefined;
   limit?: number | undefined;
   type?: AuditType | 'ALL' | undefined;
+  types?: AuditType[] | undefined;
   actorId?: string | undefined;
   entity?: string | undefined;
   action?: string | undefined;
+  search?: string | undefined;
   startDate?: string | undefined;
   endDate?: string | undefined;
+  sortOrder?: 'asc' | 'desc' | undefined;
 }
 
 function buildFallbackPagination(
@@ -69,14 +72,21 @@ export const auditService = {
     if (validated.type !== undefined && (validated.type as string) !== 'ALL') {
       params.type = validated.type;
     }
+    if (validated.types !== undefined && validated.types.length > 0) {
+      params.types = validated.types.join(',');
+    }
     if (validated.actorId !== undefined) params.actorId = validated.actorId;
     if (validated.entity !== undefined) params.entity = validated.entity;
     if (validated.action !== undefined) params.action = validated.action;
+    if (validated.search !== undefined) params.search = validated.search;
     if (validated.startDate !== undefined) {
       params.startDate = `${validated.startDate}T00:00:00.000+05:30`;
     }
     if (validated.endDate !== undefined) {
       params.endDate = `${validated.endDate}T23:59:59.999+05:30`;
+    }
+    if (validated.sortOrder !== undefined) {
+      params.sortOrder = validated.sortOrder;
     }
 
     const res = await apiClient<AuditLogsResponse>('/audit-logs', {

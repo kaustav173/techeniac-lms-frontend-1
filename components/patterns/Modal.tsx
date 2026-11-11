@@ -17,6 +17,7 @@ export interface ModalProps {
   children: React.ReactNode;
   initialFocusRef?: React.RefObject<HTMLElement | null> | undefined;
   className?: string | undefined;
+  titleClassName?: string | undefined;
   ariaLabelledBy?: string | undefined;
   isSubmitting?: boolean | undefined;
   preventClose?: boolean | undefined;
@@ -32,6 +33,7 @@ export function Modal({
   children,
   initialFocusRef,
   className,
+  titleClassName,
   ariaLabelledBy,
   isSubmitting = false,
   preventClose = false,
@@ -91,7 +93,7 @@ export function Modal({
               id={resolvedTitleId}
               as="h3"
               variant="h3"
-              className="text-lg font-bold text-slate-900"
+              className={cn('text-lg font-bold text-slate-900 sm:text-xl', titleClassName)}
             >
               {title}
             </Typography>

@@ -16,11 +16,14 @@ export type AuditType = z.infer<typeof auditTypeEnum>;
 export const auditLogFilterSchema = z
   .object({
     type: z.union([auditTypeEnum, z.literal('ALL')]).optional(),
+    types: z.array(auditTypeEnum).optional(),
     actorId: z.string().uuid().optional(),
     entity: z.string().max(100).optional(),
     action: z.string().max(100).optional(),
+    search: z.string().max(100).optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
+    sortOrder: z.enum(['asc', 'desc']).optional(),
     page: z.coerce.number().min(1).default(1),
     limit: z.coerce.number().min(1).max(100).default(20),
   })
@@ -56,6 +59,8 @@ export interface ApiAuditItem {
   action: string;
   oldValue: Record<string, unknown> | null;
   newValue: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  country?: string | null;
   createdAt: string;
 }
 
