@@ -1,3 +1,4 @@
+import { env } from '@/lib/config';
 import type { UserRole } from '@/lib/validation';
 
 import { apiClient, ApiError } from './api.client';
@@ -69,12 +70,43 @@ export const authService = {
     }
   },
 
-  async getMe(): Promise<AuthUser> {
-    const response = await apiClient<GetMeResponse>('/auth/me');
+  async getMe(authToken?: string): Promise<AuthUser> {
+    const response = await apiClient<GetMeResponse>(
+      '/auth/me',
+      authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
+    );
     if (!response?.success || !response?.data?.user) {
       throw new ApiError(500, 'Invalid session response from server', 'INVALID_RESPONSE');
     }
     return response.data.user;
+  },
+
+  async refreshTokenOnServer(refreshToken: string): Promise<string | null> {
+    const baseUrl =
+      typeof window === 'undefined' && !env.NEXT_PUBLIC_API_BASE_URL.startsWith('http')
+        ? process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1'
+        : env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${baseUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Cookie: `refreshToken=${refreshToken}`,
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (res.status === 401) {
+      return null;
+    }
+    if (!res.ok) {
+      throw new ApiError(
+        res.status,
+        'Unable to refresh authentication session on server',
+        res.status >= 500 ? 'SERVER_ERROR' : 'HTTP_ERROR',
+      );
+    }
+    const json = (await res.json()) as { data?: { tokens?: { accessToken?: string } } };
+    return json?.data?.tokens?.accessToken ?? null;
   },
 
   async refreshToken(): Promise<AuthUser> {

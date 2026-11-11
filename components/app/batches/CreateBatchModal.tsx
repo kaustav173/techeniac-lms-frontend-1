@@ -134,6 +134,9 @@ function CreateBatchFormFields({
             id="batch-start"
             value={startDate}
             onChange={onStartDateChange}
+            rangeStart={startDate}
+            rangeEnd={endDate}
+            maxDate={endDate || undefined}
             hasError={Boolean(errors.startDate)}
             disabled={disabled}
             placement="auto"
@@ -150,6 +153,9 @@ function CreateBatchFormFields({
             id="batch-end"
             value={endDate}
             onChange={onEndDateChange}
+            rangeStart={startDate}
+            rangeEnd={endDate}
+            minDate={startDate || undefined}
             hasError={Boolean(errors.endDate)}
             disabled={disabled}
             placement="auto"

@@ -21,8 +21,100 @@ import {
   useAllocationProgress,
   useUpdateTopicStatusMutation,
 } from '@/hooks/useProgress';
-import { formatDateIST } from '@/lib/date';
+import { formatDateDMY } from '@/lib/date';
 import { type Assignment, AssignmentScope, type Subtopic, type Topic } from '@/types/courses';
+
+const TOPIC_TIMELINE_STEPS: ReadonlyArray<{
+  readonly value: TopicProgressStatus;
+  readonly label: string;
+}> = [
+  { value: 'NOT_STARTED', label: 'Not Started' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'COMPLETED', label: 'Completed' },
+];
+
+const TOPIC_STATUS_INDEX: Record<TopicProgressStatus, number> = {
+  NOT_STARTED: 0,
+  IN_PROGRESS: 1,
+  COMPLETED: 2,
+};
+
+function ClockIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5V12l3 1.75" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="16" rx="2.5" />
+      <path strokeLinecap="round" d="M16 3v4M8 3v4M3 10h18" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.25}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6-6-6 6 6 6" />
+    </svg>
+  );
+}
 
 /* -------------------------------------------------------------------------- */
 /* Sub-component: Capstone Assignment Card                                    */
@@ -34,14 +126,14 @@ interface CapstoneAssignmentCardProps {
 
 export function CapstoneAssignmentCard({ assignment }: CapstoneAssignmentCardProps) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+    <div className="flex flex-col gap-1 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5">
       <div className="flex items-start justify-between gap-2">
-        <H4 className="text-xs font-bold text-slate-900">{assignment.title}</H4>
-        <Span className="rounded bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
+        <H4 className="text-xs font-bold text-[#111827]">{assignment.title}</H4>
+        <Span className="rounded-full bg-[#E1E6EC] px-2 py-0.5 text-xs font-semibold text-[#111827]">
           {assignment.maxMarks} Marks
         </Span>
       </div>
-      <Muted className="text-xs">
+      <Muted className="text-xs text-[#667085]">
         Pass: {assignment.passMarks} • Est: {assignment.estimatedMinutes}m
       </Muted>
     </div>
@@ -73,11 +165,11 @@ export function CourseOutlineSidebar({
 }: CourseOutlineSidebarProps) {
   return (
     <aside className="flex flex-col gap-6 lg:col-span-4">
-      <div className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="sticky top-24 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E1E6EC] pb-3">
           <div>
-            <H2 className="text-base font-bold text-slate-900">Course Outline</H2>
-            <Muted className="mt-0.5 text-xs">
+            <H2 className="text-base font-bold text-[#111827]">Course Outline</H2>
+            <Muted className="mt-0.5 text-xs text-[#667085]">
               {activeTopics.length} Topics • {courseAssignments.length} Capstone
             </Muted>
           </div>
@@ -98,8 +190,8 @@ export function CourseOutlineSidebar({
                 key={topic.id}
                 className={`rounded-2xl border transition-all ${
                   isCurrent
-                    ? 'border-blue-300 bg-blue-50/40 shadow-xs'
-                    : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
+                    ? 'border-[#0044D3]/40 bg-blue-50/40 shadow-xs'
+                    : 'border-[#E1E6EC] bg-white hover:bg-[#F6F8FC]'
                 }`}
               >
                 {/* Topic Trigger */}
@@ -109,7 +201,7 @@ export function CourseOutlineSidebar({
                   type="button"
                   aria-pressed={isCurrent}
                   onClick={() => onSelectTopic(topic.id)}
-                  className="flex h-auto w-full items-center justify-between p-3 text-left font-normal"
+                  className="flex h-auto w-full items-center justify-between rounded-2xl p-3 text-left font-normal hover:bg-transparent focus-visible:ring-[#0044D3] active:bg-transparent"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2.5">
                     <div
@@ -121,7 +213,7 @@ export function CourseOutlineSidebar({
                             : 'bg-slate-200 text-slate-600'
                       }`}
                     >
-                      {isCompleted ? '✓' : index + 1}
+                      {isCompleted ? <CheckIcon className="h-3.5 w-3.5" /> : index + 1}
                     </div>
                     <Span
                       className={`truncate text-xs font-semibold ${
@@ -134,8 +226,8 @@ export function CourseOutlineSidebar({
 
                   <div className="ml-2 flex flex-shrink-0 items-center gap-1.5">
                     {isOverdue && (
-                      <Span className="rounded bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-700">
-                        OVERDUE
+                      <Span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                        Overdue
                       </Span>
                     )}
                     <Span
@@ -191,16 +283,18 @@ export function CourseOutlineSidebar({
         {courseAssignments.length > 0 && (
           <div className="mt-6 border-t border-slate-100 pt-4">
             <div className="mb-3 flex items-center gap-1.5">
-              <Span className="inline-flex h-4 w-4 items-center justify-center text-slate-500">
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </Span>
+              <svg
+                className="h-4 w-4 text-[#0044D3]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.75}
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="5" />
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+              </svg>
               <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
                 Course Capstone & Milestones
               </H4>
@@ -246,75 +340,113 @@ export function ProgressControlStrip({
   actionSuccessMessage,
   studyNoteInputId,
 }: ProgressControlStripProps) {
+  const activeStepIndex = TOPIC_STATUS_INDEX[currentTopicStatus];
+
   return (
     <>
       {/* Feedback Alert Messages */}
       {actionSuccessMessage && (
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800">
-          <Span>✓ {actionSuccessMessage}</Span>
+        <div className="mt-6 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800">
+          <CheckIcon className="h-4 w-4 shrink-0 text-emerald-600" />
+          <Span>{actionSuccessMessage}</Span>
         </div>
       )}
 
       {isError && errorMessage && (
         <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-medium text-rose-800">
-          <Span>✕ {errorMessage}</Span>
+          <Span>{errorMessage}</Span>
         </div>
       )}
 
-      {/* Interactive Mentee Progress Control Strip (Stitch Screen 5701db0470ab457abdb95e73661bc5dc) */}
-      <div className="-mx-6 mt-10 -mb-6 rounded-b-3xl border-t border-slate-200 bg-slate-50 p-6 sm:-mx-10 sm:-mb-10 sm:p-8">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      {/* Interactive Progress Control Strip */}
+      <div className="-mx-6 mt-8 -mb-6 rounded-b-3xl border-t border-[#E1E6EC] bg-[#F6F8FC] p-5 sm:-mx-10 sm:-mb-10 sm:px-8 sm:py-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div className="flex items-center gap-2">
-            <Span className="inline-flex h-4 w-4 items-center justify-center text-blue-600">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-            </Span>
-            <H4 className="text-xs font-bold text-slate-900">Topic Progress Status</H4>
+            <svg
+              className="h-4 w-4 shrink-0 text-[#0044D3]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <H4 className="text-xs font-bold text-[#111827]">Progress Controls</H4>
           </div>
 
-          {/* Segmented Status Selector */}
+          {/* Clickable Horizontal Timeline */}
           <div
             role="radiogroup"
             aria-label="Topic Progress Status"
-            className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-xs"
+            className="flex flex-1 items-center lg:max-w-md"
           >
-            {(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'] as const).map((st) => {
-              const isSelected = currentTopicStatus === st;
+            {TOPIC_TIMELINE_STEPS.map((step, idx) => {
+              const isSelected = currentTopicStatus === step.value;
+              const isReached = idx <= activeStepIndex;
+              const isDoneStep = currentTopicStatus === 'COMPLETED' || idx < activeStepIndex;
+              const isConnectorActive = idx < activeStepIndex;
+
               return (
-                <Button
-                  key={st}
-                  type="button"
-                  variant={isSelected ? 'primary' : 'ghost'}
-                  size="sm"
-                  role="radio"
-                  aria-checked={isSelected}
-                  disabled={isReadOnly || isPending}
-                  onClick={() => onStatusChange(st)}
-                  className={`h-auto rounded-lg px-3 py-1.5 text-xs transition-all ${
-                    isSelected
-                      ? 'bg-blue-600 font-bold text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
-                  }`}
-                >
-                  {st === 'NOT_STARTED'
-                    ? 'Not Started'
-                    : st === 'IN_PROGRESS'
-                      ? 'In Progress'
-                      : 'Completed'}
-                </Button>
+                <React.Fragment key={step.value}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    role="radio"
+                    aria-checked={isSelected}
+                    disabled={isReadOnly || isPending}
+                    onClick={() => onStatusChange(step.value)}
+                    className="group/step h-auto shrink-0 gap-2 rounded-full px-2 py-1 text-left hover:bg-white/70 active:bg-white disabled:opacity-45"
+                  >
+                    <Span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
+                        isDoneStep
+                          ? 'border-emerald-500 bg-emerald-500 text-white'
+                          : isSelected
+                            ? 'border-[#0044D3] bg-[#0044D3] text-white ring-4 ring-[#0044D3]/15'
+                            : 'border-[#E1E6EC] bg-white text-[#667085] group-hover/step:border-[#0044D3]/50'
+                      }`}
+                    >
+                      {isDoneStep ? <CheckIcon className="h-3.5 w-3.5" /> : idx + 1}
+                    </Span>
+                    <Span
+                      className={`text-xs font-semibold whitespace-nowrap transition-colors ${
+                        isSelected
+                          ? 'text-[#111827]'
+                          : isReached
+                            ? 'text-[#111827]'
+                            : 'text-[#667085] group-hover/step:text-[#111827]'
+                      }`}
+                    >
+                      {step.label}
+                    </Span>
+                  </Button>
+
+                  {idx < TOPIC_TIMELINE_STEPS.length - 1 ? (
+                    <div
+                      aria-hidden="true"
+                      className={`mx-1 h-0.5 min-w-4 flex-1 rounded-full transition-colors ${
+                        isConnectorActive
+                          ? currentTopicStatus === 'COMPLETED'
+                            ? 'bg-emerald-500'
+                            : 'bg-[#0044D3]'
+                          : 'bg-[#E1E6EC]'
+                      }`}
+                    />
+                  ) : null}
+                </React.Fragment>
               );
             })}
           </div>
         </div>
 
-        {/* Optional Study Note Input & Quick Action Button */}
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+        {/* Optional Study Note Input & Compact Save/Complete Action */}
+        <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Label htmlFor={studyNoteInputId} className="sr-only">
               Optional study note or question for mentor
@@ -326,21 +458,30 @@ export function ProgressControlStrip({
               value={studyNote}
               onChange={(e) => onStudyNoteChange(e.target.value)}
               placeholder="Add an optional study log note or questions for your mentor..."
-              className="h-12 bg-white text-xs shadow-xs"
+              className="h-10 rounded-full border-[#E1E6EC] bg-white px-4 text-xs shadow-xs focus-visible:ring-2 focus-visible:ring-[#0044D3]"
             />
           </div>
 
           <Button
             type="button"
+            size="sm"
             disabled={isReadOnly || currentTopicStatus === 'COMPLETED' || isPending}
             onClick={() => onStatusChange('COMPLETED')}
-            className="h-12 flex-shrink-0 px-6 text-xs font-bold"
+            className="h-10 shrink-0 rounded-full px-4 text-xs font-semibold"
           >
-            {isPending
-              ? 'Saving Progress...'
-              : currentTopicStatus === 'COMPLETED'
-                ? '✓ Topic Completed'
-                : 'Mark as Completed →'}
+            {isPending ? (
+              <Span>Saving...</Span>
+            ) : currentTopicStatus === 'COMPLETED' ? (
+              <>
+                <CheckIcon className="h-3.5 w-3.5" />
+                <Span>Completed</Span>
+              </>
+            ) : (
+              <>
+                <Span>Mark Completed</Span>
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -356,6 +497,8 @@ interface TopicReadingPaneProps {
   readonly currentTopic: Topic | null | undefined;
   readonly currentSubtopic: Subtopic | null | undefined;
   readonly currentTopicProgress?: TopicProgressItem | null | undefined;
+  readonly topicIndex: number;
+  readonly totalTopics: number;
   readonly topicAssignments: Assignment[];
   readonly controlStrip: React.ReactNode;
 }
@@ -364,39 +507,57 @@ export function TopicReadingPane({
   currentTopic,
   currentSubtopic,
   currentTopicProgress,
+  topicIndex,
+  totalTopics,
   topicAssignments,
   controlStrip,
 }: TopicReadingPaneProps) {
+  const topicStatus: TopicProgressStatus = currentTopicProgress?.status ?? 'NOT_STARTED';
+  const statusLabel =
+    topicStatus === 'COMPLETED'
+      ? 'Completed'
+      : topicStatus === 'IN_PROGRESS'
+        ? 'In Progress'
+        : 'Not Started';
+  const statusBadgeClass =
+    topicStatus === 'COMPLETED'
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      : topicStatus === 'IN_PROGRESS'
+        ? 'border-blue-200 bg-blue-50 text-[#0044D3]'
+        : 'border-slate-200 bg-slate-100 text-[#667085]';
+
+  const hasSubtopicContent = Boolean(currentSubtopic?.content?.trim());
+  const hasSubtopicResources = Boolean(
+    currentSubtopic?.resources && currentSubtopic.resources.length > 0,
+  );
+
   return (
     <section className="flex flex-col gap-8 lg:col-span-8">
-      <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-10">
+      <article className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-10">
         {/* Module Header Badge */}
-        <div className="border-b border-slate-100 pb-6">
+        <div className="border-b border-[#E1E6EC] pb-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold tracking-wider text-blue-700 uppercase">
-                Topic Progress • Module Active
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Span
+                className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass}`}
+              >
+                {totalTopics > 0
+                  ? `Module ${topicIndex + 1} of ${totalTopics} • ${statusLabel}`
+                  : statusLabel}
               </Span>
               {currentTopicProgress?.deadline && (
                 <Span
                   className={`text-xs font-semibold ${
-                    currentTopicProgress.isOverdue ? 'text-rose-600' : 'text-slate-500'
+                    currentTopicProgress.isOverdue ? 'text-rose-600' : 'text-[#667085]'
                   }`}
                 >
-                  Target Deadline: {formatDateIST(currentTopicProgress.deadline)}
+                  Target Deadline: {formatDateDMY(currentTopicProgress.deadline)}
                 </Span>
               )}
             </div>
 
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+            <div className="flex items-center gap-1.5 text-xs text-[#667085]">
+              <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
               <Span>
                 {currentTopic?.estimatedMinutes != null
                   ? `${currentTopic.estimatedMinutes} mins`
@@ -405,55 +566,61 @@ export function TopicReadingPane({
             </div>
           </div>
 
-          <H2 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <H2 className="mt-4 text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
             {currentSubtopic ? currentSubtopic.title : (currentTopic?.title ?? 'Lesson Content')}
           </H2>
-          <P className="mt-2 text-sm text-slate-500">
-            {currentTopic?.description ??
-              'Study the curriculum reading below and mark your progress when completed.'}
-          </P>
+          {currentTopic?.description ? (
+            <P className="mt-2 text-sm text-[#667085]">{currentTopic.description}</P>
+          ) : null}
         </div>
 
-        {/* Subtopic Reading Prose */}
-        <div className="mt-6 flex flex-col gap-6 text-sm leading-relaxed text-slate-700 sm:text-base">
-          {currentSubtopic?.content ? (
-            <MarkdownViewer
-              content={currentSubtopic.content}
-              className="max-w-none leading-7 text-slate-700"
-            />
-          ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-              <P className="text-sm text-slate-500">
-                Review the curriculum syllabus guidelines, reference documentation, and complete
-                associated labs below to satisfy milestone clearance.
-              </P>
-            </div>
-          )}
+        {/* Subtopic Reading Prose (DB-backed only) */}
+        {hasSubtopicContent || hasSubtopicResources ? (
+          <div className="mt-6 flex flex-col gap-6 text-sm leading-relaxed text-slate-700 sm:text-base">
+            {hasSubtopicContent && currentSubtopic?.content ? (
+              <MarkdownViewer
+                content={currentSubtopic.content}
+                className="max-w-none leading-7 text-slate-700"
+              />
+            ) : null}
 
-          {/* Subtopic Resources if present */}
-          {currentSubtopic?.resources && currentSubtopic.resources.length > 0 && (
-            <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <H4 className="mb-2 text-xs font-bold tracking-wider text-slate-700 uppercase">
-                Reference Resources & External Documentation
-              </H4>
-              <ul className="flex flex-col gap-2">
-                {currentSubtopic.resources.map((res) => (
-                  <li key={res.url} className="flex items-center gap-2 text-xs">
-                    <Span className="text-blue-600">🔗</Span>
-                    <a
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-blue-600 hover:underline"
-                    >
-                      {res.title || res.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            {hasSubtopicResources && currentSubtopic?.resources ? (
+              <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4">
+                <H4 className="mb-2 text-xs font-bold tracking-wider text-[#111827] uppercase">
+                  Reference Resources & External Documentation
+                </H4>
+                <ul className="flex flex-col gap-2">
+                  {currentSubtopic.resources.map((res) => (
+                    <li key={res.url} className="flex items-center gap-2 text-xs">
+                      <svg
+                        className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.75}
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                        />
+                      </svg>
+                      <a
+                        href={res.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-[#0044D3] hover:underline"
+                      >
+                        {res.title || res.url}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Injected Control Strip */}
         {controlStrip}
@@ -464,14 +631,14 @@ export function TopicReadingPane({
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <H3 className="text-lg font-bold tracking-tight text-slate-900">
+              <H3 className="text-lg font-bold tracking-tight text-[#111827]">
                 Topic Assignments & Practical Labs
               </H3>
-              <P className="text-xs text-slate-500">
+              <P className="text-xs text-[#667085]">
                 Action items and tasks associated with this module milestone.
               </P>
             </div>
-            <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+            <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0044D3]">
               {topicAssignments.length} Assignment{topicAssignments.length === 1 ? '' : 's'}
             </Span>
           </div>
@@ -480,42 +647,30 @@ export function TopicReadingPane({
             {topicAssignments.map((assignment) => (
               <div
                 key={assignment.id}
-                className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md"
+                className="flex flex-col justify-between gap-4 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all hover:border-[#0044D3]/40 hover:shadow-md"
               >
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <Span className="rounded-md bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                    <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0044D3]">
                       Topic Task
                     </Span>
-                    <Span className="text-xs font-bold text-slate-700">
+                    <Span className="text-xs font-bold text-[#111827]">
                       {assignment.maxMarks} Marks
                     </Span>
                   </div>
-                  <H4 className="text-sm font-bold text-slate-900">{assignment.title}</H4>
-                  <P className="line-clamp-2 text-xs text-slate-500">
+                  <H4 className="text-sm font-bold text-[#111827]">{assignment.title}</H4>
+                  <P className="line-clamp-2 text-xs text-[#667085]">
                     {assignment.instructions ||
                       'Review instructions and prepare submission repository.'}
                   </P>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                  <div className="flex items-center gap-1.5">
-                    <svg
-                      className="h-3 w-3 text-slate-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                <div className="flex items-center justify-between border-t border-[#E1E6EC] pt-3 text-xs text-[#667085]">
+                  <Span className="inline-flex items-center gap-1.5">
+                    <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
                     <Span>{assignment.estimatedMinutes}m est.</Span>
-                  </div>
-                  <Span className="font-semibold text-blue-600">Pass: {assignment.passMarks}</Span>
+                  </Span>
+                  <Span className="font-semibold text-[#0044D3]">Pass: {assignment.passMarks}</Span>
                 </div>
               </div>
             ))}
@@ -645,6 +800,12 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
   const currentTopicProgress = currentTopic ? progressMap.get(currentTopic.id) : null;
   const currentTopicStatus: TopicProgressStatus = currentTopicProgress?.status ?? 'NOT_STARTED';
+  const currentTopicIndex = currentTopic
+    ? Math.max(
+        0,
+        activeTopics.findIndex((t) => t.id === currentTopic.id),
+      )
+    : 0;
 
   // Completed topics count
   const completedCount = useMemo(() => {
@@ -653,10 +814,11 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
   if (isProgressLoading || isCourseLoading) {
     return (
-      <div className="flex min-h-screen flex-col bg-slate-50 antialiased">
+      <div className="flex min-h-screen flex-col bg-[#F6F8FC] antialiased">
         <Header {...MENTEE_COURSES_NAV} />
         <DashboardContent className="space-y-6">
-          <Skeleton className="h-40 w-full rounded-3xl" />
+          <Skeleton className="h-9 w-40 rounded-full" />
+          <Skeleton className="h-32 w-full rounded-3xl" />
           <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
             <div className="lg:col-span-4">
               <Skeleton className="h-[480px] w-full rounded-3xl" />
@@ -672,7 +834,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
   if (isProgressError || isCourseError || !allocation) {
     return (
-      <div className="flex min-h-screen flex-col bg-slate-50 antialiased">
+      <div className="flex min-h-screen flex-col bg-[#F6F8FC] antialiased">
         <Header {...MENTEE_COURSES_NAV} />
         <DashboardContent className="space-y-6">
           <div className="rounded-3xl border border-rose-200 bg-white p-8 shadow-xs">
@@ -684,9 +846,10 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               }}
             />
             <div className="mt-6 flex justify-start">
-              <Link href="/mentee/courses">
-                <Button variant="outline" size="sm">
-                  ← Back to My Courses
+              <Link href="/mentee/courses" className="inline-block">
+                <Button variant="outline" size="sm" className="rounded-full">
+                  <ArrowLeftIcon className="h-3.5 w-3.5" />
+                  <Span>Back to My Courses</Span>
                 </Button>
               </Link>
             </div>
@@ -696,10 +859,10 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     );
   }
 
-  const formattedDueDate = allocation.dueDate ? formatDateIST(allocation.dueDate) : 'No deadline';
+  const formattedDueDate = allocation.dueDate ? formatDateDMY(allocation.dueDate) : 'No deadline';
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
       <DashboardContent className="animate-slide-up space-y-6">
@@ -723,106 +886,64 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                 Review Mode • Read-Only
               </Span>
               <P className="text-xs leading-relaxed text-amber-800">
-                This curriculum allocation is currently in read-only review state. Syllabus modules
-                and notes remain fully readable, while automated progress advancement is locked.
+                This course allocation is currently in read-only review state. Course modules and
+                notes remain fully readable, while progress updates are locked.
               </P>
             </div>
           </div>
         )}
 
-        {/* Back Link & Breadcrumb Header */}
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <Link
-            href="/mentee/courses"
-            className="group inline-flex items-center gap-2 text-xs font-semibold text-blue-600 transition-colors hover:text-blue-800"
-          >
-            <Span className="transition-transform group-hover:-translate-x-1">←</Span>
+        {/* Round Back Button */}
+        <Link href="/mentee/courses" className="inline-block">
+          <Button variant="outline" size="sm" className="rounded-full bg-white shadow-2xs">
+            <ArrowLeftIcon className="h-3.5 w-3.5" />
             <Span>Back to My Courses</Span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <AllocationStatusBadge
-              status={allocation.status}
-              isOverdue={Boolean(allocation.isOverdue)}
-            />
-          </div>
-        </div>
+          </Button>
+        </Link>
 
         {/* Course Header Telemetry Card */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+        <section className="rounded-3xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:px-6 sm:py-5">
+          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
             <div className="max-w-3xl">
-              <div className="mb-2 flex items-center gap-2">
-                <Span className="text-xs font-bold tracking-wider text-blue-600 uppercase">
-                  Curriculum Track
+              <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
+                  Course
                 </Span>
                 <Span className="text-slate-300">•</Span>
-                <Span className="text-xs text-slate-500 uppercase">
+                <Span className="text-xs text-[#667085] uppercase">
                   {activeTopics.length} Active Modules
                 </Span>
+                <AllocationStatusBadge
+                  status={allocation.status}
+                  isOverdue={Boolean(allocation.isOverdue)}
+                />
               </div>
 
-              <H1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              <H1 className="text-xl font-extrabold tracking-tight text-[#111827] sm:text-2xl">
                 {allocation.courseTitle}
               </H1>
 
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#667085]">
                 <div className="flex items-center gap-1.5">
-                  <svg
-                    className="h-3.5 w-3.5 text-slate-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
+                  <CalendarIcon className="h-3.5 w-3.5 text-[#667085]" />
                   <Span>Due {formattedDueDate}</Span>
                 </div>
                 <Span className="text-slate-300">•</Span>
                 <div className="flex items-center gap-1.5">
-                  <svg
-                    className="h-3.5 w-3.5 text-slate-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
+                  <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
                   <Span>
                     {courseData?.estimatedMinutes != null
                       ? `${Math.floor(courseData.estimatedMinutes / 60)}h ${courseData.estimatedMinutes % 60}m duration`
                       : 'Self-paced'}
                   </Span>
                 </div>
-                <Span className="text-slate-300">•</Span>
-                <div className="flex items-center gap-1.5">
-                  <svg
-                    className="h-3.5 w-3.5 text-slate-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
-                  <Span>
-                    Track • <Span className="font-semibold text-slate-900">Standard</Span>
-                  </Span>
-                </div>
               </div>
             </div>
 
-            {/* Progress Metric Ring Box */}
-            <div className="flex min-w-[260px] items-center gap-5 rounded-2xl border border-slate-100 bg-slate-50 p-5 shadow-xs">
-              <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center">
-                <svg className="h-16 w-16 -rotate-90 transform" viewBox="0 0 64 64">
+            {/* Compact Progress Metric Ring Box */}
+            <div className="flex min-w-[220px] items-center gap-4 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5 shadow-2xs">
+              <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center">
+                <svg className="h-14 w-14 -rotate-90 transform" viewBox="0 0 64 64">
                   <circle
                     className="text-slate-200"
                     cx="32"
@@ -838,7 +959,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                         ? 'text-emerald-500'
                         : allocation.isOverdue
                           ? 'text-rose-500'
-                          : 'text-blue-600'
+                          : 'text-[#0044D3]'
                     }`}
                     cx="32"
                     cy="32"
@@ -854,33 +975,35 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Span className="text-sm font-bold text-slate-900">
+                  <Span className="text-xs font-bold text-[#111827]">
                     {Math.round(allocation.progressPercent)}%
                   </Span>
                 </div>
               </div>
 
               <div className="flex flex-col">
-                <Span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
-                  Curriculum Pace
-                </Span>
-                <Span className="text-sm font-bold text-slate-900">
+                <Span className="text-sm font-bold text-[#111827]">
                   {completedCount} of {activeTopics.length} Topics
                 </Span>
                 <Span
-                  className={`mt-0.5 text-xs font-semibold ${
+                  className={`mt-0.5 inline-flex items-center gap-1 text-xs font-semibold ${
                     allocation.status === 'COMPLETED'
                       ? 'text-emerald-600'
                       : allocation.isOverdue
                         ? 'text-rose-600'
-                        : 'text-blue-600'
+                        : 'text-[#0044D3]'
                   }`}
                 >
-                  {allocation.status === 'COMPLETED'
-                    ? 'Fully Certified'
-                    : allocation.isOverdue
-                      ? 'Overdue'
-                      : 'On Track'}
+                  {allocation.status === 'COMPLETED' ? (
+                    <>
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      <Span>Completed</Span>
+                    </>
+                  ) : allocation.isOverdue ? (
+                    <Span>Overdue</Span>
+                  ) : (
+                    <Span>On Track</Span>
+                  )}
                 </Span>
               </div>
             </div>
@@ -914,6 +1037,8 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             currentTopic={currentTopic}
             currentSubtopic={currentSubtopic}
             currentTopicProgress={currentTopicProgress}
+            topicIndex={currentTopicIndex}
+            totalTopics={activeTopics.length}
             topicAssignments={topicAssignments}
             controlStrip={
               <ProgressControlStrip

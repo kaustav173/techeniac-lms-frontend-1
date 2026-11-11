@@ -336,6 +336,8 @@ export function User360Shell({ userId }: User360ShellProps) {
                 id="filter-start-date"
                 value={filters.startDate ?? ''}
                 onChange={(val) => handleFilterChange('startDate', val)}
+                rangeStart={filters.startDate}
+                rangeEnd={filters.endDate}
                 placeholder="Select start date"
                 maxDate={filters.endDate || undefined}
                 className="h-10 border-slate-200/80 bg-white/90 text-xs opacity-90 transition-opacity hover:opacity-100"
@@ -353,6 +355,8 @@ export function User360Shell({ userId }: User360ShellProps) {
                 id="filter-end-date"
                 value={filters.endDate ?? ''}
                 onChange={(val) => handleFilterChange('endDate', val)}
+                rangeStart={filters.startDate}
+                rangeEnd={filters.endDate}
                 placeholder="Select end date"
                 minDate={filters.startDate || undefined}
                 className="h-10 border-slate-200/80 bg-white/90 text-xs opacity-90 transition-opacity hover:opacity-100"

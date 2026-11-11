@@ -50,29 +50,47 @@ export function formatDateTimeISTWithSeconds(dateInput: string | Date | null | u
 /**
  * Formats a date or ISO string into IST date only: "27 Oct 2026"
  */
+const SHORT_MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+/**
+ * Formats a date or ISO string into IST "DD MMM YYYY" format (e.g. "27 Oct 2026", "15 Sep 2026")
+ * using strictly 3-character month abbreviations and direct parsing for plain YYYY-MM-DD strings.
+ */
 export function formatDateIST(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return '-';
   if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
     const parts = dateInput.trim().split('-');
-    const y = parseInt(parts[0] ?? '0', 10);
-    const m = parseInt(parts[1] ?? '0', 10) - 1;
-    const d = parseInt(parts[2] ?? '0', 10);
-    const localDate = new Date(y, m, d);
-    return new Intl.DateTimeFormat('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(localDate);
+    const year = parts[0] ?? '';
+    const monthIndex = parseInt(parts[1] ?? '0', 10) - 1;
+    const day = (parts[2] ?? '').padStart(2, '0');
+    const month = SHORT_MONTH_NAMES[monthIndex];
+    if (year && month && day) {
+      return `${day} ${month} ${year}`;
+    }
   }
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (isNaN(date.getTime())) return '-';
 
-  return new Intl.DateTimeFormat('en-IN', {
-    timeZone: IST_TIMEZONE,
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+  const istDateStr = toISTDateInputValue(dateInput);
+  if (!istDateStr) return '-';
+  const parts = istDateStr.split('-');
+  const year = parts[0] ?? '';
+  const monthIndex = parseInt(parts[1] ?? '0', 10) - 1;
+  const day = (parts[2] ?? '').padStart(2, '0');
+  const month = SHORT_MONTH_NAMES[monthIndex];
+  if (!year || !month || !day) return '-';
+  return `${day} ${month} ${year}`;
 }
 
 /**

@@ -276,7 +276,7 @@ export const MENTEE_PORTAL_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: false },
-    { label: 'My Performance', href: '/mentee/performance', active: false },
+    { label: 'Performance', href: '/mentee/performance', active: false },
   ],
 };
 
@@ -289,7 +289,7 @@ export const MENTEE_COURSES_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: true },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: false },
-    { label: 'My Performance', href: '/mentee/performance', active: false },
+    { label: 'Performance', href: '/mentee/performance', active: false },
   ],
 };
 
@@ -302,7 +302,7 @@ export const MENTEE_ASSIGNMENTS_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: true },
     { label: 'Progress', href: '/mentee/progress', active: false },
-    { label: 'My Performance', href: '/mentee/performance', active: false },
+    { label: 'Performance', href: '/mentee/performance', active: false },
   ],
 };
 
@@ -315,7 +315,7 @@ export const MENTEE_PROGRESS_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: true },
-    { label: 'My Performance', href: '/mentee/performance', active: false },
+    { label: 'Performance', href: '/mentee/performance', active: false },
   ],
 };
 
@@ -328,7 +328,7 @@ export const MENTEE_PERFORMANCE_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: false },
-    { label: 'My Performance', href: '/mentee/performance', active: true },
+    { label: 'Performance', href: '/mentee/performance', active: true },
   ],
 };
 
@@ -375,7 +375,7 @@ export const MENTEE_PROFILE_NAV: PortalNavConfig = {
     { label: 'Courses', href: '/mentee/courses', active: false },
     { label: 'Assignments', href: '/mentee/assignments', active: false },
     { label: 'Progress', href: '/mentee/progress', active: false },
-    { label: 'My Performance', href: '/mentee/performance', active: false },
+    { label: 'Performance', href: '/mentee/performance', active: false },
   ],
 };
 

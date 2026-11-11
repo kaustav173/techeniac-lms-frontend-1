@@ -22,9 +22,18 @@ import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
 
 import { ActiveNodeSelection } from '@/components/app/courses/types';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { H2, Span } from '@/components/ui/Typography';
+import { formatErrorMessage } from '@/lib/errors';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
+
+export interface OutlineReorderPayload {
+  topicItems?: { id: string; displayOrder: number }[];
+  subtopicItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+  topicAssignmentItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
+  courseAssignmentItems?: { id: string; displayOrder: number }[];
+}
 
 interface CourseOutlineTreeProps {
   course: Course;
@@ -40,17 +49,19 @@ interface CourseOutlineTreeProps {
   onAddSubtopic: (topicId: string) => void;
   onAddTopicAssignment: (topicId: string) => void;
   onAddCourseAssignment: () => void;
-  onReorderTopics: (targetTopicId: string, topicIdsInOrder: string[]) => void;
-  onReorderSubtopics: (
+  onReorderTopics?: (targetTopicId: string, topicIdsInOrder: string[]) => void;
+  onReorderSubtopics?: (
     targetSubtopicId: string,
     topicId: string,
     subtopicIdsInOrder: string[],
   ) => void;
-  onReorderAssignments: (
+  onReorderAssignments?: (
     targetAssignmentId: string,
     assignmentIdsInOrder: string[],
     topicId?: string,
   ) => void;
+  onOutlineReorder?: (payload: OutlineReorderPayload) => Promise<void>;
+  onOrderDirtyChange?: (isDirty: boolean) => void;
   onRequestDeleteNode: (
     type: 'TOPIC' | 'SUBTOPIC' | 'ASSIGNMENT',
     id: string,
@@ -551,14 +562,88 @@ export function CourseOutlineTree({
   onReorderTopics,
   onReorderSubtopics,
   onReorderAssignments,
+  onOutlineReorder,
+  onOrderDirtyChange,
   onRequestDeleteNode,
 }: Readonly<CourseOutlineTreeProps>) {
   const [collapsedTopics, setCollapsedTopics] = useState<Record<string, boolean>>({});
+  const [isTopicsSectionCollapsed, setIsTopicsSectionCollapsed] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Local reorder buffering state
+  const [topics, setTopics] = useState<Topic[]>(() =>
+    [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder),
+  );
+  const [courseAssignments, setCourseAssignments] = useState<Assignment[]>(() =>
+    [...(course.courseAssignments || course.assignments || [])].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    ),
+  );
+  const [isOrderDirty, setIsOrderDirty] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [saveOrderSuccess, setSaveOrderSuccess] = useState(false);
+  const [saveOrderError, setSaveOrderError] = useState<string | null>(null);
+
+  // Sync from props when course changes and order is clean (render-phase adjustment per React docs)
+  const [prevCourse, setPrevCourse] = useState(course);
+  if (prevCourse !== course) {
+    setPrevCourse(course);
+    if (!isOrderDirty) {
+      setTopics([...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder));
+      setCourseAssignments(
+        [...(course.courseAssignments || course.assignments || [])].sort(
+          (a, b) => a.displayOrder - b.displayOrder,
+        ),
+      );
+    }
+  }
+
+  const handleSaveOrder = async () => {
+    if (!isOrderDirty || isSavingOrder || !onOutlineReorder) return;
+    setIsSavingOrder(true);
+    setSaveOrderSuccess(false);
+    setSaveOrderError(null);
+    try {
+      const topicItems = topics.map((t, index) => ({ id: t.id, displayOrder: index }));
+      const subtopicItems = topics
+        .filter((t) => t.subtopics && t.subtopics.length > 0)
+        .map((t) => ({
+          topicId: t.id,
+          items: t.subtopics!.map((s, index) => ({ id: s.id, displayOrder: index })),
+        }));
+      const topicAssignmentItems = topics
+        .filter((t) => t.assignments && t.assignments.length > 0)
+        .map((t) => ({
+          topicId: t.id,
+          items: t.assignments!.map((a, index) => ({ id: a.id, displayOrder: index })),
+        }));
+      const courseAssignmentItems = courseAssignments.map((a, index) => ({
+        id: a.id,
+        displayOrder: index,
+      }));
+
+      await onOutlineReorder({
+        topicItems,
+        subtopicItems,
+        topicAssignmentItems,
+        courseAssignmentItems,
+      });
+
+      setIsOrderDirty(false);
+      onOrderDirtyChange?.(false);
+      setSaveOrderSuccess(true);
+      setTimeout(() => setSaveOrderSuccess(false), 3000);
+    } catch (err: unknown) {
+      setSaveOrderError(formatErrorMessage(err, 'Failed to save outline order. Please retry.'));
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   // Active reordering IDs across all concurrent reordering operations
   const activeReorderingIds = reorderingIds ?? (reorderingId ? [reorderingId] : []);
   const hasActiveReorder =
+    isSavingOrder ||
     activeReorderingIds.length > 0 ||
     Boolean(isReorderingTopics) ||
     Boolean(isReorderingCourseAssignments) ||
@@ -609,12 +694,7 @@ export function CourseOutlineTree({
     setCollapsedTopics((prev) => ({ ...prev, [topicId]: !prev[topicId] }));
   };
 
-  const topics = [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder);
-  const courseAssignments = [...(course.courseAssignments || course.assignments || [])].sort(
-    (a, b) => a.displayOrder - b.displayOrder,
-  );
-
-  // Drag End handler with non-blocking reordering across topics, subtopics, and tasks
+  // Drag End handler with local buffering and optional direct persistence
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -629,10 +709,17 @@ export function CourseOutlineTree({
       const newIndex = topics.findIndex((t) => t.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(topics, oldIndex, newIndex);
-        onReorderTopics(
-          String(active.id),
-          reordered.map((t) => t.id),
-        );
+        setTopics(reordered);
+        if (onOutlineReorder) {
+          setIsOrderDirty(true);
+          setSaveOrderError(null);
+          onOrderDirtyChange?.(true);
+        } else if (onReorderTopics) {
+          onReorderTopics(
+            String(active.id),
+            reordered.map((t) => t.id),
+          );
+        }
       }
       return;
     }
@@ -647,16 +734,27 @@ export function CourseOutlineTree({
       const targetTopicId = activeData.topicId;
       const topic = topics.find((t) => t.id === targetTopicId);
       if (topic && topic.subtopics) {
-        const subtopics = [...topic.subtopics].sort((a, b) => a.displayOrder - b.displayOrder);
-        const oldIndex = subtopics.findIndex((s) => s.id === active.id);
-        const newIndex = subtopics.findIndex((s) => s.id === over.id);
+        const currentSubtopics = [...topic.subtopics].sort(
+          (a, b) => a.displayOrder - b.displayOrder,
+        );
+        const oldIndex = currentSubtopics.findIndex((s) => s.id === active.id);
+        const newIndex = currentSubtopics.findIndex((s) => s.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(subtopics, oldIndex, newIndex);
-          onReorderSubtopics(
-            String(active.id),
-            targetTopicId,
-            reordered.map((s) => s.id),
+          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex);
+          setTopics((prev) =>
+            prev.map((t) => (t.id === targetTopicId ? { ...t, subtopics: reordered } : t)),
           );
+          if (onOutlineReorder) {
+            setIsOrderDirty(true);
+            setSaveOrderError(null);
+            onOrderDirtyChange?.(true);
+          } else if (onReorderSubtopics) {
+            onReorderSubtopics(
+              String(active.id),
+              targetTopicId,
+              reordered.map((s) => s.id),
+            );
+          }
         }
       }
       return;
@@ -672,18 +770,27 @@ export function CourseOutlineTree({
       const targetTopicId = activeData.topicId;
       const topic = topics.find((t) => t.id === targetTopicId);
       if (topic && topic.assignments) {
-        const topicAssignments = [...topic.assignments].sort(
+        const currentAssignments = [...topic.assignments].sort(
           (a, b) => a.displayOrder - b.displayOrder,
         );
-        const oldIndex = topicAssignments.findIndex((a) => a.id === active.id);
-        const newIndex = topicAssignments.findIndex((a) => a.id === over.id);
+        const oldIndex = currentAssignments.findIndex((a) => a.id === active.id);
+        const newIndex = currentAssignments.findIndex((a) => a.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(topicAssignments, oldIndex, newIndex);
-          onReorderAssignments(
-            String(active.id),
-            reordered.map((a) => a.id),
-            targetTopicId,
+          const reordered = arrayMove(currentAssignments, oldIndex, newIndex);
+          setTopics((prev) =>
+            prev.map((t) => (t.id === targetTopicId ? { ...t, assignments: reordered } : t)),
           );
+          if (onOutlineReorder) {
+            setIsOrderDirty(true);
+            setSaveOrderError(null);
+            onOrderDirtyChange?.(true);
+          } else if (onReorderAssignments) {
+            onReorderAssignments(
+              String(active.id),
+              reordered.map((a) => a.id),
+              targetTopicId,
+            );
+          }
         }
       }
       return;
@@ -695,10 +802,17 @@ export function CourseOutlineTree({
       const newIndex = courseAssignments.findIndex((a) => a.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(courseAssignments, oldIndex, newIndex);
-        onReorderAssignments(
-          String(active.id),
-          reordered.map((a) => a.id),
-        );
+        setCourseAssignments(reordered);
+        if (onOutlineReorder) {
+          setIsOrderDirty(true);
+          setSaveOrderError(null);
+          onOrderDirtyChange?.(true);
+        } else if (onReorderAssignments) {
+          onReorderAssignments(
+            String(active.id),
+            reordered.map((a) => a.id),
+          );
+        }
       }
       return;
     }
@@ -712,55 +826,80 @@ export function CourseOutlineTree({
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full flex-col border-b border-slate-200 bg-slate-50/60 lg:border-r lg:border-b-0">
-        {/* Outline Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3.5">
+        {/* Outline Header with Batch Save Changes Button */}
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <H2 className="text-base font-bold text-slate-900 sm:text-lg">Course Outline</H2>
-          {hasActiveReorder && (
-            <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
-              <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <Span>Saving order...</Span>
-            </Span>
-          )}
+          <div className="flex items-center gap-2">
+            {saveOrderSuccess && (
+              <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <Span>Saved</Span>
+              </Span>
+            )}
+            {hasActiveReorder && !onOutlineReorder && (
+              <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+                <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                <Span>Saving order...</Span>
+              </Span>
+            )}
+            {onOutlineReorder && (
+              <Button
+                type="button"
+                disabled={!isOrderDirty || isSavingOrder}
+                isLoading={isSavingOrder}
+                onClick={() => void handleSaveOrder()}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-xs transition-colors focus-visible:ring-[#0044D3] ${
+                  isOrderDirty && !isSavingOrder
+                    ? 'cursor-pointer bg-[#0044D3] text-white hover:bg-[#0039B3]'
+                    : 'cursor-not-allowed bg-slate-200 text-slate-400'
+                }`}
+                title={isOrderDirty ? 'Save reordered outline' : 'No order changes to save'}
+              >
+                {isSavingOrder ? 'Saving...' : 'Save Order'}
+              </Button>
+            )}
+          </div>
         </div>
+
+        {saveOrderError && (
+          <div className="border-b border-red-200 bg-red-50/70 px-4 py-2">
+            <Alert
+              variant="error"
+              message={saveOrderError}
+              className="border-0 bg-transparent p-0 text-xs"
+            />
+          </div>
+        )}
 
         {/* Tree Content with comfortable scroll area */}
         <div className="flex-1 [scrollbar-gutter:stable] space-y-2.5 overflow-y-auto p-3.5 pb-24">
-          {/* 1. Course Root Item */}
-          <div
-            onClick={() => onSelectNode({ type: 'COURSE', id: course.id })}
-            className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-              selectedNode.type === 'COURSE' && selectedNode.id === course.id
-                ? 'border-2 border-blue-500 bg-blue-50/80 text-blue-900 shadow-xs'
-                : 'border border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-              <Span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs font-bold text-slate-500 uppercase">
-                Course
-              </Span>
-              <Span className="truncate text-base font-bold text-slate-900">{course.title}</Span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Span className="text-xs font-medium text-slate-500">
-                {course.isActive ? 'Active' : 'Draft'}
-              </Span>
-              <Span
-                className={`h-2.5 w-2.5 rounded-full ${course.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
-              />
-            </div>
-          </div>
-
-          {/* 2. Topics Section - Structured as a self-contained card */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
-                  Topics
-                </Span>
+          {/* Topics Section - Clean unboxed layout */}
+          <div>
+            <div className="flex items-center justify-between pb-2">
+              <Button
+                type="button"
+                variant="ghost"
+                aria-expanded={!isTopicsSectionCollapsed}
+                onClick={() => setIsTopicsSectionCollapsed((prev) => !prev)}
+                className="flex h-auto items-center gap-2 p-0 text-left transition-colors hover:bg-transparent hover:opacity-80 focus-visible:outline-hidden"
+                title={isTopicsSectionCollapsed ? 'Expand topics' : 'Collapse topics'}
+              >
+                <svg
+                  className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
+                    isTopicsSectionCollapsed ? '-rotate-90' : 'rotate-0'
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+                <Span className="text-sm font-bold tracking-tight text-slate-900">Topics</Span>
                 <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
                   {topics.length}
                 </Span>
-              </div>
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
@@ -783,232 +922,238 @@ export function CourseOutlineTree({
             </div>
 
             {/* Topics List with blur state when saving topics */}
-            <div
-              className={`relative mt-2 transition-all duration-200 ${
-                isReorderingTopics ? 'pointer-events-none opacity-50 blur-[0.6px] select-none' : ''
-              }`}
-            >
-              <SortableContext
-                items={topics.map((t) => t.id)}
-                strategy={verticalListSortingStrategy}
+            {!isTopicsSectionCollapsed && (
+              <div
+                className={`relative mt-2 transition-all duration-200 ${
+                  isReorderingTopics
+                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                    : ''
+                }`}
               >
-                <div className="space-y-2">
-                  {topics.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
-                      No topics created yet. Click + Topic above to add your first topic.
-                    </div>
-                  ) : (
-                    topics.map((topic) => {
-                      const isCollapsed = collapsedTopics[topic.id] ?? false;
-                      const isSelected =
-                        selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
-                      const subtopics = [...(topic.subtopics || [])].sort(
-                        (a, b) => a.displayOrder - b.displayOrder,
-                      );
-                      const topicAssignments = [...(topic.assignments || [])].sort(
-                        (a, b) => a.displayOrder - b.displayOrder,
-                      );
+                <SortableContext
+                  items={topics.map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {topics.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
+                        No topics created yet. Click + Topic above to add your first topic.
+                      </div>
+                    ) : (
+                      topics.map((topic) => {
+                        const isCollapsed = collapsedTopics[topic.id] ?? false;
+                        const isSelected =
+                          selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
+                        const subtopics = [...(topic.subtopics || [])].sort(
+                          (a, b) => a.displayOrder - b.displayOrder,
+                        );
+                        const topicAssignments = [...(topic.assignments || [])].sort(
+                          (a, b) => a.displayOrder - b.displayOrder,
+                        );
 
-                      const isReorderingSubtopicsThisTopic = Boolean(
-                        reorderingSubtopicTopicIds?.includes(topic.id),
-                      );
-                      const isReorderingTopicTasksThisTopic = Boolean(
-                        reorderingTopicAssignmentTopicIds?.includes(topic.id),
-                      );
+                        const isReorderingSubtopicsThisTopic = Boolean(
+                          reorderingSubtopicTopicIds?.includes(topic.id),
+                        );
+                        const isReorderingTopicTasksThisTopic = Boolean(
+                          reorderingTopicAssignmentTopicIds?.includes(topic.id),
+                        );
 
-                      return (
-                        <SortableTopicItem
-                          key={topic.id}
-                          topic={topic}
-                          isSelected={isSelected}
-                          isCollapsed={isCollapsed}
-                          isDisabledDrag={isReorderingTopics}
-                          isBeingSaved={
-                            isReorderingTopics || activeReorderingIds.includes(topic.id)
-                          }
-                          reorderingId={reorderingId}
-                          onSelectNode={onSelectNode}
-                          onToggleCollapse={toggleCollapse}
-                          onRequestDeleteNode={onRequestDeleteNode}
-                        >
-                          {/* Subtopics Div & Topic Tasks Div */}
-                          <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
-                            {/* 1. Subtopics Section Div */}
-                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
-                                    Subtopics
-                                  </Span>
-                                  <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
-                                    {subtopics.length}
-                                  </Span>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  disabled={Boolean(isReorderingSubtopicsThisTopic)}
-                                  onClick={() => onAddSubtopic(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
-                                  title="Add Subtopic"
-                                >
-                                  <svg
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
+                        return (
+                          <SortableTopicItem
+                            key={topic.id}
+                            topic={topic}
+                            isSelected={isSelected}
+                            isCollapsed={isCollapsed}
+                            isDisabledDrag={isReorderingTopics}
+                            isBeingSaved={
+                              isReorderingTopics || activeReorderingIds.includes(topic.id)
+                            }
+                            reorderingId={reorderingId}
+                            onSelectNode={onSelectNode}
+                            onToggleCollapse={toggleCollapse}
+                            onRequestDeleteNode={onRequestDeleteNode}
+                          >
+                            {/* Subtopics Div & Topic Tasks Div */}
+                            <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
+                              {/* 1. Subtopics Section Div */}
+                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
+                                      Subtopics
+                                    </Span>
+                                    <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                      {subtopics.length}
+                                    </Span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    disabled={Boolean(isReorderingSubtopicsThisTopic)}
+                                    onClick={() => onAddSubtopic(topic.id)}
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
+                                    title="Add Subtopic"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 4v16m8-8H4"
-                                    />
-                                  </svg>
-                                  <Span>Subtopic</Span>
-                                </Button>
+                                    <svg
+                                      className="h-3 w-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 4v16m8-8H4"
+                                      />
+                                    </svg>
+                                    <Span>Subtopic</Span>
+                                  </Button>
+                                </div>
+
+                                <div
+                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                    isReorderingSubtopicsThisTopic
+                                      ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                                      : ''
+                                  }`}
+                                >
+                                  <SortableContext
+                                    items={subtopics.map((s) => s.id)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    <div className="space-y-1.5">
+                                      {subtopics.length === 0 ? (
+                                        <div className="py-2 text-center text-xs text-slate-400">
+                                          No subtopics yet
+                                        </div>
+                                      ) : (
+                                        subtopics.map((subtopic) => {
+                                          const isSubSelected =
+                                            selectedNode.type === 'SUBTOPIC' &&
+                                            selectedNode.id === subtopic.id;
+                                          return (
+                                            <SortableSubtopicItem
+                                              key={subtopic.id}
+                                              subtopic={subtopic}
+                                              parentTopicId={topic.id}
+                                              isSelected={isSubSelected}
+                                              isDisabledDrag={isReorderingSubtopicsThisTopic}
+                                              isBeingSaved={
+                                                isReorderingSubtopicsThisTopic ||
+                                                activeReorderingIds.includes(subtopic.id)
+                                              }
+                                              reorderingId={reorderingId}
+                                              isMenuOpen={
+                                                activeMenuId === `subtopic-${subtopic.id}`
+                                              }
+                                              onSelectNode={onSelectNode}
+                                              onToggleMenu={(id) =>
+                                                setActiveMenuId((prev) => (prev === id ? null : id))
+                                              }
+                                              onRequestDeleteNode={onRequestDeleteNode}
+                                            />
+                                          );
+                                        })
+                                      )}
+                                    </div>
+                                  </SortableContext>
+                                </div>
                               </div>
 
-                              <div
-                                className={`relative mt-1.5 transition-all duration-200 ${
-                                  isReorderingSubtopicsThisTopic
-                                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
-                                    : ''
-                                }`}
-                              >
-                                <SortableContext
-                                  items={subtopics.map((s) => s.id)}
-                                  strategy={verticalListSortingStrategy}
-                                >
-                                  <div className="space-y-1.5">
-                                    {subtopics.length === 0 ? (
-                                      <div className="py-2 text-center text-xs text-slate-400">
-                                        No subtopics yet
-                                      </div>
-                                    ) : (
-                                      subtopics.map((subtopic) => {
-                                        const isSubSelected =
-                                          selectedNode.type === 'SUBTOPIC' &&
-                                          selectedNode.id === subtopic.id;
-                                        return (
-                                          <SortableSubtopicItem
-                                            key={subtopic.id}
-                                            subtopic={subtopic}
-                                            parentTopicId={topic.id}
-                                            isSelected={isSubSelected}
-                                            isDisabledDrag={isReorderingSubtopicsThisTopic}
-                                            isBeingSaved={
-                                              isReorderingSubtopicsThisTopic ||
-                                              activeReorderingIds.includes(subtopic.id)
-                                            }
-                                            reorderingId={reorderingId}
-                                            isMenuOpen={activeMenuId === `subtopic-${subtopic.id}`}
-                                            onSelectNode={onSelectNode}
-                                            onToggleMenu={(id) =>
-                                              setActiveMenuId((prev) => (prev === id ? null : id))
-                                            }
-                                            onRequestDeleteNode={onRequestDeleteNode}
-                                          />
-                                        );
-                                      })
-                                    )}
+                              {/* 2. Topic Tasks Section Div */}
+                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
+                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
+                                      Tasks
+                                    </Span>
+                                    <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                      {topicAssignments.length}
+                                    </Span>
                                   </div>
-                                </SortableContext>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    disabled={Boolean(isReorderingTopicTasksThisTopic)}
+                                    onClick={() => onAddTopicAssignment(topic.id)}
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
+                                    title="Add Task"
+                                  >
+                                    <svg
+                                      className="h-3 w-3"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth="2.5"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 4v16m8-8H4"
+                                      />
+                                    </svg>
+                                    <Span>Task</Span>
+                                  </Button>
+                                </div>
+
+                                <div
+                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                    isReorderingTopicTasksThisTopic
+                                      ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                                      : ''
+                                  }`}
+                                >
+                                  <SortableContext
+                                    items={topicAssignments.map((a) => a.id)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    <div className="space-y-1.5">
+                                      {topicAssignments.length === 0 ? (
+                                        <div className="py-2 text-center text-xs text-slate-400">
+                                          No tasks yet
+                                        </div>
+                                      ) : (
+                                        topicAssignments.map((tAssign) => {
+                                          const isAssignSelected =
+                                            selectedNode.type === 'ASSIGNMENT' &&
+                                            selectedNode.id === tAssign.id;
+                                          return (
+                                            <SortableAssignmentItem
+                                              key={tAssign.id}
+                                              assignment={tAssign}
+                                              parentTopicId={topic.id}
+                                              scope="TOPIC"
+                                              isSelected={isAssignSelected}
+                                              isDisabledDrag={isReorderingTopicTasksThisTopic}
+                                              isBeingSaved={
+                                                isReorderingTopicTasksThisTopic ||
+                                                activeReorderingIds.includes(tAssign.id)
+                                              }
+                                              reorderingId={reorderingId}
+                                              isMenuOpen={activeMenuId === `assign-${tAssign.id}`}
+                                              onSelectNode={onSelectNode}
+                                              onToggleMenu={(id) =>
+                                                setActiveMenuId((prev) => (prev === id ? null : id))
+                                              }
+                                              onRequestDeleteNode={onRequestDeleteNode}
+                                            />
+                                          );
+                                        })
+                                      )}
+                                    </div>
+                                  </SortableContext>
+                                </div>
                               </div>
                             </div>
-
-                            {/* 2. Topic Tasks Section Div */}
-                            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
-                                    Tasks
-                                  </Span>
-                                  <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
-                                    {topicAssignments.length}
-                                  </Span>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  disabled={Boolean(isReorderingTopicTasksThisTopic)}
-                                  onClick={() => onAddTopicAssignment(topic.id)}
-                                  className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
-                                  title="Add Task"
-                                >
-                                  <svg
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 4v16m8-8H4"
-                                    />
-                                  </svg>
-                                  <Span>Task</Span>
-                                </Button>
-                              </div>
-
-                              <div
-                                className={`relative mt-1.5 transition-all duration-200 ${
-                                  isReorderingTopicTasksThisTopic
-                                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
-                                    : ''
-                                }`}
-                              >
-                                <SortableContext
-                                  items={topicAssignments.map((a) => a.id)}
-                                  strategy={verticalListSortingStrategy}
-                                >
-                                  <div className="space-y-1.5">
-                                    {topicAssignments.length === 0 ? (
-                                      <div className="py-2 text-center text-xs text-slate-400">
-                                        No tasks yet
-                                      </div>
-                                    ) : (
-                                      topicAssignments.map((tAssign) => {
-                                        const isAssignSelected =
-                                          selectedNode.type === 'ASSIGNMENT' &&
-                                          selectedNode.id === tAssign.id;
-                                        return (
-                                          <SortableAssignmentItem
-                                            key={tAssign.id}
-                                            assignment={tAssign}
-                                            parentTopicId={topic.id}
-                                            scope="TOPIC"
-                                            isSelected={isAssignSelected}
-                                            isDisabledDrag={isReorderingTopicTasksThisTopic}
-                                            isBeingSaved={
-                                              isReorderingTopicTasksThisTopic ||
-                                              activeReorderingIds.includes(tAssign.id)
-                                            }
-                                            reorderingId={reorderingId}
-                                            isMenuOpen={activeMenuId === `assign-${tAssign.id}`}
-                                            onSelectNode={onSelectNode}
-                                            onToggleMenu={(id) =>
-                                              setActiveMenuId((prev) => (prev === id ? null : id))
-                                            }
-                                            onRequestDeleteNode={onRequestDeleteNode}
-                                          />
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                </SortableContext>
-                              </div>
-                            </div>
-                          </div>
-                        </SortableTopicItem>
-                      );
-                    })
-                  )}
-                </div>
-              </SortableContext>
-            </div>
+                          </SortableTopicItem>
+                        );
+                      })
+                    )}
+                  </div>
+                </SortableContext>
+              </div>
+            )}
           </div>
 
           {/* 4. Course-Level Assignments Section (At bottom) */}

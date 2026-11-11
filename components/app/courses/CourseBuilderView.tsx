@@ -7,7 +7,10 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { AssignmentEditor } from '@/components/app/courses/AssignmentEditor';
 import { ConflictResolutionModal } from '@/components/app/courses/ConflictResolutionModal';
 import { CourseDetailsEditor } from '@/components/app/courses/CourseDetailsEditor';
-import { CourseOutlineTree } from '@/components/app/courses/CourseOutlineTree';
+import {
+  CourseOutlineTree,
+  type OutlineReorderPayload,
+} from '@/components/app/courses/CourseOutlineTree';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import { SubtopicEditor } from '@/components/app/courses/SubtopicEditor';
 import { TopicEditor } from '@/components/app/courses/TopicEditor';
@@ -17,14 +20,14 @@ import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
-import { Header } from '@/components/layout/Header';
+import { Header, HeaderSkeleton } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { P, Span } from '@/components/ui/Typography';
+import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
@@ -47,6 +50,7 @@ import {
 
 interface CourseBuilderViewProps {
   portal: 'admin' | 'mentor';
+  courseId?: string | undefined;
 }
 
 function findSubtopicAndParent(topics: Topic[] = [], id: string) {
@@ -651,39 +655,28 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
       data-portal={portal}
       className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
     >
-      {/* Top Navbar Header Skeleton */}
-      <header
-        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
-      >
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-36 rounded-md" />
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
-          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-          <div className="hidden space-y-1.5 text-left sm:block">
-            <Skeleton className="h-3.5 w-20 rounded-md" />
-            <Skeleton className="h-2.5 w-14 rounded-md" />
-          </div>
-        </div>
-      </header>
+      <HeaderSkeleton title="Course Builder" />
 
       <div
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
         {/* Top Command Bar Skeleton */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
+        <div className="flex items-center justify-between bg-white px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
               <Skeleton className="h-3.5 w-3.5 rounded-full" />
               <Skeleton className="h-3.5 w-24 rounded-md" />
             </div>
+            <div className="h-4 w-px bg-slate-200" aria-hidden="true" />
+            <Skeleton className="h-5 w-48 rounded-md" />
+            <Skeleton className="h-5 w-14 rounded-full" />
           </div>
         </div>
 
         {/* Dual Pane Layout Skeleton */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree Skeleton */}
-          <div className="hidden w-[450px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
+          <div className="hidden w-[330px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <Skeleton className="h-5 w-32 rounded-md" />
             </div>
@@ -691,13 +684,6 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
               <Skeleton className="h-9 w-full rounded-xl" />
             </div>
             <div className="mt-4 space-y-2.5">
-              {/* Course Root Node */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-2.5">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-md" />
-                  <Skeleton className="h-4 w-40 rounded-md" />
-                </div>
-              </div>
               {/* Topic 1 */}
               <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
                 <div className="flex items-center gap-2">
@@ -793,12 +779,15 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
   );
 }
 
-function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
+function CourseBuilderContent({
+  portal,
+  courseId: propCourseId,
+}: Readonly<CourseBuilderViewProps>) {
   const { contentMarginClass } = useSidebar();
   const params = useParams();
   const router = useRouter();
   const rawId = params.id;
-  const courseId = (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
+  const courseId = propCourseId ?? (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
   const { user, isAuthenticated, isLoading } = useAuth();
 
   const {
@@ -829,14 +818,17 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'outline' | 'editor'>('outline');
 
-  // Form states
+  // Form and outline dirty states
   const [isDirty, setIsDirty] = useState(false);
+  const [isOrderDirty, setIsOrderDirty] = useState(false);
   const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
 
-  // Intercept browser back/refresh/close when form is dirty
+  const hasUnsavedChanges = isDirty || isOrderDirty;
+
+  // Intercept browser back/refresh/close when form or outline order is dirty
   useEffect(() => {
-    if (!isDirty) return;
+    if (!hasUnsavedChanges) return;
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = '';
@@ -845,7 +837,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isDirty]);
+  }, [hasUnsavedChanges]);
 
   // Add Item Modals State
   const [isAddTopicOpen, setIsAddTopicOpen] = useState(false);
@@ -900,7 +892,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   };
 
   const handleNavigateLibrary = (e: React.MouseEvent) => {
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       e.preventDefault();
       setPendingNavigation(`/${portal}/courses`);
       setIsUnsavedModalOpen(true);
@@ -909,6 +901,7 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
 
   const confirmDiscardChanges = () => {
     setIsDirty(false);
+    setIsOrderDirty(false);
     setIsUnsavedModalOpen(false);
     if (pendingNavigation) {
       const target = pendingNavigation;
@@ -921,6 +914,28 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
       setPendingSelection(null);
       setMobileTab('editor');
     }
+  };
+
+  // Outline reorder persistence handler
+  const handleOutlineSaveOrder = async (payload: OutlineReorderPayload) => {
+    const promises: Promise<unknown>[] = [];
+    if (payload.topicItems && payload.topicItems.length > 0) {
+      promises.push(reorderTopics(payload.topicItems));
+    }
+    if (payload.subtopicItems && payload.subtopicItems.length > 0) {
+      for (const sub of payload.subtopicItems) {
+        promises.push(reorderSubtopics(sub.topicId, sub.items));
+      }
+    }
+    if (payload.topicAssignmentItems && payload.topicAssignmentItems.length > 0) {
+      for (const tAssign of payload.topicAssignmentItems) {
+        promises.push(reorderAssignments(tAssign.items, tAssign.topicId));
+      }
+    }
+    if (payload.courseAssignmentItems && payload.courseAssignmentItems.length > 0) {
+      promises.push(reorderAssignments(payload.courseAssignmentItems));
+    }
+    await Promise.all(promises);
   };
 
   // Reorder handlers
@@ -1051,12 +1066,12 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
         {/* Builder Top Command Bar */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-3 py-2 sm:px-6">
-          <div className="flex items-center gap-2 truncate sm:gap-3">
+        <div className="flex items-center justify-between bg-white px-3 py-2 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2 truncate sm:gap-3">
             <Link
               href={`/${portal}/courses`}
               onClick={handleNavigateLibrary}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
               title="Return to Course Library"
             >
               <svg
@@ -1074,6 +1089,34 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
               </svg>
               <Span>Back to Courses</Span>
             </Link>
+
+            <div className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true" />
+
+            {/* Shifted Course Name & Status Badge - Clickable to open Course Details */}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => handleSelectNode({ type: 'COURSE', id: course.id })}
+              className={`hidden h-auto min-w-0 items-center gap-2 truncate rounded-xl px-2.5 py-1 text-left transition-colors sm:flex ${
+                selectedNode.type === 'COURSE' && selectedNode.id === course.id
+                  ? 'bg-blue-50/90 text-blue-900 ring-1 ring-blue-500/40 hover:bg-blue-50/90'
+                  : 'text-slate-800 hover:bg-slate-100/80'
+              }`}
+              title="Click to view & edit Course Details"
+            >
+              <Span className="max-w-[280px] truncate text-sm font-bold md:max-w-md lg:max-w-xl">
+                {course.title}
+              </Span>
+              <Span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  course.isActive
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border border-slate-200 bg-slate-100 text-slate-600'
+                }`}
+              >
+                {course.isActive ? 'Active' : 'Draft'}
+              </Span>
+            </Button>
           </div>
 
           {/* View Switcher on < lg screens */}
@@ -1108,11 +1151,11 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
           </div>
         </div>
 
-        {/* Dual Pane Layout: 450px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
+        {/* Dual Pane Layout: 330px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree */}
           <div
-            className={`w-full lg:flex lg:w-[450px] lg:flex-none lg:flex-col ${
+            className={`w-full lg:flex lg:w-[330px] lg:flex-none lg:flex-col ${
               mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
             }`}
           >
@@ -1149,6 +1192,8 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
               onReorderAssignments={(targetId, orderedIds, topicId) => {
                 void handleReorderAssignments(targetId, orderedIds, topicId);
               }}
+              onOutlineReorder={handleOutlineSaveOrder}
+              onOrderDirtyChange={setIsOrderDirty}
               onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
             />
           </div>
@@ -1261,19 +1306,10 @@ function CourseBuilderContent({ portal }: Readonly<CourseBuilderViewProps>) {
   );
 }
 
-export function CourseBuilderView({ portal }: Readonly<CourseBuilderViewProps>) {
+export function CourseBuilderView({ portal, courseId }: Readonly<CourseBuilderViewProps>) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <P className="text-xs font-medium text-slate-500">Loading Course Builder...</P>
-          </div>
-        </div>
-      }
-    >
-      <CourseBuilderContent portal={portal} />
+    <Suspense fallback={<CourseBuilderSkeleton portal={portal} />}>
+      <CourseBuilderContent portal={portal} courseId={courseId} />
     </Suspense>
   );
 }

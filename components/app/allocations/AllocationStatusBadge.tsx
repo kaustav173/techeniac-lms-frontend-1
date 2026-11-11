@@ -55,8 +55,8 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
         {label}
       </Span>
       {isOverdue && !isTerminalAllocationStatus(status) ? (
-        <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
-          OVERDUE
+        <Span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+          Overdue
         </Span>
       ) : null}
     </div>
