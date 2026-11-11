@@ -11,7 +11,7 @@ import { Header } from '@/components/layout/Header';
 import { getButtonClassName } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H2, H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
+import { H2, H3, P, Span } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
   isTerminalAllocationStatus,
@@ -19,36 +19,72 @@ import {
 } from '@/hooks/useAllocations';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 
-function ProgressKpi({
+interface ProgressMetricCardProps {
+  readonly label: string;
+  readonly value: string | number;
+  readonly subtext: string;
+  readonly icon: React.ReactNode;
+  readonly iconBgClass: string;
+  readonly valueColorClass?: string | undefined;
+  readonly barPercent?: number | undefined;
+  readonly badgeText?: string | undefined;
+  readonly badgeClass?: string | undefined;
+}
+
+function ProgressMetricCard({
   label,
   value,
   subtext,
+  icon,
+  iconBgClass,
+  valueColorClass = 'text-[#111827]',
   barPercent,
-  colorClass = 'text-[#111827]',
-}: Readonly<{
-  label: string;
-  value: string | number;
-  subtext: string;
-  barPercent?: number;
-  colorClass?: string;
-}>) {
+  badgeText,
+  badgeClass,
+}: ProgressMetricCardProps) {
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+    <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3]/40 hover:shadow-md">
       <div>
-        <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">{label}</Span>
-        <div className="mt-2 flex items-baseline gap-2">
-          <H2 className={`text-2xl font-extrabold ${colorClass}`}>{value}</H2>
-          <Span className="text-xs text-[#667085]">{subtext}</Span>
+        <div className="flex items-center justify-between">
+          <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">{label}</Span>
+          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBgClass}`}>
+            {icon}
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-baseline gap-2">
+          <H2 className={`text-3xl font-extrabold tracking-tight ${valueColorClass}`}>{value}</H2>
+          {badgeText && (
+            <Span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeClass}`}
+            >
+              {badgeText}
+            </Span>
+          )}
         </div>
       </div>
-      {barPercent != null && (
-        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
-          <div
-            className="h-full rounded-full bg-[#0044D3] transition-all duration-500"
-            style={{ width: `${Math.min(100, Math.max(0, barPercent))}%` }}
-          />
-        </div>
-      )}
+
+      <div className="mt-4 border-t border-[#F2F4F7] pt-3">
+        {barPercent != null ? (
+          <div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
+              <div
+                className="h-full rounded-full bg-[#0044D3] transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, barPercent))}%` }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs text-[#667085]">
+              <Span>{subtext}</Span>
+              <Span className="font-semibold text-[#111827]">{barPercent}%</Span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs text-[#667085]">
+            <Span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+            <Span>{subtext}</Span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -119,66 +155,138 @@ export function MenteeProgressView() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_PROGRESS_NAV} />
       <DashboardContent className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-[#E1E6EC] pb-6 sm:flex-row sm:items-end">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-[#0044D3]">
-                📈
-              </Span>
-              <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                Learner Telemetry
-              </Span>
-              <Span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-[#0044D3]">
-                Student Progress
-              </Span>
-            </div>
-            <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-              Learning Progress & Milestones
-            </PageTitle>
-            <SubText className="mt-1 text-[#667085]">
-              Real-time curriculum completion pace, milestone deadlines, and syllabus tracking
-              (FR-8.1, FR-8.2).
-            </SubText>
-          </div>
-          <Span className="text-xs font-medium text-[#667085]">
-            {allocations.length} {allocations.length === 1 ? 'Course' : 'Courses'} Allocated
-          </Span>
-        </div>
-
-        {/* Telemetry KPI Cards */}
+        {/* Metric Overview Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ProgressKpi
+          <ProgressMetricCard
             label="Average Completion"
             value={`${averagePace}%`}
-            subtext="across tracks"
+            subtext="Across enrolled tracks"
             barPercent={averagePace}
+            iconBgClass="bg-blue-50 text-[#0044D3]"
+            icon={
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+            }
           />
-          <ProgressKpi
+          <ProgressMetricCard
             label="Active Courses"
             value={active.length}
-            subtext="in progress"
-            colorClass="text-[#0044D3]"
+            subtext="In progress & learning"
+            valueColorClass="text-[#0044D3]"
+            badgeText={active.length > 0 ? 'Active' : undefined}
+            badgeClass="bg-blue-50 text-[#0044D3] border border-blue-100"
+            iconBgClass="bg-blue-50/80 text-[#0044D3]"
+            icon={
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            }
           />
-          <ProgressKpi
-            label="Completed"
+          <ProgressMetricCard
+            label="Completed Courses"
             value={completed.length}
-            subtext={`of ${allocations.length} total`}
-            colorClass="text-emerald-600"
+            subtext={`Of ${allocations.length} total tracks`}
+            valueColorClass="text-emerald-600"
+            badgeText={completed.length > 0 ? 'Completed' : undefined}
+            badgeClass="bg-emerald-50 text-emerald-700 border border-emerald-100"
+            iconBgClass="bg-emerald-50 text-emerald-600"
+            icon={
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            }
           />
-          <ProgressKpi
+          <ProgressMetricCard
             label="Cadence Status"
-            value={overdue.length}
-            subtext={overdue.length === 1 ? 'course overdue' : 'courses overdue'}
-            colorClass={overdue.length > 0 ? 'text-rose-600' : 'text-[#111827]'}
+            value={overdue.length > 0 ? `${overdue.length} Overdue` : 'On Track'}
+            subtext={
+              overdue.length > 0
+                ? `${overdue.length} ${overdue.length === 1 ? 'course requires' : 'courses require'} attention`
+                : 'All deadlines on schedule'
+            }
+            valueColorClass={overdue.length > 0 ? 'text-rose-600' : 'text-[#111827]'}
+            badgeText={overdue.length > 0 ? 'Attention' : 'On Schedule'}
+            badgeClass={
+              overdue.length > 0
+                ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+            }
+            iconBgClass={
+              overdue.length > 0 ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'
+            }
+            icon={
+              overdue.length > 0 ? (
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              )
+            }
           />
         </div>
 
         {/* Course Breakdown Header */}
         <div>
           <H2 className="text-base font-bold text-[#111827]">Enrolled Course Breakdown</H2>
-          <P className="text-xs text-[#667085]">
-            Per-allocation completion telemetry, milestones, and syllabus access
-          </P>
         </div>
 
         {isLoading ? (
