@@ -43,7 +43,6 @@ function BatchesTableRow({
   index = 0,
 }: Readonly<{ batch: ApiBatchSummary; index?: number }>) {
   const router = useRouter();
-  const totalMembers = (batch.menteesCount ?? 0) + (batch.mentorsCount ?? 0);
 
   return (
     <TableRow
@@ -61,7 +60,7 @@ function BatchesTableRow({
       }}
       className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
-      <TableCell className="w-[32%] font-semibold text-slate-900">
+      <TableCell className="w-[44%] font-semibold text-slate-900">
         <Link
           href={`/admin/batches/${batch.id}`}
           onClick={(e) => e.stopPropagation()}
@@ -70,9 +69,6 @@ function BatchesTableRow({
         >
           {batch.name}
         </Link>
-      </TableCell>
-      <TableCell className="w-[16%] text-xs font-semibold text-slate-600">
-        <Span>{batch.code}</Span>
       </TableCell>
       <TableCell className="w-[14%]">
         <Span
@@ -83,15 +79,16 @@ function BatchesTableRow({
           {batch.status}
         </Span>
       </TableCell>
-      <TableCell className="w-[26%] text-xs text-slate-500">
+      <TableCell className="w-[18%] text-xs text-slate-500">
         <Span>
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
       </TableCell>
-      <TableCell className="w-[12%] text-xs font-semibold text-slate-700">
-        <Span>
-          {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
-        </Span>
+      <TableCell className="w-[12%] text-center text-xs font-bold text-slate-700">
+        <Span>{batch.mentorsCount ?? 0}</Span>
+      </TableCell>
+      <TableCell className="w-[12%] text-center text-xs font-bold text-slate-700">
+        <Span>{batch.menteesCount ?? 0}</Span>
       </TableCell>
     </TableRow>
   );
@@ -102,20 +99,20 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
     <>
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={`batch-skel-${idx}`} className="h-14">
-          <TableCell className="w-[32%]">
+          <TableCell className="w-[44%]">
             <Skeleton className="h-4 w-44 rounded-md" />
-          </TableCell>
-          <TableCell className="w-[16%]">
-            <Skeleton className="h-4 w-20 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%]">
             <Skeleton className="h-5 w-20 rounded-full" />
           </TableCell>
-          <TableCell className="w-[26%]">
+          <TableCell className="w-[18%]">
             <Skeleton className="h-4 w-36 rounded-md" />
           </TableCell>
-          <TableCell className="w-[12%]">
-            <Skeleton className="h-4 w-16 rounded-md" />
+          <TableCell className="w-[12%] text-center">
+            <Skeleton className="mx-auto h-4 w-8 rounded-md" />
+          </TableCell>
+          <TableCell className="w-[12%] text-center">
+            <Skeleton className="mx-auto h-4 w-8 rounded-md" />
           </TableCell>
         </TableRow>
       ))}
@@ -143,19 +140,19 @@ export function BatchesPageSkeleton() {
           <div className="grid grid-cols-5 gap-4">
             <Skeleton className="h-4 w-28 rounded-md" />
             <Skeleton className="h-4 w-16 rounded-md" />
-            <Skeleton className="h-4 w-16 rounded-md" />
             <Skeleton className="h-4 w-24 rounded-md" />
-            <Skeleton className="h-4 w-20 rounded-md" />
+            <Skeleton className="h-4 w-12 rounded-md" />
+            <Skeleton className="h-4 w-12 rounded-md" />
           </div>
         </div>
         <div className="divide-y divide-slate-100">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="flex h-14 items-center justify-between px-4">
               <Skeleton className="h-4 w-40 rounded-md" />
-              <Skeleton className="h-4 w-16 rounded-md" />
               <Skeleton className="h-6 w-20 rounded-full" />
               <Skeleton className="h-4 w-32 rounded-md" />
-              <Skeleton className="h-4 w-16 rounded-md" />
+              <Skeleton className="h-4 w-8 rounded-md" />
+              <Skeleton className="h-4 w-8 rounded-md" />
             </div>
           ))}
         </div>
@@ -177,9 +174,11 @@ export function BatchesTable() {
   const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
   // Sorting state across all entries in the whole table
-  type BatchSortField = 'name' | 'code' | 'status' | 'startDate';
+  type BatchSortField = 'name' | 'startDate' | 'mentors' | 'mentees';
   const [sortField, setSortField] = useState<BatchSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const backendSortBy = sortField === 'name' || sortField === 'startDate' ? sortField : undefined;
 
   const {
     data: batchesResponse,
@@ -191,8 +190,8 @@ export function BatchesTable() {
     search: search.trim() || undefined,
     page,
     limit,
-    sortBy: sortField ?? undefined,
-    sortOrder: sortField ? sortOrder : undefined,
+    sortBy: backendSortBy,
+    sortOrder: backendSortBy ? sortOrder : undefined,
   });
 
   const batches = useMemo(() => batchesResponse?.items ?? [], [batchesResponse?.items]);
@@ -215,7 +214,16 @@ export function BatchesTable() {
     setPage(1);
   };
 
-  const sortedBatches = batches;
+  const sortedBatches = useMemo(() => {
+    if (sortField === 'mentors' || sortField === 'mentees') {
+      return [...batches].sort((a, b) => {
+        const aVal = sortField === 'mentors' ? (a.mentorsCount ?? 0) : (a.menteesCount ?? 0);
+        const bVal = sortField === 'mentors' ? (b.mentorsCount ?? 0) : (b.menteesCount ?? 0);
+        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+      });
+    }
+    return batches;
+  }, [batches, sortField, sortOrder]);
 
   const isTableLoading = isLoading || isFetching;
   const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
@@ -348,26 +356,9 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort all batches by Batch Name"
-                className="w-[32%] font-semibold text-slate-700"
+                className="w-[44%] font-semibold text-slate-700"
               />
-              <SortableColumnHeader<BatchSortField>
-                field="code"
-                label="Code"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all batches by Batch Code"
-                className="w-[16%] font-semibold text-slate-700"
-              />
-              <SortableColumnHeader<BatchSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all batches by Status"
-                className="w-[14%] font-semibold text-slate-700"
-              />
+              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
               <SortableColumnHeader<BatchSortField>
                 field="startDate"
                 label="Timeline"
@@ -375,9 +366,26 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort all batches by Timeline"
-                className="w-[26%] font-semibold text-slate-700"
+                className="w-[18%] font-semibold text-slate-700"
               />
-              <TableHead className="w-[12%] font-semibold text-slate-700">Members</TableHead>
+              <SortableColumnHeader<BatchSortField>
+                field="mentors"
+                label="Mentors"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all batches by Mentor count"
+                className="w-[12%] text-center font-semibold text-slate-700"
+              />
+              <SortableColumnHeader<BatchSortField>
+                field="mentees"
+                label="Mentees"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all batches by Mentee count"
+                className="w-[12%] text-center font-semibold text-slate-700"
+              />
             </TableRow>
           </TableHeader>
           <TableBody>
