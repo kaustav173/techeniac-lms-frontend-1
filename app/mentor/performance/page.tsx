@@ -12,6 +12,7 @@ export default function MentorMenteesPerformancePage() {
       role="MENTOR"
       title="Mentee Performance"
       description="Performance analytics, submission timeliness, and scores for your mapped mentees in active batches (FR-11.3)."
+      showMetricsCards={false}
     />
   );
 }

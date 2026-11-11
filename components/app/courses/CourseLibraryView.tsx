@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
+import { cn } from '@/lib/cn';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
 
@@ -585,6 +586,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             (c.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ??
                               0);
 
+                        const isActionMenuOpen = openActionMenuId === c.id;
+
                         return (
                           <TableRow
                             key={c.id}
@@ -593,7 +596,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               router.prefetch(`/${portal}/courses/${c.id}/builder`)
                             }
                             onClick={() => router.push(`/${portal}/courses/${c.id}/builder`)}
-                            className="animate-row-enter cursor-pointer transition-colors hover:bg-slate-50/80"
+                            className={cn(
+                              'animate-row-enter cursor-pointer transition-colors hover:bg-slate-50/80',
+                              isActionMenuOpen && 'relative z-30',
+                            )}
                           >
                             <TableCell>
                               <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
@@ -637,12 +643,18 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             </TableCell>
 
                             <TableCell
-                              className="w-20 text-center"
+                              className={cn(
+                                'w-20 text-center',
+                                isActionMenuOpen && 'relative z-30',
+                              )}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div
-                                className="relative inline-block text-left"
-                                ref={openActionMenuId === c.id ? actionMenuRef : undefined}
+                                className={cn(
+                                  'relative inline-block text-left',
+                                  isActionMenuOpen && 'z-40',
+                                )}
+                                ref={isActionMenuOpen ? actionMenuRef : undefined}
                               >
                                 <Button
                                   type="button"
@@ -650,7 +662,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setOpenActionMenuId(openActionMenuId === c.id ? null : c.id);
+                                    setOpenActionMenuId(isActionMenuOpen ? null : c.id);
                                   }}
                                   title="Course actions"
                                   aria-label={`Actions for ${c.title}`}
@@ -661,8 +673,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   </svg>
                                 </Button>
 
-                                {openActionMenuId === c.id && (
-                                  <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                                {isActionMenuOpen && (
+                                  <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
                                     <Button
                                       type="button"
                                       variant="ghost"

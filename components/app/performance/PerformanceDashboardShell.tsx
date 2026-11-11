@@ -20,12 +20,14 @@ interface PerformanceDashboardShellProps {
   readonly role: 'SUPER_ADMIN' | 'MENTOR';
   readonly title: string;
   readonly description?: string | undefined;
+  readonly showMetricsCards?: boolean | undefined;
 }
 
 export function PerformanceDashboardShell({
   navConfig,
   role,
   title,
+  showMetricsCards = true,
 }: PerformanceDashboardShellProps) {
   useRoleGuard(role);
 
@@ -199,13 +201,15 @@ export function PerformanceDashboardShell({
               className="flex flex-col gap-6"
             >
               {/* Overview Metrics Cards */}
-              <PerformanceMetricsCards
-                metrics={data?.metrics}
-                isLoading={isLoading}
-                isError={isError}
-                error={error}
-                onRetry={handleRetry}
-              />
+              {showMetricsCards && (
+                <PerformanceMetricsCards
+                  metrics={data?.metrics}
+                  isLoading={isLoading}
+                  isError={isError}
+                  error={error}
+                  onRetry={handleRetry}
+                />
+              )}
 
               {/* Filtering Toolbar */}
               <PerformanceFiltersBar

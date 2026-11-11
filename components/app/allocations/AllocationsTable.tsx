@@ -611,6 +611,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               ) : (
                 allocations.map((alloc) => {
                   const isExpanded = expandedAllocId === alloc.id;
+                  const isActionMenuOpen = openActionMenuId === alloc.id;
                   return (
                     <React.Fragment key={alloc.id}>
                       <tr
@@ -618,6 +619,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                         className={cn(
                           'cursor-pointer transition-colors hover:bg-[#F9FAFB]/90',
                           isExpanded && 'bg-slate-50/70',
+                          isActionMenuOpen && 'relative z-30',
                         )}
                       >
                         <td className="py-3.5 pr-2 pl-6 align-middle">
@@ -695,13 +697,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                           />
                         </td>
                         <td
-                          className="py-3.5 pr-6 pl-4 text-right align-middle"
+                          className={cn(
+                            'py-3.5 pr-6 pl-4 text-right align-middle',
+                            isActionMenuOpen && 'relative z-30',
+                          )}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {userRole === 'SUPER_ADMIN' ? (
                             <div
-                              ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
-                              className="relative flex items-center justify-end"
+                              ref={isActionMenuOpen ? actionMenuRef : undefined}
+                              className={cn(
+                                'relative flex items-center justify-end',
+                                isActionMenuOpen && 'z-40',
+                              )}
                             >
                               <button
                                 type="button"
@@ -715,18 +723,18 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 title="Allocation actions"
                                 aria-label="Allocation actions"
                                 aria-haspopup="menu"
-                                aria-expanded={openActionMenuId === alloc.id}
+                                aria-expanded={isActionMenuOpen}
                               >
                                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                 </svg>
                               </button>
 
-                              {openActionMenuId === alloc.id && (
+                              {isActionMenuOpen && (
                                 <div
                                   role="menu"
                                   aria-label="Allocation actions"
-                                  className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+                                  className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
                                 >
                                   <Button
                                     type="button"
@@ -818,8 +826,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                             </div>
                           ) : (
                             <div
-                              ref={openActionMenuId === alloc.id ? actionMenuRef : undefined}
-                              className="relative flex items-center justify-end"
+                              ref={isActionMenuOpen ? actionMenuRef : undefined}
+                              className={cn(
+                                'relative flex items-center justify-end',
+                                isActionMenuOpen && 'z-40',
+                              )}
                             >
                               <button
                                 type="button"
@@ -833,18 +844,18 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 title="Allocation actions"
                                 aria-label="Allocation actions"
                                 aria-haspopup="menu"
-                                aria-expanded={openActionMenuId === alloc.id}
+                                aria-expanded={isActionMenuOpen}
                               >
                                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                 </svg>
                               </button>
 
-                              {openActionMenuId === alloc.id && (
+                              {isActionMenuOpen && (
                                 <div
                                   role="menu"
                                   aria-label="Allocation actions"
-                                  className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
+                                  className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
                                 >
                                   <Link
                                     href={

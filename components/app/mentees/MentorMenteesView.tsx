@@ -29,25 +29,45 @@ interface MenteeActionMenuProps {
   readonly menteeName?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly openUpward?: boolean | undefined;
+  readonly isOpen?: boolean | undefined;
+  readonly onToggle?: (() => void) | undefined;
+  readonly onClose?: (() => void) | undefined;
 }
 
-function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
+function MenteeActionMenu({
+  menteeName,
+  menteeId,
+  openUpward,
+  isOpen: controlledIsOpen,
+  onToggle,
+  onClose,
+}: MenteeActionMenuProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isMeasuredUpward, setIsMeasuredUpward] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const isMenuOpen = controlledIsOpen ?? internalIsOpen;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        if (onClose) {
+          onClose();
+        } else {
+          setInternalIsOpen(false);
+        }
       }
     }
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        if (onClose) {
+          onClose();
+        } else {
+          setInternalIsOpen(false);
+        }
       }
     }
-    if (isOpen) {
+    if (isMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
@@ -57,10 +77,10 @@ function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenu
       document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isMenuOpen, onClose]);
 
   const handleToggle = () => {
-    if (!isOpen && menuRef.current) {
+    if (!isMenuOpen && menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect();
       const container = menuRef.current.closest('.overflow-x-auto');
       if (container) {
@@ -70,17 +90,35 @@ function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenu
         setIsMeasuredUpward(window.innerHeight - rect.bottom < 140);
       }
     }
-    setIsOpen((prev) => !prev);
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen((prev) => !prev);
+    }
+  };
+
+  const handleItemClick = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
   };
 
   const shouldOpenUp = openUpward ?? isMeasuredUpward;
 
   return (
-    <div className="relative inline-flex items-center justify-end text-left" ref={menuRef}>
+    <div
+      className={cn(
+        'relative inline-flex items-center justify-end text-left',
+        isMenuOpen && 'z-30',
+      )}
+      ref={menuRef}
+    >
       <button
         type="button"
         aria-haspopup="true"
-        aria-expanded={isOpen}
+        aria-expanded={isMenuOpen}
         aria-label={`Actions for ${menteeName ?? 'mentee'}`}
         onClick={handleToggle}
         className="flex h-8 w-8 cursor-pointer items-center justify-center p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
@@ -90,7 +128,7 @@ function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenu
         </svg>
       </button>
 
-      {isOpen ? (
+      {isMenuOpen ? (
         <div
           role="menu"
           className={cn(
@@ -105,7 +143,7 @@ function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenu
                 : '/mentor/progress'
             }
             role="menuitem"
-            onClick={() => setIsOpen(false)}
+            onClick={handleItemClick}
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
           >
             <svg
@@ -130,7 +168,7 @@ function MenteeActionMenu({ menteeName, menteeId, openUpward }: MenteeActionMenu
                 : '/mentor/reviews'
             }
             role="menuitem"
-            onClick={() => setIsOpen(false)}
+            onClick={handleItemClick}
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
           >
             <svg
@@ -161,6 +199,7 @@ export function MentorMenteesView() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [menteeSort, setMenteeSort] = useState<'asc' | 'desc' | null>(null);
   const [mappedSinceSort, setMappedSinceSort] = useState<'asc' | 'desc' | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
 
   const { data: batches = [], error: batchesError, refetch: refetchBatches } = useMentorBatches();
 
@@ -202,6 +241,7 @@ export function MentorMenteesView() {
 
   const handleMenteeSort = () => {
     setMappedSinceSort(null);
+    setOpenActionMenuId(null);
     setMenteeSort((prev) => {
       if (prev === null) return 'asc';
       if (prev === 'asc') return 'desc';
@@ -212,6 +252,7 @@ export function MentorMenteesView() {
 
   const handleMappedSinceSort = () => {
     setMenteeSort(null);
+    setOpenActionMenuId(null);
     setMappedSinceSort((prev) => {
       if (prev === null) return 'desc';
       if (prev === 'desc') return 'asc';
@@ -301,6 +342,7 @@ export function MentorMenteesView() {
     setSearchQuery('');
     setMenteeSort(null);
     setMappedSinceSort(null);
+    setOpenActionMenuId(null);
     setPage(1);
   };
 
@@ -538,19 +580,28 @@ export function MentorMenteesView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedMentees.map((mentee, index) => (
-                    <MenteeTableRow
-                      key={mentee.id}
-                      mentee={mentee}
-                      actions={
-                        <MenteeActionMenu
-                          menteeName={mentee.name}
-                          menteeId={mentee.menteeId || mentee.id}
-                          openUpward={index >= paginatedMentees.length - 2}
-                        />
-                      }
-                    />
-                  ))}
+                  {paginatedMentees.map((mentee, index) => {
+                    const isMenuOpen = openActionMenuId === mentee.id;
+                    return (
+                      <MenteeTableRow
+                        key={mentee.id}
+                        mentee={mentee}
+                        isActionMenuOpen={isMenuOpen}
+                        actions={
+                          <MenteeActionMenu
+                            menteeName={mentee.name}
+                            menteeId={mentee.menteeId || mentee.id}
+                            openUpward={index >= paginatedMentees.length - 2}
+                            isOpen={isMenuOpen}
+                            onToggle={() =>
+                              setOpenActionMenuId((prev) => (prev === mentee.id ? null : mentee.id))
+                            }
+                            onClose={() => setOpenActionMenuId(null)}
+                          />
+                        }
+                      />
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -561,10 +612,14 @@ export function MentorMenteesView() {
                 limit={pageSize}
                 total={filteredMentees.length}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={(p) => {
+                  setPage(p);
+                  setOpenActionMenuId(null);
+                }}
                 onLimitChange={(newLimit) => {
                   setPageSize(newLimit);
                   setPage(1);
+                  setOpenActionMenuId(null);
                 }}
                 itemLabel="mentees"
                 pageSizeOptions={[10, 20, 50]}

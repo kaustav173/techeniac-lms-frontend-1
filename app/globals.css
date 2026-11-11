@@ -213,14 +213,14 @@ input[type='password']::placeholder {
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
 .animate-row-enter,
 tbody.table-body-animated > tr,
 tbody > tr {
-  animation: rowFadeSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rowFadeSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 tbody > tr:nth-child(1),

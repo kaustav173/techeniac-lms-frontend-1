@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { LatestSubmissionsWidget } from '@/components/app/dashboard/LatestSubmissionsWidget';
 import { MENTOR_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
@@ -73,7 +72,6 @@ export default function MentorPage() {
       id: 'reviews',
       href: '/mentor/reviews',
       title: 'Submission Reviews',
-      category: 'Grading & Queue',
       badge: pendingReviewsCount > 0 ? `${pendingReviewsCount} Pending` : 'Up to Date',
       badgeClass:
         pendingReviewsCount > 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800',
@@ -100,7 +98,6 @@ export default function MentorPage() {
       id: 'mentees',
       href: '/mentor/my-mentees',
       title: 'My Mentees',
-      category: 'Learner Directory',
       badge: `${mentees.length} Mapped`,
       badgeClass: 'bg-emerald-100 text-emerald-800',
       iconBg: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white',
@@ -126,7 +123,6 @@ export default function MentorPage() {
       id: 'allocations',
       href: '/mentor/allocations',
       title: 'Course Allocations',
-      category: 'Course Operations',
       badge: `${batches.length} Assigned`,
       badgeClass: 'bg-blue-100 text-[#0044D3]',
       iconBg: 'bg-blue-50 text-[#0044D3] group-hover:bg-[#0044D3] group-hover:text-white',
@@ -152,7 +148,6 @@ export default function MentorPage() {
       id: 'courses',
       href: '/mentor/courses',
       title: 'Course Library',
-      category: 'Curriculum Catalog',
       badge: totalCoursesCount > 0 ? `${totalCoursesCount} Courses` : 'Catalog',
       badgeClass: 'bg-indigo-100 text-indigo-800',
       iconBg: 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white',
@@ -178,7 +173,6 @@ export default function MentorPage() {
       id: 'progress',
       href: '/mentor/progress',
       title: 'Progress Tracker',
-      category: 'Pacing & Cadence',
       badge: 'Milestones',
       badgeClass: 'bg-cyan-100 text-cyan-800',
       iconBg: 'bg-cyan-50 text-cyan-700 group-hover:bg-cyan-700 group-hover:text-white',
@@ -200,7 +194,6 @@ export default function MentorPage() {
       id: 'performance',
       href: '/mentor/performance',
       title: 'Mentee Performance',
-      category: 'Analytics & Metrics',
       badge: 'Analytics',
       badgeClass: 'bg-amber-100 text-amber-800',
       iconBg: 'bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white',
@@ -444,10 +437,7 @@ export default function MentorPage() {
 
                   {/* Header */}
                   <div className="mt-4">
-                    <Span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                      {card.category}
-                    </Span>
-                    <H3 className="mt-1 text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+                    <H3 className="text-lg font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
                       {card.title}
                     </H3>
                   </div>
@@ -472,11 +462,6 @@ export default function MentorPage() {
               </Link>
             ))}
           </div>
-        </div>
-
-        {/* Latest Submissions Awaiting Review (FR-10.1, REV-01) */}
-        <div className="mt-8">
-          <LatestSubmissionsWidget />
         </div>
       </DashboardContent>
     </div>

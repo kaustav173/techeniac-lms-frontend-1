@@ -4,6 +4,7 @@ import React from 'react';
 
 import { TableCell, TableRow } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
+import { cn } from '@/lib/cn';
 import type { ApiMentorMappedMentee } from '@/services/batches.service';
 
 export interface MenteeTableRowProps {
@@ -18,13 +19,21 @@ export interface MenteeTableRowProps {
         startDate?: string;
       };
   actions?: React.ReactNode;
+  isActionMenuOpen?: boolean;
 }
 
-export function MenteeTableRow({ mentee, actions }: Readonly<MenteeTableRowProps>) {
+export function MenteeTableRow({
+  mentee,
+  actions,
+  isActionMenuOpen,
+}: Readonly<MenteeTableRowProps>) {
   return (
     <TableRow
       key={mentee.id}
-      className="h-16 transition-colors hover:bg-[#F9FAFB]/90 focus-visible:bg-[#F9FAFB] focus-visible:outline-none"
+      className={cn(
+        'h-16 transition-colors hover:bg-[#F9FAFB]/90 focus-visible:bg-[#F9FAFB] focus-visible:outline-none',
+        isActionMenuOpen && 'relative z-20',
+      )}
     >
       <TableCell className={actions ? 'w-[32%]' : 'w-[40%]'}>
         <div className="min-w-0">
@@ -47,7 +56,11 @@ export function MenteeTableRow({ mentee, actions }: Readonly<MenteeTableRowProps
       >
         {mentee.startDate ? mentee.startDate.slice(0, 10) : '—'}
       </TableCell>
-      {actions ? <TableCell className="text-right">{actions}</TableCell> : null}
+      {actions ? (
+        <TableCell className={cn('text-right', isActionMenuOpen && 'relative z-20')}>
+          {actions}
+        </TableCell>
+      ) : null}
     </TableRow>
   );
 }

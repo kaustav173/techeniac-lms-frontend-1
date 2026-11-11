@@ -99,7 +99,10 @@ function SubmissionActionMenu({
   const shouldOpenUp = openUpward ?? isMeasuredUpward;
 
   return (
-    <div className="relative inline-flex items-center justify-end text-left" ref={menuRef}>
+    <div
+      className={cn('relative inline-flex items-center justify-end text-left', isOpen && 'z-30')}
+      ref={menuRef}
+    >
       <Button
         type="button"
         variant="ghost"
