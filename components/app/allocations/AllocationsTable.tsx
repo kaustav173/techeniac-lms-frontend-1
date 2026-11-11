@@ -230,6 +230,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const handleClearFilters = () => {
     setSearchInput('');
     setStatusTab('ALL');
+    setSortField(null);
+    setSortOrder('asc');
     setFilters({ page: 1, limit: 15 });
     setSortField(null);
     setSortOrder(null);

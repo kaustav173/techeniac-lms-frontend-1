@@ -97,9 +97,10 @@ export const coursesService = {
     };
   },
 
-  async getCourseById(id: string, outline = true): Promise<Course> {
+  async getCourseById(id: string, outline = true, authToken?: string): Promise<Course> {
     const res = await apiClient<ApiResponse<{ course?: Course } & Course>>(`/courses/${id}`, {
       params: { outline: String(outline) },
+      ...(authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {}),
     });
     return res.data?.course ?? res.data;
   },
@@ -148,9 +149,10 @@ export const coursesService = {
     return res.data?.course ?? res.data;
   },
 
-  async getCourseImpact(id: string): Promise<CourseImpact> {
+  async getCourseImpact(id: string, authToken?: string): Promise<CourseImpact> {
     const res = await apiClient<ApiResponse<{ impact?: CourseImpact } & CourseImpact>>(
       `/courses/${id}/impact`,
+      authToken ? { headers: { Authorization: `Bearer ${authToken}` } } : {},
     );
     return res.data?.impact ?? res.data;
   },

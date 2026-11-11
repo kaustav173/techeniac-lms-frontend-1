@@ -107,7 +107,8 @@ export interface BatchQueryFilters {
   search?: string | undefined;
   limit?: number | undefined;
   page?: number | undefined;
-  sortBy?: 'name' | 'code' | 'status' | 'startDate' | 'endDate' | 'createdAt' | undefined;
+  sortBy?:
+    'name' | 'code' | 'status' | 'startDate' | 'endDate' | 'createdAt' | 'members' | undefined;
   sortOrder?: 'asc' | 'desc' | undefined;
 }
 

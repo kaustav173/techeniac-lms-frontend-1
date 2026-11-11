@@ -241,14 +241,28 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
   const userInitials = getUserInitials(user?.name);
   const formattedRole = formatRole(user?.role);
 
-  const activeNavItem = nav.find((item) => item.active);
+  const isItemActive = (item: HeaderNavItem) => {
+    if (!pathname || item.href === '#') return false;
+    if (
+      item.href === '/admin/dashboard' ||
+      item.href === '/mentor/dashboard' ||
+      item.href === '/mentee/dashboard'
+    ) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  };
+
+  const activeNavItem = nav.find((item) => isItemActive(item) || item.active);
   const navbarTitle =
     title ||
-    (activeNavItem
-      ? activeNavItem.label === 'Overview'
-        ? 'Dashboard'
-        : activeNavItem.label
-      : 'Dashboard');
+    (pathname?.includes('/builder')
+      ? 'Course Builder'
+      : activeNavItem
+        ? activeNavItem.label === 'Overview'
+          ? 'Dashboard'
+          : activeNavItem.label
+        : 'Dashboard');
 
   return (
     <>
@@ -451,7 +465,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   <Skeleton key={`rail-skel-${i}`} className="h-11 w-11 rounded-full" />
                 ))
               : nav.map((item) => {
-                  const isActive = Boolean(item.active);
+                  const isActive = isItemActive(item) || Boolean(item.active);
                   const icon = getNavIcon(item);
 
                   if (item.href !== '#') {
@@ -594,7 +608,7 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
                   </div>
                 ))
               : nav.map((item) => {
-                  const isActive = Boolean(item.active);
+                  const isActive = isItemActive(item) || Boolean(item.active);
                   const icon = getNavIcon(item);
 
                   if (item.href !== '#') {
@@ -686,6 +700,198 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
         isLoading={isLoggingOut}
         errorMessage={logoutError}
       />
+    </>
+  );
+}
+
+export function HeaderSkeleton({ title = 'Dashboard' }: { title?: string }) {
+  const { isDrawerOpen, setIsDrawerOpen, isMobileNavOpen, setIsMobileNavOpen, contentMarginClass } =
+    useSidebar();
+
+  return (
+    <>
+      {/* Top Sticky Navbar Skeleton */}
+      <header
+        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
+      >
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileNavOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl p-0 text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#0044D3] md:hidden"
+            aria-label="Open navigation menu"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Button>
+
+          <Span className="text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
+            {title}
+          </Span>
+        </div>
+
+        {/* Right side: Loading User Profile Pill */}
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs"
+            aria-label="Loading profile"
+          >
+            <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+            <div className="hidden space-y-1.5 text-left sm:block">
+              <Skeleton className="h-3.5 w-20 rounded-md" />
+              <Skeleton className="h-2.5 w-14 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Collapsed Side Navigation Rail */}
+      <aside
+        aria-label="Collapsed Navigation Rail"
+        className={`fixed inset-y-0 left-0 z-40 hidden w-20 flex-col items-center justify-between border-r border-[#E1E6EC] bg-white py-5 transition-all duration-300 md:flex ${
+          isDrawerOpen
+            ? 'lg:pointer-events-none lg:-translate-x-full lg:opacity-0'
+            : 'pointer-events-auto translate-x-0 opacity-100 shadow-sm'
+        }`}
+      >
+        <div className="flex w-full flex-col items-center gap-6">
+          <div className="flex items-center justify-center pt-1">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+              TL
+            </div>
+          </div>
+
+          <nav
+            className="flex flex-col items-center space-y-3"
+            aria-label="Quick Navigation Skeleton"
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={`rail-skel-${i}`} className="h-11 w-11 rounded-full" />
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex flex-col items-center gap-3 pb-2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                setIsMobileNavOpen(true);
+              } else {
+                setIsDrawerOpen(true);
+              }
+            }}
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+          >
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </Button>
+        </div>
+      </aside>
+
+      {/* Side Navigation Drawer */}
+      <aside
+        aria-label="Site Navigation Drawer"
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#E1E6EC] bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:shadow-md ${
+          isMobileNavOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+        } ${
+          isDrawerOpen
+            ? 'lg:pointer-events-auto lg:translate-x-0'
+            : 'lg:pointer-events-none lg:-translate-x-full'
+        }`}
+      >
+        <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
+              TL
+            </div>
+            <Span className="text-xl font-bold tracking-tight text-[#111827]">TechEniac LMS</Span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileNavOpen(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-slate-500 hover:bg-slate-100 lg:hidden"
+            aria-label="Close navigation menu"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          <nav className="flex flex-col space-y-2" aria-label="Portal Navigation Skeletons">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={`drawer-skel-${i}`}
+                className="flex items-center gap-3.5 rounded-full px-4 py-3.5"
+              >
+                <Skeleton className="h-5 w-5 shrink-0 rounded-md" />
+                <Skeleton className="h-4 flex-1 rounded-md" />
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-[#E1E6EC] px-6 py-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28 rounded-md" />
+            <Skeleton className="h-3 w-40 rounded-md" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDrawerOpen(false)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </Button>
+        </div>
+      </aside>
     </>
   );
 }
