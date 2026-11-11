@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { H3, P, Span } from '@/components/ui/Typography';
+import { H3, Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import type { PerformanceOverviewMetrics } from '@/services/performance.service';
 
@@ -132,13 +132,10 @@ export function GradeDistributionChart({
       <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <H3 className="text-base font-bold text-slate-900">Grade Distribution</H3>
-          <P className="mt-0.5 text-xs text-slate-500">
-            Letter grade scale distribution across all evaluated submissions
-          </P>
         </div>
         <div className="flex items-center gap-2">
           <Span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-blue-600" />
+            <Span className="h-2 w-2 rounded-full bg-blue-600" />
             {totalCount} Graded Submissions
           </Span>
         </div>

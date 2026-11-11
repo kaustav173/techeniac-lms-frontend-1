@@ -122,7 +122,7 @@ export function PerformanceTable({
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+            d="M7.5 3v18M3 16.5L7.5 21l4.5-4.5M16.5 21V3M12 7.5L16.5 3l4.5 4.5"
           />
         </svg>
       );
@@ -302,7 +302,10 @@ export function PerformanceTable({
               <PerformanceTableSkeleton count={Math.min(Math.max(limit || 5, 5), 8)} />
             ) : (
               mentees.map((row) => (
-                <TableRow key={row.menteeId} className="transition-colors hover:bg-slate-50/60">
+                <TableRow
+                  key={`${row.menteeId}-${row.batchId ?? 'unbatched'}`}
+                  className="transition-colors hover:bg-slate-50/60"
+                >
                   {/* Mentee Identity */}
                   <TableCell className="px-6 py-4">
                     <div className="flex flex-col">
