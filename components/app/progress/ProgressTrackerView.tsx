@@ -105,6 +105,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const {
     data: trackersResponse,
     isLoading: isTrackersLoading,
+    isFetching: isTrackersFetching,
     isError: isTrackersError,
     error: trackersError,
     refetch: refetchTrackers,
@@ -119,7 +120,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     limit,
   });
 
-  const isTableLoading = isTrackersLoading;
+  const isTableLoading = isTrackersLoading || isTrackersFetching;
 
   const trackers = useMemo<ProgressTrackerItem[]>(
     () => trackersResponse?.trackers ?? [],
