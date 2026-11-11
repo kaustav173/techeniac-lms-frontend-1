@@ -46,7 +46,7 @@ const STATUS_CONFIG: Record<
     border: 'border-red-200',
   },
   [AssignmentDerivedStatus.CLOSED]: {
-    label: 'Closed',
+    label: 'Submissions Closed',
     bg: 'bg-zinc-100',
     text: 'text-zinc-600',
     border: 'border-zinc-200',
