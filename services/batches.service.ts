@@ -122,7 +122,10 @@ function toDateOnly(v: string | null | undefined): string {
 }
 
 export const batchesService = {
-  async listBatches(filters: BatchQueryFilters = {}): Promise<ApiBatchListResponse> {
+  async listBatches(
+    filters: BatchQueryFilters = {},
+    options?: { signal?: AbortSignal },
+  ): Promise<ApiBatchListResponse> {
     const params: Record<string, string | number | undefined> = {};
     if (filters.status) {
       if (Array.isArray(filters.status)) {
@@ -160,6 +163,7 @@ export const batchesService = {
     >('/batches', {
       method: 'GET',
       params,
+      ...(options?.signal ? { signal: options.signal } : {}),
     });
 
     if (Array.isArray(res.data)) {

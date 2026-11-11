@@ -17,6 +17,7 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly options: readonly SingleSelectOption<T>[];
   readonly label?: string | undefined;
   readonly placeholder?: string | undefined;
+  readonly triggerLabel?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
   readonly triggerClassName?: string | undefined;
@@ -34,6 +35,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
   options,
   label,
   placeholder = 'Select an option',
+  triggerLabel,
   disabled = false,
   className,
   triggerClassName,
@@ -77,7 +79,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
     [options, value],
   );
 
-  const displayLabel = selectedOption ? selectedOption.label : placeholder;
+  const displayLabel = triggerLabel ?? (selectedOption ? selectedOption.label : placeholder);
   const isDefaultOrAll =
     value === '' ||
     value === undefined ||

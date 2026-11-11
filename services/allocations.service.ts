@@ -1,19 +1,36 @@
 import { apiClient } from '@/services/api.client';
 
+export const CourseAllocationStatus = {
+  ASSIGNED: 'ASSIGNED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  REVOKED: 'REVOKED',
+  CLOSED_ROLE_CHANGE: 'CLOSED_ROLE_CHANGE',
+  CLOSED_BATCH_CHANGE: 'CLOSED_BATCH_CHANGE',
+} as const;
+
 export type CourseAllocationStatus =
-  | 'ASSIGNED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'REVOKED'
-  | 'CLOSED_ROLE_CHANGE'
-  | 'CLOSED_BATCH_CHANGE';
+  (typeof CourseAllocationStatus)[keyof typeof CourseAllocationStatus];
+
+export const AllocationDisplayStatus = {
+  ASSIGNED: 'Assigned',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  REVOKED: 'Revoked',
+  ROLE_CHANGED: 'Role Changed',
+  BATCH_TRANSFERRED: 'Batch Transferred',
+  OVERDUE: 'Overdue',
+} as const;
+
+export type AllocationDisplayStatus =
+  (typeof AllocationDisplayStatus)[keyof typeof AllocationDisplayStatus];
 
 export function isTerminalAllocationStatus(status: CourseAllocationStatus): boolean {
   return (
-    status === 'COMPLETED' ||
-    status === 'REVOKED' ||
-    status === 'CLOSED_ROLE_CHANGE' ||
-    status === 'CLOSED_BATCH_CHANGE'
+    status === CourseAllocationStatus.COMPLETED ||
+    status === CourseAllocationStatus.REVOKED ||
+    status === CourseAllocationStatus.CLOSED_ROLE_CHANGE ||
+    status === CourseAllocationStatus.CLOSED_BATCH_CHANGE
   );
 }
 

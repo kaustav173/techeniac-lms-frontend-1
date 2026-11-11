@@ -14,6 +14,7 @@ export interface SortableColumnHeaderProps<T extends string> {
   readonly sortOrder: 'asc' | 'desc';
   readonly onSort: (field: T) => void;
   readonly className?: string;
+  readonly buttonClassName?: string;
   readonly labelClassName?: string;
   readonly tooltip?: string;
 }
@@ -25,6 +26,7 @@ export function SortableColumnHeader<T extends string>({
   sortOrder,
   onSort,
   className,
+  buttonClassName,
   labelClassName,
   tooltip,
 }: Readonly<SortableColumnHeaderProps<T>>) {
@@ -39,11 +41,14 @@ export function SortableColumnHeader<T extends string>({
         size="sm"
         onClick={() => onSort(field)}
         title={tooltip ?? `Sort by ${label}`}
-        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none sm:text-base"
+        className={cn(
+          'group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-[length:inherit] font-semibold text-inherit hover:bg-transparent focus-visible:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/30 focus-visible:outline-none',
+          buttonClassName,
+        )}
       >
         <Span
           className={cn(
-            'text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base',
+            'text-[length:inherit] font-semibold text-inherit transition-colors group-hover:text-slate-900',
             labelClassName,
           )}
         >
@@ -88,7 +93,7 @@ export function SortableColumnHeader<T extends string>({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={1.75}
               aria-hidden="true"
             >
               <path

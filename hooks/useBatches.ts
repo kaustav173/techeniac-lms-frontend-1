@@ -2,6 +2,7 @@
 
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQueries,
   useQuery,
@@ -60,6 +61,28 @@ export function useAvailableBatches() {
       return res.items;
     },
     staleTime: 5 * 60_000,
+  });
+}
+
+export function useInfiniteBatches(pageSize: number = 10, search?: string) {
+  const trimmedSearch = search?.trim() || undefined;
+  return useInfiniteQuery({
+    queryKey: ['batches', 'infinite-dropdown', pageSize, trimmedSearch],
+    queryFn: ({ pageParam = 1, signal }) =>
+      batchesService.listBatches(
+        {
+          page: pageParam,
+          limit: pageSize,
+          search: trimmedSearch,
+        },
+        { signal },
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 
