@@ -213,6 +213,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const minDate = allocationStartDate ? toISTDateInputValue(allocationStartDate) : '';
   const maxDate = allocationDueDate ? toISTDateInputValue(allocationDueDate) : '';
 
+  const isAnyTopicEditing = Boolean(
+    editingTopicId && drawerProgressData?.topics.some((t) => t.topicId === editingTopicId),
+  );
+
   const handleStartEditDeadline = (topic: TopicProgressItem) => {
     setEditingTopicId(topic.topicId);
     setInlineError(null);
@@ -226,6 +230,20 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   };
 
   const handleCancelEditDeadline = () => {
+    setEditingTopicId(null);
+    setInlineDeadline('');
+    setInlineError(null);
+  };
+
+  const handleOpenModal = (allocationId: string) => {
+    setEditingTopicId(null);
+    setInlineDeadline('');
+    setInlineError(null);
+    setSelectedAllocationId(allocationId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedAllocationId(null);
     setEditingTopicId(null);
     setInlineDeadline('');
     setInlineError(null);
@@ -557,13 +575,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     return (
                       <TableRow
                         key={item.allocationId}
-                        onClick={() => setSelectedAllocationId(item.allocationId)}
+                        onClick={() => handleOpenModal(item.allocationId)}
                         onMouseEnter={() => prefetchProgress(item.allocationId)}
                         onFocus={() => prefetchProgress(item.allocationId)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setSelectedAllocationId(item.allocationId);
+                            handleOpenModal(item.allocationId);
                           }
                         }}
                         tabIndex={0}
@@ -636,7 +654,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedAllocationId(item.allocationId);
+                                handleOpenModal(item.allocationId);
                               }}
                               onMouseEnter={() => prefetchProgress(item.allocationId)}
                               title="Inspect syllabus outline"
@@ -692,7 +710,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
       {/* Mentee Syllabus & Topic Progress Modal (Audit Log Modal Style) */}
       <Modal
         isOpen={Boolean(selectedItem)}
-        onClose={() => setSelectedAllocationId(null)}
+        onClose={handleCloseModal}
         size="xl"
         className="max-w-4xl"
         title="Mentee Progress Details"
@@ -703,7 +721,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             {/* Event Header Hero Strip */}
             <div
               className={`flex items-center rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-4.5 py-3 shadow-xs transition-all duration-200 ${
-                editingTopicId ? 'pointer-events-none opacity-40 blur-[1px]' : ''
+                isAnyTopicEditing ? 'pointer-events-none opacity-40 blur-[1px]' : ''
               }`}
             >
               <Span className="cursor-default truncate text-base font-bold text-slate-900">
@@ -714,7 +732,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             {/* Structured Metadata Grid (2x2): matches AuditDetailModal */}
             <div
               className={`grid grid-cols-1 gap-4 transition-all duration-200 sm:grid-cols-2 ${
-                editingTopicId ? 'pointer-events-none opacity-40 blur-[1px]' : ''
+                isAnyTopicEditing ? 'pointer-events-none opacity-40 blur-[1px]' : ''
               }`}
             >
               {/* Card 1: Overall Completion */}
@@ -928,7 +946,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   {drawerProgressData.topics.map((t, idx) => {
                     const isCompleted = t.status === 'COMPLETED';
                     const isInProgress = t.status === 'IN_PROGRESS';
-                    const isEditingThisTopic = editingTopicId === t.topicId;
+                    const isEditingThisTopic = isAnyTopicEditing && editingTopicId === t.topicId;
 
                     return (
                       <div
@@ -936,7 +954,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         className={`p-4 transition-all duration-200 ${
                           isEditingThisTopic
                             ? 'relative z-10 rounded-xl bg-white shadow-xs ring-2 ring-[#0044D3]/20'
-                            : editingTopicId
+                            : isAnyTopicEditing
                               ? 'pointer-events-none opacity-35 blur-[1px] select-none'
                               : 'hover:bg-slate-50/50'
                         }`}
