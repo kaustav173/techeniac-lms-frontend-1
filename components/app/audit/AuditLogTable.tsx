@@ -491,6 +491,7 @@ export function AuditLogTable() {
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
           itemLabel="Audit Logs"
+          isLoading={isLoading || isFetching}
         />
       </TableContainer>
 

@@ -679,6 +679,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 setPage(1);
               }}
               itemLabel="Mentees"
+              isLoading={isTableLoading}
             />
           </TableContainer>
         </div>
