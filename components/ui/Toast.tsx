@@ -55,28 +55,21 @@ const iconColors: Record<ToastVariant, string> = {
 };
 
 export function Toast({ id, message, variant, duration, onDismiss }: ToastProps) {
-  const [visible, setVisible] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // Trigger enter animation on mount
-    const enterTimer = setTimeout(() => setVisible(true), 10);
-
-    // Begin exit animation before removal
-    const exitTimer = setTimeout(() => setVisible(false), duration - 300);
-
-    // Notify parent to remove after animation completes
+    const exitTimer = setTimeout(() => setIsExiting(true), Math.max(0, duration - 250));
     const removeTimer = setTimeout(() => onDismiss(id), duration);
 
     return () => {
-      clearTimeout(enterTimer);
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };
   }, [id, duration, onDismiss]);
 
   const handleDismiss = () => {
-    setVisible(false);
-    setTimeout(() => onDismiss(id), 300);
+    setIsExiting(true);
+    setTimeout(() => onDismiss(id), 200);
   };
 
   return (
@@ -84,9 +77,9 @@ export function Toast({ id, message, variant, duration, onDismiss }: ToastProps)
       role="status"
       aria-live="polite"
       className={cn(
-        'flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg',
-        'transition-all duration-300 ease-in-out',
-        visible ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0',
+        'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg',
+        'animate-in fade-in slide-in-from-top-2 duration-200',
+        isExiting && '-translate-y-2 opacity-0 transition-all duration-200 ease-in',
         variantStyles[variant],
       )}
     >

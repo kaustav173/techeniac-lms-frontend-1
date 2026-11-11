@@ -27,6 +27,13 @@ export interface ToastProviderProps {
 
 const DEFAULT_DURATION = 4000;
 
+function generateToastId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -36,7 +43,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
 
   const addToast = useCallback(
     (message: string, variant: ToastVariant = 'success', duration: number = DEFAULT_DURATION) => {
-      const id = crypto.randomUUID();
+      const id = generateToastId();
       setToasts((prev) => [...prev, { id, message, variant, duration }]);
     },
     [],
