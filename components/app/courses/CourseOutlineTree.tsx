@@ -22,11 +22,13 @@ import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
 
 import { ActiveNodeSelection } from '@/components/app/courses/types';
+import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { H2, Span } from '@/components/ui/Typography';
+import { formatErrorMessage } from '@/lib/errors';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
-export interface BatchReorderPayload {
+export interface OutlineReorderPayload {
   topicItems?: { id: string; displayOrder: number }[];
   subtopicItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
   topicAssignmentItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
@@ -58,7 +60,7 @@ interface CourseOutlineTreeProps {
     assignmentIdsInOrder: string[],
     topicId?: string,
   ) => void;
-  onBatchReorder?: (payload: BatchReorderPayload) => Promise<void>;
+  onOutlineReorder?: (payload: OutlineReorderPayload) => Promise<void>;
   onOrderDirtyChange?: (isDirty: boolean) => void;
   onRequestDeleteNode: (
     type: 'TOPIC' | 'SUBTOPIC' | 'ASSIGNMENT',
@@ -560,7 +562,7 @@ export function CourseOutlineTree({
   onReorderTopics,
   onReorderSubtopics,
   onReorderAssignments,
-  onBatchReorder,
+  onOutlineReorder,
   onOrderDirtyChange,
   onRequestDeleteNode,
 }: Readonly<CourseOutlineTreeProps>) {
@@ -580,6 +582,7 @@ export function CourseOutlineTree({
   const [isOrderDirty, setIsOrderDirty] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [saveOrderSuccess, setSaveOrderSuccess] = useState(false);
+  const [saveOrderError, setSaveOrderError] = useState<string | null>(null);
 
   // Sync from props when course changes and order is clean (render-phase adjustment per React docs)
   const [prevCourse, setPrevCourse] = useState(course);
@@ -596,9 +599,10 @@ export function CourseOutlineTree({
   }
 
   const handleSaveOrder = async () => {
-    if (!isOrderDirty || isSavingOrder || !onBatchReorder) return;
+    if (!isOrderDirty || isSavingOrder || !onOutlineReorder) return;
     setIsSavingOrder(true);
     setSaveOrderSuccess(false);
+    setSaveOrderError(null);
     try {
       const topicItems = topics.map((t, index) => ({ id: t.id, displayOrder: index }));
       const subtopicItems = topics
@@ -618,7 +622,7 @@ export function CourseOutlineTree({
         displayOrder: index,
       }));
 
-      await onBatchReorder({
+      await onOutlineReorder({
         topicItems,
         subtopicItems,
         topicAssignmentItems,
@@ -629,8 +633,8 @@ export function CourseOutlineTree({
       onOrderDirtyChange?.(false);
       setSaveOrderSuccess(true);
       setTimeout(() => setSaveOrderSuccess(false), 3000);
-    } catch {
-      // Error handled by parent or alert
+    } catch (err: unknown) {
+      setSaveOrderError(formatErrorMessage(err, 'Failed to save outline order. Please retry.'));
     } finally {
       setIsSavingOrder(false);
     }
@@ -706,8 +710,9 @@ export function CourseOutlineTree({
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(topics, oldIndex, newIndex);
         setTopics(reordered);
-        if (onBatchReorder) {
+        if (onOutlineReorder) {
           setIsOrderDirty(true);
+          setSaveOrderError(null);
           onOrderDirtyChange?.(true);
         } else if (onReorderTopics) {
           onReorderTopics(
@@ -739,8 +744,9 @@ export function CourseOutlineTree({
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, subtopics: reordered } : t)),
           );
-          if (onBatchReorder) {
+          if (onOutlineReorder) {
             setIsOrderDirty(true);
+            setSaveOrderError(null);
             onOrderDirtyChange?.(true);
           } else if (onReorderSubtopics) {
             onReorderSubtopics(
@@ -774,8 +780,9 @@ export function CourseOutlineTree({
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, assignments: reordered } : t)),
           );
-          if (onBatchReorder) {
+          if (onOutlineReorder) {
             setIsOrderDirty(true);
+            setSaveOrderError(null);
             onOrderDirtyChange?.(true);
           } else if (onReorderAssignments) {
             onReorderAssignments(
@@ -796,8 +803,9 @@ export function CourseOutlineTree({
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reordered = arrayMove(courseAssignments, oldIndex, newIndex);
         setCourseAssignments(reordered);
-        if (onBatchReorder) {
+        if (onOutlineReorder) {
           setIsOrderDirty(true);
+          setSaveOrderError(null);
           onOrderDirtyChange?.(true);
         } else if (onReorderAssignments) {
           onReorderAssignments(
@@ -828,13 +836,13 @@ export function CourseOutlineTree({
                 <Span>Saved</Span>
               </Span>
             )}
-            {hasActiveReorder && !onBatchReorder && (
+            {hasActiveReorder && !onOutlineReorder && (
               <Span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600">
                 <Span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                 <Span>Saving order...</Span>
               </Span>
             )}
-            {onBatchReorder && (
+            {onOutlineReorder && (
               <Button
                 type="button"
                 disabled={!isOrderDirty || isSavingOrder}
@@ -853,15 +861,27 @@ export function CourseOutlineTree({
           </div>
         </div>
 
+        {saveOrderError && (
+          <div className="border-b border-red-200 bg-red-50/70 px-4 py-2">
+            <Alert
+              variant="error"
+              message={saveOrderError}
+              className="border-0 bg-transparent p-0 text-xs"
+            />
+          </div>
+        )}
+
         {/* Tree Content with comfortable scroll area */}
         <div className="flex-1 [scrollbar-gutter:stable] space-y-2.5 overflow-y-auto p-3.5 pb-24">
           {/* Topics Section - Clean unboxed layout */}
           <div>
             <div className="flex items-center justify-between pb-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                aria-expanded={!isTopicsSectionCollapsed}
                 onClick={() => setIsTopicsSectionCollapsed((prev) => !prev)}
-                className="flex items-center gap-2 text-left transition-colors hover:opacity-80 focus-visible:outline-hidden"
+                className="flex h-auto items-center gap-2 p-0 text-left transition-colors hover:bg-transparent hover:opacity-80 focus-visible:outline-hidden"
                 title={isTopicsSectionCollapsed ? 'Expand topics' : 'Collapse topics'}
               >
                 <svg
@@ -879,7 +899,7 @@ export function CourseOutlineTree({
                 <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
                   {topics.length}
                 </Span>
-              </button>
+              </Button>
               <Button
                 type="button"
                 variant="ghost"

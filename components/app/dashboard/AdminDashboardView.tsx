@@ -116,25 +116,25 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                   href="/admin/users"
                   className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-[#0044D3] hover:bg-blue-50 hover:text-[#0044D3]"
                 >
-                  <span>+ Manage Users</span>
+                  <Span>+ Manage Users</Span>
                 </Link>
                 <Link
                   href="/admin/batches"
                   className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
                 >
-                  <span>+ Manage Batches</span>
+                  <Span>+ Manage Batches</Span>
                 </Link>
                 <Link
                   href="/admin/courses"
                   className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700"
                 >
-                  <span>+ Course Builder</span>
+                  <Span>+ Course Builder</Span>
                 </Link>
                 <Link
                   href="/admin/allocations"
                   className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-600 hover:bg-amber-50 hover:text-amber-700"
                 >
-                  <span>+ New Allocation</span>
+                  <Span>+ New Allocation</Span>
                 </Link>
               </div>
             </div>
@@ -146,7 +146,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               <Span className="mt-1 block text-base font-bold text-[#111827]">{user.name}</Span>
               <Span className="mt-0.5 block text-sm text-[#667085]">{user.email}</Span>
               <Span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
+                <Span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
                 Super Admin Privilege
               </Span>
             </div>
@@ -190,9 +190,9 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Total Users
                 </Span>
-                <span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
+                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
                   →
-                </span>
+                </Span>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#111827]">
                 {dashboard?.users?.totalUsers ?? 0}
@@ -216,9 +216,9 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Live Cohorts
                 </Span>
-                <span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600">
+                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600">
                   →
-                </span>
+                </Span>
               </div>
               <P className="mt-1 text-3xl font-bold text-emerald-600">
                 {dashboard?.batches?.liveBatches ?? 0}
@@ -242,9 +242,9 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Curriculum
                 </Span>
-                <span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-sky-600">
+                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-sky-600">
                   →
-                </span>
+                </Span>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#0044D3]">
                 {dashboard?.courses?.publishedCourses ?? 0}
@@ -267,9 +267,9 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Active Allocations
                 </Span>
-                <span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-amber-600">
+                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-amber-600">
                   →
-                </span>
+                </Span>
               </div>
               <P className="mt-1 text-3xl font-bold text-amber-600">
                 {dashboard?.allocations?.activeAllocations ?? 0}
@@ -292,9 +292,9 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Pending Reviews
                 </Span>
-                <span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-rose-600">
+                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-rose-600">
                   →
-                </span>
+                </Span>
               </div>
               <P className="mt-1 text-3xl font-bold text-rose-600">
                 {dashboard?.submissions?.pendingReviewCount ?? 0}
@@ -355,7 +355,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-[#0044D3]">
-              <span>Manage Directory</span>
+              <Span>Manage Directory</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -404,7 +404,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-              <span>View Cohorts</span>
+              <Span>View Cohorts</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -453,7 +453,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-sky-700">
-              <span>Open Builder</span>
+              <Span>Open Builder</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -502,7 +502,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
-              <span>Manage Allocations</span>
+              <Span>Manage Allocations</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -551,7 +551,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-purple-700">
-              <span>Inspect Matrix</span>
+              <Span>Inspect Matrix</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -600,7 +600,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-indigo-700">
-              <span>View Analytics</span>
+              <Span>View Analytics</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -649,7 +649,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-              <span>Inspect Audit Trail</span>
+              <Span>Inspect Audit Trail</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"

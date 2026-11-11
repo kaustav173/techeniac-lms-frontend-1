@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -31,8 +31,8 @@ import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 export interface MyAssignmentsPaginationConfig {
   page: number;
   limit: number;
-  total: number;
-  totalPages: number;
+  total?: number;
+  totalPages?: number;
   onPageChange: (newPage: number) => void;
   onLimitChange: (newLimit: number) => void;
 }
@@ -79,6 +79,17 @@ export function MyAssignmentsTable({
 
   useClickOutside(actionMenuRef, () => setOpenActionMenuId(null), openActionMenuId !== null);
 
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenActionMenuId(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [openActionMenuId]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -86,6 +97,7 @@ export function MyAssignmentsTable({
       setSortField(field);
       setSortOrder('asc');
     }
+    pagination?.onPageChange(1);
   };
 
   const filteredAssignments = useMemo(() => {
@@ -134,9 +146,27 @@ export function MyAssignmentsTable({
 
   const hasActiveFilters = Boolean(searchQuery.trim() || selectedStatus);
 
+  const effectiveTotal = sortedAssignments.length;
+  const effectiveTotalPages = pagination
+    ? Math.max(1, Math.ceil(effectiveTotal / pagination.limit))
+    : 1;
+  const effectivePage = pagination ? Math.min(pagination.page, effectiveTotalPages) : 1;
+
+  const paginatedAssignments = useMemo(() => {
+    if (!pagination) return sortedAssignments;
+    const start = (effectivePage - 1) * pagination.limit;
+    return sortedAssignments.slice(start, start + pagination.limit);
+  }, [sortedAssignments, pagination, effectivePage]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    pagination?.onPageChange(1);
+  };
+
   const handleClearFilters = () => {
     setSearchQuery('');
     onStatusChange?.(undefined);
+    pagination?.onPageChange(1);
   };
 
   return (
@@ -147,7 +177,7 @@ export function MyAssignmentsTable({
           <div className="w-full sm:w-72 lg:w-80">
             <DebouncedSearchInput
               value={searchQuery}
-              onSearchChange={setSearchQuery}
+              onSearchChange={handleSearchChange}
               placeholder="Search assignments by title, course, or topic..."
             />
           </div>
@@ -306,7 +336,7 @@ export function MyAssignmentsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedAssignments.map((assignment, idx) => (
+              {paginatedAssignments.map((assignment, idx) => (
                 <TableRow
                   key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
                   className="transition-colors hover:bg-[#F6F8FC]/60"
@@ -409,7 +439,9 @@ export function MyAssignmentsTable({
                         }}
                         title="Assignment actions"
                         aria-label={`Actions for ${assignment.title}`}
-                        className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        aria-haspopup="menu"
+                        aria-expanded={openActionMenuId === assignment.id}
+                        className="h-11 w-11 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       >
                         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -417,8 +449,13 @@ export function MyAssignmentsTable({
                       </Button>
 
                       {openActionMenuId === assignment.id && (
-                        <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl">
+                        <div
+                          role="menu"
+                          aria-label={`Actions for ${assignment.title}`}
+                          className="animate-in fade-in zoom-in-95 absolute top-11 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
+                        >
                           <Link
+                            role="menuitem"
                             href={`/mentee/assignments/${assignment.id}`}
                             {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                             onClick={() => setOpenActionMenuId(null)}
@@ -434,6 +471,7 @@ export function MyAssignmentsTable({
                           </Link>
                           {assignment.courseId ? (
                             <Link
+                              role="menuitem"
                               href={`/mentee/courses/${assignment.courseId}`}
                               onClick={() => setOpenActionMenuId(null)}
                               className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
@@ -452,12 +490,12 @@ export function MyAssignmentsTable({
         </TableContainer>
       )}
 
-      {pagination && !error && sortedAssignments.length > 0 ? (
+      {pagination && !error && effectiveTotal > 0 ? (
         <PaginationControls
-          page={pagination.page}
+          page={effectivePage}
           limit={pagination.limit}
-          total={pagination.total}
-          totalPages={pagination.totalPages}
+          total={effectiveTotal}
+          totalPages={effectiveTotalPages}
           onPageChange={pagination.onPageChange}
           onLimitChange={pagination.onLimitChange}
           itemLabel="assignments"

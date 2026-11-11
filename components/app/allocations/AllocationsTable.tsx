@@ -37,7 +37,6 @@ import { useBatchesList, useMentorBatches } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
-import { compareStrings } from '@/lib/sort';
 
 const EM_DASH = '—';
 
@@ -151,29 +150,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     setFilters((prev) => ({ ...prev, page: 1 }));
   };
 
-  const sortedAllocations = useMemo(() => {
-    if (!sortField) return allocations;
-    const list = [...allocations];
-    list.sort((a, b) => {
-      if (sortField === 'course') {
-        return compareStrings(a.course?.title, b.course?.title, sortOrder);
-      }
-      if (sortField === 'mentee') {
-        return compareStrings(a.user?.name, b.user?.name, sortOrder);
-      }
-      if (sortField === 'batch') {
-        return compareStrings(a.batch?.name, b.batch?.name, sortOrder);
-      }
-      if (sortField === 'startDate') {
-        return compareStrings(a.startDate, b.startDate, sortOrder);
-      }
-      if (sortField === 'dueDate') {
-        return compareStrings(a.dueDate, b.dueDate, sortOrder);
-      }
-      return 0;
-    });
-    return list;
-  }, [allocations, sortField, sortOrder]);
+  const sortedAllocations = allocations;
 
   // Telemetry KPIs
   const kpis = useMemo(() => {

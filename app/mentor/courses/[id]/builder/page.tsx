@@ -1,13 +1,14 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import React, { Suspense } from 'react';
 
 import {
   CourseBuilderSkeleton,
   CourseBuilderView,
 } from '@/components/app/courses/CourseBuilderView';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { getQueryClient } from '@/lib/query-client';
+import { requirePortalServerSession } from '@/lib/server/auth';
 import { prefetchCourseBuilder } from '@/lib/server/courses';
 
 export const metadata: Metadata = {
@@ -15,30 +16,36 @@ export const metadata: Metadata = {
   description: 'Design modular learning paths, structured topics, and benchmark assignments.',
 };
 
+async function MentorCourseBuilderServerContent({ id }: Readonly<{ id: string }>) {
+  const session = await requirePortalServerSession(['MENTOR', 'SUPER_ADMIN']);
+
+  if (session.status === 'error') {
+    return <PortalSessionState sessionError={session.message} variant="mentor" />;
+  }
+
+  const queryClient = getQueryClient();
+
+  if (id) {
+    await prefetchCourseBuilder(queryClient, id, session.accessToken);
+  }
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <CourseBuilderView portal="mentor" courseId={id} />
+    </HydrationBoundary>
+  );
+}
+
 export default async function MentorCourseBuilderPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const rawAccessToken = cookieStore.get('accessToken')?.value;
-
-  const queryClient = getQueryClient();
-
-  if (id && rawAccessToken) {
-    try {
-      await prefetchCourseBuilder(queryClient, id, rawAccessToken);
-    } catch {
-      // Handled by client-side useCourseBuilder if prefetch fails
-    }
-  }
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<CourseBuilderSkeleton portal="mentor" />}>
-        <CourseBuilderView portal="mentor" courseId={id} />
-      </Suspense>
-    </HydrationBoundary>
+    <Suspense fallback={<CourseBuilderSkeleton portal="mentor" />}>
+      <MentorCourseBuilderServerContent id={id} />
+    </Suspense>
   );
 }

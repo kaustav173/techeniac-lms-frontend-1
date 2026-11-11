@@ -26,13 +26,12 @@ function MenteeAssignmentsContent() {
     undefined,
   );
 
-  const { assignments, total, totalPages, isLoading, isFetching, error, refetch } =
-    useMyAssignments({
-      page,
-      limit,
-      status: selectedStatus,
-      courseId: activeCourseId,
-    });
+  const { assignments, isLoading, isFetching, error, refetch } = useMyAssignments({
+    page: 1,
+    limit: 100,
+    status: selectedStatus,
+    courseId: activeCourseId,
+  });
 
   const handleStatusChange = (status?: AssignmentDerivedStatus) => {
     setSelectedStatus(status);
@@ -98,8 +97,6 @@ function MenteeAssignmentsContent() {
           pagination={{
             page,
             limit,
-            total,
-            totalPages,
             onPageChange: setPage,
             onLimitChange: (newLimit) => {
               setLimit(newLimit);

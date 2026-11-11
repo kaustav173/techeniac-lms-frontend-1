@@ -82,26 +82,31 @@ export const authService = {
   },
 
   async refreshTokenOnServer(refreshToken: string): Promise<string | null> {
-    try {
-      const baseUrl =
-        typeof window === 'undefined' && !env.NEXT_PUBLIC_API_BASE_URL.startsWith('http')
-          ? process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1'
-          : env.NEXT_PUBLIC_API_BASE_URL;
-      const res = await fetch(`${baseUrl}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Cookie: `refreshToken=${refreshToken}`,
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-      if (!res.ok) return null;
-      const json = (await res.json()) as { data?: { tokens?: { accessToken?: string } } };
-      return json?.data?.tokens?.accessToken ?? null;
-    } catch {
+    const baseUrl =
+      typeof window === 'undefined' && !env.NEXT_PUBLIC_API_BASE_URL.startsWith('http')
+        ? process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1'
+        : env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${baseUrl}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Cookie: `refreshToken=${refreshToken}`,
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (res.status === 401) {
       return null;
     }
+    if (!res.ok) {
+      throw new ApiError(
+        res.status,
+        'Unable to refresh authentication session on server',
+        res.status >= 500 ? 'SERVER_ERROR' : 'HTTP_ERROR',
+      );
+    }
+    const json = (await res.json()) as { data?: { tokens?: { accessToken?: string } } };
+    return json?.data?.tokens?.accessToken ?? null;
   },
 
   async refreshToken(): Promise<AuthUser> {

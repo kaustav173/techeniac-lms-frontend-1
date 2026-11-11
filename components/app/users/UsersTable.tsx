@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
 import { ChangeRoleModal, type UserToChangeRole } from '@/components/app/users/ChangeRoleModal';
-import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
+import { CreateUserModal } from '@/components/app/users/CreateUserModal';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -28,7 +28,6 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useUsers } from '@/hooks/useUsers';
-import { compareStrings } from '@/lib/sort';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -62,7 +61,7 @@ const ROLE_OPTIONS: MultiSelectOption[] = [
   { value: 'MENTEE', label: 'Mentee' },
 ];
 
-type UserSortField = 'name' | 'email';
+type UserSortField = 'name' | 'email' | 'role' | 'status';
 
 export function UsersTable() {
   const router = useRouter();
@@ -223,20 +222,7 @@ export function UsersTable() {
     }));
   }, [apiUsers, activeAdminsCount]);
 
-  const displayedUsers = useMemo(() => {
-    if (!sortField) return users;
-    const list = [...users];
-    list.sort((a, b) => {
-      if (sortField === 'name') {
-        return compareStrings(a.name, b.name, sortOrder);
-      }
-      if (sortField === 'email') {
-        return compareStrings(a.email, b.email, sortOrder);
-      }
-      return 0;
-    });
-    return list;
-  }, [users, sortField, sortOrder]);
+  const displayedUsers = users;
   const effectiveTotal = totalCount;
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / limit));
 
@@ -497,10 +483,24 @@ export function UsersTable() {
                 tooltip="Sort all users by Email"
                 className="w-[32%]"
               />
-              <TableHead className="w-[14%] font-semibold text-slate-700">Role</TableHead>
-              <TableHead className="w-[12%] text-center font-semibold text-slate-700">
-                Status
-              </TableHead>
+              <SortableColumnHeader<UserSortField>
+                field="role"
+                label="Role"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all users by Role"
+                className="w-[14%]"
+              />
+              <SortableColumnHeader<UserSortField>
+                field="status"
+                label="Status"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                tooltip="Sort all users by Status"
+                className="w-[12%] text-center"
+              />
               <TableHead className="w-[10%] text-center font-semibold text-slate-700">
                 Action
               </TableHead>
@@ -893,7 +893,7 @@ export function UsersTable() {
       </TableContainer>
 
       {/* Drawers and Modals */}
-      <CreateUserDrawer
+      <CreateUserModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={handleCreateUser}

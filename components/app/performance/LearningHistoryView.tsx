@@ -4,6 +4,15 @@ import React, { useState } from 'react';
 
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Select } from '@/components/ui/Select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateIST } from '@/lib/date';
 import type { LearningHistoryResult } from '@/services/performance.service';
@@ -215,30 +224,30 @@ export function LearningHistoryView({
 
                 {/* Submissions Table for this Allocation */}
                 {alloc.assignments.length > 0 ? (
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white">
-                    <table className="w-full text-left text-xs text-[#667085]">
-                      <thead className="border-b border-[#E1E6EC] bg-[#F6F8FC] text-xs font-semibold tracking-wider text-[#667085] uppercase">
-                        <tr>
-                          <th className="px-4 py-3">Assignment</th>
-                          <th className="px-4 py-3">Submitted</th>
-                          <th className="px-4 py-3 text-center">Version</th>
-                          <th className="px-4 py-3 text-center">Score</th>
-                          <th className="px-4 py-3 text-center">Grade</th>
-                          <th className="px-4 py-3">Mentor Feedback</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E1E6EC]">
+                  <TableContainer className="mt-4 rounded-2xl shadow-none">
+                    <Table className="w-full text-left text-xs text-[#667085] sm:text-xs">
+                      <TableHeader className="bg-[#F6F8FC] text-xs font-semibold tracking-wider text-[#667085] uppercase">
+                        <TableRow>
+                          <TableHead className="px-4 py-3">Assignment</TableHead>
+                          <TableHead className="px-4 py-3">Submitted</TableHead>
+                          <TableHead className="px-4 py-3 text-center">Version</TableHead>
+                          <TableHead className="px-4 py-3 text-center">Score</TableHead>
+                          <TableHead className="px-4 py-3 text-center">Grade</TableHead>
+                          <TableHead className="px-4 py-3">Mentor Feedback</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-[#E1E6EC]">
                         {alloc.assignments.map((assign, idx) => (
-                          <tr
+                          <TableRow
                             key={`${alloc.allocationId}-${assign.assignmentId}-v${assign.version}-${idx}`}
                             className="transition-colors hover:bg-[#F6F8FC]/60"
                           >
-                            <td className="px-4 py-3">
+                            <TableCell className="px-4 py-3">
                               <Span className="font-semibold text-[#111827]">
                                 {assign.assignmentTitle}
                               </Span>
-                            </td>
-                            <td className="px-4 py-3 text-xs text-[#667085]">
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-xs text-[#667085]">
                               <div className="flex flex-col">
                                 <Span>{formatDateIST(assign.submittedAt)}</Span>
                                 {assign.isLate && (
@@ -247,11 +256,11 @@ export function LearningHistoryView({
                                   </Span>
                                 )}
                               </div>
-                            </td>
-                            <td className="px-4 py-3 text-center text-xs font-medium">
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-center text-xs font-medium">
                               v{assign.version}
-                            </td>
-                            <td className="px-4 py-3 text-center text-xs font-bold text-[#111827]">
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-center text-xs font-bold text-[#111827]">
                               {assign.marks !== null ? (
                                 <Span>
                                   {assign.marks} / {assign.maxMarks}
@@ -259,8 +268,8 @@ export function LearningHistoryView({
                               ) : (
                                 <Span className="text-[#667085]">Pending Review</Span>
                               )}
-                            </td>
-                            <td className="px-4 py-3 text-center">
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-center">
                               {assign.gradeLabel ? (
                                 <Span className="inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-center text-xs font-bold text-emerald-700">
                                   {assign.gradeLabel}
@@ -268,8 +277,8 @@ export function LearningHistoryView({
                               ) : (
                                 <Span className="text-[#667085]">—</Span>
                               )}
-                            </td>
-                            <td className="px-4 py-3">
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
                               {assign.feedback ? (
                                 <P className="text-xs text-[#111827] italic">
                                   &ldquo;{assign.feedback}&rdquo;
@@ -279,12 +288,12 @@ export function LearningHistoryView({
                                   No feedback provided
                                 </Span>
                               )}
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 ) : (
                   <div className="mt-3 rounded-2xl border border-dashed border-[#E1E6EC] bg-[#F6F8FC] p-4 text-center">
                     <P className="text-xs text-[#667085]">

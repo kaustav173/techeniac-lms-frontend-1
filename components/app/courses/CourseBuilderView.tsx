@@ -7,7 +7,10 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { AssignmentEditor } from '@/components/app/courses/AssignmentEditor';
 import { ConflictResolutionModal } from '@/components/app/courses/ConflictResolutionModal';
 import { CourseDetailsEditor } from '@/components/app/courses/CourseDetailsEditor';
-import { CourseOutlineTree } from '@/components/app/courses/CourseOutlineTree';
+import {
+  CourseOutlineTree,
+  type OutlineReorderPayload,
+} from '@/components/app/courses/CourseOutlineTree';
 import { ImpactNoticeModal } from '@/components/app/courses/ImpactNoticeModal';
 import { SubtopicEditor } from '@/components/app/courses/SubtopicEditor';
 import { TopicEditor } from '@/components/app/courses/TopicEditor';
@@ -913,13 +916,8 @@ function CourseBuilderContent({
     }
   };
 
-  // Batch reorder persistence handler
-  const handleBatchSaveOrder = async (payload: {
-    topicItems?: { id: string; displayOrder: number }[];
-    subtopicItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
-    topicAssignmentItems?: { topicId: string; items: { id: string; displayOrder: number }[] }[];
-    courseAssignmentItems?: { id: string; displayOrder: number }[];
-  }) => {
+  // Outline reorder persistence handler
+  const handleOutlineSaveOrder = async (payload: OutlineReorderPayload) => {
     const promises: Promise<unknown>[] = [];
     if (payload.topicItems && payload.topicItems.length > 0) {
       promises.push(reorderTopics(payload.topicItems));
@@ -1095,12 +1093,13 @@ function CourseBuilderContent({
             <div className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true" />
 
             {/* Shifted Course Name & Status Badge - Clickable to open Course Details */}
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => handleSelectNode({ type: 'COURSE', id: course.id })}
-              className={`hidden min-w-0 items-center gap-2 truncate rounded-xl px-2.5 py-1 text-left transition-colors sm:flex ${
+              className={`hidden h-auto min-w-0 items-center gap-2 truncate rounded-xl px-2.5 py-1 text-left transition-colors sm:flex ${
                 selectedNode.type === 'COURSE' && selectedNode.id === course.id
-                  ? 'bg-blue-50/90 text-blue-900 ring-1 ring-blue-500/40'
+                  ? 'bg-blue-50/90 text-blue-900 ring-1 ring-blue-500/40 hover:bg-blue-50/90'
                   : 'text-slate-800 hover:bg-slate-100/80'
               }`}
               title="Click to view & edit Course Details"
@@ -1117,7 +1116,7 @@ function CourseBuilderContent({
               >
                 {course.isActive ? 'Active' : 'Draft'}
               </Span>
-            </button>
+            </Button>
           </div>
 
           {/* View Switcher on < lg screens */}
@@ -1193,7 +1192,7 @@ function CourseBuilderContent({
               onReorderAssignments={(targetId, orderedIds, topicId) => {
                 void handleReorderAssignments(targetId, orderedIds, topicId);
               }}
-              onBatchReorder={handleBatchSaveOrder}
+              onOutlineReorder={handleOutlineSaveOrder}
               onOrderDirtyChange={setIsOrderDirty}
               onRequestDeleteNode={(type, id, title) => setDeleteTarget({ type, id, title })}
             />

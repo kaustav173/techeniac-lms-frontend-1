@@ -37,7 +37,6 @@ import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { formatErrorMessage } from '@/lib/errors';
-import { compareStrings } from '@/lib/sort';
 import type { Course, CourseImpact } from '@/types/courses';
 
 interface ToggleSwitchProps {
@@ -250,33 +249,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     setPage(1);
   };
 
-  const sortedCourses = useMemo(() => {
-    if (!sortField) return courses;
-    const list = [...courses];
-    list.sort((a, b) => {
-      if (sortField === 'title') {
-        return compareStrings(a.title, b.title, sortOrder);
-      }
-      if (sortField === 'topics') {
-        const countA = a.topicCount ?? a.topics?.length ?? 0;
-        const countB = b.topicCount ?? b.topics?.length ?? 0;
-        return sortOrder === 'asc' ? countA - countB : countB - countA;
-      }
-      if (sortField === 'tasks') {
-        const countA =
-          a.assignmentCount ??
-          (a.courseAssignments?.length ?? a.assignments?.length ?? 0) +
-            (a.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ?? 0);
-        const countB =
-          b.assignmentCount ??
-          (b.courseAssignments?.length ?? b.assignments?.length ?? 0) +
-            (b.topics?.reduce((acc, t) => acc + (t.assignments?.length ?? 0), 0) ?? 0);
-        return sortOrder === 'asc' ? countA - countB : countB - countA;
-      }
-      return 0;
-    });
-    return list;
-  }, [courses, sortField, sortOrder]);
+  const sortedCourses = courses;
 
   // Create Course Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

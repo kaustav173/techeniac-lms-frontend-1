@@ -93,12 +93,11 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                     {assignment.title}
                   </H1>
                   <P className="text-xs text-[#667085]">
-                    Course: <Span className="font-mono text-[#111827]">{assignment.courseId}</Span>
+                    Course: <Span className="text-[#111827]">{assignment.courseId}</Span>
                     {assignment.topicId ? (
                       <>
                         {' '}
-                        • Topic:{' '}
-                        <Span className="font-mono text-[#111827]">{assignment.topicId}</Span>
+                        • Topic: <Span className="text-[#111827]">{assignment.topicId}</Span>
                       </>
                     ) : null}
                   </P>

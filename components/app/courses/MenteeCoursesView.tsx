@@ -22,7 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePrefetchCourse } from '@/hooks/useCourses';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAllocationProgress } from '@/hooks/useProgress';
-import { formatDateShortDMY } from '@/lib/date';
+import { formatDateDMY } from '@/lib/date';
 
 const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'active', label: 'Active' },
@@ -243,7 +243,7 @@ function MenteeAllocationCard({ allocation }: Readonly<{ allocation: CourseAlloc
   const isRevokedOrClosed = isTerminalAllocationStatus(allocation.status) && !isCompleted;
   const isOverdue = Boolean(allocation.isOverdue) && !isCompleted && !isRevokedOrClosed;
 
-  const formattedDueDate = formatDateShortDMY(allocation.dueDate);
+  const formattedDueDate = formatDateDMY(allocation.dueDate);
   const rawDescription = allocation.course?.description?.trim() || DEFAULT_COURSE_DESCRIPTION;
   const truncatedDescription = truncateDescription(rawDescription);
 

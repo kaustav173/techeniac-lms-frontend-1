@@ -21,13 +21,13 @@ const ROLE_OPTIONS: readonly SingleSelectOption<UserRole>[] = [
   { value: 'SUPER_ADMIN', label: 'Admin' },
 ];
 
-export interface CreateUserDrawerProps {
+export interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (data: CreateUserFormData) => Promise<void>;
 }
 
-export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserDrawerProps) {
+export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalProps) {
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const [name, setName] = useState('');
@@ -205,6 +205,3 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserDrawer
     </Modal>
   );
 }
-
-// Retain alias for existing imports
-export const CreateUserDrawer = CreateUserModal;

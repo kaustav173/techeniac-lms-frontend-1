@@ -21,7 +21,7 @@ import {
   useAllocationProgress,
   useUpdateTopicStatusMutation,
 } from '@/hooks/useProgress';
-import { formatDateShortDMY } from '@/lib/date';
+import { formatDateDMY } from '@/lib/date';
 import { type Assignment, AssignmentScope, type Subtopic, type Topic } from '@/types/courses';
 
 const TOPIC_TIMELINE_STEPS: ReadonlyArray<{
@@ -551,7 +551,7 @@ export function TopicReadingPane({
                     currentTopicProgress.isOverdue ? 'text-rose-600' : 'text-[#667085]'
                   }`}
                 >
-                  Target Deadline: {formatDateShortDMY(currentTopicProgress.deadline)}
+                  Target Deadline: {formatDateDMY(currentTopicProgress.deadline)}
                 </Span>
               )}
             </div>
@@ -859,9 +859,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     );
   }
 
-  const formattedDueDate = allocation.dueDate
-    ? formatDateShortDMY(allocation.dueDate)
-    : 'No deadline';
+  const formattedDueDate = allocation.dueDate ? formatDateDMY(allocation.dueDate) : 'No deadline';
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
