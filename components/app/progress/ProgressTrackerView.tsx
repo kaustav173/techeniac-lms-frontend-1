@@ -12,6 +12,7 @@ import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { Modal } from '@/components/patterns/Modal';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
@@ -27,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/Table';
 import { H2, H4, P, Span } from '@/components/ui/Typography';
+import { AllocationDisplayStatus, CourseAllocationStatus } from '@/hooks/useAllocations';
 import { useInfiniteBatches } from '@/hooks/useBatches';
 import { useInfiniteCourses } from '@/hooks/useCourses';
 import {
@@ -43,14 +45,30 @@ interface ProgressTrackerViewProps {
   readonly portalType?: 'mentor' | 'admin';
 }
 
+const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
+  { value: CourseAllocationStatus.ASSIGNED, label: AllocationDisplayStatus.ASSIGNED },
+  { value: CourseAllocationStatus.IN_PROGRESS, label: AllocationDisplayStatus.IN_PROGRESS },
+  { value: 'OVERDUE', label: AllocationDisplayStatus.OVERDUE },
+  { value: CourseAllocationStatus.COMPLETED, label: AllocationDisplayStatus.COMPLETED },
+  { value: CourseAllocationStatus.CLOSED_ROLE_CHANGE, label: AllocationDisplayStatus.ROLE_CHANGED },
+  {
+    value: CourseAllocationStatus.CLOSED_BATCH_CHANGE,
+    label: AllocationDisplayStatus.BATCH_TRANSFERRED,
+  },
+  { value: CourseAllocationStatus.REVOKED, label: AllocationDisplayStatus.REVOKED },
+];
+
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
   const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
   const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
+  const [selectedStatusOptions, setSelectedStatusOptions] = useState<MultiSelectOption[]>([]);
   const [batchSearch, setBatchSearch] = useState<string>('');
   const [courseSearch, setCourseSearch] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
+  const [sortField, setSortField] = useState<'menteeName' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedAllocationId, setSelectedAllocationId] = useState<string | null>(null);
 
   const selectedBatchIds = useMemo(
@@ -60,6 +78,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const selectedCourseIds = useMemo(
     () => selectedCourseOptions.map((o) => o.value),
     [selectedCourseOptions],
+  );
+  const selectedStatusValues = useMemo(
+    () => selectedStatusOptions.map((o) => o.value),
+    [selectedStatusOptions],
   );
 
   // Direct inline deadline editor state inside the popup
@@ -83,6 +105,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   } = useProgressTrackers({
     batchIds: selectedBatchIds.length > 0 ? selectedBatchIds : undefined,
     courseIds: selectedCourseIds.length > 0 ? selectedCourseIds : undefined,
+    statuses: selectedStatusValues.length > 0 ? selectedStatusValues : undefined,
+    sortField: sortField === 'createdAt' && sortOrder === 'desc' ? undefined : sortField,
+    sortOrder,
     search: search.trim() || undefined,
     page,
     limit,
@@ -288,6 +313,30 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     setPage(1);
   };
 
+  const handleStatusChange = (vals: string[]) => {
+    const nextSelected: MultiSelectOption[] = [];
+    for (const val of vals) {
+      const match = STATUS_FILTER_OPTIONS.find((o) => o.value === val);
+      if (match) {
+        nextSelected.push(match);
+      } else {
+        nextSelected.push({ value: val, label: val });
+      }
+    }
+    setSelectedStatusOptions(nextSelected);
+    setPage(1);
+  };
+
+  const handleSortName = (field: 'menteeName') => {
+    setPage(1);
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
   const handleBatchScrollEnd = () => {
     if (hasNextBatches && !isFetchingNextBatches) {
       void fetchNextBatches();
@@ -303,15 +352,21 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const handleResetFilters = () => {
     setSelectedBatchOptions([]);
     setSelectedCourseOptions([]);
+    setSelectedStatusOptions([]);
     setBatchSearch('');
     setCourseSearch('');
     setSearch('');
+    setSortField('createdAt');
+    setSortOrder('desc');
     setPage(1);
   };
 
   const hasActiveFilters = Boolean(
     selectedBatchOptions.length > 0 ||
     selectedCourseOptions.length > 0 ||
+    selectedStatusOptions.length > 0 ||
+    sortField !== 'createdAt' ||
+    sortOrder !== 'desc' ||
     batchSearch.trim() ||
     courseSearch.trim() ||
     search.trim(),
@@ -325,13 +380,13 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         <div className="space-y-6">
           {/* Filters Bar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
-              {/* 1. Search mentee or course title */}
+            <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+              {/* 1. Search mentee, course, batch, or status */}
               <div className="sm:col-span-2 lg:col-span-1">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
-                  placeholder="Search by mentee name or course title..."
+                  placeholder="Search by mentee, course, batch, or status..."
                 />
               </div>
 
@@ -362,7 +417,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   selectedValues={selectedCourseIds}
                   onChange={handleCourseChange}
                   singleSelect={false}
-                  align="right"
+                  align="left"
                   className="w-full"
                   onScrollEnd={handleCourseScrollEnd}
                   isLoadingMore={isFetchingNextCourses}
@@ -370,6 +425,19 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   isSearching={
                     isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
                   }
+                />
+              </div>
+
+              {/* 4. Course Status Filter (Multi-select dropdown) */}
+              <div className="lg:col-span-1">
+                <MultiSelectDropdown
+                  label="Status"
+                  options={STATUS_FILTER_OPTIONS}
+                  selectedValues={selectedStatusValues}
+                  onChange={handleStatusChange}
+                  singleSelect={false}
+                  align="right"
+                  className="w-full"
                 />
               </div>
             </div>
@@ -411,9 +479,15 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
             <Table className="w-full table-fixed text-left">
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
                 <TableRow>
-                  <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                    Mentee
-                  </TableHead>
+                  <SortableColumnHeader<'menteeName'>
+                    field="menteeName"
+                    label="Mentee"
+                    sortField={sortField === 'menteeName' ? 'menteeName' : null}
+                    sortOrder={sortOrder}
+                    onSort={handleSortName}
+                    tooltip="Sort by Mentee Name"
+                    className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                  />
                   <TableHead className="w-[26%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                     Course & Batch
                   </TableHead>

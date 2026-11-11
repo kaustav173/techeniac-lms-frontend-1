@@ -95,6 +95,10 @@ export interface ProgressTrackerFilters {
   readonly menteeIds?: readonly string[] | string[] | undefined;
   readonly courseId?: string | undefined;
   readonly courseIds?: readonly string[] | string[] | undefined;
+  readonly status?: string | undefined;
+  readonly statuses?: readonly string[] | string[] | undefined;
+  readonly sortField?: 'menteeName' | 'createdAt' | undefined;
+  readonly sortOrder?: 'asc' | 'desc' | undefined;
   readonly search?: string | undefined;
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
@@ -192,6 +196,12 @@ export const progressService = {
     if (filters.courseIds && filters.courseIds.length > 0) {
       params.courseIds = filters.courseIds.join(',');
     }
+    if (filters.status) params.status = filters.status;
+    if (filters.statuses && filters.statuses.length > 0) {
+      params.statuses = filters.statuses.join(',');
+    }
+    if (filters.sortField) params.sortField = filters.sortField;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
     if (filters.search) params.search = filters.search;
     if (filters.page) params.page = String(filters.page);
     if (filters.limit) params.limit = String(filters.limit);
