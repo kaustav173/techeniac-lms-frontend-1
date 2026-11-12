@@ -69,7 +69,7 @@ function BulkMenteeSelector({
       <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-2">
         {unmappedMentees.length === 0 ? (
           <P className="p-3 text-center text-xs text-slate-500">
-            All mentees in this cohort are already mapped to a mentor.
+            All mentees in this batch are already mapped to a mentor.
           </P>
         ) : (
           unmappedMentees.map((mentee) => {
@@ -196,8 +196,7 @@ export function MapMenteeModal({
       isOpen={isOpen}
       onClose={onClose}
       isSubmitting={isSubmitting}
-      title={isReassign ? 'Reassign Mentor' : 'Map Mentee to Mentor'}
-      description={`Assign cohort mentees to an active mentor in ${batchName} (FR-4.1 - 4.3)`}
+      title={isReassign ? `Reassign Mentor (${batchName})` : `Map Mentee to Mentor (${batchName})`}
       size="md"
       footer={
         <div className="flex w-full items-center justify-end gap-3">
@@ -284,9 +283,6 @@ export function MapMenteeModal({
               onChange={(e) => setReason(e.target.value)}
               disabled={isSubmitting || isArchived}
             />
-            <P className="text-[11px] text-slate-500">
-              Pending review assignments will transition to the new mentor (FR-4.2).
-            </P>
           </div>
         ) : null}
 

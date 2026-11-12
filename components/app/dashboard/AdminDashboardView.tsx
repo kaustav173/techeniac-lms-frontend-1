@@ -108,7 +108,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             <div className="max-w-2xl">
               <PageTitle>Super Admin Control Center</PageTitle>
               <SubText className="mt-2 text-base text-[#667085]">
-                Welcome back, <strong>{userName}</strong>. Monitor organizational curriculum, cohort
+                Welcome back, <strong>{userName}</strong>. Monitor organizational curriculum, batch
                 allocations, live progress telemetry, and compliance audit records.
               </SubText>
 
@@ -216,7 +216,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                  Live Cohorts
+                  Live Batches
                 </Span>
                 <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600">
                   →
@@ -370,7 +370,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             </div>
           </Link>
 
-          {/* Module 2: Batches & Cohorts */}
+          {/* Module 2: Batches */}
           <Link
             href="/admin/batches"
             className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-600 hover:shadow-md"
@@ -398,15 +398,15 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-emerald-700">
-                Cohorts & Batches
+                Batches
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Organize learners into structured cohorts, assign mentors, and schedule training
+                Organize learners into structured batches, assign mentors, and schedule training
                 timelines.
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-              <Span>View Cohorts</Span>
+              <Span>View Batches</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -499,7 +499,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 Course Allocations
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Assign curriculum tracks to cohorts and mentees, configure due dates, and monitor
+                Assign curriculum tracks to batches and mentees, configure due dates, and monitor
                 schedules.
               </SubText>
             </div>
