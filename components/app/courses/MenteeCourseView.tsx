@@ -6,6 +6,7 @@ import React, { useId, useMemo, useState } from 'react';
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
+import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import {
@@ -17,6 +18,7 @@ import {
   ChevronRightIcon,
   ClockIcon,
 } from '@/components/ui/Icons';
+import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
@@ -349,11 +351,13 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
         {/* Tab Navigation */}
         <div className="flex items-center gap-8 border-b border-[#E1E6EC]">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('content')}
             className={cn(
-              'flex cursor-pointer items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-all',
+              'h-auto rounded-none border-b-2 px-0 pb-3 text-sm font-semibold transition-all hover:bg-transparent',
               activeTab === 'content'
                 ? 'border-[#0044D3] text-[#0044D3]'
                 : 'border-transparent text-slate-500 hover:text-slate-800',
@@ -361,13 +365,15 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
           >
             <BookIcon className="h-4 w-4" />
             <Span>Course Content</Span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab('progress')}
             className={cn(
-              'flex cursor-pointer items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-all',
+              'h-auto rounded-none border-b-2 px-0 pb-3 text-sm font-semibold transition-all hover:bg-transparent',
               activeTab === 'progress'
                 ? 'border-[#0044D3] text-[#0044D3]'
                 : 'border-transparent text-slate-500 hover:text-slate-800',
@@ -375,7 +381,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
           >
             <BarChartIcon className="h-4 w-4" />
             <Span>Progress</Span>
-          </button>
+          </Button>
         </div>
 
         {/* Tab 1: Course Content */}
@@ -395,10 +401,11 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                   className="rounded-2xl border border-[#E1E6EC] bg-white shadow-xs transition-shadow hover:shadow-sm"
                 >
                   {/* Module Header Bar */}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => toggleModuleAccordion(topic.id)}
-                    className="flex w-full cursor-pointer items-center justify-between p-5 text-left"
+                    className="flex h-auto w-full cursor-pointer items-center justify-between rounded-2xl p-5 text-left hover:bg-transparent"
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-xs font-bold text-white">
@@ -421,7 +428,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-                  </button>
+                  </Button>
 
                   {/* Module Expanded Content */}
                   {isOpen && (
@@ -452,30 +459,34 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
                                 <div>
                                   {isLessonDone ? (
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="ghost"
+                                      size="sm"
                                       onClick={() => {
                                         setSelectedTopic(topic);
                                         setSelectedSubtopic(subtopic);
                                       }}
-                                      className="cursor-pointer text-xs font-semibold text-slate-400 transition-colors hover:text-[#0044D3]"
+                                      className="h-auto p-0 text-xs font-semibold text-slate-400 hover:bg-transparent hover:text-[#0044D3]"
                                     >
                                       Review
-                                    </button>
+                                    </Button>
                                   ) : (
-                                    <button
+                                    <Button
                                       type="button"
+                                      variant="primary"
+                                      size="sm"
                                       onClick={() => {
                                         setSelectedTopic(topic);
                                         setSelectedSubtopic(subtopic);
                                       }}
-                                      className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                      className="flex h-auto cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
                                     >
                                       <Span>
                                         {p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}
                                       </Span>
                                       <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
-                                    </button>
+                                    </Button>
                                   )}
                                 </div>
                               </div>
@@ -499,28 +510,32 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
                             <div>
                               {isTopicCompleted ? (
-                                <button
+                                <Button
                                   type="button"
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => {
                                     setSelectedTopic(topic);
                                     setSelectedSubtopic(null);
                                   }}
-                                  className="cursor-pointer text-xs font-semibold text-slate-400 transition-colors hover:text-[#0044D3]"
+                                  className="h-auto p-0 text-xs font-semibold text-slate-400 hover:bg-transparent hover:text-[#0044D3]"
                                 >
                                   Review
-                                </button>
+                                </Button>
                               ) : (
-                                <button
+                                <Button
                                   type="button"
+                                  variant="primary"
+                                  size="sm"
                                   onClick={() => {
                                     setSelectedTopic(topic);
                                     setSelectedSubtopic(null);
                                   }}
-                                  className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                  className="flex h-auto cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700"
                                 >
                                   <Span>{p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}</Span>
                                   <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
-                                </button>
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -637,16 +652,18 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                         </Span>
 
                         {!isReadOnly && (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setSelectedTopic(topic);
                               setSelectedSubtopic(null);
                             }}
-                            className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
+                            className="h-auto p-0 text-xs font-semibold text-[#0044D3] hover:bg-transparent hover:underline"
                           >
                             Update
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -657,124 +674,106 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
           </div>
         )}
 
-        {/* Lesson Reading & Completion Modal Drawer */}
-        {selectedTopic && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
-            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-3xl border border-[#E1E6EC] bg-white shadow-2xl">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 p-5">
-                <div>
-                  <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                    {selectedSubtopic ? 'Lesson' : 'Topic'}
-                  </Span>
-                  <H2 className="text-lg font-bold text-slate-900">
-                    {selectedSubtopic?.title ?? selectedTopic.title}
-                  </H2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedTopic(null);
-                    setSelectedSubtopic(null);
-                    setActionSuccessMessage(null);
-                  }}
-                  className="cursor-pointer rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                  aria-label="Close lesson"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="flex-1 space-y-4 overflow-y-auto p-6">
-                {actionSuccessMessage && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
-                    {actionSuccessMessage}
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="prose prose-sm max-w-none text-slate-700">
-                  <MarkdownViewer
-                    content={
-                      selectedSubtopic?.content ??
-                      selectedTopic.description ??
-                      'No content available for this lesson yet.'
-                    }
-                  />
-                </div>
-
-                {/* Study Notes & Status Control */}
-                {!isReadOnly && (
-                  <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                    <label
-                      htmlFor={studyNoteInputId}
-                      className="block text-xs font-bold text-slate-700 uppercase"
-                    >
-                      Study Notes (Optional)
-                    </label>
-                    <textarea
-                      id={studyNoteInputId}
-                      value={studyNote}
-                      onChange={(e) => setStudyNote(e.target.value)}
-                      rows={2}
-                      placeholder="Add key takeaways, notes or questions..."
-                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-none"
-                    />
-
-                    <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={updateStatusMutation.isPending}
-                        onClick={() => void handleStatusChange(selectedTopic.id, 'IN_PROGRESS')}
-                        className="cursor-pointer rounded-full"
-                      >
-                        Mark In Progress
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        disabled={updateStatusMutation.isPending}
-                        onClick={() => void handleStatusChange(selectedTopic.id, 'COMPLETED')}
-                        className="cursor-pointer rounded-full bg-[#0044D3] hover:bg-blue-700"
-                      >
-                        <CheckIcon className="h-3.5 w-3.5" />
-                        <Span>Mark Completed</Span>
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end border-t border-slate-100 p-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTopic(null);
-                    setSelectedSubtopic(null);
-                    setActionSuccessMessage(null);
-                  }}
-                  className="cursor-pointer rounded-full"
-                >
-                  Done
-                </Button>
-              </div>
+        {/* Lesson Reading & Completion Modal */}
+        <Modal
+          isOpen={Boolean(selectedTopic)}
+          onClose={() => {
+            setSelectedTopic(null);
+            setSelectedSubtopic(null);
+            setActionSuccessMessage(null);
+          }}
+          size="xl"
+          title={
+            <div>
+              <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
+                {selectedSubtopic ? 'Lesson' : 'Topic'}
+              </Span>
+              <H2 className="text-lg font-bold text-slate-900">
+                {selectedSubtopic?.title ?? selectedTopic?.title}
+              </H2>
             </div>
-          </div>
-        )}
+          }
+          footer={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedTopic(null);
+                setSelectedSubtopic(null);
+                setActionSuccessMessage(null);
+              }}
+              className="cursor-pointer rounded-full"
+            >
+              Done
+            </Button>
+          }
+        >
+          {selectedTopic && (
+            <div className="space-y-4">
+              {actionSuccessMessage && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+                  {actionSuccessMessage}
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="prose prose-sm max-w-none text-slate-700">
+                <MarkdownViewer
+                  content={
+                    selectedSubtopic?.content ??
+                    selectedTopic.description ??
+                    'No content available for this lesson yet.'
+                  }
+                />
+              </div>
+
+              {/* Study Notes & Status Control */}
+              {!isReadOnly && (
+                <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                  <Label
+                    htmlFor={studyNoteInputId}
+                    className="block text-xs font-bold text-slate-700 uppercase"
+                  >
+                    Study Notes (Optional)
+                  </Label>
+                  <textarea
+                    id={studyNoteInputId}
+                    value={studyNote}
+                    onChange={(e) => setStudyNote(e.target.value)}
+                    rows={2}
+                    placeholder="Add key takeaways, notes or questions..."
+                    className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-none"
+                  />
+
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={updateStatusMutation.isPending}
+                      onClick={() => void handleStatusChange(selectedTopic.id, 'IN_PROGRESS')}
+                      className="cursor-pointer rounded-full"
+                    >
+                      Mark In Progress
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={updateStatusMutation.isPending}
+                      onClick={() => void handleStatusChange(selectedTopic.id, 'COMPLETED')}
+                      className="cursor-pointer rounded-full bg-[#0044D3] hover:bg-blue-700"
+                    >
+                      <CheckIcon className="h-3.5 w-3.5" />
+                      <Span>Mark Completed</Span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal>
       </DashboardContent>
     </div>
   );
