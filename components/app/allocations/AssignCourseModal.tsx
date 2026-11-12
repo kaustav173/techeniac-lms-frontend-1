@@ -23,6 +23,7 @@ import {
   useMentorBatches,
 } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
+import { useToast } from '@/hooks/useToast';
 import { useUsers } from '@/hooks/useUsers';
 import { toISTDateInputValue } from '@/lib/date';
 
@@ -87,6 +88,7 @@ function AssignCourseModalDialog({
   );
 
   const createMutation = useCreateAllocationsMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const activeCourses = useMemo(() => {
     return courses.filter((c) => c.isActive);
@@ -243,10 +245,17 @@ function AssignCourseModalDialog({
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
       });
 
+      const count = res.created.length;
+      toastSuccess(
+        `Course successfully assigned to ${count} mentee${count === 1 ? '' : 's'}.`,
+        'Course Allocated',
+      );
       setResult(res);
       onSuccess?.();
     } catch (err: unknown) {
       setErrorMsg(err);
+      const errMsg = err instanceof Error ? err.message : 'Failed to allocate course.';
+      toastError(errMsg, 'Allocation Failed');
     }
   };
 

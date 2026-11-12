@@ -11,6 +11,7 @@ import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { type CourseAllocation, useUpdateAllocationDatesMutation } from '@/hooks/useAllocations';
+import { useToast } from '@/hooks/useToast';
 import { toISTDateInputValue } from '@/lib/date';
 
 export interface EditAllocationModalProps {
@@ -42,6 +43,7 @@ function EditAllocationModalDialog({
 
   const today = toISTDateInputValue(new Date());
   const updateMutation = useUpdateAllocationDatesMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const isStartDateError = Boolean(dateError?.toLowerCase().startsWith('start date'));
   const isDueDateError = Boolean(dateError && !isStartDateError);
@@ -79,10 +81,13 @@ function EditAllocationModalDialog({
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
         },
       });
+      toastSuccess('Allocation schedule updated successfully.', 'Schedule Updated');
       onSuccess?.();
       onClose();
     } catch (err: unknown) {
       setErrorMsg(err);
+      const msg = err instanceof Error ? err.message : 'Failed to update allocation dates.';
+      toastError(msg, 'Update Failed');
     }
   };
 
