@@ -77,9 +77,11 @@ export function MenteeProgressView() {
     isError,
     error,
     refetch,
-  } = useAllocationsList(queryFilters);
+  } = useAllocationsList(queryFilters, {
+    enabled: Boolean(user?.id),
+  });
 
-  const isTableLoading = isLoading || isFetching;
+  const isTableLoading = !user?.id || isLoading || isFetching;
 
   const allocations = useMemo<readonly CourseAllocation[]>(
     () => allocationsData?.items ?? [],
