@@ -97,12 +97,13 @@ function EditAllocationModalDialog({
       onClose={onClose}
       title="Edit Allocation"
       description={`${allocation.course?.title ?? 'Course'} • ${allocation.batch?.name ?? 'Individual Mentee'}`}
-      size="lg"
+      size="xl"
       footer={
-        <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex w-full items-center justify-end gap-2.5">
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             onClick={onClose}
             disabled={updateMutation.isPending || revokeMutation.isPending}
           >
@@ -111,6 +112,7 @@ function EditAllocationModalDialog({
           <Button
             type="button"
             variant="primary"
+            size="sm"
             onClick={(e) => void handleSubmit(e)}
             isLoading={updateMutation.isPending || revokeMutation.isPending}
             disabled={updateMutation.isPending || revokeMutation.isPending}
@@ -120,7 +122,7 @@ function EditAllocationModalDialog({
         </div>
       }
     >
-      <Form className="space-y-6" onSubmit={(e) => void handleSubmit(e)}>
+      <Form className="space-y-4" onSubmit={(e) => void handleSubmit(e)}>
         {errorMsg ? (
           <ErrorMessage
             error={errorMsg}
@@ -130,33 +132,57 @@ function EditAllocationModalDialog({
         ) : null}
 
         {/* Top Scope / Context Card */}
-        <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5">
-          <div>
-            <Span className="font-mono text-[10px] font-bold tracking-wider text-blue-600 uppercase">
-              ALLOCATION TELEMETRY
-            </Span>
-            <H3 className="mt-0.5 text-sm font-bold text-slate-900">{allocation.course?.title}</H3>
-            <P className="mt-0.5 font-mono text-xs text-slate-500">
-              {allocation.batch
-                ? `${allocation.batch.name} (${allocation.batch.code})`
-                : 'Individual Mentee Deployment'}
-            </P>
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <H3 className="truncate text-sm font-bold text-slate-900">
+                {allocation.course?.title}
+              </H3>
+              <P className="text-xs text-slate-500">
+                {allocation.batch
+                  ? `${allocation.batch.name} (${allocation.batch.code})`
+                  : 'Individual Mentee Deployment'}
+              </P>
+            </div>
           </div>
-          <div className="text-right">
-            <Span className="inline-flex rounded-full border border-blue-200/60 bg-blue-50 px-2.5 py-1 font-mono text-xs font-semibold text-blue-700">
-              Progress: {allocation.progressPercent}%
+          <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
+            <Span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+              {allocation.progressPercent}% Completed
             </Span>
           </div>
         </div>
 
-        {/* SECTION 1: Schedule & Duration (Stitch 3-Col layout) */}
+        {/* SECTION 1: Schedule & Duration */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <H3 className="text-sm font-semibold text-slate-900">Schedule & Duration</H3>
-            <Span className="font-mono text-xs text-slate-400">Synchronized Deployment</Span>
+            <div className="flex items-center gap-2">
+              <H3 className="text-sm font-semibold text-slate-900">Schedule & Duration</H3>
+              {durationDays && durationDays !== 'Invalid' ? (
+                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                  Cadence: {durationDays}
+                </Span>
+              ) : null}
+            </div>
+            <Span className="text-xs text-slate-400">Synchronized deployment</Span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="edit-start-date" required>
                 Start Date
@@ -167,18 +193,6 @@ function EditAllocationModalDialog({
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="w-full text-xs"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-duration">Estimated Cadence</Label>
-              <Input
-                id="edit-duration"
-                type="text"
-                value={durationDays ?? 'Standard'}
-                readOnly
-                disabled
-                className="w-full bg-slate-100 font-mono text-xs text-slate-600"
               />
             </div>
 
@@ -196,34 +210,48 @@ function EditAllocationModalDialog({
                   setDueDate(e.target.value);
                   if (dateError) setDateError(null);
                 }}
-                className="w-full text-xs font-semibold"
+                className="w-full text-xs font-medium"
               />
               <FieldError id="edit-due-date-error" error={dateError} />
             </div>
           </div>
 
-          {/* Soft Email Notification Banner */}
-          <div className="flex items-center gap-2.5 rounded-xl border border-blue-100 bg-blue-50/70 px-3.5 py-2.5 text-xs font-medium text-blue-900">
-            <Span className="font-bold text-blue-600">✉</Span>
-            <Span>
-              Mentees will be automatically emailed about due date changes (FR-7.3, ALC-15).
+          {/* Email Notification Banner */}
+          <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2 text-xs text-blue-800">
+            <svg
+              className="h-4 w-4 shrink-0 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <Span className="text-[11px] text-blue-700">
+              Mentees will be automatically notified via email when due dates change (FR-7.3,
+              ALC-15).
             </Span>
           </div>
         </div>
 
         {/* SECTION 2: Assigned Mentee Chips */}
-        <div className="space-y-3 border-t border-slate-100 pt-2">
+        <div className="space-y-2 border-t border-slate-100 pt-3">
           <div className="flex items-center justify-between">
-            <H3 className="text-sm font-semibold text-slate-900">Enrolled Mentee</H3>
-            <Span className="font-mono text-xs text-slate-400">Single Active Enrollment</Span>
+            <H3 className="text-xs font-semibold text-slate-700">Enrolled Mentee</H3>
+            <Span className="text-[11px] text-slate-400">Single Active Enrollment</Span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-100 py-1.5 pr-3 pl-2 text-xs text-slate-800">
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 font-mono text-[10px] font-bold text-white">
+            <div className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs shadow-2xs">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 font-mono text-[10px] font-bold text-white">
                 {allocation.user?.name ? allocation.user.name.slice(0, 2).toUpperCase() : 'ME'}
               </div>
-              <Span className="font-medium text-slate-800">
+              <Span className="font-semibold text-slate-900">
                 {allocation.user?.name ?? 'Mentee'}
               </Span>
               <Span className="font-mono text-[11px] text-slate-400">
@@ -234,18 +262,29 @@ function EditAllocationModalDialog({
         </div>
 
         {/* SECTION 3: Destructive Zone (Soft Revoke) */}
-        <div className="border-t border-slate-100 pt-2">
-          <div className="flex flex-col justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50/60 p-4 sm:flex-row sm:items-center">
+        <div className="border-t border-slate-100 pt-3">
+          <div className="flex flex-col gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <Span className="font-bold text-rose-600">⚠</Span>
-                <H3 className="font-mono text-xs font-bold text-rose-800 uppercase">
-                  Revoke Allocation
-                </H3>
+                <svg
+                  className="h-4 w-4 text-rose-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <Span className="text-xs font-bold text-rose-900">Revoke Allocation</Span>
               </div>
-              <P className="text-xs text-rose-700">
-                Progress is kept; the allocation becomes read-only and hidden from active view
-                (FR-7.4, ALC-20).
+              <P className="text-[11px] text-rose-700">
+                Progress is kept; allocation becomes read-only and hidden from active view (FR-7.4,
+                ALC-20).
               </P>
             </div>
 
@@ -256,7 +295,7 @@ function EditAllocationModalDialog({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsConfirmingRevoke(false)}
-                  className="text-xs"
+                  className="h-8 text-xs"
                 >
                   Cancel
                 </Button>
@@ -266,7 +305,7 @@ function EditAllocationModalDialog({
                   size="sm"
                   onClick={() => void handleRevoke()}
                   isLoading={revokeMutation.isPending}
-                  className="text-xs"
+                  className="h-8 text-xs"
                 >
                   Confirm Revoke
                 </Button>
@@ -278,7 +317,7 @@ function EditAllocationModalDialog({
                 size="sm"
                 onClick={() => setIsConfirmingRevoke(true)}
                 disabled={allocation.status === 'REVOKED' || allocation.status === 'COMPLETED'}
-                className="shrink-0 border-rose-300 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                className="h-8 shrink-0 border-rose-300 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
               >
                 {allocation.status === 'REVOKED' ? 'Already Revoked' : 'Revoke Allocation'}
               </Button>
