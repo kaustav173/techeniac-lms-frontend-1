@@ -10,6 +10,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -34,6 +35,8 @@ import {
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
 
+type AllocationSortField = 'course' | 'dueDate';
+
 const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
   { value: CourseAllocationStatus.ASSIGNED, label: AllocationDisplayStatus.ASSIGNED },
   { value: CourseAllocationStatus.IN_PROGRESS, label: AllocationDisplayStatus.IN_PROGRESS },
@@ -50,6 +53,8 @@ export function MenteeProgressView() {
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [sortField, setSortField] = useState<AllocationSortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // 2. Paginated & Filtered Query for the Table
   const queryFilters: AllocationFilters = useMemo(
@@ -59,10 +64,10 @@ export function MenteeProgressView() {
       limit,
       search: search.trim() || undefined,
       statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
+      sortBy: sortField ?? 'createdAt',
+      sortOrder: sortField ? sortOrder : 'desc',
     }),
-    [user?.id, page, limit, search, selectedStatuses],
+    [user?.id, page, limit, search, selectedStatuses, sortField, sortOrder],
   );
 
   const {
@@ -103,13 +108,35 @@ export function MenteeProgressView() {
     setPage(1);
   };
 
-  const handleClearFilters = () => {
-    setSearch('');
-    setSelectedStatuses([]);
+  const handleSort = (field: AllocationSortField) => {
+    let nextField: AllocationSortField | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
+      } else {
+        nextField = null;
+        nextOrder = 'asc';
+      }
+    }
+
+    setSortField(nextField);
+    setSortOrder(nextOrder);
     setPage(1);
   };
 
-  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
+  const handleClearFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
+    setPage(1);
+  };
+
+  const hasActiveFilters = Boolean(
+    search.trim() || selectedStatuses.length > 0 || sortField !== null,
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
@@ -181,15 +208,29 @@ export function MenteeProgressView() {
           <Table className="w-full table-fixed text-left text-sm text-[#111827]">
             <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
               <TableRow>
-                <TableHead className="w-[28%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                  Course
-                </TableHead>
+                <SortableColumnHeader<AllocationSortField>
+                  field="course"
+                  label="Course"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  tooltip="Sort by Course Name"
+                  className="w-[28%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                  labelClassName="text-xs font-semibold text-[#667085]"
+                />
                 <TableHead className="w-[20%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Batch
                 </TableHead>
-                <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
-                  Due Date
-                </TableHead>
+                <SortableColumnHeader<AllocationSortField>
+                  field="dueDate"
+                  label="Due Date"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  tooltip="Sort by Due Date"
+                  className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                  labelClassName="text-xs font-semibold text-[#667085]"
+                />
                 <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Progress
                 </TableHead>
