@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
@@ -163,9 +163,13 @@ function getNavIcon(itemOrLabel: HeaderNavItem | string) {
   );
 }
 
-export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>) {
+function HeaderInner({
+  title,
+  homeUrl = '/',
+  nav = [],
+  pathname,
+}: Readonly<HeaderProps & { pathname: string | null }>) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, logout, isLoading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -703,6 +707,19 @@ export function Header({ title, homeUrl = '/', nav = [] }: Readonly<HeaderProps>
         errorMessage={logoutError}
       />
     </>
+  );
+}
+
+function HeaderWithHooks(props: Readonly<HeaderProps>) {
+  const pathname = usePathname();
+  return <HeaderInner {...props} pathname={pathname} />;
+}
+
+export function Header(props: Readonly<HeaderProps>) {
+  return (
+    <Suspense fallback={<HeaderInner {...props} pathname={null} />}>
+      <HeaderWithHooks {...props} />
+    </Suspense>
   );
 }
 
