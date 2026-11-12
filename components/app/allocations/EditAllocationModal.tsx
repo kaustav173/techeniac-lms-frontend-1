@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import {
@@ -46,13 +46,6 @@ function EditAllocationModalDialog({
 
   const updateMutation = useUpdateAllocationDatesMutation();
   const revokeMutation = useRevokeAllocationMutation();
-
-  const durationDays = (() => {
-    if (!startDate || !dueDate) return null;
-    const diffMs = new Date(dueDate).getTime() - new Date(startDate).getTime();
-    const days = Math.round(diffMs / (1000 * 60 * 60 * 24));
-    return days >= 0 ? `${days} Days` : 'Invalid';
-  })();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,58 +163,52 @@ function EditAllocationModalDialog({
 
         {/* SECTION 1: Schedule & Duration */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <H3 className="text-sm font-semibold text-slate-900">Schedule & Duration</H3>
-              {durationDays && durationDays !== 'Invalid' ? (
-                <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                  Cadence: {durationDays}
-                </Span>
-              ) : null}
-            </div>
-          </div>
+          <H3 className="text-sm font-semibold text-slate-900">Schedule & Duration</H3>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="edit-start-date" required>
                 Start Date
               </Label>
-              <Input
+              <DatePicker
                 id="edit-start-date"
-                type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full text-xs"
+                onChange={(val) => setStartDate(val)}
+                rangeStart={startDate}
+                rangeEnd={dueDate}
+                maxDate={dueDate || undefined}
+                hasError={Boolean(dateError)}
+                placement="auto"
+                placeholder="Select start date"
               />
             </div>
 
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="edit-due-date" required>
                 Due Date
               </Label>
-              <Input
+              <DatePicker
                 id="edit-due-date"
-                type="date"
                 value={dueDate}
-                hasError={Boolean(dateError)}
-                errorId="edit-due-date-error"
-                onChange={(e) => {
-                  setDueDate(e.target.value);
+                onChange={(val) => {
+                  setDueDate(val);
                   if (dateError) setDateError(null);
                 }}
-                className="w-full text-xs font-medium"
+                rangeStart={startDate}
+                rangeEnd={dueDate}
+                minDate={startDate || undefined}
+                hasError={Boolean(dateError)}
+                placement="auto"
+                placeholder="Select due date"
               />
-              <FieldError id="edit-due-date-error" error={dateError} />
+              {dateError ? <FieldError id="edit-due-date-error" error={dateError} /> : null}
             </div>
           </div>
         </div>
 
         {/* SECTION 2: Assigned Mentee Chips */}
         <div className="space-y-2 border-t border-slate-100 pt-3">
-          <div className="flex items-center justify-between">
-            <H3 className="text-xs font-semibold text-slate-700">Enrolled Mentee</H3>
-            <Span className="text-[11px] text-slate-400">Single Active Enrollment</Span>
-          </div>
+          <H3 className="text-xs font-semibold text-slate-700">Enrolled Mentee</H3>
 
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs shadow-2xs">
