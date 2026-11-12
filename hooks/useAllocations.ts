@@ -24,7 +24,6 @@ import {
   CourseAllocationStatus,
   type CreateAllocationsPayload,
   type CreateAllocationsResponse,
-  getLocalDateString,
   isTerminalAllocationStatus,
   type UpdateAllocationDatesPayload,
 } from '@/services/allocations.service';
@@ -44,7 +43,6 @@ export {
   CourseAllocationStatus,
   type CreateAllocationsPayload,
   type CreateAllocationsResponse,
-  getLocalDateString,
   isTerminalAllocationStatus,
   type UpdateAllocationDatesPayload,
 };
