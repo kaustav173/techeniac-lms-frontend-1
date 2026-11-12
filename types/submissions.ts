@@ -47,7 +47,7 @@ export interface SubmissionVersion {
 export interface AssignmentWithSubmissionStatus {
   id: string;
   courseId: string;
-  allocationId?: string;
+  allocationId?: string | undefined;
   courseTitle: string;
   topicId: string | null;
   topicTitle: string | null;

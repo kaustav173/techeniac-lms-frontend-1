@@ -21,5 +21,5 @@ export default function AdminPage() {
     );
   }
 
-  return <AdminDashboardView initialUser={user} />;
+  return <AdminDashboardView />;
 }

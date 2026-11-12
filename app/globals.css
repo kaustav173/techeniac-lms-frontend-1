@@ -330,6 +330,5 @@ tbody.table-body-animated > tr:nth-child(n + 13) {
   tbody.table-body-animated > tr,
   tbody > tr {
     animation: none !important;
-    transform: none !important;
   }
 }

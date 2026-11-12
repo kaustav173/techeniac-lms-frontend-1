@@ -10,6 +10,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { getButtonClassName } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { CalendarIcon, CheckIcon, ClockIcon } from '@/components/ui/Icons';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H2, H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import {
@@ -265,20 +266,7 @@ export function MenteeProgressView() {
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#667085]">
                       <div className="flex items-center gap-1.5">
-                        <svg
-                          className="h-3.5 w-3.5 text-slate-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.75}
-                        >
-                          <circle cx="12" cy="12" r="9" />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 7.5V12l3 1.75"
-                          />
-                        </svg>
+                        <ClockIcon className="h-3.5 w-3.5 text-slate-400" />
                         <Span>
                           {alloc.estimatedMinutes != null
                             ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m est.`
@@ -286,29 +274,12 @@ export function MenteeProgressView() {
                         </Span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <svg
-                          className="h-3.5 w-3.5 text-slate-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.75}
-                        >
-                          <rect x="3" y="5" width="18" height="16" rx="2.5" />
-                          <path strokeLinecap="round" d="M16 3v4M8 3v4M3 10h18" />
-                        </svg>
+                        <CalendarIcon className="h-3.5 w-3.5 text-slate-400" />
                         <Span>Due {formatDateDMY(alloc.dueDate)}</Span>
                       </div>
                       {alloc.completedAt && (
                         <div className="flex items-center gap-1.5 text-emerald-700">
-                          <svg
-                            className="h-3.5 w-3.5 text-emerald-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
+                          <CheckIcon className="h-3.5 w-3.5 text-emerald-600" />
                           <Span>Finished {formatDateDMY(alloc.completedAt)}</Span>
                         </div>
                       )}

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CardTitle, P, Span, SubText } from '@/components/ui/Typography';
 import { useAdminDashboard } from '@/hooks/useDashboard';
-import type { AuthUser } from '@/services/auth.service';
 
 export function AdminDashboardSkeleton() {
   return (
@@ -57,12 +56,7 @@ export function AdminDashboardSkeleton() {
   );
 }
 
-export interface AdminDashboardViewProps {
-  readonly initialUser?: AuthUser;
-}
-
-export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}) {
-  void initialUser;
+export function AdminDashboardView() {
   const {
     data: dashboard,
     isError: isErrorDashboard,

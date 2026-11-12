@@ -9,6 +9,13 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  CheckIcon,
+  ClockIcon,
+} from '@/components/ui/Icons';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
@@ -38,83 +45,6 @@ const TOPIC_STATUS_INDEX: Record<TopicProgressStatus, number> = {
   IN_PROGRESS: 1,
   COMPLETED: 2,
 };
-
-function ClockIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5V12l3 1.75" />
-    </svg>
-  );
-}
-
-function CalendarIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      aria-hidden="true"
-    >
-      <rect x="3" y="5" width="18" height="16" rx="2.5" />
-      <path strokeLinecap="round" d="M16 3v4M8 3v4M3 10h18" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.25}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
-    </svg>
-  );
-}
-
-function ArrowLeftIcon({ className = 'h-3.5 w-3.5' }: Readonly<{ className?: string }>) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6-6-6 6 6 6" />
-    </svg>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /* Sub-component: Capstone Assignment Card                                    */

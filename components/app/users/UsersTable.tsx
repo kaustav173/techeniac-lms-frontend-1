@@ -101,6 +101,10 @@ export function UsersTable() {
   useEffect(() => {
     if (!activeMenuState) return;
     const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(`[data-action-trigger="${activeMenuState.id}"]`)) {
+        return;
+      }
       if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
         setActiveMenuState(null);
       }
@@ -108,16 +112,18 @@ export function UsersTable() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setActiveMenuState(null);
     };
-    const handleScroll = () => {
+    const handleDismiss = () => {
       setActiveMenuState(null);
     };
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('scroll', handleDismiss, true);
+    window.addEventListener('resize', handleDismiss);
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('scroll', handleDismiss, true);
+      window.removeEventListener('resize', handleDismiss);
     };
   }, [activeMenuState]);
 
@@ -695,6 +701,7 @@ export function UsersTable() {
                           type="button"
                           variant="ghost"
                           size="sm"
+                          data-action-trigger={u.id}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (activeMenuState?.id === u.id) {

@@ -110,7 +110,7 @@ export function Modal({
             onClick={onClose}
             disabled={isLocked}
             aria-label="Close dialog"
-            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
+            className="flex h-10 w-10 items-center justify-center rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
           >
             <svg
               className="h-4 w-4"

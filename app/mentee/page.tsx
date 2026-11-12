@@ -25,7 +25,9 @@ import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
+import { Alert } from '@/components/ui/Alert';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
   isTerminalAllocationStatus,
@@ -37,6 +39,8 @@ import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import { formatDateIST, formatDateTime, formatTimeIST, toISTDateInputValue } from '@/lib/date';
 import { AssignmentDerivedStatus } from '@/types/submissions';
+
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 40;
 
 function formatDate(dateInput?: string | null): string {
   if (!dateInput) return '—';
@@ -50,7 +54,7 @@ function formatDate(dateInput?: string | null): string {
 }
 
 function formatDateRange(startDate?: string | null, endDate?: string | null): string {
-  if (!startDate && !endDate) return 'Nov 1, 2026 – Apr 30, 2027';
+  if (!startDate && !endDate) return '—';
   if (startDate && endDate) {
     return `${formatDate(startDate)} – ${formatDate(endDate)}`;
   }
@@ -59,12 +63,16 @@ function formatDateRange(startDate?: string | null, endDate?: string | null): st
 
 export default function MenteePage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
-  const { data: menteeBatchView, isLoading: isLoadingBatch } = useMenteeBatch();
+  const { data: menteeBatchView, isLoading: isLoadingBatch, error: batchError } = useMenteeBatch();
   const { data: allocationsData, isLoading: isLoadingAllocations } = useAllocationsList({
     menteeId: user?.id,
     limit: 100,
   });
-  const { data: menteeDashboard, isLoading: isLoadingDashboard } = useMenteeDashboard({
+  const {
+    data: menteeDashboard,
+    isLoading: isLoadingDashboard,
+    error: dashboardError,
+  } = useMenteeDashboard({
     enabled: isAuthorized,
   });
   const { assignments } = useMyAssignments({ limit: 5 });
@@ -108,10 +116,10 @@ export default function MenteePage() {
     }
 
     return {
-      completedCount: 1,
-      inProgressCount: 5,
-      overdueCount: 5,
-      overallProgress: 16.7,
+      completedCount: 0,
+      inProgressCount: 0,
+      overdueCount: 0,
+      overallProgress: 0,
     };
   }, [allocations, menteeDashboard]);
 
@@ -124,18 +132,18 @@ export default function MenteePage() {
     );
     if (pending) {
       const d = new Date(pending.dueDate);
-      const day = isNaN(d.getTime()) ? '28' : String(d.getDate()).padStart(2, '0');
+      const day = isNaN(d.getTime()) ? '—' : String(d.getDate()).padStart(2, '0');
       const month = isNaN(d.getTime())
-        ? 'Oct'
+        ? ''
         : new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d);
-      const time = isNaN(d.getTime()) ? '10:00 AM' : formatTimeIST(pending.dueDate);
+      const time = isNaN(d.getTime()) ? '' : formatTimeIST(pending.dueDate);
       const isDueToday =
         !isNaN(d.getTime()) && toISTDateInputValue(new Date()) === toISTDateInputValue(d);
       return {
         day,
         month,
         title: `Assignment: ${pending.title}`,
-        subtitle: `${time} • ${pending.status === AssignmentDerivedStatus.OVERDUE ? 'Overdue' : isDueToday ? 'Due Today' : `Due ${formatDateIST(pending.dueDate)}`}`,
+        subtitle: `${time ? `${time} • ` : ''}${pending.status === AssignmentDerivedStatus.OVERDUE ? 'Overdue' : isDueToday ? 'Due Today' : `Due ${formatDateIST(pending.dueDate)}`}`,
         link: `/mentee/assignments/${pending.id}`,
       };
     }
@@ -143,27 +151,21 @@ export default function MenteePage() {
     const deadline = menteeDashboard?.upcomingDeadlines?.[0];
     if (deadline) {
       const d = new Date(deadline.dueDate);
-      const day = isNaN(d.getTime()) ? '28' : String(d.getDate()).padStart(2, '0');
+      const day = isNaN(d.getTime()) ? '—' : String(d.getDate()).padStart(2, '0');
       const month = isNaN(d.getTime())
-        ? 'Oct'
+        ? ''
         : new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d);
-      const time = isNaN(d.getTime()) ? '10:00 AM' : formatTimeIST(deadline.dueDate);
+      const time = isNaN(d.getTime()) ? '' : formatTimeIST(deadline.dueDate);
       return {
         day,
         month,
         title: `Assignment: ${deadline.courseName}`,
-        subtitle: `${time} • ${deadline.isOverdue ? 'Overdue' : `Due ${formatDateIST(deadline.dueDate)}`}`,
+        subtitle: `${time ? `${time} • ` : ''}${deadline.isOverdue ? 'Overdue' : `Due ${formatDateIST(deadline.dueDate)}`}`,
         link: `/mentee/courses`,
       };
     }
 
-    return {
-      day: '28',
-      month: 'Oct',
-      title: 'Assignment: Data Structures',
-      subtitle: '10:00 AM • Due Today',
-      link: '/mentee/assignments',
-    };
+    return null;
   }, [assignments, menteeDashboard]);
 
   /* 3 My Courses cards */
@@ -182,32 +184,7 @@ export default function MenteePage() {
       });
     }
 
-    return [
-      {
-        id: 'course-1',
-        title: 'Programming Basics',
-        subtitle: '3 / 10 lessons',
-        progress: 30,
-        graphicType: 'code' as const,
-        href: '/mentee/courses',
-      },
-      {
-        id: 'course-2',
-        title: 'Data Science Fundamentals',
-        subtitle: '2 / 8 lessons',
-        progress: 25,
-        graphicType: 'data' as const,
-        href: '/mentee/courses',
-      },
-      {
-        id: 'course-3',
-        title: 'React for Developers',
-        subtitle: '5 / 12 lessons',
-        progress: 42,
-        graphicType: 'react' as const,
-        href: '/mentee/courses',
-      },
-    ];
+    return [];
   }, [allocations]);
 
   /* Recent Activity list */
@@ -222,14 +199,7 @@ export default function MenteePage() {
       }));
     }
 
-    return [
-      {
-        id: 'default-act-1',
-        title: 'Assignment Submitted',
-        subtitle: 'Data Structures • Submitted on 28 Oct, 2026 at 10:14 AM',
-        badge: 'Submitted',
-      },
-    ];
+    return [];
   }, [menteeDashboard]);
 
   if (!isAuthorized || !user) {
@@ -251,6 +221,27 @@ export default function MenteePage() {
       <Header {...MENTEE_PORTAL_NAV} />
 
       <DashboardContent className="animate-slide-up space-y-6 pb-12 sm:space-y-8">
+        {batchError ? (
+          <Alert
+            variant="error"
+            title="Failed to load batch details"
+            message={
+              batchError instanceof Error ? batchError.message : 'Please try refreshing the page.'
+            }
+          />
+        ) : null}
+        {dashboardError ? (
+          <Alert
+            variant="error"
+            title="Failed to load dashboard statistics"
+            message={
+              dashboardError instanceof Error
+                ? dashboardError.message
+                : 'Please try refreshing the page.'
+            }
+          />
+        ) : null}
+
         {/* ================================================================ */}
         {/* ROW 1: Welcome Banner (7 cols) + Batch & Mentor Cards (5 cols)    */}
         {/* ================================================================ */}
@@ -258,12 +249,12 @@ export default function MenteePage() {
           {/* Welcome Banner */}
           <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#DBEAFE] bg-gradient-to-r from-[#EFF6FF] via-[#EEF2FF] to-[#E0E7FF] p-6 shadow-xs sm:flex-row sm:items-center sm:p-8 lg:col-span-7">
             <div className="relative z-10 max-w-sm">
-              <h1 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
+              <H1 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
                 Welcome back, {user.name}!
-              </h1>
-              <p className="mt-2 text-sm font-medium text-[#475569] sm:text-base">
+              </H1>
+              <P className="mt-2 text-sm font-medium text-[#475569] sm:text-base">
                 Keep learning, keep growing 🚀
-              </p>
+              </P>
             </div>
             <div className="relative mt-4 flex flex-shrink-0 items-center justify-center sm:mt-0 sm:justify-end">
               <StudentIllustration />
@@ -279,19 +270,19 @@ export default function MenteePage() {
                   <CalendarIcon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="block text-xs font-semibold text-[#64748B]">Current Batch</span>
+                  <Span className="block text-xs font-semibold text-[#64748B]">Current Batch</Span>
                   {isLoading ? (
                     <Skeleton className="mt-1 h-5 w-24" />
                   ) : (
-                    <h2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
-                      {batch?.name ?? 'Cohort Gamma'}
-                    </h2>
+                    <H2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
+                      {batch?.name ?? 'No batch assigned'}
+                    </H2>
                   )}
                 </div>
               </div>
-              <p className="mt-3 truncate text-xs text-[#94A3B8]">
+              <P className="mt-3 truncate text-xs text-[#667085]">
                 {formatDateRange(batch?.startDate, batch?.endDate)}
-              </p>
+              </P>
             </div>
 
             {/* Mentor */}
@@ -301,22 +292,22 @@ export default function MenteePage() {
                   <UserIcon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="block text-xs font-semibold text-[#64748B]">Mentor</span>
+                  <Span className="block text-xs font-semibold text-[#64748B]">Mentor</Span>
                   {isLoading ? (
                     <Skeleton className="mt-1 h-5 w-24" />
                   ) : (
-                    <h2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
-                      {mentor?.name ?? 'Kaustuv Das'}
-                    </h2>
+                    <H2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
+                      {mentor?.name ?? 'No mentor assigned'}
+                    </H2>
                   )}
                 </div>
               </div>
-              <p
-                className="mt-3 truncate text-xs text-[#94A3B8]"
-                title={mentor?.email ?? 'kaustuv@techeniac.com'}
+              <P
+                className="mt-3 truncate text-xs text-[#667085]"
+                title={mentor?.email ?? undefined}
               >
-                {mentor?.email ?? 'kaustuv@techeniac.com'}
-              </p>
+                {mentor?.email ?? '—'}
+              </P>
             </div>
           </div>
         </div>
@@ -330,15 +321,15 @@ export default function MenteePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <BarChartIcon className="h-5 w-5 text-[#0044D3]" />
-                <h2 className="text-base font-bold text-[#0F172A] sm:text-lg">
+                <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">
                   Your Learning Progress
-                </h2>
+                </H2>
               </div>
               <Link
                 href="/mentee/progress"
                 className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
               >
-                <span>View Details</span>
+                <Span>View Details</Span>
                 <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -363,25 +354,27 @@ export default function MenteePage() {
                     stroke="#0044D3"
                     strokeWidth="9"
                     strokeLinecap="round"
-                    strokeDasharray={251.3}
-                    strokeDashoffset={251.3 - (overallProgress / 100) * 251.3}
+                    strokeDasharray={CIRCLE_CIRCUMFERENCE}
+                    strokeDashoffset={
+                      CIRCLE_CIRCUMFERENCE - (overallProgress / 100) * CIRCLE_CIRCUMFERENCE
+                    }
                     className="transition-all duration-700 ease-out"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-xl leading-tight font-black text-[#0F172A] sm:text-2xl">
+                  <Span className="text-xl leading-tight font-black text-[#0F172A] sm:text-2xl">
                     {overallProgress}%
-                  </span>
-                  <span className="text-[11px] font-semibold text-[#64748B]">Complete</span>
+                  </Span>
+                  <Span className="text-[11px] font-semibold text-[#64748B]">Complete</Span>
                 </div>
               </div>
 
               {/* Horizontal Bar & Legend */}
               <div className="w-full flex-1 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#0F172A] sm:text-sm">
+                  <Span className="text-xs font-bold text-[#0F172A] sm:text-sm">
                     Overall Progress
-                  </span>
+                  </Span>
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#EFF6FF]">
                   <div
@@ -392,17 +385,17 @@ export default function MenteePage() {
                 <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold text-[#334155] sm:gap-4">
                   <div className="flex items-center gap-1.5 text-slate-700">
                     <BookIcon className="h-3.5 w-3.5 text-slate-500" />
-                    <span>{completedCount} Completed</span>
+                    <Span>{completedCount} Completed</Span>
                   </div>
-                  <span className="text-slate-300">•</span>
+                  <Span className="text-slate-300">•</Span>
                   <div className="flex items-center gap-1.5 text-slate-700">
                     <ClockIcon className="h-3.5 w-3.5 text-slate-500" />
-                    <span>{inProgressCount} In Progress</span>
+                    <Span>{inProgressCount} In Progress</Span>
                   </div>
-                  <span className="text-slate-300">•</span>
+                  <Span className="text-slate-300">•</Span>
                   <div className="flex items-center gap-1.5 text-rose-600">
                     <AlertIcon className="h-3.5 w-3.5 text-rose-500" />
-                    <span>{overdueCount} Overdue</span>
+                    <Span>{overdueCount} Overdue</Span>
                   </div>
                 </div>
               </div>
@@ -414,48 +407,58 @@ export default function MenteePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <CalendarIcon className="h-5 w-5 text-[#0044D3]" />
-                <h2 className="text-base font-bold text-[#0F172A] sm:text-lg">Upcoming</h2>
+                <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">Upcoming</H2>
               </div>
               <Link
                 href="/mentee/assignments"
                 className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
               >
-                <span>View All</span>
+                <Span>View All</Span>
                 <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50">
-                  <span className="text-xl leading-none font-black text-[#0F172A] sm:text-2xl">
-                    {upcomingItem.day}
-                  </span>
-                  <span className="mt-0.5 text-[10px] font-bold tracking-wider text-[#64748B] uppercase">
-                    {upcomingItem.month}
-                  </span>
+            {upcomingItem ? (
+              <div className="mt-6 flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-4">
+                  <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50">
+                    <Span className="text-xl leading-none font-black text-[#0F172A] sm:text-2xl">
+                      {upcomingItem.day}
+                    </Span>
+                    <Span className="mt-0.5 text-[10px] font-bold tracking-wider text-[#64748B] uppercase">
+                      {upcomingItem.month}
+                    </Span>
+                  </div>
+                  <div className="min-w-0">
+                    <H3
+                      className="truncate text-sm font-bold text-[#0F172A] sm:text-base"
+                      title={upcomingItem.title}
+                    >
+                      {upcomingItem.title}
+                    </H3>
+                    <P className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
+                      <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
+                      <Span>{upcomingItem.subtitle}</Span>
+                    </P>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3
-                    className="truncate text-sm font-bold text-[#0F172A] sm:text-base"
-                    title={upcomingItem.title}
-                  >
-                    {upcomingItem.title}
-                  </h3>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
-                    <ClockIcon className="h-3.5 w-3.5 text-[#94A3B8]" />
-                    <span>{upcomingItem.subtitle}</span>
-                  </p>
-                </div>
-              </div>
 
-              <Link
-                href={upcomingItem.link}
-                className="flex-shrink-0 rounded-full bg-blue-50 px-4 py-2 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-100"
-              >
-                View Assignment
-              </Link>
-            </div>
+                <Link
+                  href={upcomingItem.link}
+                  className="flex-shrink-0 rounded-full bg-blue-50 px-4 py-2 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-100"
+                >
+                  View Assignment
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-6 text-center">
+                <CalendarIcon className="h-8 w-8 text-slate-300" />
+                <Span className="mt-2 text-xs font-semibold text-slate-500">
+                  No upcoming assignments due
+                </Span>
+                <Span className="text-[11px] text-slate-400">You are all caught up!</Span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -468,48 +471,60 @@ export default function MenteePage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <BookIcon className="h-5 w-5 text-[#0044D3]" />
-                <h2 className="text-base font-bold text-[#0F172A] sm:text-lg">My Courses</h2>
+                <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">My Courses</H2>
               </div>
               <Link
                 href="/mentee/courses"
                 className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
               >
-                <span>View All</span>
+                <Span>View All</Span>
                 <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
 
-            <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {displayCourses.map((c) => (
-                <Link
-                  key={c.id}
-                  href={c.href}
-                  className="group flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-100 bg-white p-3.5 shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-md"
-                >
-                  <div className="relative flex h-24 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#EFF6FF] to-[#E0E7FF] p-3 transition-transform group-hover:scale-[1.02] sm:h-26">
-                    {c.graphicType === 'code' && <LaptopCodeIllustration />}
-                    {c.graphicType === 'data' && <DataScienceIllustration />}
-                    {c.graphicType === 'react' && <ReactAtomIllustration />}
-                  </div>
-
-                  <div className="mt-3">
-                    <h3
-                      className="truncate text-xs font-bold text-[#0F172A] transition-colors group-hover:text-[#0044D3] sm:text-sm"
-                      title={c.title}
-                    >
-                      {c.title}
-                    </h3>
-                    <p className="mt-0.5 text-[11px] font-medium text-[#64748B]">{c.subtitle}</p>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#EFF6FF]">
-                      <div
-                        className="h-full rounded-full bg-[#0044D3] transition-all duration-500"
-                        style={{ width: `${c.progress}%` }}
-                      />
+            {displayCourses.length > 0 ? (
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {displayCourses.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={c.href}
+                    className="group flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-100 bg-white p-3.5 shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-md"
+                  >
+                    <div className="relative flex h-24 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#EFF6FF] to-[#E0E7FF] p-3 transition-transform group-hover:scale-[1.02] sm:h-26">
+                      {c.graphicType === 'code' && <LaptopCodeIllustration />}
+                      {c.graphicType === 'data' && <DataScienceIllustration />}
+                      {c.graphicType === 'react' && <ReactAtomIllustration />}
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+
+                    <div className="mt-3">
+                      <H3
+                        className="truncate text-xs font-bold text-[#0F172A] transition-colors group-hover:text-[#0044D3] sm:text-sm"
+                        title={c.title}
+                      >
+                        {c.title}
+                      </H3>
+                      <P className="mt-0.5 text-[11px] font-medium text-[#64748B]">{c.subtitle}</P>
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#EFF6FF]">
+                        <div
+                          className="h-full rounded-full bg-[#0044D3] transition-all duration-500"
+                          style={{ width: `${c.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-5 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-8 text-center sm:col-span-3">
+                <BookIcon className="h-8 w-8 text-slate-300" />
+                <Span className="mt-2 text-xs font-semibold text-slate-600">
+                  No courses allocated yet
+                </Span>
+                <Span className="text-[11px] text-slate-400">
+                  Courses assigned by your mentor will appear here
+                </Span>
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}
@@ -518,17 +533,17 @@ export default function MenteePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <LightningIcon className="h-5 w-5 text-amber-300" />
-                  <h2 className="text-base font-bold text-white sm:text-lg">Quick Actions</h2>
+                  <H2 className="text-base font-bold text-white sm:text-lg">Quick Actions</H2>
                 </div>
                 <Link
                   href="/mentee/courses"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white shadow-xs backdrop-blur-xs transition-all hover:scale-105 hover:bg-white/30"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white shadow-xs backdrop-blur-xs transition-all hover:scale-105 hover:bg-white/30"
                   aria-label="View Courses"
                 >
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
-              <p className="mt-1 text-xs text-blue-100/90">Get things done faster</p>
+              <P className="mt-1 text-xs text-blue-100/90">Get things done faster</P>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
@@ -537,7 +552,7 @@ export default function MenteePage() {
                 className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
               >
                 <DocumentTextIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <span className="truncate text-xs font-bold">View Assignments</span>
+                <Span className="truncate text-xs font-bold">View Assignments</Span>
               </Link>
 
               <Link
@@ -545,7 +560,7 @@ export default function MenteePage() {
                 className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
               >
                 <BarChartIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <span className="truncate text-xs font-bold">Check Progress</span>
+                <Span className="truncate text-xs font-bold">Check Progress</Span>
               </Link>
 
               <Link
@@ -553,7 +568,7 @@ export default function MenteePage() {
                 className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
               >
                 <BookIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <span className="truncate text-xs font-bold">Browse Courses</span>
+                <Span className="truncate text-xs font-bold">Browse Courses</Span>
               </Link>
 
               <Link
@@ -561,7 +576,7 @@ export default function MenteePage() {
                 className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
               >
                 <TrophyIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <span className="truncate text-xs font-bold">View Performance</span>
+                <Span className="truncate text-xs font-bold">View Performance</Span>
               </Link>
             </div>
           </div>
@@ -574,39 +589,51 @@ export default function MenteePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <ClockIcon className="h-5 w-5 text-[#0044D3]" />
-              <h2 className="text-base font-bold text-[#0F172A] sm:text-lg">Recent Activity</h2>
+              <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">Recent Activity</H2>
             </div>
             <Link
               href="/mentee/performance"
               className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
             >
-              <span>View All</span>
+              <Span>View All</Span>
               <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
-          <div className="mt-5 space-y-3">
-            {displayRecentActivities.map((act) => (
-              <div
-                key={act.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-slate-50 bg-[#F8FAFC] p-3.5 transition-colors hover:bg-slate-50 sm:p-4"
-              >
-                <div className="flex min-w-0 items-center gap-3.5">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <CheckCircleIcon className="h-5 w-5" />
+          {displayRecentActivities.length > 0 ? (
+            <div className="mt-5 space-y-3">
+              {displayRecentActivities.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-slate-50 bg-[#F8FAFC] p-3.5 transition-colors hover:bg-slate-50 sm:p-4"
+                >
+                  <div className="flex min-w-0 items-center gap-3.5">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                      <CheckCircleIcon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <H3 className="truncate text-sm font-bold text-[#0F172A]">{act.title}</H3>
+                      <P className="mt-0.5 truncate text-xs text-[#64748B]">{act.subtitle}</P>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-bold text-[#0F172A]">{act.title}</h3>
-                    <p className="mt-0.5 truncate text-xs text-[#64748B]">{act.subtitle}</p>
-                  </div>
-                </div>
 
-                <span className="flex-shrink-0 rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                  {act.badge}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <Span className="flex-shrink-0 rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    {act.badge}
+                  </Span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-6 text-center">
+              <ClockIcon className="h-8 w-8 text-slate-300" />
+              <Span className="mt-2 text-xs font-semibold text-slate-500">
+                No recent submissions or grades
+              </Span>
+              <Span className="text-[11px] text-slate-400">
+                Activity will appear here once you submit assignments
+              </Span>
+            </div>
+          )}
         </div>
       </DashboardContent>
     </div>

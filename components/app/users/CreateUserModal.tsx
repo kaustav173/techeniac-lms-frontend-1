@@ -130,7 +130,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
-        className="space-y-4 pb-28 sm:pb-32"
+        className="space-y-4"
       >
         {/* Name Field */}
         <div>
