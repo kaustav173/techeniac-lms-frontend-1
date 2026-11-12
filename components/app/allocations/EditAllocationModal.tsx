@@ -179,7 +179,6 @@ function EditAllocationModalDialog({
                 </Span>
               ) : null}
             </div>
-            <Span className="text-xs text-slate-400">Synchronized deployment</Span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -215,28 +214,6 @@ function EditAllocationModalDialog({
               <FieldError id="edit-due-date-error" error={dateError} />
             </div>
           </div>
-
-          {/* Email Notification Banner */}
-          <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2 text-xs text-blue-800">
-            <svg
-              className="h-4 w-4 shrink-0 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            <Span className="text-[11px] text-blue-700">
-              Mentees will be automatically notified via email when due dates change (FR-7.3,
-              ALC-15).
-            </Span>
-          </div>
         </div>
 
         {/* SECTION 2: Assigned Mentee Chips */}
@@ -263,29 +240,23 @@ function EditAllocationModalDialog({
 
         {/* SECTION 3: Destructive Zone (Soft Revoke) */}
         <div className="border-t border-slate-100 pt-3">
-          <div className="flex flex-col gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <svg
-                  className="h-4 w-4 text-rose-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                <Span className="text-xs font-bold text-rose-900">Revoke Allocation</Span>
-              </div>
-              <P className="text-[11px] text-rose-700">
-                Progress is kept; allocation becomes read-only and hidden from active view (FR-7.4,
-                ALC-20).
-              </P>
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-3">
+            <div className="flex items-center gap-1.5">
+              <svg
+                className="h-4 w-4 text-rose-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <Span className="text-xs font-bold text-rose-900">Revoke Allocation</Span>
             </div>
 
             {isConfirmingRevoke ? (
