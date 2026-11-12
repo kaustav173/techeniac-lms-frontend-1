@@ -141,8 +141,9 @@ export function usePrefetchCourse() {
   );
 }
 
-export function useCourseBuilder(courseId: string) {
+export function useCourseBuilder(courseId: string, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient();
+  const isEnabled = Boolean(courseId) && (options?.enabled ?? true);
 
   const {
     data: course = null,
@@ -151,7 +152,7 @@ export function useCourseBuilder(courseId: string) {
   } = useQuery<Course | null>({
     queryKey: ['course', courseId],
     queryFn: () => coursesService.getCourseById(courseId, true),
-    enabled: Boolean(courseId),
+    enabled: isEnabled,
   });
 
   const {
@@ -161,7 +162,7 @@ export function useCourseBuilder(courseId: string) {
   } = useQuery<CourseImpact | null>({
     queryKey: ['course-impact', courseId],
     queryFn: () => coursesService.getCourseImpact(courseId),
-    enabled: Boolean(courseId),
+    enabled: isEnabled,
   });
 
   const isLoading = isCourseLoading || isImpactLoading;

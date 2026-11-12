@@ -20,7 +20,7 @@ import {
   ADMIN_COURSES_NAV,
   MENTOR_COURSES_NAV,
 } from '@/components/app/navigation/portal-nav.config';
-import { Header, HeaderSkeleton } from '@/components/layout/Header';
+import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -772,13 +772,14 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
 
 export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
   const { contentMarginClass } = useSidebar();
+  const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
 
   return (
     <div
       data-portal={portal}
       className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
     >
-      <HeaderSkeleton title="Course Builder" />
+      <Header {...navConfig} />
       <CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />
     </div>
   );
@@ -794,6 +795,11 @@ function CourseBuilderContent({
   const rawId = params.id;
   const courseId = propCourseId ?? (Array.isArray(rawId) ? rawId[0] : rawId) ?? '';
   const { user, isAuthenticated, isLoading } = useAuth();
+  const isAuthorized =
+    !isLoading &&
+    isAuthenticated &&
+    user !== null &&
+    (user.role === 'SUPER_ADMIN' || user.role === 'MENTOR');
 
   const {
     course,
@@ -812,7 +818,7 @@ function CourseBuilderContent({
     updateAssignment,
     deleteAssignment,
     reorderAssignments,
-  } = useCourseBuilder(courseId);
+  } = useCourseBuilder(courseId, { enabled: isAuthorized });
 
   // Active selection in outline tree
   const [selectedNode, setSelectedNode] = useState<ActiveNodeSelection>({
@@ -1057,24 +1063,12 @@ function CourseBuilderContent({
     }
   };
 
-  const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
-
   if (!course) {
-    return (
-      <div
-        data-portal={portal}
-        className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
-      >
-        <Header {...navConfig} />
-        <CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />
-      </div>
-    );
+    return <CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />;
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900">
-      <Header {...navConfig} />
-
+    <>
       <div
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
@@ -1315,14 +1309,23 @@ function CourseBuilderContent({
         }}
         onCreate={handleCreateAssignment}
       />
-    </div>
+    </>
   );
 }
 
 export function CourseBuilderView({ portal, courseId }: Readonly<CourseBuilderViewProps>) {
+  const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
+  const { contentMarginClass } = useSidebar();
+
   return (
-    <Suspense fallback={<CourseBuilderSkeleton portal={portal} />}>
-      <CourseBuilderContent portal={portal} courseId={courseId} />
-    </Suspense>
+    <div
+      data-portal={portal}
+      className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
+    >
+      <Header {...navConfig} />
+      <Suspense fallback={<CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />}>
+        <CourseBuilderContent portal={portal} courseId={courseId} />
+      </Suspense>
+    </div>
   );
 }
