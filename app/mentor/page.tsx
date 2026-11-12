@@ -390,7 +390,7 @@ export default function MentorPage() {
             <div>
               <div className="flex items-center justify-between">
                 <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
-                  Course Average Grade
+                  Course Average Score
                 </Span>
                 <Span className="inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">
                   {onTimeRate} On-Time

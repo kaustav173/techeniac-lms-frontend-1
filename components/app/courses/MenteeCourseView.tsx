@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import React, { useId, useMemo, useState } from 'react';
 
-import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.config';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
@@ -11,16 +10,16 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import {
   ArrowLeftIcon,
-  ArrowRightIcon,
+  BarChartIcon,
+  BookIcon,
   CalendarIcon,
   CheckIcon,
+  ChevronRightIcon,
   ClockIcon,
 } from '@/components/ui/Icons';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H1, H2, H3, H4, Muted, P, Span } from '@/components/ui/Typography';
+import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { useCourseDetail } from '@/hooks/useCourses';
 import {
   type TopicProgressItem,
@@ -28,591 +27,128 @@ import {
   useAllocationProgress,
   useUpdateTopicStatusMutation,
 } from '@/hooks/useProgress';
+import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
-import { type Assignment, AssignmentScope, type Subtopic, type Topic } from '@/types/courses';
-
-const TOPIC_TIMELINE_STEPS: ReadonlyArray<{
-  readonly value: TopicProgressStatus;
-  readonly label: string;
-}> = [
-  { value: 'NOT_STARTED', label: 'Not Started' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'COMPLETED', label: 'Completed' },
-];
-
-const TOPIC_STATUS_INDEX: Record<TopicProgressStatus, number> = {
-  NOT_STARTED: 0,
-  IN_PROGRESS: 1,
-  COMPLETED: 2,
-};
+import { type Subtopic, type Topic } from '@/types/courses';
 
 /* -------------------------------------------------------------------------- */
-/* Sub-component: Capstone Assignment Card                                    */
+/* Decorative SVG Icons for Mentee Course Workspace                           */
 /* -------------------------------------------------------------------------- */
 
-interface CapstoneAssignmentCardProps {
-  readonly assignment: Assignment;
+function LaptopGraduationIcon({ className = 'h-10 w-10 text-[#0044D3]' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 48 48" stroke="currentColor">
+      {/* Screen Outline */}
+      <rect x="8" y="10" width="32" height="22" rx="3" strokeWidth="2.5" fill="none" />
+      {/* Laptop Base */}
+      <path d="M4 36h40" strokeWidth="2.5" strokeLinecap="round" />
+      {/* Graduation Cap inside screen */}
+      <path
+        d="M24 16l8 4-8 4-8-4 8-4z"
+        fill="currentColor"
+        fillOpacity="0.15"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19 22.5v3.5c0 2 2.2 3.5 5 3.5s5-1.5 5-3.5v-3.5"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path d="M30 20v5" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
 }
 
-export function CapstoneAssignmentCard({ assignment }: CapstoneAssignmentCardProps) {
+function OutlineTrophyIcon({ className = 'h-8 w-8 text-[#0044D3]' }: { className?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5">
-      <div className="flex items-start justify-between gap-2">
-        <H4 className="text-xs font-bold text-[#111827]">{assignment.title}</H4>
-        <Span className="rounded-full bg-[#E1E6EC] px-2 py-0.5 text-xs font-semibold text-[#111827]">
-          {assignment.maxMarks} Marks
-        </Span>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16 4h3a2 2 0 012 2v2a5 5 0 01-5 5h-1M8 4H5a2 2 0 00-2 2v2a5 5 0 005 5h1m8-9H8m8 0v7a4 4 0 01-8 0V4m4 11v3m-4 3h8"
+      />
+    </svg>
+  );
+}
+
+function ConfettiCelebrationGraphic() {
+  return (
+    <div className="relative flex items-center justify-center p-3 select-none">
+      {/* Decorative festive confetti dashes */}
+      <span className="absolute -top-1 -left-1 h-2 w-0.5 rotate-45 rounded-full bg-amber-400" />
+      <span className="absolute top-0 right-1 h-2 w-0.5 -rotate-45 rounded-full bg-blue-500" />
+      <span className="absolute bottom-1 -left-2 h-2 w-0.5 -rotate-12 rounded-full bg-indigo-500" />
+      <span className="absolute right-0 -bottom-1 h-2 w-0.5 rotate-35 rounded-full bg-purple-500" />
+      <span className="absolute -top-2 left-6 h-2 w-0.5 rotate-15 rounded-full bg-rose-400" />
+      <span className="absolute bottom-0 left-1 h-1.5 w-1.5 rounded-full bg-yellow-400" />
+      <span className="absolute top-2 -right-2 h-1.5 w-1.5 rounded-full bg-teal-400" />
+
+      {/* Main green celebration check badge */}
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-400 text-white shadow-sm ring-4 ring-emerald-100/70">
+        <CheckIcon className="h-6 w-6 stroke-[3]" />
       </div>
-      <Muted className="text-xs text-[#667085]">
-        Pass: {assignment.passMarks} • Est: {assignment.estimatedMinutes}m
-      </Muted>
+    </div>
+  );
+}
+
+function CircularProgressRing({
+  percentage,
+  size = 84,
+  strokeWidth = 6,
+}: {
+  percentage: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.min(100, Math.max(0, percentage));
+  const strokeDashoffset = circumference - (circumference * clamped) / 100;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <svg className="-rotate-90 transform" width={size} height={size}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#F1F5F9"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#0044D3"
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            fill="none"
+            className="transition-all duration-700 ease-out"
+          />
+        </svg>
+        <span className="absolute text-base font-bold text-slate-900">{Math.round(clamped)}%</span>
+      </div>
+      <span className="mt-1 text-xs font-medium text-slate-500">Completed</span>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* Sub-component: Course Outline Sidebar                                      */
-/* -------------------------------------------------------------------------- */
-
-interface CourseOutlineSidebarProps {
-  readonly activeTopics: Topic[];
-  readonly currentTopic: Topic | null | undefined;
-  readonly currentSubtopic: Subtopic | null | undefined;
-  readonly progressMap: Map<string, TopicProgressItem>;
-  readonly courseAssignments: Assignment[];
-  readonly onSelectTopic: (topicId: string) => void;
-  readonly onSelectSubtopic: (subtopicId: string) => void;
-}
-
-export function CourseOutlineSidebar({
-  activeTopics,
-  currentTopic,
-  currentSubtopic,
-  progressMap,
-  courseAssignments,
-  onSelectTopic,
-  onSelectSubtopic,
-}: CourseOutlineSidebarProps) {
-  return (
-    <aside className="flex flex-col gap-6 lg:col-span-4">
-      <div className="sticky top-24 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#E1E6EC] pb-3">
-          <div>
-            <H2 className="text-base font-bold text-[#111827]">Course Outline</H2>
-            <Muted className="mt-0.5 text-xs text-[#667085]">
-              {activeTopics.length} Topics • {courseAssignments.length} Capstone
-            </Muted>
-          </div>
-        </div>
-
-        {/* Topics Tree */}
-        <nav aria-label="Course Syllabus" className="mt-4 flex flex-col gap-3">
-          {activeTopics.map((topic, index) => {
-            const p = progressMap.get(topic.id);
-            const isCurrent = currentTopic?.id === topic.id;
-            const isCompleted = p?.status === 'COMPLETED';
-            const isInProgress = p?.status === 'IN_PROGRESS';
-            const isOverdue = Boolean(p?.isOverdue);
-            const subtopics = (topic.subtopics ?? []).filter((s) => s.isActive);
-
-            return (
-              <div
-                key={topic.id}
-                className={`rounded-2xl border transition-all ${
-                  isCurrent
-                    ? 'border-[#0044D3]/40 bg-blue-50/40 shadow-xs'
-                    : 'border-[#E1E6EC] bg-white hover:bg-[#F6F8FC]'
-                }`}
-              >
-                {/* Topic Trigger */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="button"
-                  aria-pressed={isCurrent}
-                  onClick={() => onSelectTopic(topic.id)}
-                  className="flex h-auto w-full items-center justify-between rounded-2xl p-3 text-left font-normal hover:bg-transparent focus-visible:ring-[#0044D3] active:bg-transparent"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                    <div
-                      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                        isCompleted
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : isInProgress
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-slate-200 text-slate-600'
-                      }`}
-                    >
-                      {isCompleted ? <CheckIcon className="h-3.5 w-3.5" /> : index + 1}
-                    </div>
-                    <Span
-                      className={`truncate text-xs font-semibold ${
-                        isCurrent ? 'text-blue-900' : 'text-slate-800'
-                      }`}
-                    >
-                      {topic.title}
-                    </Span>
-                  </div>
-
-                  <div className="ml-2 flex flex-shrink-0 items-center gap-1.5">
-                    {isOverdue && (
-                      <Span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
-                        Overdue
-                      </Span>
-                    )}
-                    <Span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        isCompleted
-                          ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : isInProgress
-                            ? 'border border-blue-200 bg-blue-50 text-blue-700'
-                            : 'bg-slate-100 text-slate-500'
-                      }`}
-                    >
-                      {isCompleted ? 'Done' : isInProgress ? 'Active' : 'Unstarted'}
-                    </Span>
-                  </div>
-                </Button>
-
-                {/* Subtopics List under Selected Topic */}
-                {isCurrent && subtopics.length > 0 && (
-                  <div className="flex flex-col gap-1 border-t border-blue-100/60 p-2.5 pt-2">
-                    {subtopics.map((sub, sIdx) => {
-                      const isSubActive = currentSubtopic?.id === sub.id;
-                      return (
-                        <Button
-                          key={sub.id}
-                          variant="ghost"
-                          size="sm"
-                          type="button"
-                          aria-pressed={isSubActive}
-                          onClick={() => onSelectSubtopic(sub.id)}
-                          className={`flex h-auto w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-normal transition-colors ${
-                            isSubActive
-                              ? 'bg-white font-semibold text-blue-600 shadow-xs'
-                              : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
-                          }`}
-                        >
-                          <Span className="truncate pr-2">
-                            {index + 1}.{sIdx + 1} {sub.title}
-                          </Span>
-                          {sub.estimatedMinutes != null && (
-                            <Span className="text-xs text-slate-400">{sub.estimatedMinutes}m</Span>
-                          )}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* Course-Level Capstone Assignments Section (FR-8.2) */}
-        {courseAssignments.length > 0 && (
-          <div className="mt-6 border-t border-slate-100 pt-4">
-            <div className="mb-3 flex items-center gap-1.5">
-              <svg
-                className="h-4 w-4 text-[#0044D3]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.75}
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="5" />
-                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-              </svg>
-              <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase">
-                Course Capstone & Milestones
-              </H4>
-            </div>
-            <div className="flex flex-col gap-2">
-              {courseAssignments.map((assign) => (
-                <CapstoneAssignmentCard key={assign.id} assignment={assign} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </aside>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Sub-component: Progress Control Strip                                      */
-/* -------------------------------------------------------------------------- */
-
-interface ProgressControlStripProps {
-  readonly isReadOnly: boolean;
-  readonly currentTopicStatus: TopicProgressStatus;
-  readonly studyNote: string;
-  readonly onStudyNoteChange: (val: string) => void;
-  readonly onStatusChange: (newStatus: TopicProgressStatus) => void;
-  readonly isPending: boolean;
-  readonly isError: boolean;
-  readonly errorMessage?: string | null | undefined;
-  readonly actionSuccessMessage?: string | null | undefined;
-  readonly studyNoteInputId: string;
-}
-
-export function ProgressControlStrip({
-  isReadOnly,
-  currentTopicStatus,
-  studyNote,
-  onStudyNoteChange,
-  onStatusChange,
-  isPending,
-  isError,
-  errorMessage,
-  actionSuccessMessage,
-  studyNoteInputId,
-}: ProgressControlStripProps) {
-  const activeStepIndex = TOPIC_STATUS_INDEX[currentTopicStatus];
-
-  return (
-    <>
-      {/* Feedback Alert Messages */}
-      {actionSuccessMessage && (
-        <div className="mt-6 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800">
-          <CheckIcon className="h-4 w-4 shrink-0 text-emerald-600" />
-          <Span>{actionSuccessMessage}</Span>
-        </div>
-      )}
-
-      {isError && errorMessage && (
-        <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-medium text-rose-800">
-          <Span>{errorMessage}</Span>
-        </div>
-      )}
-
-      {/* Interactive Progress Control Strip */}
-      <div className="-mx-6 mt-8 -mb-6 rounded-b-3xl border-t border-[#E1E6EC] bg-[#F6F8FC] p-5 sm:-mx-10 sm:-mb-10 sm:px-8 sm:py-6">
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-          <div className="flex items-center gap-2">
-            <svg
-              className="h-4 w-4 shrink-0 text-[#0044D3]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.75}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <H4 className="text-xs font-bold text-[#111827]">Progress Controls</H4>
-          </div>
-
-          {/* Clickable Horizontal Timeline */}
-          <div
-            role="radiogroup"
-            aria-label="Topic Progress Status"
-            className="flex flex-1 items-center lg:max-w-md"
-          >
-            {TOPIC_TIMELINE_STEPS.map((step, idx) => {
-              const isSelected = currentTopicStatus === step.value;
-              const isReached = idx <= activeStepIndex;
-              const isDoneStep = currentTopicStatus === 'COMPLETED' || idx < activeStepIndex;
-              const isConnectorActive = idx < activeStepIndex;
-
-              return (
-                <React.Fragment key={step.value}>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    role="radio"
-                    aria-checked={isSelected}
-                    disabled={isReadOnly || isPending}
-                    onClick={() => onStatusChange(step.value)}
-                    className="group/step h-auto shrink-0 gap-2 rounded-full px-2 py-1 text-left hover:bg-white/70 active:bg-white disabled:opacity-45"
-                  >
-                    <Span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
-                        isDoneStep
-                          ? 'border-emerald-500 bg-emerald-500 text-white'
-                          : isSelected
-                            ? 'border-[#0044D3] bg-[#0044D3] text-white ring-4 ring-[#0044D3]/15'
-                            : 'border-[#E1E6EC] bg-white text-[#667085] group-hover/step:border-[#0044D3]/50'
-                      }`}
-                    >
-                      {isDoneStep ? <CheckIcon className="h-3.5 w-3.5" /> : idx + 1}
-                    </Span>
-                    <Span
-                      className={`text-xs font-semibold whitespace-nowrap transition-colors ${
-                        isSelected
-                          ? 'text-[#111827]'
-                          : isReached
-                            ? 'text-[#111827]'
-                            : 'text-[#667085] group-hover/step:text-[#111827]'
-                      }`}
-                    >
-                      {step.label}
-                    </Span>
-                  </Button>
-
-                  {idx < TOPIC_TIMELINE_STEPS.length - 1 ? (
-                    <div
-                      aria-hidden="true"
-                      className={`mx-1 h-0.5 min-w-4 flex-1 rounded-full transition-colors ${
-                        isConnectorActive
-                          ? currentTopicStatus === 'COMPLETED'
-                            ? 'bg-emerald-500'
-                            : 'bg-[#0044D3]'
-                          : 'bg-[#E1E6EC]'
-                      }`}
-                    />
-                  ) : null}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Optional Study Note Input & Compact Save/Complete Action */}
-        <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
-          <div className="flex-1">
-            <Label htmlFor={studyNoteInputId} className="sr-only">
-              Optional study note or question for mentor
-            </Label>
-            <Input
-              id={studyNoteInputId}
-              type="text"
-              disabled={isReadOnly || isPending}
-              value={studyNote}
-              onChange={(e) => onStudyNoteChange(e.target.value)}
-              placeholder="Add an optional study log note or questions for your mentor..."
-              className="h-10 rounded-full border-[#E1E6EC] bg-white px-4 text-xs shadow-xs focus-visible:ring-2 focus-visible:ring-[#0044D3]"
-            />
-          </div>
-
-          <Button
-            type="button"
-            size="sm"
-            disabled={isReadOnly || currentTopicStatus === 'COMPLETED' || isPending}
-            onClick={() => onStatusChange('COMPLETED')}
-            className="h-10 shrink-0 rounded-full px-4 text-xs font-semibold"
-          >
-            {isPending ? (
-              <Span>Saving...</Span>
-            ) : currentTopicStatus === 'COMPLETED' ? (
-              <>
-                <CheckIcon className="h-3.5 w-3.5" />
-                <Span>Completed</Span>
-              </>
-            ) : (
-              <>
-                <Span>Mark Completed</Span>
-                <ArrowRightIcon className="h-3.5 w-3.5" />
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Sub-component: Topic Reading Pane                                          */
-/* -------------------------------------------------------------------------- */
-
-interface TopicReadingPaneProps {
-  readonly currentTopic: Topic | null | undefined;
-  readonly currentSubtopic: Subtopic | null | undefined;
-  readonly currentTopicProgress?: TopicProgressItem | null | undefined;
-  readonly topicIndex: number;
-  readonly totalTopics: number;
-  readonly topicAssignments: Assignment[];
-  readonly controlStrip: React.ReactNode;
-}
-
-export function TopicReadingPane({
-  currentTopic,
-  currentSubtopic,
-  currentTopicProgress,
-  topicIndex,
-  totalTopics,
-  topicAssignments,
-  controlStrip,
-}: TopicReadingPaneProps) {
-  const topicStatus: TopicProgressStatus = currentTopicProgress?.status ?? 'NOT_STARTED';
-  const statusLabel =
-    topicStatus === 'COMPLETED'
-      ? 'Completed'
-      : topicStatus === 'IN_PROGRESS'
-        ? 'In Progress'
-        : 'Not Started';
-  const statusBadgeClass =
-    topicStatus === 'COMPLETED'
-      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-      : topicStatus === 'IN_PROGRESS'
-        ? 'border-blue-200 bg-blue-50 text-[#0044D3]'
-        : 'border-slate-200 bg-slate-100 text-[#667085]';
-
-  const hasSubtopicContent = Boolean(currentSubtopic?.content?.trim());
-  const hasSubtopicResources = Boolean(
-    currentSubtopic?.resources && currentSubtopic.resources.length > 0,
-  );
-
-  return (
-    <section className="flex flex-col gap-8 lg:col-span-8">
-      <article className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-10">
-        {/* Module Header Badge */}
-        <div className="border-b border-[#E1E6EC] pb-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Span
-                className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass}`}
-              >
-                {totalTopics > 0
-                  ? `Module ${topicIndex + 1} of ${totalTopics} • ${statusLabel}`
-                  : statusLabel}
-              </Span>
-              {currentTopicProgress?.deadline && (
-                <Span
-                  className={`text-xs font-semibold ${
-                    currentTopicProgress.isOverdue ? 'text-rose-600' : 'text-[#667085]'
-                  }`}
-                >
-                  Target Deadline: {formatDateDMY(currentTopicProgress.deadline)}
-                </Span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1.5 text-xs text-[#667085]">
-              <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
-              <Span>
-                {currentTopic?.estimatedMinutes != null
-                  ? `${currentTopic.estimatedMinutes} mins`
-                  : 'Flexible'}
-              </Span>
-            </div>
-          </div>
-
-          <H2 className="mt-4 text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-            {currentSubtopic ? currentSubtopic.title : (currentTopic?.title ?? 'Lesson Content')}
-          </H2>
-          {currentTopic?.description ? (
-            <P className="mt-2 text-sm text-[#667085]">{currentTopic.description}</P>
-          ) : null}
-        </div>
-
-        {/* Subtopic Reading Prose (DB-backed only) */}
-        {hasSubtopicContent || hasSubtopicResources ? (
-          <div className="mt-6 flex flex-col gap-6 text-sm leading-relaxed text-slate-700 sm:text-base">
-            {hasSubtopicContent && currentSubtopic?.content ? (
-              <MarkdownViewer
-                content={currentSubtopic.content}
-                className="max-w-none leading-7 text-slate-700"
-              />
-            ) : null}
-
-            {hasSubtopicResources && currentSubtopic?.resources ? (
-              <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4">
-                <H4 className="mb-2 text-xs font-bold tracking-wider text-[#111827] uppercase">
-                  Reference Resources & External Documentation
-                </H4>
-                <ul className="flex flex-col gap-2">
-                  {currentSubtopic.resources.map((res) => (
-                    <li key={res.url} className="flex items-center gap-2 text-xs">
-                      <svg
-                        className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.75}
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                        />
-                      </svg>
-                      <a
-                        href={res.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-[#0044D3] hover:underline"
-                      >
-                        {res.title || res.url}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* Injected Control Strip */}
-        {controlStrip}
-      </article>
-
-      {/* Topic Assignments Section (FR-8.2) */}
-      {topicAssignments.length > 0 && (
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <H3 className="text-lg font-bold tracking-tight text-[#111827]">
-                Topic Assignments & Practical Labs
-              </H3>
-              <P className="text-xs text-[#667085]">
-                Action items and tasks associated with this module milestone.
-              </P>
-            </div>
-            <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0044D3]">
-              {topicAssignments.length} Assignment{topicAssignments.length === 1 ? '' : 's'}
-            </Span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {topicAssignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="flex flex-col justify-between gap-4 rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all hover:border-[#0044D3]/40 hover:shadow-md"
-              >
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0044D3]">
-                      Topic Task
-                    </Span>
-                    <Span className="text-xs font-bold text-[#111827]">
-                      {assignment.maxMarks} Marks
-                    </Span>
-                  </div>
-                  <H4 className="text-sm font-bold text-[#111827]">{assignment.title}</H4>
-                  <P className="line-clamp-2 text-xs text-[#667085]">
-                    {assignment.instructions ||
-                      'Review instructions and prepare submission repository.'}
-                  </P>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#E1E6EC] pt-3 text-xs text-[#667085]">
-                  <Span className="inline-flex items-center gap-1.5">
-                    <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
-                    <Span>{assignment.estimatedMinutes}m est.</Span>
-                  </Span>
-                  <Span className="font-semibold text-[#0044D3]">Pass: {assignment.passMarks}</Span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Main Shell: MenteeCourseView                                               */
+/* Main MenteeCourseView Component                                            */
 /* -------------------------------------------------------------------------- */
 
 interface MenteeCourseViewProps {
@@ -620,13 +156,15 @@ interface MenteeCourseViewProps {
 }
 
 export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
-  const [selectedSubtopicId, setSelectedSubtopicId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'content' | 'progress'>('content');
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [selectedSubtopic, setSelectedSubtopic] = useState<Subtopic | null>(null);
   const [studyNote, setStudyNote] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
   const studyNoteInputId = useId();
 
-  // 1. Fetch Allocation Progress Telemetry (M8 Backend API)
+  // 1. Fetch Allocation Progress
   const {
     data: progressData,
     isLoading: isProgressLoading,
@@ -637,7 +175,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
 
   const courseId = progressData?.allocation.courseId;
 
-  // 2. Fetch Course Outline Hierarchy (Topics, Subtopics, Assignments)
+  // 2. Fetch Course Hierarchy
   const {
     data: courseData,
     isLoading: isCourseLoading,
@@ -646,16 +184,14 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     refetch: refetchCourse,
   } = useCourseDetail(courseId ?? '');
 
-  // Mutation for updating topic progress status
   const updateStatusMutation = useUpdateTopicStatusMutation();
 
-  // Filter only active topics and map with progress
+  // Active topics
   const activeTopics = useMemo(() => {
-    const rawTopics = courseData?.topics ?? [];
-    return rawTopics.filter((t) => t.isActive);
+    return (courseData?.topics ?? []).filter((t) => t.isActive);
   }, [courseData]);
 
-  // Topic progress lookup map
+  // Topic progress map
   const progressMap = useMemo(() => {
     const map = new Map<string, TopicProgressItem>();
     if (progressData?.topics) {
@@ -666,54 +202,29 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     return map;
   }, [progressData]);
 
-  // Determine active topic
-  const currentTopic = useMemo(() => {
-    if (!activeTopics.length) return null;
-    if (selectedTopicId) {
-      const found = activeTopics.find((t) => t.id === selectedTopicId);
-      if (found) return found;
-    }
-    // Default to first in-progress or first uncompleted topic
-    const inProgress = activeTopics.find((t) => progressMap.get(t.id)?.status === 'IN_PROGRESS');
-    if (inProgress) return inProgress;
-    const notStarted = activeTopics.find((t) => progressMap.get(t.id)?.status === 'NOT_STARTED');
-    if (notStarted) return notStarted;
-    return activeTopics[0];
-  }, [activeTopics, selectedTopicId, progressMap]);
+  // Initialize module accordions to open by default
+  const isModuleExpanded = (topicId: string) => {
+    return expandedModules[topicId] !== false;
+  };
 
-  // Active subtopic within current topic
-  const currentSubtopic = useMemo(() => {
-    const subtopics = (currentTopic?.subtopics ?? []).filter((s) => s.isActive);
-    if (!subtopics.length) return null;
-    if (selectedSubtopicId) {
-      const found = subtopics.find((s) => s.id === selectedSubtopicId);
-      if (found) return found;
-    }
-    return subtopics[0];
-  }, [currentTopic, selectedSubtopicId]);
-
-  // Course-level assignments (Capstone/Defense)
-  const courseAssignments = useMemo(() => {
-    return (courseData?.assignments ?? []).filter((a) => a.scope === AssignmentScope.COURSE);
-  }, [courseData]);
-
-  // Topic-level assignments for the selected topic
-  const topicAssignments = useMemo(() => {
-    if (!currentTopic) return [];
-    return (currentTopic.assignments ?? []).filter((a) => a.scope === AssignmentScope.TOPIC);
-  }, [currentTopic]);
+  const toggleModuleAccordion = (topicId: string) => {
+    setExpandedModules((prev) => ({
+      ...prev,
+      [topicId]: !isModuleExpanded(topicId),
+    }));
+  };
 
   const allocation = progressData?.allocation;
   const isReadOnly = Boolean(allocation?.readOnly);
 
   // Status transition handler
-  const handleStatusChange = async (newStatus: TopicProgressStatus) => {
-    if (!currentTopic || isReadOnly) return;
+  const handleStatusChange = async (topicId: string, newStatus: TopicProgressStatus) => {
+    if (isReadOnly) return;
     try {
       setActionSuccessMessage(null);
       await updateStatusMutation.mutateAsync({
         allocationId,
-        topicId: currentTopic.id,
+        topicId,
         payload: {
           status: newStatus,
           note: studyNote.trim() ? studyNote.trim() : undefined,
@@ -728,16 +239,6 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
     }
   };
 
-  const currentTopicProgress = currentTopic ? progressMap.get(currentTopic.id) : null;
-  const currentTopicStatus: TopicProgressStatus = currentTopicProgress?.status ?? 'NOT_STARTED';
-  const currentTopicIndex = currentTopic
-    ? Math.max(
-        0,
-        activeTopics.findIndex((t) => t.id === currentTopic.id),
-      )
-    : 0;
-
-  // Completed topics count
   const completedCount = useMemo(() => {
     return activeTopics.filter((t) => progressMap.get(t.id)?.status === 'COMPLETED').length;
   }, [activeTopics, progressMap]);
@@ -747,16 +248,10 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
       <div className="flex min-h-screen flex-col bg-[#F6F8FC] antialiased">
         <Header {...MENTEE_COURSES_NAV} />
         <DashboardContent className="space-y-6">
-          <Skeleton className="h-9 w-40 rounded-full" />
+          <Skeleton className="h-6 w-32 rounded-lg" />
           <Skeleton className="h-32 w-full rounded-3xl" />
-          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-4">
-              <Skeleton className="h-[480px] w-full rounded-3xl" />
-            </div>
-            <div className="lg:col-span-8">
-              <Skeleton className="h-[600px] w-full rounded-3xl" />
-            </div>
-          </div>
+          <Skeleton className="h-10 w-64 rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-3xl" />
         </DashboardContent>
       </div>
     );
@@ -776,11 +271,12 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               }}
             />
             <div className="mt-6 flex justify-start">
-              <Link href="/mentee/courses" className="inline-block">
-                <Button variant="outline" size="sm" className="rounded-full">
-                  <ArrowLeftIcon className="h-3.5 w-3.5" />
-                  <Span>Back to My Courses</Span>
-                </Button>
+              <Link
+                href="/mentee/courses"
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+              >
+                <ArrowLeftIcon className="h-3.5 w-3.5" />
+                <span>Back to Courses</span>
               </Link>
             </div>
           </div>
@@ -790,202 +286,495 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
   }
 
   const formattedDueDate = allocation.dueDate ? formatDateDMY(allocation.dueDate) : 'No deadline';
+  const durationText =
+    courseData?.estimatedMinutes != null
+      ? `${Math.round(courseData.estimatedMinutes / 60)}h Duration`
+      : 'Self-paced';
+
+  const isCourseFullyCompleted =
+    allocation.progressPercent >= 100 || allocation.status === 'COMPLETED';
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
-      <DashboardContent className="animate-slide-up space-y-6">
-        {/* Read-Only State Awareness Banner */}
-        {isReadOnly && (
-          <div className="flex items-start gap-3.5 rounded-3xl border border-amber-200 bg-amber-50 p-4 shadow-xs">
-            <Span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
-              </svg>
-            </Span>
-            <div className="flex flex-col gap-0.5">
-              <Span className="text-xs font-bold tracking-wider text-amber-900 uppercase">
-                Review Mode • Read-Only
-              </Span>
-              <P className="text-xs leading-relaxed text-amber-800">
-                This course allocation is currently in read-only review state. Course modules and
-                notes remain fully readable, while progress updates are locked.
-              </P>
+      <DashboardContent className="space-y-6">
+        {/* Back Link */}
+        <div>
+          <Link
+            href="/mentee/courses"
+            className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-slate-900"
+          >
+            <ArrowLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span>Back to Courses</span>
+          </Link>
+        </div>
+
+        {/* Hero Card */}
+        <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+            {/* Left: Icon & Meta */}
+            <div className="flex items-center gap-5">
+              <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-[#EEF4FF]">
+                <LaptopGraduationIcon className="h-11 w-11 text-[#0044D3]" />
+              </div>
+
+              <div className="space-y-1">
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
+                  Active
+                </span>
+                <H1 className="text-2xl font-extrabold tracking-tight text-[#111827]">
+                  {allocation.courseTitle}
+                </H1>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5 text-slate-400" />
+                    <span>Due {formattedDueDate}</span>
+                  </div>
+                  <span className="text-slate-300">|</span>
+                  <div className="flex items-center gap-1.5">
+                    <ClockIcon className="h-3.5 w-3.5 text-slate-400" />
+                    <span>{durationText}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: SVG Circular Gauge */}
+            <div className="flex flex-shrink-0 items-center justify-end">
+              <CircularProgressRing percentage={allocation.progressPercent} />
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-8 border-b border-[#E1E6EC]">
+          <button
+            type="button"
+            onClick={() => setActiveTab('content')}
+            className={cn(
+              'flex cursor-pointer items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-all',
+              activeTab === 'content'
+                ? 'border-[#0044D3] text-[#0044D3]'
+                : 'border-transparent text-slate-500 hover:text-slate-800',
+            )}
+          >
+            <BookIcon className="h-4 w-4" />
+            <span>Course Content</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('progress')}
+            className={cn(
+              'flex cursor-pointer items-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-all',
+              activeTab === 'progress'
+                ? 'border-[#0044D3] text-[#0044D3]'
+                : 'border-transparent text-slate-500 hover:text-slate-800',
+            )}
+          >
+            <BarChartIcon className="h-4 w-4" />
+            <span>Progress</span>
+          </button>
+        </div>
+
+        {/* Tab 1: Course Content */}
+        {activeTab === 'content' && (
+          <div className="space-y-4">
+            {/* Accordion Modules */}
+            {activeTopics.map((topic, topicIndex) => {
+              const p = progressMap.get(topic.id);
+              const isTopicCompleted = p?.status === 'COMPLETED';
+              const isOpen = isModuleExpanded(topic.id);
+              const subtopics = (topic.subtopics ?? []).filter((s) => s.isActive);
+              const moduleNumber = topicIndex + 1;
+
+              return (
+                <div
+                  key={topic.id}
+                  className="rounded-2xl border border-[#E1E6EC] bg-white shadow-xs transition-shadow hover:shadow-sm"
+                >
+                  {/* Module Header Bar */}
+                  <button
+                    type="button"
+                    onClick={() => toggleModuleAccordion(topic.id)}
+                    className="flex w-full cursor-pointer items-center justify-between p-5 text-left"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-xs font-bold text-white">
+                        {moduleNumber}
+                      </div>
+                      <H3 className="text-base font-bold text-slate-900">{topic.title}</H3>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <svg
+                        className={cn(
+                          'h-4 w-4 text-slate-400 transition-transform duration-200',
+                          isOpen && 'rotate-180',
+                        )}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Module Expanded Content */}
+                  {isOpen && (
+                    <div className="border-t border-slate-100 px-6 py-4">
+                      <div className="relative ml-3 space-y-4 border-l-2 border-blue-100 pl-6">
+                        {/* Lessons / Subtopics */}
+                        {subtopics.length > 0 ? (
+                          subtopics.map((subtopic) => {
+                            const isLessonDone = isTopicCompleted;
+
+                            return (
+                              <div
+                                key={subtopic.id}
+                                className="group flex items-center justify-between gap-4 py-1"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {isLessonDone ? (
+                                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                      <CheckIcon className="h-3 w-3 stroke-[3]" />
+                                    </div>
+                                  ) : (
+                                    <div className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-slate-300 bg-white" />
+                                  )}
+                                  <span className="text-sm font-medium text-slate-800">
+                                    {subtopic.title}
+                                  </span>
+                                </div>
+
+                                <div>
+                                  {isLessonDone ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedTopic(topic);
+                                        setSelectedSubtopic(subtopic);
+                                      }}
+                                      className="cursor-pointer text-xs font-semibold text-slate-400 transition-colors hover:text-[#0044D3]"
+                                    >
+                                      Review
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedTopic(topic);
+                                        setSelectedSubtopic(subtopic);
+                                      }}
+                                      className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                    >
+                                      <span>
+                                        {p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}
+                                      </span>
+                                      <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          /* Topic has no subtopics: topic itself is the lesson */
+                          <div className="flex items-center justify-between gap-4 py-1">
+                            <div className="flex items-center gap-3">
+                              {isTopicCompleted ? (
+                                <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                  <CheckIcon className="h-3 w-3 stroke-[3]" />
+                                </div>
+                              ) : (
+                                <div className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-slate-300 bg-white" />
+                              )}
+                              <span className="text-sm font-medium text-slate-800">
+                                {topic.title}
+                              </span>
+                            </div>
+
+                            <div>
+                              {isTopicCompleted ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedTopic(topic);
+                                    setSelectedSubtopic(null);
+                                  }}
+                                  className="cursor-pointer text-xs font-semibold text-slate-400 transition-colors hover:text-[#0044D3]"
+                                >
+                                  Review
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedTopic(topic);
+                                    setSelectedSubtopic(null);
+                                  }}
+                                  className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
+                                >
+                                  <span>{p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}</span>
+                                  <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Course Completed Celebration Card */}
+            {isCourseFullyCompleted && (
+              <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-[#EEF4FF] p-5 shadow-xs">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-[#0044D3] shadow-xs">
+                    <OutlineTrophyIcon className="h-6 w-6 text-[#0044D3]" />
+                  </div>
+                  <div>
+                    <H3 className="text-base font-bold text-slate-900">Course Completed!</H3>
+                    <P className="text-xs text-slate-600">
+                      Great job! You have finished this course.
+                    </P>
+                  </div>
+                </div>
+
+                <ConfettiCelebrationGraphic />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 2: Progress Tab */}
+        {activeTab === 'progress' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+                <Span className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Modules Progress
+                </Span>
+                <P className="mt-2 text-2xl font-black text-slate-900">
+                  {completedCount} / {activeTopics.length}
+                </P>
+                <Span className="mt-1 block text-xs text-slate-500">Topics completed</Span>
+              </div>
+
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+                <Span className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Completion Rate
+                </Span>
+                <P className="mt-2 text-2xl font-black text-[#0044D3]">
+                  {Math.round(allocation.progressPercent)}%
+                </P>
+                <Span className="mt-1 block text-xs text-slate-500">Overall syllabus</Span>
+              </div>
+
+              <div className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
+                <Span className="text-xs font-bold tracking-wider text-slate-500 uppercase">
+                  Course Timeline
+                </Span>
+                <P className="mt-2 text-2xl font-black text-emerald-600">
+                  {allocation.isOverdue ? 'Overdue' : 'On Track'}
+                </P>
+                <Span className="mt-1 block text-xs text-slate-500">Due {formattedDueDate}</Span>
+              </div>
+            </div>
+
+            {/* Topics Telemetry Table */}
+            <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+              <H3 className="text-base font-bold text-slate-900">Topic Completion Checklist</H3>
+              <div className="mt-4 divide-y divide-slate-100">
+                {activeTopics.map((topic, index) => {
+                  const p = progressMap.get(topic.id);
+                  const isDone = p?.status === 'COMPLETED';
+                  const isInProg = p?.status === 'IN_PROGRESS';
+
+                  return (
+                    <div key={topic.id} className="flex items-center justify-between py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold',
+                            isDone
+                              ? 'bg-emerald-500 text-white'
+                              : isInProg
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-200 text-slate-700',
+                          )}
+                        >
+                          {index + 1}
+                        </div>
+                        <div>
+                          <P className="text-sm font-semibold text-slate-900">{topic.title}</P>
+                          {p?.completedAt && (
+                            <Span className="text-[11px] text-slate-500">
+                              Completed {formatDateDMY(p.completedAt)}
+                            </Span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                            isDone
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : isInProg
+                                ? 'bg-blue-50 text-[#0044D3]'
+                                : 'bg-slate-100 text-slate-600',
+                          )}
+                        >
+                          {isDone ? 'Completed' : isInProg ? 'In Progress' : 'Not Started'}
+                        </span>
+
+                        {!isReadOnly && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTopic(topic);
+                              setSelectedSubtopic(null);
+                            }}
+                            className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
+                          >
+                            Update
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Round Back Button */}
-        <Link href="/mentee/courses" className="inline-block">
-          <Button variant="outline" size="sm" className="rounded-full bg-white shadow-2xs">
-            <ArrowLeftIcon className="h-3.5 w-3.5" />
-            <Span>Back to My Courses</Span>
-          </Button>
-        </Link>
-
-        {/* Course Header Telemetry Card */}
-        <section className="rounded-3xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:px-6 sm:py-5">
-          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-            <div className="max-w-3xl">
-              <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                  Course
-                </Span>
-                <Span className="text-slate-300">•</Span>
-                <Span className="text-xs text-[#667085] uppercase">
-                  {activeTopics.length} Active Modules
-                </Span>
-                <AllocationStatusBadge
-                  status={allocation.status}
-                  isOverdue={Boolean(allocation.isOverdue)}
-                />
-              </div>
-
-              <H1 className="text-xl font-extrabold tracking-tight text-[#111827] sm:text-2xl">
-                {allocation.courseTitle}
-              </H1>
-
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#667085]">
-                <div className="flex items-center gap-1.5">
-                  <CalendarIcon className="h-3.5 w-3.5 text-[#667085]" />
-                  <Span>Due {formattedDueDate}</Span>
-                </div>
-                <Span className="text-slate-300">•</Span>
-                <div className="flex items-center gap-1.5">
-                  <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
-                  <Span>
-                    {courseData?.estimatedMinutes != null
-                      ? `${Math.floor(courseData.estimatedMinutes / 60)}h ${courseData.estimatedMinutes % 60}m duration`
-                      : 'Self-paced'}
+        {/* Lesson Reading & Completion Modal Drawer */}
+        {selectedTopic && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
+            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-3xl border border-[#E1E6EC] bg-white shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 p-5">
+                <div>
+                  <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
+                    {selectedSubtopic ? 'Lesson' : 'Topic'}
                   </Span>
+                  <H2 className="text-lg font-bold text-slate-900">
+                    {selectedSubtopic?.title ?? selectedTopic.title}
+                  </H2>
                 </div>
-              </div>
-            </div>
-
-            {/* Compact Progress Metric Ring Box */}
-            <div className="flex min-w-[220px] items-center gap-4 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-3.5 shadow-2xs">
-              <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center">
-                <svg className="h-14 w-14 -rotate-90 transform" viewBox="0 0 64 64">
-                  <circle
-                    className="text-slate-200"
-                    cx="32"
-                    cy="32"
-                    r="28"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    fill="none"
-                  />
-                  <circle
-                    className={`transition-all duration-1000 ease-out ${
-                      allocation.status === 'COMPLETED'
-                        ? 'text-emerald-500'
-                        : allocation.isOverdue
-                          ? 'text-rose-500'
-                          : 'text-[#0044D3]'
-                    }`}
-                    cx="32"
-                    cy="32"
-                    r="28"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    strokeDasharray="175.9"
-                    strokeDashoffset={
-                      175.9 - (175.9 * Math.min(100, allocation.progressPercent)) / 100
-                    }
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Span className="text-xs font-bold text-[#111827]">
-                    {Math.round(allocation.progressPercent)}%
-                  </Span>
-                </div>
-              </div>
-
-              <div className="flex flex-col">
-                <Span className="text-sm font-bold text-[#111827]">
-                  {completedCount} of {activeTopics.length} Topics
-                </Span>
-                <Span
-                  className={`mt-0.5 inline-flex items-center gap-1 text-xs font-semibold ${
-                    allocation.status === 'COMPLETED'
-                      ? 'text-emerald-600'
-                      : allocation.isOverdue
-                        ? 'text-rose-600'
-                        : 'text-[#0044D3]'
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTopic(null);
+                    setSelectedSubtopic(null);
+                    setActionSuccessMessage(null);
+                  }}
+                  className="cursor-pointer rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Close lesson"
                 >
-                  {allocation.status === 'COMPLETED' ? (
-                    <>
-                      <CheckIcon className="h-3.5 w-3.5" />
-                      <Span>Completed</Span>
-                    </>
-                  ) : allocation.isOverdue ? (
-                    <Span>Overdue</Span>
-                  ) : (
-                    <Span>On Track</Span>
-                  )}
-                </Span>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 space-y-4 overflow-y-auto p-6">
+                {actionSuccessMessage && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+                    {actionSuccessMessage}
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="prose prose-sm max-w-none text-slate-700">
+                  <MarkdownViewer
+                    content={
+                      selectedSubtopic?.content ??
+                      selectedTopic.description ??
+                      'No content available for this lesson yet.'
+                    }
+                  />
+                </div>
+
+                {/* Study Notes & Status Control */}
+                {!isReadOnly && (
+                  <div className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                    <label
+                      htmlFor={studyNoteInputId}
+                      className="block text-xs font-bold text-slate-700 uppercase"
+                    >
+                      Study Notes (Optional)
+                    </label>
+                    <textarea
+                      id={studyNoteInputId}
+                      value={studyNote}
+                      onChange={(e) => setStudyNote(e.target.value)}
+                      rows={2}
+                      placeholder="Add key takeaways, notes or questions..."
+                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-none"
+                    />
+
+                    <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={updateStatusMutation.isPending}
+                        onClick={() => void handleStatusChange(selectedTopic.id, 'IN_PROGRESS')}
+                        className="cursor-pointer rounded-full"
+                      >
+                        Mark In Progress
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        disabled={updateStatusMutation.isPending}
+                        onClick={() => void handleStatusChange(selectedTopic.id, 'COMPLETED')}
+                        className="cursor-pointer rounded-full bg-[#0044D3] hover:bg-blue-700"
+                      >
+                        <CheckIcon className="h-3.5 w-3.5" />
+                        <span>Mark Completed</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end border-t border-slate-100 p-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedTopic(null);
+                    setSelectedSubtopic(null);
+                    setActionSuccessMessage(null);
+                  }}
+                  className="cursor-pointer rounded-full"
+                >
+                  Done
+                </Button>
               </div>
             </div>
           </div>
-        </section>
-
-        {/* 2-Column Workspace Grid */}
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
-          {/* Left Column: CourseOutlineSidebar */}
-          <CourseOutlineSidebar
-            activeTopics={activeTopics}
-            currentTopic={currentTopic}
-            currentSubtopic={currentSubtopic}
-            progressMap={progressMap}
-            courseAssignments={courseAssignments}
-            onSelectTopic={(topicId) => {
-              setSelectedTopicId(topicId);
-              setSelectedSubtopicId(null);
-              setStudyNote('');
-              setActionSuccessMessage(null);
-            }}
-            onSelectSubtopic={(subtopicId) => {
-              setSelectedSubtopicId(subtopicId);
-              setStudyNote('');
-              setActionSuccessMessage(null);
-            }}
-          />
-
-          {/* Right Column: TopicReadingPane & ProgressControlStrip */}
-          <TopicReadingPane
-            currentTopic={currentTopic}
-            currentSubtopic={currentSubtopic}
-            currentTopicProgress={currentTopicProgress}
-            topicIndex={currentTopicIndex}
-            totalTopics={activeTopics.length}
-            topicAssignments={topicAssignments}
-            controlStrip={
-              <ProgressControlStrip
-                isReadOnly={isReadOnly}
-                currentTopicStatus={currentTopicStatus}
-                studyNote={studyNote}
-                onStudyNoteChange={setStudyNote}
-                onStatusChange={(newStatus) => void handleStatusChange(newStatus)}
-                isPending={updateStatusMutation.isPending}
-                isError={updateStatusMutation.isError}
-                errorMessage={updateStatusMutation.error?.message}
-                actionSuccessMessage={actionSuccessMessage}
-                studyNoteInputId={studyNoteInputId}
-              />
-            }
-          />
-        </div>
+        )}
       </DashboardContent>
     </div>
   );

@@ -1,6 +1,15 @@
 'use client';
 
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { createPortal } from 'react-dom';
 
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
@@ -47,13 +56,58 @@ export function SingleSelectDropdown<T extends string | number = string>({
   align = 'left',
 }: Readonly<SingleSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuCoords, setMenuCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    openUpwards: boolean;
+  } | null>(null);
+
   const generatedId = useId();
   const selectId = id ?? generatedId;
 
-  // Close when clicking outside
-  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+  const updateMenuPosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUpwards = direction === 'up' || (spaceBelow < 220 && spaceAbove > spaceBelow);
+
+    setMenuCoords({
+      top: openUpwards ? rect.top - 6 : rect.bottom + 6,
+      left: align === 'right' ? rect.right : rect.left,
+      width: rect.width,
+      openUpwards,
+    });
+  }, [align, direction]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateMenuPosition();
+
+    const handleScrollOrResize = () => {
+      updateMenuPosition();
+    };
+
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [isOpen, updateMenuPosition]);
+
+  // Close when clicking outside both container and floating menu
+  useClickOutside([containerRef, menuRef], () => setIsOpen(false), isOpen);
 
   // Escape to close and refocus trigger
   useEffect(() => {
@@ -147,66 +201,79 @@ export function SingleSelectDropdown<T extends string | number = string>({
         </svg>
       </button>
 
-      {/* Floating Menu Popover */}
-      {isOpen ? (
-        <div
-          role="listbox"
-          tabIndex={-1}
-          aria-labelledby={selectId}
-          className={cn(
-            'animate-in fade-in zoom-in-95 absolute z-50 min-w-full rounded-xl border border-[#E1E6EC] bg-white p-1 shadow-lg duration-100',
-            direction === 'up' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-            align === 'left' ? 'left-0' : 'right-0',
-            menuClassName,
-          )}
-        >
-          <div className="max-h-60 space-y-0.5 overflow-y-auto">
-            {options.map((opt) => {
-              const isSelected = opt.value === value;
-              return (
-                <div
-                  key={String(opt.value)}
-                  role="option"
-                  tabIndex={0}
-                  aria-selected={isSelected}
-                  onClick={() => handleSelect(opt.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSelect(opt.value);
-                    }
-                  }}
-                  className={cn(
-                    'flex cursor-pointer items-center justify-between gap-3 rounded-lg text-left transition-colors',
-                    size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
-                    isSelected
-                      ? 'bg-blue-50 font-bold text-[#0044D3]'
-                      : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900',
-                    'focus-visible:bg-slate-100 focus-visible:outline-none',
-                  )}
-                >
-                  <Span className="truncate">{opt.label}</Span>
-                  {isSelected ? (
-                    <svg
+      {/* Floating Menu Popover via Portal */}
+      {isOpen && mounted && menuCoords && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              ref={menuRef}
+              role="listbox"
+              tabIndex={-1}
+              aria-labelledby={selectId}
+              style={{
+                position: 'fixed',
+                top: menuCoords.openUpwards ? undefined : `${menuCoords.top}px`,
+                bottom: menuCoords.openUpwards
+                  ? `${window.innerHeight - menuCoords.top}px`
+                  : undefined,
+                left: align === 'right' ? undefined : `${menuCoords.left}px`,
+                right: align === 'right' ? `${window.innerWidth - menuCoords.left}px` : undefined,
+                width: `${menuCoords.width}px`,
+                zIndex: 9999,
+              }}
+              className={cn(
+                'animate-in fade-in zoom-in-95 rounded-xl border border-[#E1E6EC] bg-white p-1 shadow-lg duration-100',
+                menuClassName,
+              )}
+            >
+              <div className="max-h-60 space-y-0.5 overflow-y-auto">
+                {options.map((opt) => {
+                  const isSelected = opt.value === value;
+                  return (
+                    <div
+                      key={String(opt.value)}
+                      role="option"
+                      tabIndex={0}
+                      aria-selected={isSelected}
+                      onClick={() => handleSelect(opt.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelect(opt.value);
+                        }
+                      }}
                       className={cn(
-                        'shrink-0 text-[#0044D3]',
-                        size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
+                        'flex cursor-pointer items-center justify-between gap-3 rounded-lg text-left transition-colors',
+                        size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
+                        isSelected
+                          ? 'bg-blue-50 font-bold text-[#0044D3]'
+                          : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900',
+                        'focus-visible:bg-slate-100 focus-visible:outline-none',
                       )}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                      aria-hidden="true"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+                      <Span className="truncate">{opt.label}</Span>
+                      {isSelected ? (
+                        <svg
+                          className={cn(
+                            'shrink-0 text-[#0044D3]',
+                            size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
+                          )}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useId, useMemo, useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
@@ -19,11 +19,7 @@ import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { isSafeHttpUrl } from '@/lib/url';
-import {
-  calculateGradeLabel,
-  type SubmissionReviewDetails,
-  SubmissionStatus,
-} from '@/types/grading';
+import { type SubmissionReviewDetails, SubmissionStatus } from '@/types/grading';
 
 import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 
@@ -69,11 +65,6 @@ function SubmissionReviewContent({
     numMarks !== null && !isNaN(numMarks) && (numMarks < 0 || numMarks > maxMarks);
   const marksError = isMarksOutOfRange ? `Marks must be between 0 and ${maxMarks}` : undefined;
 
-  const previewGradeLabel = useMemo(() => {
-    if (numMarks === null || isNaN(numMarks) || numMarks < 0 || numMarks > maxMarks) return null;
-    return calculateGradeLabel(numMarks, maxMarks);
-  }, [numMarks, maxMarks]);
-
   const handleGradeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmittingGradeRef.current) return;
@@ -88,7 +79,7 @@ function SubmissionReviewContent({
           feedback: feedback.trim() || null,
         },
       });
-      setActionSuccess('Grade saved successfully');
+      setActionSuccess('Marks saved successfully');
       setIsEditingExisting(false);
     } catch {
       // Handled by mutation error state
@@ -406,9 +397,11 @@ function SubmissionReviewContent({
                   {marksError && <FieldError id={`${marksInputId}-error`} error={marksError} />}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Span className="text-xs font-medium text-slate-700">Grade</Span>
+                  <Span className="text-xs font-medium text-slate-700">Percentage</Span>
                   <div className="flex h-9 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800">
-                    {previewGradeLabel ?? '—'}
+                    {numMarks !== null && !isNaN(numMarks) && maxMarks > 0
+                      ? `${((numMarks / maxMarks) * 100).toFixed(1)}%`
+                      : '—'}
                   </div>
                 </div>
               </div>
@@ -457,7 +450,7 @@ function SubmissionReviewContent({
                   }
                   className="cursor-pointer border border-blue-200 bg-blue-50 font-semibold text-blue-700 shadow-2xs hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800"
                 >
-                  {gradeMutation.isPending ? 'Saving...' : 'Save Grade'}
+                  {gradeMutation.isPending ? 'Saving...' : 'Save Marks'}
                 </Button>
               </div>
             </form>

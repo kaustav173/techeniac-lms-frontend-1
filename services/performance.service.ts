@@ -1,13 +1,7 @@
 import { apiBlobClient, apiClient, type RequestOptions } from './api.client';
 
-export interface GradeDistributionBucket {
-  readonly count: number;
-  readonly percentage: number;
-}
-
 export interface PerformanceOverviewMetrics {
   readonly averageMarks: number;
-  readonly gradeDistribution: Record<'A+' | 'A' | 'B' | 'C' | 'D' | 'F', GradeDistributionBucket>;
   readonly onTimeRate: number;
   readonly completionPercentage: number;
   readonly overdueCount: number;
@@ -29,7 +23,6 @@ export interface MenteePerformanceRow {
   readonly onTimeSubmissions: number;
   readonly onTimeRate: number;
   readonly overdueCount: number;
-  readonly latestGrade: string | null;
 }
 
 export interface PaginatedPerformanceData {
@@ -49,7 +42,6 @@ export interface PerformanceFilterParams {
   readonly courseId?: string | string[] | undefined;
   readonly startDate?: string | undefined;
   readonly endDate?: string | undefined;
-  readonly gradeRange?: string | undefined;
   readonly status?: string | string[] | undefined;
   readonly search?: string | undefined;
   readonly page?: number | undefined;
@@ -63,7 +55,6 @@ export interface PerformanceFilterParams {
         | 'name'
         | 'batch'
         | 'courses'
-        | 'grade'
       )
     | undefined;
   readonly sortOrder?: ('ASC' | 'DESC') | undefined;
@@ -79,7 +70,6 @@ export interface LearningHistoryAssignment {
   readonly isLate: boolean;
   readonly status: string;
   readonly marks: number | null;
-  readonly gradeLabel: string | null;
   readonly feedback: string | null;
 }
 
@@ -152,9 +142,7 @@ export const performanceService = {
           : params.courseId.trim();
         if (val) sanitizedParams.courseId = val;
       }
-      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
-        sanitizedParams.gradeRange = params.gradeRange.trim();
-      }
+
       if (params.status) {
         const val = Array.isArray(params.status) ? params.status.join(',') : params.status.trim();
         if (val) sanitizedParams.status = val;
@@ -238,9 +226,7 @@ export const performanceService = {
           : params.courseId.trim();
         if (val) queryParams.courseId = val;
       }
-      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
-        queryParams.gradeRange = params.gradeRange.trim();
-      }
+
       if (params.status) {
         const val = Array.isArray(params.status) ? params.status.join(',') : params.status.trim();
         if (val) queryParams.status = val;
