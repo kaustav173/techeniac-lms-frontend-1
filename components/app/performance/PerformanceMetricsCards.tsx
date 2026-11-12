@@ -29,8 +29,8 @@ export function PerformanceMetricsCards({
 
   if (isLoading || !metrics) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
             className="animate-pulse rounded-3xl border border-slate-200 bg-white p-5 shadow-xs"
@@ -45,7 +45,7 @@ export function PerformanceMetricsCards({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {/* 1. Average Marks */}
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
@@ -66,7 +66,7 @@ export function PerformanceMetricsCards({
       {/* 2. Completion Percentage */}
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          Curriculum Completion
+          Course Completion
         </Span>
         <div className="mt-2 flex items-baseline gap-2">
           <H3 className="text-3xl font-bold tracking-tight text-blue-600">
@@ -81,20 +81,7 @@ export function PerformanceMetricsCards({
         </div>
       </div>
 
-      {/* 3. On-Time Submission Rate */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
-        <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-          On-Time Submission Rate
-        </Span>
-        <div className="mt-2 flex items-baseline gap-2">
-          <H3 className="text-3xl font-bold tracking-tight text-emerald-600">
-            {metrics.onTimeRate}%
-          </H3>
-        </div>
-        <P className="mt-1 text-xs text-slate-500">Submissions delivered before deadline</P>
-      </div>
-
-      {/* 4. Overdue Items Count */}
+      {/* 3. Overdue Items Count */}
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs transition-shadow hover:shadow-md">
         <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
           Overdue Tasks

@@ -120,13 +120,21 @@ export interface AllocationFilters {
   readonly courseId?: string | undefined;
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
-  readonly status?: CourseAllocationStatus | undefined;
+  readonly status?: CourseAllocationStatus | 'OVERDUE' | undefined;
   readonly isOverdue?: boolean | undefined;
   readonly search?: string | undefined;
   readonly dueDateFrom?: string | undefined;
   readonly dueDateTo?: string | undefined;
   readonly sortBy?:
-    'course' | 'batch' | 'mentee' | 'startDate' | 'dueDate' | 'createdAt' | undefined;
+    | 'course'
+    | 'mentee'
+    | 'batch'
+    | 'started'
+    | 'due'
+    | 'progress'
+    | 'status'
+    | 'createdAt'
+    | undefined;
   readonly sortOrder?: 'asc' | 'desc' | undefined;
 }
 

@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { PasswordCriteriaChecklist } from '@/components/app/auth/PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from '@/components/app/auth/PasswordVisibilityToggle';
+import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { H2, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
-import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
@@ -43,6 +43,7 @@ interface ProfilePasswordFieldProps {
   readonly onToggleVisibility: () => void;
   readonly disabled?: boolean | undefined;
   readonly autoComplete?: string | undefined;
+  readonly inputRef?: React.Ref<HTMLInputElement> | undefined;
 }
 
 function ProfilePasswordField({
@@ -57,6 +58,7 @@ function ProfilePasswordField({
   onToggleVisibility,
   disabled,
   autoComplete,
+  inputRef,
 }: Readonly<ProfilePasswordFieldProps>) {
   return (
     <div className="space-y-1.5">
@@ -65,6 +67,7 @@ function ProfilePasswordField({
       </Label>
       <div className="relative">
         <Input
+          ref={inputRef}
           id={id}
           name={name}
           type={isVisible ? 'text' : 'password'}
@@ -75,6 +78,7 @@ function ProfilePasswordField({
           errorId={`${id}-error`}
           disabled={disabled}
           autoComplete={autoComplete}
+          className="rounded-2xl pr-10"
         />
         <PasswordVisibilityToggle isVisible={isVisible} onToggle={onToggleVisibility} />
       </div>
@@ -90,6 +94,8 @@ export interface ProfileViewProps {
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const { changePassword, updateProfile, refreshUser } = useAuth();
 
+  const [isEditingName, setIsEditingName] = useState(false);
+
   const [profileName, setProfileName] = useState(user.name);
   const [prevUserName, setPrevUserName] = useState(user.name);
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
@@ -102,6 +108,9 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     setPrevUserName(user.name);
     setProfileName(user.name);
   }
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const currentPasswordInputRef = useRef<HTMLInputElement>(null);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -118,6 +127,23 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const criteria = usePasswordCriteria(newPassword);
   const userInitials = getUserInitials(user.name);
   const roleBadgeStyle = getRoleBadgeColor(user.role);
+
+  const handleOpenPasswordModal = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setErrors({});
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleClosePasswordModal = () => {
+    if (isSubmitting) return;
+    setIsPasswordModalOpen(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setErrors({});
+  };
 
   const handleFieldChange =
     (setter: React.Dispatch<React.SetStateAction<string>>, fieldKey: string) => (val: string) => {
@@ -146,12 +172,16 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       return;
     }
 
-    if (result.data.name === user.name.trim()) return;
+    if (result.data.name === user.name.trim()) {
+      setIsEditingName(false);
+      return;
+    }
 
     setIsUpdatingProfile(true);
     try {
       await updateProfile(result.data.name);
       setProfileSuccessMessage('Profile name updated successfully.');
+      setIsEditingName(false);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
@@ -187,290 +217,313 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setIsPasswordModalOpen(false);
     } catch (err) {
       const message =
         err instanceof ApiError
           ? err.message
           : 'Failed to update password. Please verify current password and try again.';
-      setErrors({ general: message });
+      if (
+        err instanceof ApiError &&
+        (err.status === 401 || message.toLowerCase().includes('current password'))
+      ) {
+        setErrors({ currentPassword: 'Current password is incorrect. Please try again.' });
+      } else {
+        setErrors({ general: message });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Page Title & Breadcrumb Header */}
-      <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-        <H1 className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-          Account Profile
-        </H1>
-        <P className="mt-1 text-sm text-[#667085] sm:text-base">
-          View your authenticated account credentials and manage your portal access security.
-        </P>
-      </div>
+    <div className="mx-auto max-w-xl space-y-6">
+      {/* Success Notifications */}
+      {profileSuccessMessage ? (
+        <Alert variant="success" title="Profile Updated" message={profileSuccessMessage} />
+      ) : null}
+      {successMessage ? (
+        <Alert variant="success" title="Password Updated" message={successMessage} />
+      ) : null}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Left Card: User Details & Identity */}
-        <div className="space-y-6 lg:col-span-5">
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#0044D3] text-2xl font-black text-white shadow-md shadow-[#0044D3]/20">
-                {userInitials}
-              </div>
-              <H2 className="mt-4 max-w-full truncate text-xl font-bold text-[#111827]">
-                {user.name || 'User'}
-              </H2>
-              <P className="max-w-full truncate text-sm text-[#667085]">{user.email}</P>
-              <div className="mt-3 flex items-center gap-2">
-                <Span
-                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${roleBadgeStyle}`}
-                >
-                  {formatRoleLabel(user.role)}
-                </Span>
-                {user.isActive !== false ? (
-                  <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </Span>
-                ) : (
-                  <Span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-                    <Span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                    Inactive
-                  </Span>
-                )}
-              </div>
-            </div>
+      {/* Main Single Column Profile Card */}
+      <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
+        {/* Gradient Banner Accent */}
+        <div className="h-28 bg-gradient-to-r from-blue-700 via-[#0044D3] to-blue-600" />
 
-            <div className="mt-8 border-t border-[#E1E6EC] pt-6">
-              <H3 className="text-sm font-bold tracking-wide text-[#111827] uppercase">
-                Account Information
-              </H3>
-              <dl className="mt-4 space-y-4 text-sm">
-                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                  <dt className="shrink-0 text-[#667085]">Full Name</dt>
-                  <dd className="truncate font-semibold text-[#111827]">{user.name || 'User'}</dd>
-                </div>
-                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                  <dt className="shrink-0 text-[#667085]">Email Address</dt>
-                  <dd className="truncate font-semibold text-[#111827]">{user.email}</dd>
-                </div>
-                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                  <dt className="shrink-0 text-[#667085]">Role</dt>
-                  <dd className="truncate font-semibold text-[#111827]">
-                    {formatRoleLabel(user.role)}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                  <dt className="shrink-0 text-[#667085]">Member Since</dt>
-                  <dd className="truncate font-semibold text-[#111827]">
-                    {user.createdAt ? formatDateIST(user.createdAt) : '—'}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 items-center justify-between gap-4">
-                  <dt className="shrink-0 text-[#667085]">Account Status</dt>
-                  <dd
-                    className={`truncate font-semibold ${user.isActive !== false ? 'text-emerald-600' : 'text-slate-500'}`}
-                  >
-                    {user.isActive !== false ? 'Active & Verified' : 'Inactive'}
-                  </dd>
-                </div>
-              </dl>
+        <div className="relative px-6 pb-8 text-center sm:px-8">
+          {/* Overlapping Initials Avatar */}
+          <div className="-mt-14 flex justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-white bg-[#0044D3] text-3xl font-black text-white shadow-md shadow-blue-900/15">
+              {userInitials}
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Profile Edit & Change Password Forms */}
-        <div className="space-y-6 lg:col-span-7">
-          {/* Personal Information Form Card */}
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-            <div>
-              <H2 className="text-lg font-bold text-[#111827] sm:text-xl">Personal Information</H2>
-              <P className="mt-1 text-sm text-[#667085]">
-                Update your display name. Email address is managed by administrators and cannot be
-                changed.
-              </P>
-            </div>
-
-            {profileSuccessMessage ? (
-              <div className="mt-6">
-                <Alert variant="success" title="Profile Updated" message={profileSuccessMessage} />
-              </div>
-            ) : null}
-
-            {profileErrors.general ? (
-              <div className="mt-6">
-                <Alert variant="error" title="Update Failed" message={profileErrors.general} />
-              </div>
-            ) : null}
-
+          {/* Name with Inline Edit */}
+          {isEditingName ? (
             <Form
               onSubmit={(e) => {
                 void handleProfileSubmit(e);
               }}
-              className="mt-6 space-y-5"
+              className="mt-4 flex flex-col items-center gap-2"
             >
-              {/* Full Name Field (Editable) */}
-              <div className="space-y-1.5">
-                <Label htmlFor="profile-name" required>
-                  Full Name
-                </Label>
+              <div className="flex items-center justify-center gap-2">
                 <Input
-                  id="profile-name"
+                  id="inline-profile-name"
                   name="name"
                   type="text"
                   value={profileName}
                   onChange={(e) => {
                     setProfileName(e.target.value);
-                    if (profileSuccessMessage) setProfileSuccessMessage(null);
                     if (profileErrors.name || profileErrors.general) {
                       setProfileErrors({});
                     }
                   }}
                   placeholder="Enter your full name"
                   hasError={Boolean(profileErrors.name)}
-                  errorId="profile-name-error"
+                  errorId="inline-profile-name-error"
                   disabled={isUpdatingProfile}
                   autoComplete="name"
+                  className="h-9 w-60 rounded-xl text-center text-base font-bold"
+                  autoFocus
                 />
-                {profileErrors.name ? (
-                  <FieldError id="profile-name-error" error={profileErrors.name} />
-                ) : null}
-              </div>
-
-              {/* Email Address Field (Read-only) */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="profile-email">Email Address</Label>
-                  <Span className="text-xs font-medium text-[#667085]">Read-only</Span>
-                </div>
-                <Input
-                  id="profile-email"
-                  name="email"
-                  type="email"
-                  value={user.email}
-                  readOnly
-                  aria-readonly="true"
-                  aria-describedby="profile-email-desc"
-                  className="cursor-not-allowed bg-slate-50 text-slate-500"
-                />
-                <P id="profile-email-desc" className="text-xs text-[#667085]">
-                  Email address is linked to your authentication credentials and cannot be edited.
-                </P>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end pt-2">
                 <Button
                   type="submit"
+                  size="sm"
                   variant="primary"
-                  size="md"
                   disabled={
                     isUpdatingProfile ||
                     !profileName.trim() ||
                     profileName.trim() === user.name.trim()
                   }
                   isLoading={isUpdatingProfile}
-                  className="rounded-full bg-[#0044D3] px-6 text-sm font-semibold shadow-sm hover:bg-[#0036ab]"
+                  className="h-9 rounded-full bg-[#0044D3] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
                 >
-                  {isUpdatingProfile ? 'Saving Changes...' : 'Save Changes'}
+                  Save
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isUpdatingProfile}
+                  onClick={() => {
+                    setProfileName(user.name);
+                    setProfileErrors({});
+                    setIsEditingName(false);
+                  }}
+                  className="h-9 rounded-full px-3.5 text-xs font-semibold"
+                >
+                  Cancel
                 </Button>
               </div>
+              {profileErrors.name ? (
+                <FieldError id="inline-profile-name-error" error={profileErrors.name} />
+              ) : null}
+              {profileErrors.general ? (
+                <Span className="text-xs text-rose-600">{profileErrors.general}</Span>
+              ) : null}
             </Form>
+          ) : (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span
+                className="pointer-events-none h-8 w-8 shrink-0 select-none"
+                aria-hidden="true"
+              />
+              <H2 className="truncate text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
+                {user.name || 'User'}
+              </H2>
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileName(user.name);
+                  setProfileErrors({});
+                  setIsEditingName(true);
+                }}
+                title="Edit name"
+                aria-label="Edit name"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Badges: Role */}
+          <div className="mt-3 flex items-center justify-center">
+            <Span
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${roleBadgeStyle}`}
+            >
+              {formatRoleLabel(user.role)}
+            </Span>
           </div>
 
-          {/* Change Password Form Card */}
-          <div className="rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-            <div>
-              <H2 className="text-lg font-bold text-[#111827] sm:text-xl">Change Password</H2>
-              <P className="mt-1 text-sm text-[#667085]">
-                Ensure your account is using a long, random password to stay secure.
-              </P>
-            </div>
-
-            {successMessage ? (
-              <div className="mt-6">
-                <Alert variant="success" title="Password Updated" message={successMessage} />
-              </div>
-            ) : null}
-
-            {errors.general ? (
-              <div className="mt-6">
-                <Alert variant="error" title="Update Failed" message={errors.general} />
-              </div>
-            ) : null}
-
-            <Form
-              onSubmit={(e) => {
-                void handlePasswordSubmit(e);
-              }}
-              className="mt-6 space-y-5"
-            >
-              {/* Current Password Field */}
-              <ProfilePasswordField
-                id="currentPassword"
-                name="currentPassword"
-                label="Current Password"
-                value={currentPassword}
-                onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
-                placeholder="Enter current password"
-                error={errors.currentPassword}
-                isVisible={showCurrentPassword}
-                onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
-                disabled={isSubmitting}
-                autoComplete="current-password"
-              />
-
-              {/* New Password Field */}
-              <ProfilePasswordField
-                id="newPassword"
-                name="newPassword"
-                label="New Password"
-                value={newPassword}
-                onChange={handleFieldChange(setNewPassword, 'newPassword')}
-                placeholder="Enter new strong password"
-                error={errors.newPassword}
-                isVisible={showNewPassword}
-                onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
-                disabled={isSubmitting}
-                autoComplete="new-password"
-              />
-
-              {/* Password Requirements Checklist */}
-              {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
-
-              {/* Confirm Password Field */}
-              <ProfilePasswordField
-                id="confirmPassword"
-                name="confirmPassword"
-                label="Confirm New Password"
-                value={confirmPassword}
-                onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
-                placeholder="Re-enter new password"
-                error={errors.confirmPassword}
-                isVisible={showConfirmPassword}
-                onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
-                disabled={isSubmitting}
-                autoComplete="new-password"
-              />
-
-              {/* Submit Button */}
-              <div className="flex justify-end pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  disabled={isSubmitting}
-                  isLoading={isSubmitting}
-                  className="rounded-full bg-[#0044D3] px-6 text-sm font-semibold shadow-sm hover:bg-[#0036ab]"
+          {/* Contact Metadata */}
+          <div className="mt-6 rounded-2xl border border-[#E1E6EC] bg-[#F9FAFB] p-4 text-left">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <Span className="flex items-center gap-2 text-[#667085]">
+                <svg
+                  className="h-4 w-4 shrink-0 text-slate-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
                 >
-                  {isSubmitting ? 'Updating Password...' : 'Update Password'}
-                </Button>
-              </div>
-            </Form>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+                <Span>Email</Span>
+              </Span>
+              <Span className="truncate font-semibold text-[#111827]">{user.email}</Span>
+            </div>
+          </div>
+
+          {/* Change Password Trigger Button */}
+          <div className="mt-6 flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleOpenPasswordModal}
+              className="flex items-center gap-2 rounded-full border border-[#D0D5DD] px-4 py-2 text-xs font-semibold text-[#344054] shadow-2xs transition-colors hover:bg-[#F9FAFB] hover:text-[#111827]"
+            >
+              <svg
+                className="h-4 w-4 text-slate-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+              Change Password
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal Popup */}
+      <Modal
+        isOpen={isPasswordModalOpen}
+        onClose={handleClosePasswordModal}
+        title="Change Password"
+        description="Set and confirm your new credentials."
+        size="sm"
+        initialFocusRef={currentPasswordInputRef}
+        isSubmitting={isSubmitting}
+        preventClose={isSubmitting}
+      >
+        <Form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handlePasswordSubmit(e);
+          }}
+          className="space-y-4"
+        >
+          {errors.general ? (
+            <Alert variant="error" title="Update Failed" message={errors.general} />
+          ) : null}
+
+          <ProfilePasswordField
+            id="modal-currentPassword"
+            name="currentPassword"
+            label="Current"
+            value={currentPassword}
+            onChange={handleFieldChange(setCurrentPassword, 'currentPassword')}
+            placeholder="••••••••"
+            error={errors.currentPassword}
+            isVisible={showCurrentPassword}
+            onToggleVisibility={() => setShowCurrentPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="current-password"
+            inputRef={currentPasswordInputRef}
+          />
+
+          {/* New Password Field */}
+          <ProfilePasswordField
+            id="modal-newPassword"
+            name="newPassword"
+            label="New"
+            value={newPassword}
+            onChange={handleFieldChange(setNewPassword, 'newPassword')}
+            placeholder="••••••••"
+            error={errors.newPassword}
+            isVisible={showNewPassword}
+            onToggleVisibility={() => setShowNewPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="new-password"
+          />
+
+          {/* Password Requirements Checklist */}
+          {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
+
+          {/* Confirm Password Field */}
+          <ProfilePasswordField
+            id="modal-confirmPassword"
+            name="confirmPassword"
+            label="Confirm"
+            value={confirmPassword}
+            onChange={handleFieldChange(setConfirmPassword, 'confirmPassword')}
+            placeholder="••••••••"
+            error={errors.confirmPassword}
+            isVisible={showConfirmPassword}
+            onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
+            disabled={isSubmitting}
+            autoComplete="new-password"
+          />
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClosePasswordModal}
+              disabled={isSubmitting}
+              className="rounded-full px-4 text-xs font-semibold"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={
+                isSubmitting ||
+                !currentPassword.trim() ||
+                !newPassword.trim() ||
+                !confirmPassword.trim() ||
+                !criteria.isValid
+              }
+              isLoading={isSubmitting}
+              className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Password'}
+            </Button>
+          </div>
+        </Form>
+      </Modal>
     </div>
   );
 }

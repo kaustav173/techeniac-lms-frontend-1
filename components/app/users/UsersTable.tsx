@@ -29,6 +29,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useUsers } from '@/hooks/useUsers';
+import { cn } from '@/lib/cn';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -600,6 +601,7 @@ export function UsersTable() {
               </TableRow>
             ) : (
               displayedUsers.map((u, idx) => {
+                const isActionMenuOpen = activeMenuState?.id === u.id;
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -635,7 +637,10 @@ export function UsersTable() {
                         router.push(`/admin/users/${u.id}`);
                       }
                     }}
-                    className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
+                    className={cn(
+                      'animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset',
+                      isActionMenuOpen && 'relative z-30',
+                    )}
                   >
                     {/* User Column (Name only) */}
                     <TableCell className="w-[32%]">

@@ -58,10 +58,10 @@ export function AdminDashboardSkeleton() {
 }
 
 export interface AdminDashboardViewProps {
-  readonly initialUser: AuthUser;
+  readonly initialUser?: AuthUser;
 }
 
-export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
+export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}) {
   void initialUser;
   const {
     data: dashboard,

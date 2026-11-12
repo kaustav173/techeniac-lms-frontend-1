@@ -144,7 +144,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     hasNextPage: hasNextBatches,
     isFetching: isFetchingBatches,
     isFetchingNextPage: isFetchingNextBatches,
-  } = useInfiniteBatches(15, batchSearch);
+  } = useInfiniteBatches(15, batchSearch, portalType);
 
   const batches = useMemo(
     () => batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [],

@@ -131,6 +131,21 @@ input[type='password']::placeholder {
   animation: pulseGlow 6s ease-in-out infinite;
 }
 
+@keyframes rowExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-row-expand {
+  animation: rowExpand 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ==========================================================================
    GLOBAL STANDARDIZED TYPOGRAPHY UTILITIES
    ========================================================================== */
@@ -209,7 +224,7 @@ input[type='password']::placeholder {
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -252,7 +267,7 @@ input[type='password']::placeholder {
 .animate-row-enter,
 tbody.table-body-animated > tr,
 tbody > tr {
-  animation: rowFadeSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rowFadeSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 tbody > tr:nth-child(1),

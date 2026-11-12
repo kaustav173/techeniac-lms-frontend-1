@@ -65,7 +65,11 @@ export function SortableColumnHeader<T extends string>({
                 strokeWidth={2}
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V4m0 0l-5 5m5-5l5 5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+                />
               </svg>
             ) : (
               <svg
@@ -76,12 +80,16 @@ export function SortableColumnHeader<T extends string>({
                 strokeWidth={2}
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m0 0l-5-5m5 5l5-5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+                />
               </svg>
             )
           ) : (
             <svg
-              className="h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500"
+              className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -91,7 +99,7 @@ export function SortableColumnHeader<T extends string>({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M8 4v16m0 0l-4-4m4 4l4-4M16 20V4m0 0l-4 4m4-4l4 4"
+                d="M7.5 3v18M3 16.5L7.5 21l4.5-4.5M16.5 21V3M12 7.5L16.5 3l4.5 4.5"
               />
             </svg>
           )}

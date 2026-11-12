@@ -40,6 +40,8 @@ export const gradingService = {
     if (query?.fromDate) params.fromDate = query.fromDate;
     if (query?.toDate) params.toDate = query.toDate;
     if (query?.sort) params.sort = query.sort;
+    if (query?.sortBy) params.sortBy = query.sortBy;
+    if (query?.sortOrder) params.sortOrder = query.sortOrder;
     if (query?.page) params.page = query.page;
     if (query?.limit) params.limit = query.limit;
 

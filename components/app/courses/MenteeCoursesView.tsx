@@ -267,7 +267,7 @@ export function MenteeCoursesView() {
 
               {/* Attached Pagination Controls */}
               {total > 0 ? (
-                <div className="mt-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+                <div className="relative z-20 mt-8 rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
                   <PaginationControls
                     page={page}
                     limit={limit}

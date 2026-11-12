@@ -20,12 +20,16 @@ export const CRITERIA_ITEMS: readonly CriteriaItem[] = [
 
 export interface PasswordCriteriaChecklistProps {
   readonly criteria: PasswordCriteria;
+  readonly title?: string;
 }
 
-export function PasswordCriteriaChecklist({ criteria }: Readonly<PasswordCriteriaChecklistProps>) {
+export function PasswordCriteriaChecklist({
+  criteria,
+  title = 'Requirements',
+}: Readonly<PasswordCriteriaChecklistProps>) {
   return (
     <div className="space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
-      <P className="font-semibold text-slate-700">Password Requirements</P>
+      <P className="font-semibold text-slate-700">{title}</P>
       <div className="grid grid-cols-1 gap-0.5 text-slate-600">
         {CRITERIA_ITEMS.map((item) => {
           const isMet = Boolean(criteria[item.key]);
