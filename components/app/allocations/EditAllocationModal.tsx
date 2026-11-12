@@ -10,11 +10,7 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
-import {
-  type CourseAllocation,
-  useRevokeAllocationMutation,
-  useUpdateAllocationDatesMutation,
-} from '@/hooks/useAllocations';
+import { type CourseAllocation, useUpdateAllocationDatesMutation } from '@/hooks/useAllocations';
 
 export interface EditAllocationModalProps {
   readonly allocation: CourseAllocation | null;
@@ -42,10 +38,8 @@ function EditAllocationModalDialog({
   const [dueDate, setDueDate] = useState<string>(() => allocation.dueDate.split('T')[0] ?? '');
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [dateError, setDateError] = useState<string | null>(null);
-  const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false);
 
   const updateMutation = useUpdateAllocationDatesMutation();
-  const revokeMutation = useRevokeAllocationMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,24 +66,11 @@ function EditAllocationModalDialog({
     }
   };
 
-  const handleRevoke = async () => {
-    setErrorMsg(null);
-    try {
-      await revokeMutation.mutateAsync(allocation.id);
-      setIsConfirmingRevoke(false);
-      onSuccess?.();
-      onClose();
-    } catch (err: unknown) {
-      setErrorMsg(err);
-    }
-  };
-
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Edit Allocation"
-      description={`${allocation.course?.title ?? 'Course'} • ${allocation.batch?.name ?? 'Individual Mentee'}`}
       size="xl"
       footer={
         <div className="flex w-full items-center justify-end gap-2.5">
@@ -98,7 +79,7 @@ function EditAllocationModalDialog({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            disabled={updateMutation.isPending || revokeMutation.isPending}
+            disabled={updateMutation.isPending}
           >
             Cancel
           </Button>
@@ -107,8 +88,8 @@ function EditAllocationModalDialog({
             variant="primary"
             size="sm"
             onClick={(e) => void handleSubmit(e)}
-            isLoading={updateMutation.isPending || revokeMutation.isPending}
-            disabled={updateMutation.isPending || revokeMutation.isPending}
+            isLoading={updateMutation.isPending}
+            disabled={updateMutation.isPending}
           >
             Save Changes
           </Button>
@@ -222,64 +203,6 @@ function EditAllocationModalDialog({
                 ({allocation.user?.email})
               </Span>
             </div>
-          </div>
-        </div>
-
-        {/* SECTION 3: Destructive Zone (Soft Revoke) */}
-        <div className="border-t border-slate-100 pt-3">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-3">
-            <div className="flex items-center gap-1.5">
-              <svg
-                className="h-4 w-4 text-rose-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <Span className="text-xs font-bold text-rose-900">Revoke Allocation</Span>
-            </div>
-
-            {isConfirmingRevoke ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsConfirmingRevoke(false)}
-                  className="h-8 text-xs"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={() => void handleRevoke()}
-                  isLoading={revokeMutation.isPending}
-                  className="h-8 text-xs"
-                >
-                  Confirm Revoke
-                </Button>
-              </div>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsConfirmingRevoke(true)}
-                disabled={allocation.status === 'REVOKED' || allocation.status === 'COMPLETED'}
-                className="h-8 shrink-0 border-rose-300 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
-              >
-                {allocation.status === 'REVOKED' ? 'Already Revoked' : 'Revoke Allocation'}
-              </Button>
-            )}
           </div>
         </div>
       </Form>
