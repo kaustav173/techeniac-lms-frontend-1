@@ -8,6 +8,7 @@ import { MENTEE_COURSES_NAV } from '@/components/app/navigation/portal-nav.confi
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -26,6 +27,7 @@ import { formatDateDMY } from '@/lib/date';
 
 const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'active', label: 'Active' },
+  { value: 'overdue', label: 'Overdue' },
   { value: 'completed', label: 'Completed' },
   { value: 'closed', label: 'Closed' },
 ];
@@ -40,7 +42,7 @@ function truncateDescription(text: string, maxChars = MAX_DESCRIPTION_CHARS): st
   return `${normalized.slice(0, maxChars).trimEnd()}...`;
 }
 
-export function MenteeCoursesSkeleton() {
+export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
   return (
     <div>
       <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
@@ -50,36 +52,42 @@ export function MenteeCoursesSkeleton() {
         </div>
       </div>
       <div className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, idx) => (
+        {Array.from({ length: count }).map((_, idx) => (
           <div
             key={`course-skel-${idx}`}
             className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5"
           >
             <div>
+              {/* Top Header: Badge & Status */}
               <div className="flex items-center justify-between gap-2">
                 <Skeleton className="h-5 w-24 rounded-full" />
                 <Skeleton className="h-5 w-20 rounded-full" />
               </div>
-              <Skeleton className="mt-3.5 h-5 w-44 rounded-md" />
-              <div className="mt-2 space-y-1.5">
-                <Skeleton className="h-3.5 w-full rounded-md" />
-                <Skeleton className="h-3.5 w-4/5 rounded-md" />
+              {/* Title */}
+              <Skeleton className="mt-3.5 h-6 w-3/4 rounded-md" />
+              {/* Description: 2 lines */}
+              <div className="mt-1.5 min-h-[2.75rem] space-y-1.5">
+                <Skeleton className="h-4 w-full rounded-md" />
+                <Skeleton className="h-4 w-4/5 rounded-md" />
               </div>
+              {/* Progress Bar */}
               <div className="mt-4 space-y-1.5">
-                <div className="flex justify-between">
-                  <Skeleton className="h-3 w-14 rounded-md" />
-                  <Skeleton className="h-3 w-8 rounded-md" />
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-3.5 w-14 rounded-md" />
+                  <Skeleton className="h-3.5 w-8 rounded-md" />
                 </div>
                 <Skeleton className="h-1.5 w-full rounded-full" />
               </div>
+              {/* Metadata Row */}
               <div className="mt-4 flex items-center justify-between">
-                <Skeleton className="h-3.5 w-16 rounded-md" />
-                <Skeleton className="h-3.5 w-24 rounded-md" />
+                <Skeleton className="h-4 w-20 rounded-md" />
+                <Skeleton className="h-4 w-28 rounded-md" />
               </div>
             </div>
+            {/* Footer */}
             <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3.5">
-              <Skeleton className="h-3.5 w-20 rounded-md" />
-              <Skeleton className="h-3.5 w-16 rounded-md" />
+              <Skeleton className="h-4 w-20 rounded-md" />
+              <Skeleton className="h-4 w-16 rounded-md" />
             </div>
           </div>
         ))}
@@ -92,6 +100,8 @@ export function MenteeCoursesView() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['active']);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const { data, isLoading, isError, error, refetch } = useAllocationsList({
     menteeId: user?.id,
@@ -129,7 +139,13 @@ export function MenteeCoursesView() {
       if (selectedStatuses.length === 0) return true;
       const matchesActive =
         selectedStatuses.includes('active') &&
-        (alloc.status === 'ASSIGNED' || alloc.status === 'IN_PROGRESS');
+        (alloc.status === 'ASSIGNED' || alloc.status === 'IN_PROGRESS') &&
+        !alloc.isOverdue;
+      const matchesOverdue =
+        selectedStatuses.includes('overdue') &&
+        Boolean(alloc.isOverdue) &&
+        alloc.status !== 'COMPLETED' &&
+        !isTerminalAllocationStatus(alloc.status);
       const matchesCompleted =
         selectedStatuses.includes('completed') && alloc.status === 'COMPLETED';
       const matchesClosed =
@@ -137,15 +153,33 @@ export function MenteeCoursesView() {
         isTerminalAllocationStatus(alloc.status) &&
         alloc.status !== 'COMPLETED';
 
-      return matchesActive || matchesCompleted || matchesClosed;
+      return matchesActive || matchesOverdue || matchesCompleted || matchesClosed;
     });
   }, [allocations, search, selectedStatuses]);
 
+  const total = filteredAllocations.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const paginatedAllocations = useMemo(() => {
+    const startIndex = (page - 1) * limit;
+    return filteredAllocations.slice(startIndex, startIndex + limit);
+  }, [filteredAllocations, page, limit]);
+
   const hasActiveFilters = search.trim() !== '' || selectedStatuses.length > 0;
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleStatusChange = (values: string[]) => {
+    setSelectedStatuses(values);
+    setPage(1);
+  };
 
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
+    setPage(1);
   };
 
   return (
@@ -154,7 +188,7 @@ export function MenteeCoursesView() {
 
       <DashboardContent className="animate-slide-up space-y-6">
         {isLoading ? (
-          <MenteeCoursesSkeleton />
+          <MenteeCoursesSkeleton count={limit} />
         ) : (
           <>
             {/* Search & Status Filter Toolbar (Admin Style) */}
@@ -163,7 +197,7 @@ export function MenteeCoursesView() {
                 <div className="w-full sm:w-96 lg:w-[492px]">
                   <DebouncedSearchInput
                     value={search}
-                    onSearchChange={setSearch}
+                    onSearchChange={handleSearchChange}
                     placeholder="Search courses..."
                   />
                 </div>
@@ -172,8 +206,10 @@ export function MenteeCoursesView() {
                   label="Status"
                   options={COURSE_STATUS_OPTIONS}
                   selectedValues={selectedStatuses}
-                  onChange={setSelectedStatuses}
+                  onChange={handleStatusChange}
                   align="left"
+                  buttonClassName="bg-white hover:bg-slate-50/70"
+                  menuClassName="w-[159px] min-w-[159px] sm:min-w-[159px] sm:max-w-[160px]"
                 />
 
                 {hasActiveFilters ? (
@@ -223,11 +259,31 @@ export function MenteeCoursesView() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredAllocations.map((alloc, idx) => (
+                  {paginatedAllocations.map((alloc, idx) => (
                     <MenteeAllocationCard key={alloc.id} allocation={alloc} index={idx} />
                   ))}
                 </div>
               )}
+
+              {/* Attached Pagination Controls */}
+              {total > 0 ? (
+                <div className="mt-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+                  <PaginationControls
+                    page={page}
+                    limit={limit}
+                    total={total}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
+                    pageSizeOptions={[10, 20, 50]}
+                    itemLabel="courses"
+                    isLoading={isLoading}
+                  />
+                </div>
+              ) : null}
             </div>
           </>
         )}
