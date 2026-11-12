@@ -121,7 +121,7 @@ export interface AllocationFilters {
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly status?: CourseAllocationStatus | 'OVERDUE' | undefined;
-  readonly statuses?: readonly string[] | string[] | undefined;
+  readonly statuses?: readonly (CourseAllocationStatus | 'OVERDUE')[] | undefined;
   readonly isOverdue?: boolean | undefined;
   readonly search?: string | undefined;
   readonly dueDateFrom?: string | undefined;
@@ -131,9 +131,7 @@ export interface AllocationFilters {
     | 'mentee'
     | 'batch'
     | 'started'
-    | 'startDate'
     | 'due'
-    | 'dueDate'
     | 'progress'
     | 'status'
     | 'createdAt'

@@ -6,6 +6,7 @@ import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_PROGRESS_NAV } from '@/components/app/navigation/portal-nav.config';
+import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
@@ -24,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H3, P, Span } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import {
   AllocationDisplayStatus,
   type AllocationFilters,
@@ -34,6 +35,7 @@ import {
   useAllocationsList,
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/cn';
 import { formatDateDDMMYY } from '@/lib/date';
 
 type AllocationSortField = 'course' | 'due';
@@ -47,7 +49,7 @@ const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
 
 export function MenteeProgressView() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, sessionError } = useAuth();
 
   // 1. Filter & Pagination State
   const [page, setPage] = useState<number>(1);
@@ -64,7 +66,10 @@ export function MenteeProgressView() {
       page,
       limit,
       search: search.trim() || undefined,
-      statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+      statuses:
+        selectedStatuses.length > 0
+          ? (selectedStatuses as (CourseAllocationStatus | 'OVERDUE')[])
+          : undefined,
       sortBy: sortField ?? 'createdAt',
       sortOrder: sortField ? sortOrder : 'desc',
     }),
@@ -82,7 +87,7 @@ export function MenteeProgressView() {
     enabled: Boolean(user?.id),
   });
 
-  const isTableLoading = !user?.id || isLoading || isFetching;
+  const isInitialLoading = !user?.id || isLoading;
 
   const allocations = useMemo<readonly CourseAllocation[]>(
     () => allocationsData?.items ?? [],
@@ -141,6 +146,10 @@ export function MenteeProgressView() {
     search.trim() || selectedStatuses.length > 0 || sortField !== null,
   );
 
+  if (sessionError && !user) {
+    return <PortalSessionState sessionError={sessionError} variant="mentee" />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_PROGRESS_NAV} />
@@ -179,7 +188,7 @@ export function MenteeProgressView() {
               onClick={handleClearFilters}
               title="Clear all filters"
               aria-label="Clear all filters"
-              className="h-10 w-10 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
+              className="h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
             >
               <svg
                 className="h-5 w-5"
@@ -200,7 +209,7 @@ export function MenteeProgressView() {
           <div className="rounded-2xl border border-rose-200 bg-white p-6 shadow-xs">
             <ErrorMessage
               error={error}
-              title="Failed to load course progress telemetry"
+              title="Failed to load your course progress"
               onRetry={() => void refetch()}
             />
           </div>
@@ -208,7 +217,7 @@ export function MenteeProgressView() {
 
         {/* Progress Telemetry Data Table */}
         <TableContainer className="rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-          <Table className="w-full table-fixed text-left text-sm text-[#111827]">
+          <Table className="w-full min-w-[680px] table-fixed text-left text-sm text-[#111827]">
             <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
               <TableRow>
                 <SortableColumnHeader<AllocationSortField>
@@ -247,8 +256,13 @@ export function MenteeProgressView() {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-[#F2F4F7]">
-              {isTableLoading ? (
+            <TableBody
+              className={cn(
+                'divide-y divide-[#F2F4F7]',
+                isFetching && !isInitialLoading && 'opacity-60 transition-opacity',
+              )}
+            >
+              {isInitialLoading ? (
                 Array.from({ length: limit }).map((_, idx) => (
                   <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
                     <TableCell className="w-[28%] px-4 py-4">
@@ -279,14 +293,14 @@ export function MenteeProgressView() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : allocations.length === 0 ? (
+              ) : isError ? null : allocations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="px-5 py-14 text-center">
                     <div className="mx-auto max-w-sm space-y-2">
                       <Span className="text-3xl">📚</Span>
-                      <H3 className="text-base font-bold text-[#111827]">
+                      <P className="text-base font-bold text-[#111827]">
                         No Enrolled Courses Found
-                      </H3>
+                      </P>
                       <P className="text-xs text-[#667085]">
                         {hasActiveFilters
                           ? 'No course allocations match your current search and filter parameters.'
@@ -308,26 +322,37 @@ export function MenteeProgressView() {
                   </TableCell>
                 </TableRow>
               ) : (
-                allocations.map((alloc, idx) => {
-                  const isCompleted = alloc.status === 'COMPLETED';
+                allocations.map((alloc) => {
+                  const isCompleted = alloc.status === CourseAllocationStatus.COMPLETED;
                   const isClosed = isTerminalAllocationStatus(alloc.status) && !isCompleted;
                   const isOverdue = Boolean(alloc.isOverdue) && !isCompleted && !isClosed;
-                  const rowKey = alloc.id ? `${alloc.id}-${idx}` : `alloc-row-${idx}`;
+                  const progress = Number.isFinite(alloc.progressPercent)
+                    ? alloc.progressPercent
+                    : 0;
 
                   return (
                     <TableRow
-                      key={rowKey}
+                      key={alloc.id}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Open syllabus for ${alloc.course?.title ?? 'course'}`}
                       onClick={() => router.push(`/mentee/courses/${alloc.id}`)}
-                      className="cursor-pointer transition-colors hover:bg-slate-50/70"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          router.push(`/mentee/courses/${alloc.id}`);
+                        }
+                      }}
+                      className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-100/80 focus-visible:outline-none"
                     >
                       {/* 1. Course Name (truncated with full name on hover) */}
                       <TableCell className="w-[28%] px-4 py-4 align-middle">
-                        <H3
+                        <P
                           title={alloc.course?.title ?? 'Untitled Course'}
                           className="truncate text-base font-semibold text-[#111827]"
                         >
                           {alloc.course?.title ?? 'Untitled Course'}
-                        </H3>
+                        </P>
                       </TableCell>
 
                       {/* 2. Batch Cohort & Code */}
@@ -368,7 +393,7 @@ export function MenteeProgressView() {
                                     : 'bg-[#0044D3]'
                               }`}
                               style={{
-                                width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
+                                width: `${Math.min(100, Math.max(0, progress))}%`,
                               }}
                             />
                           </div>
@@ -381,7 +406,7 @@ export function MenteeProgressView() {
                                   : 'text-[#0044D3]'
                             }`}
                           >
-                            {alloc.progressPercent}%
+                            {progress}%
                           </Span>
                         </div>
                       </TableCell>
@@ -405,7 +430,7 @@ export function MenteeProgressView() {
                                   : 'Continue Learning'
                             }
                             aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
-                            className="inline-flex rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:text-[#0044D3] focus-visible:outline-none"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
                           >
                             <svg
                               className="h-5 w-5"
@@ -441,7 +466,7 @@ export function MenteeProgressView() {
               }}
               itemLabel="courses"
               pageSizeOptions={[10, 20, 50]}
-              isLoading={isTableLoading}
+              isLoading={isInitialLoading}
             />
           </div>
         )}
