@@ -81,12 +81,14 @@ export function AdminDashboardSkeleton() {
 }
 
 export interface AdminDashboardViewProps {
-  readonly initialUser: AuthUser;
+  readonly initialUser?: AuthUser;
 }
 
-export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
+export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}) {
   const { user: authUser } = useAuth();
   const user = authUser ?? initialUser;
+  const userName = user?.name ?? 'Administrator';
+  const userEmail = user?.email ?? '';
 
   const {
     data: dashboard,
@@ -106,8 +108,8 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
             <div className="max-w-2xl">
               <PageTitle>Super Admin Control Center</PageTitle>
               <SubText className="mt-2 text-base text-[#667085]">
-                Welcome back, <strong>{user.name}</strong>. Monitor organizational curriculum,
-                cohort allocations, live progress telemetry, and compliance audit records.
+                Welcome back, <strong>{userName}</strong>. Monitor organizational curriculum, cohort
+                allocations, live progress telemetry, and compliance audit records.
               </SubText>
 
               {/* Quick Navigation Pills */}
@@ -143,8 +145,8 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps) {
               <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
                 Active Administrator
               </Span>
-              <Span className="mt-1 block text-base font-bold text-[#111827]">{user.name}</Span>
-              <Span className="mt-0.5 block text-sm text-[#667085]">{user.email}</Span>
+              <Span className="mt-1 block text-base font-bold text-[#111827]">{userName}</Span>
+              <Span className="mt-0.5 block text-sm text-[#667085]">{userEmail}</Span>
               <Span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700">
                 <Span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
                 Super Admin Privilege
