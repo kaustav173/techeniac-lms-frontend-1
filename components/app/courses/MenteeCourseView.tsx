@@ -82,13 +82,13 @@ function ConfettiCelebrationGraphic() {
   return (
     <div className="relative flex items-center justify-center p-3 select-none">
       {/* Decorative festive confetti dashes */}
-      <span className="absolute -top-1 -left-1 h-2 w-0.5 rotate-45 rounded-full bg-amber-400" />
-      <span className="absolute top-0 right-1 h-2 w-0.5 -rotate-45 rounded-full bg-blue-500" />
-      <span className="absolute bottom-1 -left-2 h-2 w-0.5 -rotate-12 rounded-full bg-indigo-500" />
-      <span className="absolute right-0 -bottom-1 h-2 w-0.5 rotate-35 rounded-full bg-purple-500" />
-      <span className="absolute -top-2 left-6 h-2 w-0.5 rotate-15 rounded-full bg-rose-400" />
-      <span className="absolute bottom-0 left-1 h-1.5 w-1.5 rounded-full bg-yellow-400" />
-      <span className="absolute top-2 -right-2 h-1.5 w-1.5 rounded-full bg-teal-400" />
+      <div className="absolute -top-1 -left-1 h-2 w-0.5 rotate-45 rounded-full bg-amber-400" />
+      <div className="absolute top-0 right-1 h-2 w-0.5 -rotate-45 rounded-full bg-blue-500" />
+      <div className="absolute bottom-1 -left-2 h-2 w-0.5 -rotate-12 rounded-full bg-indigo-500" />
+      <div className="absolute right-0 -bottom-1 h-2 w-0.5 rotate-35 rounded-full bg-purple-500" />
+      <div className="absolute -top-2 left-6 h-2 w-0.5 rotate-15 rounded-full bg-rose-400" />
+      <div className="absolute bottom-0 left-1 h-1.5 w-1.5 rounded-full bg-yellow-400" />
+      <div className="absolute top-2 -right-2 h-1.5 w-1.5 rounded-full bg-teal-400" />
 
       {/* Main green celebration check badge */}
       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-400 text-white shadow-sm ring-4 ring-emerald-100/70">
@@ -140,9 +140,9 @@ function CircularProgressRing({
             className="transition-all duration-700 ease-out"
           />
         </svg>
-        <span className="absolute text-base font-bold text-slate-900">{Math.round(clamped)}%</span>
+        <Span className="absolute text-base font-bold text-slate-900">{Math.round(clamped)}%</Span>
       </div>
-      <span className="mt-1 text-xs font-medium text-slate-500">Completed</span>
+      <Span className="mt-1 text-xs font-medium text-slate-500">Completed</Span>
     </div>
   );
 }
@@ -276,7 +276,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                 className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
               >
                 <ArrowLeftIcon className="h-3.5 w-3.5" />
-                <span>Back to Courses</span>
+                <Span>Back to Courses</Span>
               </Link>
             </div>
           </div>
@@ -306,7 +306,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-slate-900"
           >
             <ArrowLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-            <span>Back to Courses</span>
+            <Span>Back to Courses</Span>
           </Link>
         </div>
 
@@ -320,21 +320,21 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               </div>
 
               <div className="space-y-1">
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
+                <Span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
                   Active
-                </span>
+                </Span>
                 <H1 className="text-2xl font-extrabold tracking-tight text-[#111827]">
                   {allocation.courseTitle}
                 </H1>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <div className="flex items-center gap-1.5">
                     <CalendarIcon className="h-3.5 w-3.5 text-slate-400" />
-                    <span>Due {formattedDueDate}</span>
+                    <Span>Due {formattedDueDate}</Span>
                   </div>
-                  <span className="text-slate-300">|</span>
+                  <Span className="text-slate-300">|</Span>
                   <div className="flex items-center gap-1.5">
                     <ClockIcon className="h-3.5 w-3.5 text-slate-400" />
-                    <span>{durationText}</span>
+                    <Span>{durationText}</Span>
                   </div>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             )}
           >
             <BookIcon className="h-4 w-4" />
-            <span>Course Content</span>
+            <Span>Course Content</Span>
           </button>
 
           <button
@@ -374,7 +374,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             )}
           >
             <BarChartIcon className="h-4 w-4" />
-            <span>Progress</span>
+            <Span>Progress</Span>
           </button>
         </div>
 
@@ -445,9 +445,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                                   ) : (
                                     <div className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-slate-300 bg-white" />
                                   )}
-                                  <span className="text-sm font-medium text-slate-800">
+                                  <Span className="text-sm font-medium text-slate-800">
                                     {subtopic.title}
-                                  </span>
+                                  </Span>
                                 </div>
 
                                 <div>
@@ -471,9 +471,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                                       }}
                                       className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
                                     >
-                                      <span>
+                                      <Span>
                                         {p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}
-                                      </span>
+                                      </Span>
                                       <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
                                     </button>
                                   )}
@@ -492,9 +492,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                               ) : (
                                 <div className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-slate-300 bg-white" />
                               )}
-                              <span className="text-sm font-medium text-slate-800">
+                              <Span className="text-sm font-medium text-slate-800">
                                 {topic.title}
-                              </span>
+                              </Span>
                             </div>
 
                             <div>
@@ -518,7 +518,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                                   }}
                                   className="flex cursor-pointer items-center gap-1 rounded-full bg-[#0044D3] px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700"
                                 >
-                                  <span>{p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}</span>
+                                  <Span>{p?.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}</Span>
                                   <ChevronRightIcon className="h-3 w-3 stroke-[3]" />
                                 </button>
                               )}
@@ -623,7 +623,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span
+                        <Span
                           className={cn(
                             'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
                             isDone
@@ -634,7 +634,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                           )}
                         >
                           {isDone ? 'Completed' : isInProg ? 'In Progress' : 'Not Started'}
-                        </span>
+                        </Span>
 
                         {!isReadOnly && (
                           <button
@@ -749,7 +749,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
                         className="cursor-pointer rounded-full bg-[#0044D3] hover:bg-blue-700"
                       >
                         <CheckIcon className="h-3.5 w-3.5" />
-                        <span>Mark Completed</span>
+                        <Span>Mark Completed</Span>
                       </Button>
                     </div>
                   </div>

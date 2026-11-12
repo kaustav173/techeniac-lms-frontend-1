@@ -579,15 +579,15 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             </TableCell>
 
                             <TableCell className="text-center">
-                              <span className="text-sm font-semibold text-slate-900">
+                              <Span className="text-sm font-semibold text-slate-900">
                                 {topicCount}
-                              </span>
+                              </Span>
                             </TableCell>
 
                             <TableCell className="text-center">
-                              <span className="text-sm font-semibold text-slate-900">
+                              <Span className="text-sm font-semibold text-slate-900">
                                 {assignmentCount}
-                              </span>
+                              </Span>
                             </TableCell>
 
                             <TableCell
@@ -595,7 +595,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex items-center justify-center">
-                                <span
+                                <Span
                                   className={cn(
                                     'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
                                     c.isActive
@@ -604,7 +604,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   )}
                                 >
                                   {c.isActive ? 'Active' : 'Inactive'}
-                                </span>
+                                </Span>
                               </div>
                             </TableCell>
 
