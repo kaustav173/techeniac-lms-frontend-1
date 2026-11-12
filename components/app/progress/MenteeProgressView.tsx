@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
@@ -41,6 +42,7 @@ const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
 ];
 
 export function MenteeProgressView() {
+  const router = useRouter();
   const { user } = useAuth();
 
   // 1. Filter & Pagination State
@@ -179,19 +181,19 @@ export function MenteeProgressView() {
           <Table className="w-full table-fixed text-left text-sm text-[#111827]">
             <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
               <TableRow>
-                <TableHead className="w-[30%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[28%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Course
                 </TableHead>
-                <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[20%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Batch
                 </TableHead>
-                <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Due Date
                 </TableHead>
-                <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Progress
                 </TableHead>
-                <TableHead className="w-[8%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Status
                 </TableHead>
                 <TableHead className="w-[6%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
@@ -203,28 +205,25 @@ export function MenteeProgressView() {
               {isTableLoading ? (
                 Array.from({ length: limit }).map((_, idx) => (
                   <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
-                    <TableCell className="w-[30%] px-4 py-4">
+                    <TableCell className="w-[28%] px-4 py-4">
                       <Skeleton className="h-4 w-44 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[24%] px-4 py-4">
+                    <TableCell className="w-[20%] px-4 py-4">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-32 rounded-md" />
                         <Skeleton className="h-3 w-20 rounded-md" />
                       </div>
                     </TableCell>
-                    <TableCell className="w-[18%] px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-3.5 w-24 rounded-md" />
-                        <Skeleton className="h-3 w-28 rounded-md" />
-                      </div>
-                    </TableCell>
                     <TableCell className="w-[14%] px-4 py-4">
+                      <Skeleton className="h-4 w-20 rounded-md" />
+                    </TableCell>
+                    <TableCell className="w-[18%] px-4 py-4">
                       <div className="flex items-center gap-2">
                         <Skeleton className="h-2 w-20 rounded-full" />
                         <Skeleton className="h-3 w-8 rounded-md" />
                       </div>
                     </TableCell>
-                    <TableCell className="w-[8%] px-4 py-4">
+                    <TableCell className="w-[14%] px-4 py-4">
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
                     <TableCell className="w-[6%] px-4 py-4 text-center">
@@ -270,47 +269,50 @@ export function MenteeProgressView() {
                   const rowKey = alloc.id ? `${alloc.id}-${idx}` : `alloc-row-${idx}`;
 
                   return (
-                    <TableRow key={rowKey} className="transition-colors hover:bg-slate-50/70">
+                    <TableRow
+                      key={rowKey}
+                      onClick={() => router.push(`/mentee/courses/${alloc.id}`)}
+                      className="cursor-pointer transition-colors hover:bg-slate-50/70"
+                    >
                       {/* 1. Course Name (truncated with full name on hover) */}
-                      <TableCell className="w-[30%] px-4 py-4 align-middle">
+                      <TableCell className="w-[28%] px-4 py-4 align-middle">
                         <H3
                           title={alloc.course?.title ?? 'Untitled Course'}
-                          className="truncate text-sm font-semibold text-[#111827]"
+                          className="truncate text-base font-semibold text-[#111827]"
                         >
                           {alloc.course?.title ?? 'Untitled Course'}
                         </H3>
                       </TableCell>
 
                       {/* 2. Batch Cohort & Code */}
-                      <TableCell className="w-[24%] px-4 py-4 align-middle">
+                      <TableCell className="w-[20%] px-4 py-4 align-middle">
                         <div className="space-y-0.5">
-                          <Span className="block text-xs font-semibold text-[#111827]">
+                          <Span
+                            title={alloc.batch?.name ?? 'Individual Allocation'}
+                            className="block truncate text-sm font-semibold text-[#111827]"
+                          >
                             {alloc.batch?.name ?? 'Individual Allocation'}
                           </Span>
-                          <Span className="block text-xs text-[#667085]">
+                          <Span
+                            title={alloc.batch?.code ?? 'Core Track'}
+                            className="block truncate text-xs text-[#667085]"
+                          >
                             {alloc.batch?.code ?? 'Core Track'}
                           </Span>
                         </div>
                       </TableCell>
 
                       {/* 3. Due Date */}
-                      <TableCell className="w-[18%] px-4 py-4 align-middle">
-                        <div className="space-y-0.5 text-xs text-[#667085]">
-                          <Span className="block font-medium text-[#111827]">
-                            Due {new Date(alloc.dueDate).toLocaleDateString()}
-                          </Span>
-                          {alloc.completedAt && (
-                            <Span className="block font-medium text-emerald-700">
-                              ✓ Finished {new Date(alloc.completedAt).toLocaleDateString()}
-                            </Span>
-                          )}
-                        </div>
+                      <TableCell className="w-[14%] px-4 py-4 align-middle">
+                        <Span className="block text-sm font-medium text-[#111827]">
+                          {new Date(alloc.dueDate).toLocaleDateString()}
+                        </Span>
                       </TableCell>
 
                       {/* 4. Progress Bar & Percentage */}
-                      <TableCell className="w-[14%] px-4 py-4 align-middle">
-                        <div className="flex items-center gap-3">
-                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#E1E6EC]">
+                      <TableCell className="w-[18%] px-4 py-4 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-2 w-20 overflow-hidden rounded-full bg-[#E1E6EC]">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
                                 isCompleted
@@ -339,7 +341,7 @@ export function MenteeProgressView() {
                       </TableCell>
 
                       {/* 5. Status Badge */}
-                      <TableCell className="w-[8%] px-4 py-4 align-middle">
+                      <TableCell className="w-[14%] px-4 py-4 align-middle">
                         <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
                       </TableCell>
 
@@ -348,6 +350,7 @@ export function MenteeProgressView() {
                         <div className="flex items-center justify-center">
                           <Link
                             href={`/mentee/courses/${alloc.id}`}
+                            onClick={(e) => e.stopPropagation()}
                             title={
                               isCompleted
                                 ? 'Review Syllabus'
