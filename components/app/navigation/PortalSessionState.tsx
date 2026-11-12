@@ -4,6 +4,7 @@ import React from 'react';
 
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H2, P } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
@@ -234,8 +235,8 @@ export function PortalSessionState({
         }`}
       >
         <div className="flex w-full flex-col items-center gap-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
-            TL
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs">
+            <Logo size="sm" variant="white" priority />
           </div>
           <nav
             className="flex flex-col items-center space-y-3"
@@ -265,8 +266,8 @@ export function PortalSessionState({
         {/* Drawer Header Skeleton */}
         <div className="flex h-20 items-center justify-between border-b border-[#E1E6EC] px-6">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] text-base font-black text-white shadow-xs">
-              TL
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0044D3] shadow-xs">
+              <Logo size="sm" variant="white" priority />
             </div>
             <div className="h-6 w-36 animate-pulse rounded-md bg-slate-200/80" />
           </div>

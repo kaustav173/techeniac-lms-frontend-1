@@ -5,15 +5,17 @@ import React, { useId, useMemo, useRef, useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
-import { H3, H4, P, Span } from '@/components/ui/Typography';
+import { P, Span } from '@/components/ui/Typography';
 import {
   useGradeSubmissionMutation,
   useRequestResubmissionMutation,
   useReviewDetails,
 } from '@/hooks/useGrading';
+import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { isSafeHttpUrl } from '@/lib/url';
@@ -28,9 +30,14 @@ import { SubmissionStatusBadge } from './SubmissionStatusBadge';
 interface SubmissionReviewContentProps {
   readonly reviewDetails: SubmissionReviewDetails;
   readonly onRefetch?: () => void;
+  readonly onClose: () => void;
 }
 
-function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewContentProps) {
+function SubmissionReviewContent({
+  reviewDetails,
+  onRefetch,
+  onClose,
+}: SubmissionReviewContentProps) {
   const marksInputId = useId();
   const feedbackInputId = useId();
   const resubmitInputId = useId();
@@ -58,6 +65,9 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
 
   const maxMarks = reviewDetails.maxMarks;
   const numMarks = marks.trim() === '' ? null : Number(marks);
+  const isMarksOutOfRange =
+    numMarks !== null && !isNaN(numMarks) && (numMarks < 0 || numMarks > maxMarks);
+  const marksError = isMarksOutOfRange ? `Marks must be between 0 and ${maxMarks}` : undefined;
 
   const previewGradeLabel = useMemo(() => {
     if (numMarks === null || isNaN(numMarks) || numMarks < 0 || numMarks > maxMarks) return null;
@@ -78,7 +88,7 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
           feedback: feedback.trim() || null,
         },
       });
-      setActionSuccess('Grade submitted successfully');
+      setActionSuccess('Grade saved successfully');
       setIsEditingExisting(false);
     } catch {
       // Handled by mutation error state
@@ -114,143 +124,130 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
     gradeMutation.error?.message?.toLowerCase().includes('version') ||
     gradeMutation.error?.message?.toLowerCase().includes('stale');
 
+  const hasLink = Boolean(reviewDetails.submissionData.linkUrl);
+  const hasPdf = Boolean(reviewDetails.submissionData.pdfUrl);
+  const hasZip = Boolean(reviewDetails.submissionData.zipUrl);
+  const hasAttachments = hasLink || hasPdf || hasZip;
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header Metadata Banner */}
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-800/60">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-          <div>
-            <div className="flex items-center gap-2">
-              <H3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {reviewDetails.assignmentTitle}
-              </H3>
-              <Span className="rounded bg-slate-200 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-                v{reviewDetails.version}
-              </Span>
-            </div>
-            <P className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Course:{' '}
-              <Span className="font-semibold text-slate-700 dark:text-slate-300">
-                {reviewDetails.courseTitle}
-              </Span>
-              {reviewDetails.topicTitle && ` • Topic: ${reviewDetails.topicTitle}`}
-              {reviewDetails.batchName && ` • Batch: ${reviewDetails.batchName}`}
-            </P>
-            <P className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
-              Student:{' '}
-              <Span className="font-semibold text-slate-900 dark:text-slate-200">
-                {reviewDetails.mentee.name}
-              </Span>{' '}
-              ({reviewDetails.mentee.email})
-            </P>
-          </div>
-
-          <div className="flex flex-col items-start gap-1 sm:items-end">
-            <SubmissionStatusBadge status={reviewDetails.status} isLate={reviewDetails.isLate} />
-            <Span className="font-mono text-xs text-slate-500 dark:text-slate-400">
-              Submitted: {formatDateIST(reviewDetails.submittedAt)}
+    <div className="space-y-4">
+      {/* Status & Timing Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50/60 px-4 py-2.5 text-xs">
+        <div className="flex items-center gap-2.5">
+          <SubmissionStatusBadge status={reviewDetails.status} isLate={reviewDetails.isLate} />
+          {reviewDetails.topicTitle && (
+            <Span className="text-slate-600">
+              <Span className="text-slate-400">Topic: </Span>
+              <Span className="font-medium text-slate-800">{reviewDetails.topicTitle}</Span>
             </Span>
-          </div>
+          )}
         </div>
-
-        {reviewDetails.instructions && (
-          <div className="mt-4 border-t border-slate-200/70 pt-3 dark:border-slate-700">
-            <H4 className="text-xs font-bold text-slate-700 uppercase dark:text-slate-300">
-              Assignment Instructions
-            </H4>
-            <P className="mt-1 text-xs whitespace-pre-wrap text-slate-600 dark:text-slate-400">
-              {reviewDetails.instructions}
-            </P>
-          </div>
-        )}
+        <Span className="text-[11px] font-medium text-slate-500">
+          Submitted {formatDateIST(reviewDetails.submittedAt)}
+        </Span>
       </div>
 
-      {/* Submitted Artifacts Section (FR-10.4) */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <H4 className="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-300">
-          Submitted Artifacts & Links
-        </H4>
+      {/* Instructions (if provided) */}
+      {reviewDetails.instructions && (
+        <div className="rounded-xl border border-slate-200/70 bg-white p-3 text-xs text-slate-600 shadow-2xs">
+          <Span className="font-semibold text-slate-700">Instructions: </Span>
+          <span>{reviewDetails.instructions}</span>
+        </div>
+      )}
 
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {/* Web Link */}
-          {reviewDetails.submissionData.linkUrl ? (
-            <div className="flex flex-col gap-1 rounded-xl border border-blue-200 bg-blue-50/50 p-3 dark:border-blue-900/50 dark:bg-blue-950/30">
-              <Span className="font-mono text-xs font-bold text-blue-700 uppercase dark:text-blue-300">
-                Project / Git URL
-              </Span>
-              {isSafeHttpUrl(reviewDetails.submissionData.linkUrl) ? (
+      {/* Attachments */}
+      <div className="space-y-1.5">
+        <Span className="text-xs font-semibold text-slate-700">Attachments</Span>
+        <div className="flex flex-wrap gap-2">
+          {hasAttachments ? (
+            <>
+              {reviewDetails.submissionData.linkUrl && (
                 <a
-                  href={reviewDetails.submissionData.linkUrl}
+                  href={
+                    isSafeHttpUrl(reviewDetails.submissionData.linkUrl)
+                      ? reviewDetails.submissionData.linkUrl
+                      : undefined
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate font-mono text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="group inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-all hover:border-blue-300 hover:bg-blue-50/40 hover:text-blue-700"
                 >
-                  {reviewDetails.submissionData.linkUrl} ↗
+                  <svg
+                    className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                  <span>Project Link</span>
                 </a>
-              ) : (
-                <Span className="truncate font-mono text-xs text-slate-600 dark:text-slate-400">
-                  {reviewDetails.submissionData.linkUrl}
-                </Span>
               )}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center dark:border-slate-800">
-              <P className="text-xs text-slate-400">No web link submitted</P>
-            </div>
-          )}
-
-          {/* PDF Document */}
-          {reviewDetails.submissionData.pdfUrl ? (
-            <div className="flex flex-col gap-1 rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
-              <Span className="font-mono text-xs font-bold text-emerald-700 uppercase dark:text-emerald-300">
-                PDF Document
-              </Span>
-              {isSafeHttpUrl(reviewDetails.submissionData.pdfUrl) ? (
+              {reviewDetails.submissionData.pdfUrl && (
                 <a
-                  href={reviewDetails.submissionData.pdfUrl}
+                  href={
+                    isSafeHttpUrl(reviewDetails.submissionData.pdfUrl)
+                      ? reviewDetails.submissionData.pdfUrl
+                      : undefined
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate font-mono text-xs text-emerald-600 underline hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                  className="group inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-all hover:border-rose-300 hover:bg-rose-50/40 hover:text-rose-700"
                 >
-                  Download PDF 📄
+                  <svg
+                    className="h-3.5 w-3.5 text-rose-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span>Document (PDF)</span>
                 </a>
-              ) : (
-                <Span className="truncate font-mono text-xs text-slate-600 dark:text-slate-400">
-                  {reviewDetails.submissionData.pdfUrl}
-                </Span>
               )}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center dark:border-slate-800">
-              <P className="text-xs text-slate-400">No PDF submitted</P>
-            </div>
-          )}
-
-          {/* ZIP Archive */}
-          {reviewDetails.submissionData.zipUrl ? (
-            <div className="flex flex-col gap-1 rounded-xl border border-purple-200 bg-purple-50/50 p-3 dark:border-purple-900/50 dark:bg-purple-950/30">
-              <Span className="font-mono text-xs font-bold text-purple-700 uppercase dark:text-purple-300">
-                ZIP Archive
-              </Span>
-              {isSafeHttpUrl(reviewDetails.submissionData.zipUrl) ? (
+              {reviewDetails.submissionData.zipUrl && (
                 <a
-                  href={reviewDetails.submissionData.zipUrl}
+                  href={
+                    isSafeHttpUrl(reviewDetails.submissionData.zipUrl)
+                      ? reviewDetails.submissionData.zipUrl
+                      : undefined
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="truncate font-mono text-xs text-purple-600 underline hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                  className="group inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition-all hover:border-amber-300 hover:bg-amber-50/40 hover:text-amber-700"
                 >
-                  Download ZIP 📦
+                  <svg
+                    className="h-3.5 w-3.5 text-amber-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                    />
+                  </svg>
+                  <span>Archive (ZIP)</span>
                 </a>
-              ) : (
-                <Span className="truncate font-mono text-xs text-slate-600 dark:text-slate-400">
-                  {reviewDetails.submissionData.zipUrl}
-                </Span>
               )}
-            </div>
+            </>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center dark:border-slate-800">
-              <P className="text-xs text-slate-400">No ZIP submitted</P>
-            </div>
+            <Span className="text-xs text-slate-400 italic">No attachments submitted</Span>
           )}
         </div>
       </div>
@@ -259,9 +256,9 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
       {actionSuccess && (
         <div
           role="status"
-          className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+          className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800"
         >
-          <Span>✓</Span>
+          <Span className="text-emerald-600">✓</Span>
           <Span>{actionSuccess}</Span>
         </div>
       )}
@@ -287,50 +284,53 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
         />
       )}
 
-      {/* Existing Grade Card (if already graded and not currently editing) */}
+      {/* Existing Grade Card */}
       {reviewDetails.status === SubmissionStatus.GRADED && !isEditingExisting && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 dark:border-emerald-800 dark:bg-emerald-950/20">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <Span className="block font-mono text-xs font-bold text-emerald-700 uppercase dark:text-emerald-400">
-                Assigned Grade
-              </Span>
-              <P className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {reviewDetails.grading.marks} / {reviewDetails.maxMarks} Marks (
-                {reviewDetails.grading.gradeLabel})
-              </P>
-              {reviewDetails.grading.feedback && (
-                <P className="mt-2 text-xs whitespace-pre-wrap text-slate-700 dark:text-slate-300">
-                  Feedback: {reviewDetails.grading.feedback}
-                </P>
-              )}
-              {reviewDetails.grading.gradedAt && (
-                <Span className="mt-2 block font-mono text-xs text-slate-500 dark:text-slate-400">
-                  Graded on: {formatDateIST(reviewDetails.grading.gradedAt)}
+            <div className="flex items-baseline gap-2">
+              <Span className="text-2xl font-bold text-slate-900">
+                {reviewDetails.grading.marks}
+                <Span className="text-sm font-normal text-slate-500">
+                  {' '}
+                  / {reviewDetails.maxMarks}
                 </Span>
-              )}
+              </Span>
+              <Span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                {reviewDetails.grading.gradeLabel}
+              </Span>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsEditingExisting(true)}
-              className="border-emerald-300 text-xs text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+              className="text-xs"
             >
-              Edit Grade
+              Edit Score
             </Button>
           </div>
+          {reviewDetails.grading.feedback && (
+            <P className="mt-2 text-xs whitespace-pre-wrap text-slate-600">
+              {reviewDetails.grading.feedback}
+            </P>
+          )}
+          {reviewDetails.grading.gradedAt && (
+            <Span className="mt-2 block text-[11px] text-slate-400">
+              Graded {formatDateIST(reviewDetails.grading.gradedAt)}
+            </Span>
+          )}
         </div>
       )}
 
       {/* Grading & Resubmission Controls */}
       {(reviewDetails.status !== SubmissionStatus.GRADED || isEditingExisting) && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
           {/* Tab Selector */}
           <div
             role="tablist"
-            aria-label="Submission action tabs"
-            className="mb-4 flex border-b border-slate-200 dark:border-slate-800"
+            aria-label="Review actions"
+            className="mb-4 flex rounded-lg bg-slate-100 p-0.5"
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                 e.preventDefault();
@@ -340,59 +340,57 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
               }
             }}
           >
-            <Button
+            <button
               id={gradeTabId}
               role="tab"
               aria-selected={activeTab === 'grade'}
               aria-controls={gradePanelId}
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={() => setActiveTab('grade')}
-              className={`rounded-none border-b-2 px-4 py-2 text-xs font-semibold transition-colors hover:bg-transparent ${
+              className={cn(
+                'flex-1 cursor-pointer rounded-md py-1.5 text-xs font-semibold transition-all',
                 activeTab === 'grade'
-                  ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800',
+              )}
             >
-              Grade Submission
-            </Button>
-            <Button
+              Grade
+            </button>
+            <button
               id={resubmitTabId}
               role="tab"
               aria-selected={activeTab === 'resubmit'}
               aria-controls={resubmitPanelId}
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={() => setActiveTab('resubmit')}
-              className={`rounded-none border-b-2 px-4 py-2 text-xs font-semibold transition-colors hover:bg-transparent ${
+              className={cn(
+                'flex-1 cursor-pointer rounded-md py-1.5 text-xs font-semibold transition-all',
                 activeTab === 'resubmit'
-                  ? 'border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
+                  ? 'bg-white text-amber-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800',
+              )}
             >
               Request Resubmission
-            </Button>
+            </button>
           </div>
 
-          {/* Grade Form Tab */}
+          {/* Grade Tab Panel */}
           {activeTab === 'grade' && (
             <form
               id={gradePanelId}
               role="tabpanel"
               aria-labelledby={gradeTabId}
               onSubmit={(e) => void handleGradeSubmit(e)}
-              className="flex flex-col gap-4"
+              className="space-y-3"
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-1.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
                   <Label
                     htmlFor={marksInputId}
                     required
-                    className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+                    className="text-xs font-medium text-slate-700"
                   >
-                    Marks (Max: {reviewDetails.maxMarks})
+                    Marks (out of {reviewDetails.maxMarks})
                   </Label>
                   <Input
                     id={marksInputId}
@@ -404,52 +402,54 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
                     value={marks}
                     onChange={(e) => setMarks(e.target.value)}
                     placeholder={`0 to ${reviewDetails.maxMarks}`}
+                    hasError={Boolean(marksError)}
+                    {...(marksError ? { errorId: `${marksInputId}-error` } : {})}
                     className="h-9 text-xs"
                   />
+                  {marksError && <FieldError id={`${marksInputId}-error`} error={marksError} />}
                 </div>
-
-                <div className="flex flex-col justify-end gap-1.5">
-                  <Span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Computed Grade Label
-                  </Span>
-                  <div className="flex h-9 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 font-mono text-xs font-bold text-slate-800 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                    <Span>{previewGradeLabel ? `Grade: ${previewGradeLabel}` : '—'}</Span>
+                <div className="flex flex-col gap-1">
+                  <Span className="text-xs font-medium text-slate-700">Grade</Span>
+                  <div className="flex h-9 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800">
+                    {previewGradeLabel ?? '—'}
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Label
-                  htmlFor={feedbackInputId}
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Constructive Feedback (optional)
+              <div className="flex flex-col gap-1">
+                <Label htmlFor={feedbackInputId} className="text-xs font-medium text-slate-700">
+                  Feedback <Span className="font-normal text-slate-400">(optional)</Span>
                 </Label>
                 <Textarea
                   id={feedbackInputId}
                   rows={3}
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="Add guidance, praise, or code review points for the mentee..."
+                  placeholder="Guidance or review points for the mentee..."
                   className="text-xs"
                   maxLength={5000}
                 />
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
-                {isEditingExisting && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditingExisting(false)}
-                  >
-                    Cancel
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (isEditingExisting && reviewDetails.status === SubmissionStatus.GRADED) {
+                      setIsEditingExisting(false);
+                    } else {
+                      onClose();
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="outline"
                   size="sm"
                   disabled={
                     gradeMutation.isPending ||
@@ -458,38 +458,38 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
                     numMarks < 0 ||
                     numMarks > maxMarks
                   }
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="cursor-pointer border border-blue-200 bg-blue-50 font-semibold text-blue-700 shadow-2xs hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800"
                 >
-                  {gradeMutation.isPending ? 'Saving Grade...' : 'Save & Publish Grade ✓'}
+                  {gradeMutation.isPending ? 'Saving...' : 'Save Grade'}
                 </Button>
               </div>
             </form>
           )}
 
-          {/* Resubmit Form Tab */}
+          {/* Resubmit Tab Panel */}
           {activeTab === 'resubmit' && (
             <form
               id={resubmitPanelId}
               role="tabpanel"
               aria-labelledby={resubmitTabId}
               onSubmit={(e) => void handleResubmitSubmit(e)}
-              className="flex flex-col gap-4"
+              className="space-y-3"
             >
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <Label
                   htmlFor={resubmitInputId}
                   required
-                  className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+                  className="text-xs font-medium text-slate-700"
                 >
-                  Reason for Resubmission Request
+                  Reason for Resubmission
                 </Label>
                 <Textarea
                   id={resubmitInputId}
-                  rows={4}
+                  rows={3}
                   required
                   value={resubmitFeedback}
                   onChange={(e) => setResubmitFeedback(e.target.value)}
-                  placeholder="Explain specifically what requirements were missed and what changes are required before re-grading..."
+                  placeholder="Explain what changes are required before re-grading..."
                   className="text-xs"
                   maxLength={5000}
                 />
@@ -497,15 +497,22 @@ function SubmissionReviewContent({ reviewDetails, onRefetch }: SubmissionReviewC
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
                   type="submit"
                   variant="primary"
                   size="sm"
                   disabled={resubmitMutation.isPending || !resubmitFeedback.trim()}
                   className="bg-amber-600 hover:bg-amber-700"
                 >
-                  {resubmitMutation.isPending
-                    ? 'Requesting...'
-                    : 'Request Resubmission from Mentee ↺'}
+                  {resubmitMutation.isPending ? 'Submitting...' : 'Request Resubmission'}
                 </Button>
               </div>
             </form>
@@ -535,12 +542,35 @@ export function SubmissionReviewModal({
   } = useReviewDetails(submissionId, isOpen);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Assignment Review & Grading" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={reviewDetails?.assignmentTitle ?? 'Review Submission'}
+      description={
+        reviewDetails ? (
+          <Span className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs">
+            <Span className="font-semibold text-slate-800">{reviewDetails.mentee.name}</Span>
+            <Span className="text-slate-300">•</Span>
+            <Span className="text-slate-600">{reviewDetails.courseTitle}</Span>
+            <Span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#0044D3]">
+              v{reviewDetails.version}
+            </Span>
+            {reviewDetails.batchName && (
+              <>
+                <Span className="text-slate-300">•</Span>
+                <Span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                  {reviewDetails.batchName}
+                </Span>
+              </>
+            )}
+          </Span>
+        ) : undefined
+      }
+      size="lg"
+    >
       {isLoading && (
-        <div className="flex h-64 items-center justify-center">
-          <P className="text-sm text-slate-500 dark:text-slate-400">
-            Loading submission details...
-          </P>
+        <div className="flex h-48 items-center justify-center">
+          <P className="text-sm text-slate-500">Loading submission details...</P>
         </div>
       )}
 
@@ -558,6 +588,7 @@ export function SubmissionReviewModal({
           key={`${reviewDetails.id}-${reviewDetails.version}-${reviewDetails.status}-${reviewDetails.grading.gradedAt ?? 'ungraded'}`}
           reviewDetails={reviewDetails}
           onRefetch={() => void refetch()}
+          onClose={onClose}
         />
       )}
     </Modal>

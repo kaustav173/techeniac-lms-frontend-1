@@ -74,6 +74,8 @@ export interface SubmissionQueueQuery {
   readonly fromDate?: string | undefined;
   readonly toDate?: string | undefined;
   readonly sort?: 'latest' | 'oldest' | undefined;
+  readonly sortBy?: 'submittedAt' | 'mentee' | undefined;
+  readonly sortOrder?: 'asc' | 'desc' | 'ASC' | 'DESC' | undefined;
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
 }
