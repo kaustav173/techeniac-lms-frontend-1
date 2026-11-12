@@ -192,7 +192,7 @@ export function BatchDashboardSkeleton() {
           <Skeleton className="h-8 w-28 rounded-xl" />
         </div>
         <div className="divide-y divide-slate-100">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-9 w-9 rounded-full" />

@@ -40,43 +40,6 @@ import { cn } from '@/lib/cn';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
 
-interface ToggleSwitchProps {
-  checked: boolean;
-  disabled?: boolean | undefined;
-  onChange: () => void;
-  title?: string | undefined;
-  ariaLabel: string;
-}
-
-function ToggleSwitch({ checked, disabled, onChange, title, ariaLabel }: ToggleSwitchProps) {
-  return (
-    <Button
-      type="button"
-      role="switch"
-      variant="ghost"
-      size="sm"
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      title={title}
-      disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation();
-        onChange();
-      }}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start gap-0 rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-        checked ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
-      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
-    >
-      <Span
-        aria-hidden="true"
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-          checked ? 'translate-x-5' : 'translate-x-0'
-        }`}
-      />
-    </Button>
-  );
-}
-
 const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
@@ -152,8 +115,8 @@ export function CourseLibrarySkeleton({ portal = 'admin' }: { portal?: 'admin' |
                   <TableHead className="w-[48%]">Course</TableHead>
                   <TableHead className="w-28 text-center">Topics</TableHead>
                   <TableHead className="w-28 text-center">Tasks</TableHead>
-                  <TableHead className="w-28 text-center">Activate</TableHead>
-                  <TableHead className="w-20 text-center">Action</TableHead>
+                  <TableHead className="w-28 text-center">Status</TableHead>
+                  <TableHead className="w-20 text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -500,8 +463,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                     <TableHead className="w-[48%]">Course</TableHead>
                     <TableHead className="w-28 text-center">Topics</TableHead>
                     <TableHead className="w-28 text-center">Tasks</TableHead>
-                    <TableHead className="w-28 text-center">Activate</TableHead>
-                    <TableHead className="w-20 text-center">Action</TableHead>
+                    <TableHead className="w-28 text-center">Status</TableHead>
+                    <TableHead className="w-20 text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -570,10 +533,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                           className="w-28 text-center"
                         />
                         <TableHead className="w-28 text-center font-semibold text-slate-700">
-                          Activate
+                          Status
                         </TableHead>
                         <TableHead className="w-20 text-center font-semibold text-slate-700">
-                          Action
+                          Actions
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -615,16 +578,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               </div>
                             </TableCell>
 
-                            <TableCell className="text-center text-xs text-slate-600">
-                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
-                                {topicCount} {topicCount === 1 ? 'topic' : 'topics'}
-                              </Span>
+                            <TableCell className="text-center">
+                              <span className="text-sm font-semibold text-slate-900">
+                                {topicCount}
+                              </span>
                             </TableCell>
 
-                            <TableCell className="text-center text-xs text-slate-600">
-                              <Span className="inline-flex min-w-[70px] items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
-                                {assignmentCount} {assignmentCount === 1 ? 'task' : 'tasks'}
-                              </Span>
+                            <TableCell className="text-center">
+                              <span className="text-sm font-semibold text-slate-900">
+                                {assignmentCount}
+                              </span>
                             </TableCell>
 
                             <TableCell
@@ -632,13 +595,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex items-center justify-center">
-                                <ToggleSwitch
-                                  checked={c.isActive}
-                                  disabled={isActionSubmitting && activeActionCourse?.id === c.id}
-                                  title={c.isActive ? 'Deactivate course' : 'Activate course'}
-                                  ariaLabel={`${c.isActive ? 'Deactivate' : 'Activate'} course ${c.title}`}
-                                  onChange={() => void onRequestToggleStatus(c)}
-                                />
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                                    c.isActive
+                                      ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                                      : 'border border-slate-200 bg-slate-100 text-slate-600',
+                                  )}
+                                >
+                                  {c.isActive ? 'Active' : 'Inactive'}
+                                </span>
                               </div>
                             </TableCell>
 
@@ -760,6 +726,36 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                         />
                                       </svg>
                                       <Span>Edit</Span>
+                                    </Button>
+
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={
+                                        isActionSubmitting && activeActionCourse?.id === c.id
+                                      }
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenActionMenuId(null);
+                                        void onRequestToggleStatus(c);
+                                      }}
+                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      <svg
+                                        className="h-3.5 w-3.5 text-slate-600"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth="2"
+                                          d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M12 9v6"
+                                        />
+                                      </svg>
+                                      <Span>{c.isActive ? 'Deactivate' : 'Activate'}</Span>
                                     </Button>
 
                                     <div className="my-1 border-t border-slate-100" />

@@ -296,9 +296,6 @@ function SubmissionReviewContent({
                   / {reviewDetails.maxMarks}
                 </Span>
               </Span>
-              <Span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                {reviewDetails.grading.gradeLabel}
-              </Span>
             </div>
             <Button
               type="button"

@@ -249,7 +249,7 @@ export function MyAssignmentsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 5 }).map((_, idx) => (
+              {Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={`assign-skel-${idx}`} className="h-16">
                   <TableCell className="px-5 py-4">
                     <Skeleton className="h-4 w-44 rounded-md" />

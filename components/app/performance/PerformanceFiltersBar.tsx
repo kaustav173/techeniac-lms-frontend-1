@@ -1,30 +1,27 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+'use client';
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Span } from '@/components/ui/Typography';
-import { useBatchesList, useMentorBatches } from '@/hooks/useBatches';
-import { useCourses } from '@/hooks/useCourses';
-import { cn } from '@/lib/cn';
+import { useInfiniteBatches } from '@/hooks/useBatches';
+import { useInfiniteCourses } from '@/hooks/useCourses';
 import type { PerformanceFilterParams } from '@/services/performance.service';
 
-const GRADE_OPTIONS = [
-  { value: 'ALL', label: 'All' },
-  { value: 'A+', label: 'A+ (90-100%)' },
-  { value: 'A', label: 'A (80-89%)' },
-  { value: 'B', label: 'B (70-79%)' },
-  { value: 'C', label: 'C (60-69%)' },
-  { value: 'D', label: 'D (50-59%)' },
-  { value: 'F', label: 'F (< 50%)' },
-];
-
-const STATUS_FILTER_OPTIONS = [
-  { value: '', label: 'All' },
+const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
   { value: 'ASSIGNED', label: 'Assigned' },
   { value: 'IN_PROGRESS', label: 'In Progress' },
   { value: 'COMPLETED', label: 'Completed' },
 ];
+
+function resolveSelectedOptions(
+  vals: readonly string[],
+  options: readonly MultiSelectOption[],
+): MultiSelectOption[] {
+  return vals.map((val) => options.find((o) => o.value === val) ?? { value: val, label: val });
+}
 
 interface PerformanceFiltersBarProps {
   readonly filters: PerformanceFilterParams;
@@ -43,53 +40,136 @@ export function PerformanceFiltersBar({
   onReset,
   role = 'SUPER_ADMIN',
 }: PerformanceFiltersBarProps) {
-  const isMentor = role === 'MENTOR';
+  const portalType = role === 'MENTOR' ? 'mentor' : 'admin';
+
+  // Search state for batches and courses
+  const [batchSearch, setBatchSearch] = useState<string>('');
+  const [courseSearch, setCourseSearch] = useState<string>('');
+  const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
+  const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
+
+  // 1. Fetch Batches for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
   const {
-    data: adminBatchesData,
-    isLoading: isLoadingAdminBatches,
-    error: adminBatchesError,
-  } = useBatchesList({ limit: 100 }, { enabled: !isMentor });
-  const {
-    data: mentorBatchesData,
-    isLoading: isLoadingMentorBatches,
-    error: mentorBatchesError,
-  } = useMentorBatches({ limit: 100 }, { enabled: isMentor });
+    data: batchesInfiniteData,
+    fetchNextPage: fetchNextBatches,
+    hasNextPage: hasNextBatches,
+    isFetching: isFetchingBatches,
+    isFetchingNextPage: isFetchingNextBatches,
+  } = useInfiniteBatches(10, batchSearch, portalType);
 
-  const { courses, isLoading: isLoadingCourses, error: coursesError } = useCourses({ limit: 100 });
-
-  const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
-  const batchesError = isMentor ? mentorBatchesError : adminBatchesError;
-
-  const batchOptions = useMemo(() => {
-    const batchList = isMentor ? (mentorBatchesData ?? []) : (adminBatchesData?.items ?? []);
-    return [
-      {
-        value: '',
-        label: isLoadingBatches
-          ? 'Loading batches...'
-          : batchesError
-            ? 'Error loading batches'
-            : 'All',
-      },
-      ...batchList.map((b) => ({ value: b.id, label: b.name })),
-    ];
-  }, [isMentor, mentorBatchesData, adminBatchesData, isLoadingBatches, batchesError]);
-
-  const courseOptions = useMemo(
-    () => [
-      {
-        value: '',
-        label: isLoadingCourses
-          ? 'Loading courses...'
-          : coursesError
-            ? 'Error loading courses'
-            : 'All',
-      },
-      ...courses.map((c) => ({ value: c.id, label: c.title })),
-    ],
-    [courses, isLoadingCourses, coursesError],
+  const batches = useMemo(
+    () => batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [],
+    [batchesInfiniteData],
   );
 
+  const selectedBatchValues: string[] = useMemo(() => {
+    if (!filters.batchId) return [];
+    if (Array.isArray(filters.batchId)) return filters.batchId;
+    return filters.batchId.split(',').filter(Boolean);
+  }, [filters.batchId]);
+
+  const batchOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const b of batches) {
+      optionsMap.set(b.id, {
+        value: b.id,
+        label: b.code ? `${b.name} (${b.code})` : b.name,
+      });
+    }
+    for (const opt of selectedBatchOptions) {
+      if (!optionsMap.has(opt.value)) {
+        optionsMap.set(opt.value, opt);
+      }
+    }
+    for (const id of selectedBatchValues) {
+      if (!optionsMap.has(id)) {
+        optionsMap.set(id, { value: id, label: id });
+      }
+    }
+    return Array.from(optionsMap.values());
+  }, [batches, selectedBatchOptions, selectedBatchValues]);
+
+  const handleBatchScrollEnd = useCallback(() => {
+    if (hasNextBatches && !isFetchingNextBatches) {
+      void fetchNextBatches();
+    }
+  }, [hasNextBatches, isFetchingNextBatches, fetchNextBatches]);
+
+  const handleBatchChange = (vals: readonly string[]) => {
+    setSelectedBatchOptions(resolveSelectedOptions(vals, batchOptions));
+    onFilterChange({
+      batchId: vals.length > 0 ? (vals as string[]) : undefined,
+      page: 1,
+    });
+  };
+
+  // 2. Fetch Courses for Filter Dropdown with Infinite Scroll & Server Search (10 items per page)
+  const {
+    data: coursesInfiniteData,
+    fetchNextPage: fetchNextCourses,
+    hasNextPage: hasNextCourses,
+    isFetching: isFetchingCourses,
+    isFetchingNextPage: isFetchingNextCourses,
+  } = useInfiniteCourses(10, courseSearch);
+
+  const courses = useMemo(
+    () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
+    [coursesInfiniteData],
+  );
+
+  const selectedCourseValues: string[] = useMemo(() => {
+    if (!filters.courseId) return [];
+    if (Array.isArray(filters.courseId)) return filters.courseId;
+    return filters.courseId.split(',').filter(Boolean);
+  }, [filters.courseId]);
+
+  const courseOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const c of courses) {
+      optionsMap.set(c.id, { value: c.id, label: c.title });
+    }
+    for (const opt of selectedCourseOptions) {
+      if (!optionsMap.has(opt.value)) {
+        optionsMap.set(opt.value, opt);
+      }
+    }
+    for (const id of selectedCourseValues) {
+      if (!optionsMap.has(id)) {
+        optionsMap.set(id, { value: id, label: id });
+      }
+    }
+    return Array.from(optionsMap.values());
+  }, [courses, selectedCourseOptions, selectedCourseValues]);
+
+  const handleCourseScrollEnd = useCallback(() => {
+    if (hasNextCourses && !isFetchingNextCourses) {
+      void fetchNextCourses();
+    }
+  }, [hasNextCourses, isFetchingNextCourses, fetchNextCourses]);
+
+  const handleCourseChange = (vals: readonly string[]) => {
+    setSelectedCourseOptions(resolveSelectedOptions(vals, courseOptions));
+    onFilterChange({
+      courseId: vals.length > 0 ? (vals as string[]) : undefined,
+      page: 1,
+    });
+  };
+
+  // 3. Status filter
+  const selectedStatusValues: string[] = useMemo(() => {
+    if (!filters.status) return [];
+    if (Array.isArray(filters.status)) return filters.status;
+    return filters.status.split(',').filter(Boolean);
+  }, [filters.status]);
+
+  const handleStatusChange = (vals: readonly string[]) => {
+    onFilterChange({
+      status: vals.length > 0 ? (vals as string[]) : undefined,
+      page: 1,
+    });
+  };
+
+  // 4. Text Search input
   const [searchInput, setSearchInput] = useState(filters.search ?? '');
   const [prevSearch, setPrevSearch] = useState(filters.search);
 
@@ -117,179 +197,155 @@ export function PerformanceFiltersBar({
 
   const hasActiveFilters = Boolean(
     (filters.search && filters.search.trim() !== '') ||
-    (filters.batchId && filters.batchId !== '') ||
-    (filters.courseId && filters.courseId !== '') ||
-    (filters.gradeRange && filters.gradeRange !== 'ALL') ||
-    (filters.status && filters.status !== ''),
+    selectedBatchValues.length > 0 ||
+    selectedCourseValues.length > 0 ||
+    selectedStatusValues.length > 0 ||
+    batchSearch.trim() ||
+    courseSearch.trim(),
   );
 
+  const handleResetAll = () => {
+    setSearchInput('');
+    setBatchSearch('');
+    setCourseSearch('');
+    setSelectedBatchOptions([]);
+    setSelectedCourseOptions([]);
+    onReset();
+  };
+
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xs">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        {/* Left/Main Filter Group in one line */}
-        <div className="flex flex-1 flex-wrap items-center gap-2.5">
-          {/* Search Input */}
-          <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      {/* Filters Toolbar */}
+      <div className="flex flex-1 flex-wrap items-center gap-3">
+        {/* Search Input */}
+        <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
+          <svg
+            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#667085]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <Input
+            type="search"
+            placeholder="Search by name or email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="h-10 pl-9 text-xs"
+          />
+        </div>
+
+        {/* Batch Filter (Multi-select, 10 items infinite scroll, server search) */}
+        <div className="w-full sm:w-[169px]">
+          <MultiSelectDropdown
+            label="Batch"
+            options={batchOptions}
+            selectedValues={selectedBatchValues}
+            onChange={handleBatchChange}
+            singleSelect={false}
+            align="left"
+            className="w-full"
+            onScrollEnd={handleBatchScrollEnd}
+            onSearch={setBatchSearch}
+            isSearching={isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())}
+          />
+        </div>
+
+        {/* Course Filter (Multi-select, 10 items infinite scroll, server search) */}
+        <div className="w-full sm:w-[158px]">
+          <MultiSelectDropdown
+            label="Course"
+            options={courseOptions}
+            selectedValues={selectedCourseValues}
+            onChange={handleCourseChange}
+            singleSelect={false}
+            align="left"
+            className="w-full"
+            onScrollEnd={handleCourseScrollEnd}
+            onSearch={setCourseSearch}
+            isSearching={
+              isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
+            }
+          />
+        </div>
+
+        {/* Status Filter (Multi-select) */}
+        <div className="w-full sm:w-[165px]">
+          <MultiSelectDropdown
+            label="Status"
+            options={STATUS_FILTER_OPTIONS}
+            selectedValues={selectedStatusValues}
+            onChange={handleStatusChange}
+            singleSelect={false}
+            align="right"
+            className="w-full"
+          />
+        </div>
+
+        {/* Clear Filter icon button */}
+        {hasActiveFilters && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetAll}
+            title="Clear all filters"
+            aria-label="Clear all filters"
+            className="h-10 w-10 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
+          >
             <svg
-              className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#667085]"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={2.5}
               aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <Input
-              type="search"
-              placeholder="Search by name or email..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="h-10 pl-9 text-xs"
-            />
-          </div>
+          </Button>
+        )}
+      </div>
 
-          {/* Batch Filter */}
-          <div className="w-full sm:w-40 lg:w-44">
-            <SingleSelectDropdown
-              label="Batch"
-              value={filters.batchId ?? ''}
-              onChange={(val) => onFilterChange({ batchId: val || undefined, page: 1 })}
-              options={batchOptions}
-              disabled={isLoadingBatches}
-              placeholder="All"
-              aria-label="Filter by batch"
-              size="sm"
-              triggerClassName={cn(
-                'h-10 rounded-2xl border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold shadow-2xs hover:border-slate-300 hover:bg-[#F9FAFB]',
-                filters.batchId && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
-              )}
-              menuClassName="w-full sm:min-w-[200px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
-            />
-          </div>
-
-          {/* Course Filter */}
-          <div className="w-full sm:w-44 lg:w-48">
-            <SingleSelectDropdown
-              label="Course"
-              value={filters.courseId ?? ''}
-              onChange={(val) => onFilterChange({ courseId: val || undefined, page: 1 })}
-              options={courseOptions}
-              disabled={isLoadingCourses}
-              placeholder="All"
-              aria-label="Filter by course"
-              size="sm"
-              triggerClassName={cn(
-                'h-10 rounded-2xl border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold shadow-2xs hover:border-slate-300 hover:bg-[#F9FAFB]',
-                filters.courseId && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
-              )}
-              menuClassName="w-full sm:min-w-[200px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
-            />
-          </div>
-
-          {/* Grade Range Filter */}
-          <div className="w-full sm:w-32 lg:w-36">
-            <SingleSelectDropdown
-              label="Grade"
-              value={filters.gradeRange ?? 'ALL'}
-              onChange={(val) =>
-                onFilterChange({
-                  gradeRange: val === 'ALL' ? undefined : val,
-                  page: 1,
-                })
-              }
-              options={GRADE_OPTIONS}
-              placeholder="All"
-              aria-label="Filter by grade"
-              size="sm"
-              triggerClassName={cn(
-                'h-10 rounded-2xl border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold shadow-2xs hover:border-slate-300 hover:bg-[#F9FAFB]',
-                filters.gradeRange &&
-                  filters.gradeRange !== 'ALL' &&
-                  'border-blue-300 bg-blue-50/50 text-[#0044D3]',
-              )}
-              menuClassName="w-full sm:min-w-[180px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="w-full sm:w-36 lg:w-40">
-            <SingleSelectDropdown
-              label="Status"
-              value={filters.status ?? ''}
-              onChange={(val) => onFilterChange({ status: val || undefined, page: 1 })}
-              options={STATUS_FILTER_OPTIONS}
-              placeholder="All"
-              aria-label="Filter by status"
-              size="sm"
-              triggerClassName={cn(
-                'h-10 rounded-2xl border-[#E1E6EC] bg-white px-3.5 text-xs font-semibold shadow-2xs hover:border-slate-300 hover:bg-[#F9FAFB]',
-                filters.status && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
-              )}
-              menuClassName="w-full sm:min-w-[180px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
-            />
-          </div>
-
-          {/* Clear Filter icon button - only displayed when any filter is changed from All */}
-          {hasActiveFilters ? (
-            <button
-              type="button"
-              onClick={onReset}
-              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
-              title="Clear filters"
-              aria-label="Clear filters"
-            >
+      {/* Right: Export CSV Button */}
+      <div className="shrink-0">
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onClick={onExportCsv}
+          disabled={isExporting}
+          className="flex h-10 items-center gap-1.5 text-xs font-semibold"
+        >
+          {isExporting ? (
+            <Span>Exporting...</Span>
+          ) : (
+            <>
               <svg
                 className="h-4 w-4"
                 fill="none"
-                viewBox="0 0 24 24"
                 stroke="currentColor"
-                strokeWidth={2.5}
+                viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
-            </button>
-          ) : null}
-        </div>
-
-        {/* Right: Export CSV Button */}
-        <div className="shrink-0">
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={onExportCsv}
-            disabled={isExporting}
-            className="flex h-10 items-center gap-1.5 text-xs font-semibold"
-          >
-            {isExporting ? (
-              <Span>Exporting...</Span>
-            ) : (
-              <>
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                <Span>Export CSV</Span>
-              </>
-            )}
-          </Button>
-        </div>
+              <Span>Export CSV</Span>
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

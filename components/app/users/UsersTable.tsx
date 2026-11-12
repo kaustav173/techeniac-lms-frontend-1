@@ -505,33 +505,19 @@ export function UsersTable() {
                 tooltip="Sort all users by Email"
                 className="w-[32%]"
               />
-              <SortableColumnHeader<UserSortField>
-                field="role"
-                label="Role"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Role"
-                className="w-[14%]"
-              />
-              <SortableColumnHeader<UserSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Status"
-                className="w-[12%] text-center"
-              />
+              <TableHead className="w-[14%] font-semibold text-slate-700">Role</TableHead>
+              <TableHead className="w-[12%] text-center font-semibold text-slate-700">
+                Status
+              </TableHead>
               <TableHead className="w-[10%] text-center font-semibold text-slate-700">
-                Action
+                Actions
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isTableLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
-              Array.from({ length: limit }).map((_, i) => (
+              Array.from({ length: 10 }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
                   <TableCell className="w-[32%]">
                     <Skeleton className="h-4 w-40 rounded-md" />

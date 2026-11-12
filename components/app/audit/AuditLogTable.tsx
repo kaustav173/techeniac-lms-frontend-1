@@ -305,7 +305,7 @@ export function AuditLogTable() {
                 Target Entity
               </TableHead>
               <TableHead className="w-[11%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
-                Action
+                Actions
               </TableHead>
             </TableRow>
           </TableHeader>

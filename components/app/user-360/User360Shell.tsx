@@ -734,7 +734,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                           </Span>
                         </TableCell>
                         <TableCell className="font-medium text-slate-900">
-                          {s.marks !== null ? `${s.marks} (${s.gradeLabel ?? 'N/A'})` : EM_DASH}
+                          {s.marks !== null ? `${s.marks}` : EM_DASH}
                         </TableCell>
                         <TableCell className="text-slate-600">{s.graderName ?? EM_DASH}</TableCell>
                         <TableCell
