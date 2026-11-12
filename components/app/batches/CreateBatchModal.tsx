@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
+import { toISTDateInputValue } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
 
@@ -81,6 +82,7 @@ function CreateBatchFormFields({
   onEndDateChange,
   onDescriptionChange,
 }: Readonly<FormFieldsProps>) {
+  const today = toISTDateInputValue(new Date());
   return (
     <>
       {/* Name */}
@@ -136,6 +138,7 @@ function CreateBatchFormFields({
             onChange={onStartDateChange}
             rangeStart={startDate}
             rangeEnd={endDate}
+            minDate={today}
             maxDate={endDate || undefined}
             hasError={Boolean(errors.startDate)}
             disabled={disabled}
@@ -155,7 +158,7 @@ function CreateBatchFormFields({
             onChange={onEndDateChange}
             rangeStart={startDate}
             rangeEnd={endDate}
-            minDate={startDate || undefined}
+            minDate={startDate && startDate > today ? startDate : today}
             hasError={Boolean(errors.endDate)}
             disabled={disabled}
             placement="auto"

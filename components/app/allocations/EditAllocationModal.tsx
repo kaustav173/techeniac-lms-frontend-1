@@ -10,7 +10,11 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
-import { type CourseAllocation, useUpdateAllocationDatesMutation } from '@/hooks/useAllocations';
+import {
+  type CourseAllocation,
+  getLocalDateString,
+  useUpdateAllocationDatesMutation,
+} from '@/hooks/useAllocations';
 
 export interface EditAllocationModalProps {
   readonly allocation: CourseAllocation | null;
@@ -39,12 +43,31 @@ function EditAllocationModalDialog({
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [dateError, setDateError] = useState<string | null>(null);
 
+  const today = getLocalDateString();
   const updateMutation = useUpdateAllocationDatesMutation();
+
+  const isStartDateError = Boolean(dateError?.toLowerCase().includes('start date'));
+  const isDueDateError = Boolean(dateError && !isStartDateError);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setDateError(null);
+
+    if (!startDate) {
+      setDateError('Start date is required.');
+      return;
+    }
+
+    if (startDate < today && startDate !== allocation.startDate.split('T')[0]) {
+      setDateError('Start date cannot be earlier than today.');
+      return;
+    }
+
+    if (dueDate && dueDate < today) {
+      setDateError('Due date cannot be earlier than today.');
+      return;
+    }
 
     if (startDate && dueDate && new Date(dueDate).getTime() < new Date(startDate).getTime()) {
       setDateError('Due date cannot be earlier than start date (ALC-12).');
@@ -154,14 +177,21 @@ function EditAllocationModalDialog({
               <DatePicker
                 id="edit-start-date"
                 value={startDate}
-                onChange={(val) => setStartDate(val)}
+                onChange={(val) => {
+                  setStartDate(val);
+                  if (dateError) setDateError(null);
+                }}
                 rangeStart={startDate}
                 rangeEnd={dueDate}
+                minDate={today}
                 maxDate={dueDate || undefined}
-                hasError={Boolean(dateError)}
+                hasError={isStartDateError}
                 placement="auto"
                 placeholder="Select start date"
               />
+              {isStartDateError ? (
+                <FieldError id="edit-start-date-error" error={dateError} />
+              ) : null}
             </div>
 
             <div className="space-y-1">
@@ -177,12 +207,12 @@ function EditAllocationModalDialog({
                 }}
                 rangeStart={startDate}
                 rangeEnd={dueDate}
-                minDate={startDate || undefined}
-                hasError={Boolean(dateError)}
+                minDate={startDate && startDate > today ? startDate : today}
+                hasError={isDueDateError}
                 placement="auto"
                 placeholder="Select due date"
               />
-              {dateError ? <FieldError id="edit-due-date-error" error={dateError} /> : null}
+              {isDueDateError ? <FieldError id="edit-due-date-error" error={dateError} /> : null}
             </div>
           </div>
         </div>

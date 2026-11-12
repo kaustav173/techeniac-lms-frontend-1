@@ -214,6 +214,12 @@ function AssignCourseModalDialog({
       return;
     }
 
+    const today = getLocalDateString();
+    if (startDate < today) {
+      setDateError('Start date cannot be earlier than today.');
+      return;
+    }
+
     if (!dueDate && (!selectedCourse?.estimatedMinutes || selectedCourse.estimatedMinutes <= 0)) {
       setDateError(
         'Due date is required because this course has no estimated duration (CRS-30, ALC-11).',
@@ -729,6 +735,7 @@ function AssignCourseModalDialog({
                 <Input
                   id="assign-start-date"
                   type="date"
+                  min={getLocalDateString()}
                   value={startDate}
                   hasError={Boolean(startDateError)}
                   errorId="assign-start-date-error"
@@ -748,6 +755,11 @@ function AssignCourseModalDialog({
                 <Input
                   id="assign-due-date"
                   type="date"
+                  min={
+                    startDate && startDate > getLocalDateString()
+                      ? startDate
+                      : getLocalDateString()
+                  }
                   value={dueDate || (estimatedDueDateText ?? '')}
                   hasError={Boolean(dueDateError)}
                   errorId="assign-due-date-error"
