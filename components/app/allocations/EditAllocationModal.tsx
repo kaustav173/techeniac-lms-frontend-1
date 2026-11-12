@@ -10,11 +10,8 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
-import {
-  type CourseAllocation,
-  getLocalDateString,
-  useUpdateAllocationDatesMutation,
-} from '@/hooks/useAllocations';
+import { type CourseAllocation, useUpdateAllocationDatesMutation } from '@/hooks/useAllocations';
+import { toISTDateInputValue } from '@/lib/date';
 
 export interface EditAllocationModalProps {
   readonly allocation: CourseAllocation | null;
@@ -43,10 +40,10 @@ function EditAllocationModalDialog({
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [dateError, setDateError] = useState<string | null>(null);
 
-  const today = getLocalDateString();
+  const today = toISTDateInputValue(new Date());
   const updateMutation = useUpdateAllocationDatesMutation();
 
-  const isStartDateError = Boolean(dateError?.toLowerCase().includes('start date'));
+  const isStartDateError = Boolean(dateError?.toLowerCase().startsWith('start date'));
   const isDueDateError = Boolean(dateError && !isStartDateError);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,7 +61,7 @@ function EditAllocationModalDialog({
       return;
     }
 
-    if (dueDate && dueDate < today) {
+    if (dueDate && dueDate < today && dueDate !== allocation.dueDate.split('T')[0]) {
       setDateError('Due date cannot be earlier than today.');
       return;
     }

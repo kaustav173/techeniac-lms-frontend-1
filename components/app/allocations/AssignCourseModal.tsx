@@ -14,7 +14,6 @@ import { H3, P, Span } from '@/components/ui/Typography';
 import {
   type AllocationTargetType,
   type CreateAllocationsResponse,
-  getLocalDateString,
   useCreateAllocationsMutation,
 } from '@/hooks/useAllocations';
 import {
@@ -25,6 +24,7 @@ import {
 } from '@/hooks/useBatches';
 import { useCourses } from '@/hooks/useCourses';
 import { useUsers } from '@/hooks/useUsers';
+import { toISTDateInputValue } from '@/lib/date';
 
 export interface AssignCourseModalProps {
   readonly isOpen: boolean;
@@ -58,12 +58,14 @@ function AssignCourseModalDialog({
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const [result, setResult] = useState<CreateAllocationsResponse | null>(null);
 
+  const today = toISTDateInputValue(new Date());
+
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
-      setStartDate((prev) => prev || getLocalDateString());
+      setStartDate((prev) => prev || today);
     });
     return () => cancelAnimationFrame(frameId);
-  }, []);
+  }, [today]);
 
   // Queries
   const { courses, isLoading: isLoadingCourses } = useCourses();
@@ -171,7 +173,7 @@ function AssignCourseModalDialog({
         return;
       }
       if (!startDate) {
-        setStartDate(getLocalDateString());
+        setStartDate(today);
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
@@ -214,7 +216,6 @@ function AssignCourseModalDialog({
       return;
     }
 
-    const today = getLocalDateString();
     if (startDate < today) {
       setDateError('Start date cannot be earlier than today.');
       return;
@@ -735,7 +736,7 @@ function AssignCourseModalDialog({
                 <Input
                   id="assign-start-date"
                   type="date"
-                  min={getLocalDateString()}
+                  min={today}
                   value={startDate}
                   hasError={Boolean(startDateError)}
                   errorId="assign-start-date-error"
@@ -755,9 +756,7 @@ function AssignCourseModalDialog({
                 <Input
                   id="assign-due-date"
                   type="date"
-                  min={
-                    startDate && startDate > getLocalDateString() ? startDate : getLocalDateString()
-                  }
+                  min={startDate && startDate > today ? startDate : today}
                   value={dueDate || (estimatedDueDateText ?? '')}
                   hasError={Boolean(dueDateError)}
                   errorId="assign-due-date-error"
