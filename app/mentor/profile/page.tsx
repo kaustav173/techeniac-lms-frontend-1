@@ -24,7 +24,7 @@ export default function MentorProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
-      <Header {...MENTOR_PROFILE_NAV} />
+      <Header {...MENTOR_PROFILE_NAV} title="Profile" />
       <DashboardContent>
         <ProfileView user={user} />
       </DashboardContent>

@@ -25,9 +25,11 @@ export interface DatePickerProps {
   readonly className?: string | undefined;
   readonly minDate?: string | undefined;
   readonly maxDate?: string | undefined;
+  readonly rangeStart?: string | undefined;
+  readonly rangeEnd?: string | undefined;
 }
 
-const POPOVER_WIDTH_PX = 340;
+const POPOVER_WIDTH_PX = 360;
 const POPOVER_HEIGHT_PX = 380;
 const POPOVER_GUTTER_PX = 6;
 const POPOVER_Z_INDEX = 9999;
@@ -56,11 +58,24 @@ const YEAR_OPTIONS: readonly SingleSelectOption<number>[] = Array.from({ length:
   const y = 1970 + i;
   return { value: y, label: String(y) };
 });
-
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function formatTwoDigits(n: number): string {
   return String(n).padStart(2, '0');
+}
+
+function parseDateString(val: string | undefined): Date | null {
+  if (!val) return null;
+  const parts = val.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0] ?? '0', 10);
+    const m = parseInt(parts[1] ?? '0', 10) - 1;
+    const d = parseInt(parts[2] ?? '0', 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+  return null;
 }
 
 export interface CalendarDay {
@@ -68,6 +83,12 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
   dateString: string;
   isSelected: boolean;
+  isDisabled?: boolean;
+  isRangeStart: boolean;
+  isRangeEnd: boolean;
+  isInRange: boolean;
+  rangeStart?: string | undefined;
+  rangeEnd?: string | undefined;
 }
 
 /**
@@ -77,6 +98,10 @@ export function buildCalendarGrid(
   viewYear: number,
   viewMonth: number,
   value?: string,
+  minDate?: string,
+  maxDate?: string,
+  rangeStart?: string,
+  rangeEnd?: string,
 ): CalendarDay[] {
   const firstDay = new Date(viewYear, viewMonth, 1);
   let startDayOfWeek = firstDay.getDay() - 1;
@@ -85,7 +110,39 @@ export function buildCalendarGrid(
   const daysInCurrentMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
 
+  const isCellDisabled = (ds: string) =>
+    Boolean((minDate && ds < minDate) || (maxDate && ds > maxDate));
+
   const days: CalendarDay[] = [];
+
+  const createDay = (
+    dayNumber: number,
+    isCurrentMonth: boolean,
+    dateString: string,
+  ): CalendarDay => {
+    const isSelected = value === dateString;
+    const isRangeStart = Boolean(rangeStart && dateString === rangeStart);
+    const isRangeEnd = Boolean(rangeEnd && dateString === rangeEnd);
+    const isInRange = Boolean(
+      rangeStart &&
+      rangeEnd &&
+      rangeStart < rangeEnd &&
+      dateString > rangeStart &&
+      dateString < rangeEnd,
+    );
+    return {
+      dayNumber,
+      isCurrentMonth,
+      dateString,
+      isSelected,
+      isDisabled: isCellDisabled(dateString),
+      isRangeStart,
+      isRangeEnd,
+      isInRange,
+      rangeStart,
+      rangeEnd,
+    };
+  };
 
   // Previous month padding
   for (let i = startDayOfWeek - 1; i >= 0; i--) {
@@ -93,23 +150,13 @@ export function buildCalendarGrid(
     const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
     const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
     const dateString = `${prevYear}-${formatTwoDigits(prevMonth + 1)}-${formatTwoDigits(prevD)}`;
-    days.push({
-      dayNumber: prevD,
-      isCurrentMonth: false,
-      dateString,
-      isSelected: value === dateString,
-    });
+    days.push(createDay(prevD, false, dateString));
   }
 
   // Current month days
   for (let d = 1; d <= daysInCurrentMonth; d++) {
     const dateString = `${viewYear}-${formatTwoDigits(viewMonth + 1)}-${formatTwoDigits(d)}`;
-    days.push({
-      dayNumber: d,
-      isCurrentMonth: true,
-      dateString,
-      isSelected: value === dateString,
-    });
+    days.push(createDay(d, true, dateString));
   }
 
   // Next month padding to fill grid
@@ -119,12 +166,7 @@ export function buildCalendarGrid(
     const nextMonth = viewMonth === 11 ? 0 : viewMonth + 1;
     const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear;
     const dateString = `${nextYear}-${formatTwoDigits(nextMonth + 1)}-${formatTwoDigits(d)}`;
-    days.push({
-      dayNumber: d,
-      isCurrentMonth: false,
-      dateString,
-      isSelected: value === dateString,
-    });
+    days.push(createDay(d, false, dateString));
   }
 
   return days;
@@ -171,7 +213,7 @@ function CalendarPopover({
         zIndex: POPOVER_Z_INDEX,
         width: POPOVER_WIDTH_PX,
       }}
-      className="animate-in fade-in zoom-in-95 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-2xl duration-100"
+      className="animate-in fade-in zoom-in-95 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xl ring-1 ring-black/5 duration-150"
     >
       {/* Header with Navigation & Month/Year Selectors */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -246,33 +288,74 @@ function CalendarPopover({
         ))}
       </div>
 
-      {/* Day Grid with Accessible 44px Touch Targets */}
-      <div className="mt-1 grid grid-cols-7 gap-0.5 text-center text-sm">
-        {calendarDays.map((cell) => {
+      {/* Day Grid with Accessible Touch Targets and Range Styling */}
+      <div className="mt-1 grid grid-cols-7 gap-y-1 text-center text-sm">
+        {calendarDays.map((cell, idx) => {
           const isOutOfRange = Boolean(
             (minDate && cell.dateString < minDate) || (maxDate && cell.dateString > maxDate),
           );
+          const isDaySelected = cell.isSelected || cell.isRangeStart || cell.isRangeEnd;
+          const hasRange = Boolean(
+            cell.rangeStart && cell.rangeEnd && cell.rangeStart < cell.rangeEnd,
+          );
+          const isStartWithEnd = Boolean(cell.isRangeStart && hasRange);
+          const isEndWithStart = Boolean(cell.isRangeEnd && hasRange);
+
           return (
-            <Button
+            <div
               key={cell.dateString}
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={isOutOfRange}
-              onClick={() => onSelectDay(cell.dateString)}
-              className={cn(
-                'mx-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
-                isOutOfRange
-                  ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
-                  : cell.isSelected
-                    ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
-                    : cell.isCurrentMonth
-                      ? 'font-semibold text-slate-700 hover:bg-slate-100'
-                      : 'font-normal text-slate-300 hover:bg-slate-50',
-              )}
+              className="relative flex h-10 w-full items-center justify-center"
             >
-              <Span>{cell.dayNumber}</Span>
-            </Button>
+              {/* Range connector strip */}
+              {cell.isInRange ? (
+                <div
+                  className={cn(
+                    'absolute inset-x-0 inset-y-0 bg-blue-50',
+                    idx % 7 === 0 && 'rounded-l-full',
+                    idx % 7 === 6 && 'rounded-r-full',
+                  )}
+                  aria-hidden="true"
+                />
+              ) : null}
+              {isStartWithEnd ? (
+                <div
+                  className="absolute inset-y-0 right-0 left-1/2 bg-blue-50"
+                  aria-hidden="true"
+                />
+              ) : null}
+              {isEndWithStart ? (
+                <div
+                  className="absolute inset-y-0 right-1/2 left-0 bg-blue-50"
+                  aria-hidden="true"
+                />
+              ) : null}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={cell.isDisabled || isOutOfRange}
+                onClick={() => {
+                  if (!cell.isDisabled && !isOutOfRange) {
+                    onSelectDay(cell.dateString);
+                  }
+                }}
+                className={cn(
+                  'relative z-10 mx-auto flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
+                  cell.isDisabled || isOutOfRange
+                    ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
+                    : isDaySelected
+                      ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
+                      : cell.isInRange
+                        ? 'font-semibold text-[#0044D3] hover:bg-blue-100'
+                        : cell.isCurrentMonth
+                          ? 'font-semibold text-slate-700 hover:bg-slate-100'
+                          : 'font-normal text-slate-300 hover:bg-slate-50',
+                )}
+              >
+                <Span>{cell.dayNumber}</Span>
+              </Button>
+            </div>
           );
         })}
       </div>
@@ -293,6 +376,8 @@ export function DatePicker({
   className,
   minDate,
   maxDate,
+  rangeStart,
+  rangeEnd,
 }: Readonly<DatePickerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -316,6 +401,9 @@ export function DatePicker({
   const handleToggle = () => {
     if (disabled) return;
     if (!isOpen) {
+      if (!viewDate) {
+        setViewDate(parsedDate || new Date());
+      }
       updatePosition();
       setIsOpen(true);
     } else {
@@ -408,22 +496,16 @@ export function DatePicker({
   }, [isOpen, updatePosition]);
 
   // Parse initial view month/year from value, or default to current date
-  const parsedDate = useMemo(() => {
-    if (!value) return null;
-    const parts = value.split('-');
-    if (parts.length === 3) {
-      const y = parseInt(parts[0] ?? '0', 10);
-      const m = parseInt(parts[1] ?? '0', 10) - 1;
-      const d = parseInt(parts[2] ?? '0', 10);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        return new Date(y, m, d);
-      }
-    }
-    return null;
-  }, [value]);
+  const parsedDate = parseDateString(value);
 
-  const [viewDate, setViewDate] = useState<Date>(() => parsedDate || new Date());
+  const [viewDate, setViewDate] = useState<Date | null>(() => parsedDate);
   const [prevValue, setPrevValue] = useState(value);
+
+  useEffect(() => {
+    if (!viewDate) {
+      setViewDate(parsedDate || new Date());
+    }
+  }, [parsedDate, viewDate]);
 
   if (prevValue !== value) {
     setPrevValue(value);
@@ -432,8 +514,9 @@ export function DatePicker({
     }
   }
 
-  const viewYear = viewDate.getFullYear();
-  const viewMonth = viewDate.getMonth();
+  const effectiveViewDate = viewDate || parsedDate || new Date();
+  const viewYear = effectiveViewDate.getFullYear();
+  const viewMonth = effectiveViewDate.getMonth();
 
   const handlePrevMonth = () => {
     setViewDate(new Date(viewYear, viewMonth - 1, 1));
@@ -452,8 +535,8 @@ export function DatePicker({
   };
 
   const calendarDays = useMemo(
-    () => buildCalendarGrid(viewYear, viewMonth, value),
-    [viewYear, viewMonth, value],
+    () => buildCalendarGrid(viewYear, viewMonth, value, minDate, maxDate, rangeStart, rangeEnd),
+    [viewYear, viewMonth, value, minDate, maxDate, rangeStart, rangeEnd],
   );
 
   const handleSelectDay = (dateString: string) => {

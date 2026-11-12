@@ -131,6 +131,21 @@ input[type='password']::placeholder {
   animation: pulseGlow 6s ease-in-out infinite;
 }
 
+@keyframes rowExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-row-expand {
+  animation: rowExpand 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ==========================================================================
    GLOBAL STANDARDIZED TYPOGRAPHY UTILITIES
    ========================================================================== */
@@ -185,5 +200,86 @@ input[type='password']::placeholder {
     line-height: 1.5rem;
     font-weight: 600;
     color: #111827;
+  }
+}
+
+/* ==========================================================================
+   TABLE ROW ENTRANCE ANIMATION (SMOOTH TOP-TO-BOTTOM LOAD)
+   ========================================================================== */
+@keyframes rowFadeSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-row-enter,
+tbody.table-body-animated > tr,
+tbody > tr {
+  animation: rowFadeSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+tbody > tr:nth-child(1),
+tbody.table-body-animated > tr:nth-child(1) {
+  animation-delay: 0ms;
+}
+tbody > tr:nth-child(2),
+tbody.table-body-animated > tr:nth-child(2) {
+  animation-delay: 30ms;
+}
+tbody > tr:nth-child(3),
+tbody.table-body-animated > tr:nth-child(3) {
+  animation-delay: 60ms;
+}
+tbody > tr:nth-child(4),
+tbody.table-body-animated > tr:nth-child(4) {
+  animation-delay: 90ms;
+}
+tbody > tr:nth-child(5),
+tbody.table-body-animated > tr:nth-child(5) {
+  animation-delay: 120ms;
+}
+tbody > tr:nth-child(6),
+tbody.table-body-animated > tr:nth-child(6) {
+  animation-delay: 150ms;
+}
+tbody > tr:nth-child(7),
+tbody.table-body-animated > tr:nth-child(7) {
+  animation-delay: 180ms;
+}
+tbody > tr:nth-child(8),
+tbody.table-body-animated > tr:nth-child(8) {
+  animation-delay: 210ms;
+}
+tbody > tr:nth-child(9),
+tbody.table-body-animated > tr:nth-child(9) {
+  animation-delay: 240ms;
+}
+tbody > tr:nth-child(10),
+tbody.table-body-animated > tr:nth-child(10) {
+  animation-delay: 270ms;
+}
+tbody > tr:nth-child(11),
+tbody.table-body-animated > tr:nth-child(11) {
+  animation-delay: 300ms;
+}
+tbody > tr:nth-child(12),
+tbody.table-body-animated > tr:nth-child(12) {
+  animation-delay: 330ms;
+}
+tbody > tr:nth-child(n + 13),
+tbody.table-body-animated > tr:nth-child(n + 13) {
+  animation-delay: 350ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-row-enter,
+  tbody.table-body-animated > tr,
+  tbody > tr {
+    animation: none !important;
   }
 }

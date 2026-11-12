@@ -11,6 +11,7 @@ import { useCallback } from 'react';
 
 import {
   type AddMenteesPayload,
+  AllocationDisplayStatus,
   type AllocationFilters,
   type AllocationListResponse,
   allocationsService,
@@ -20,7 +21,7 @@ import {
   type BulkAssignmentDueOverridePayload,
   type BulkUpdateAllocationDatesPayload,
   type CourseAllocation,
-  type CourseAllocationStatus,
+  CourseAllocationStatus,
   type CreateAllocationsPayload,
   type CreateAllocationsResponse,
   getLocalDateString,
@@ -30,6 +31,7 @@ import {
 
 export {
   type AddMenteesPayload,
+  AllocationDisplayStatus,
   type AllocationFilters,
   type AllocationListResponse,
   allocationsService,
@@ -39,7 +41,7 @@ export {
   type BulkAssignmentDueOverridePayload,
   type BulkUpdateAllocationDatesPayload,
   type CourseAllocation,
-  type CourseAllocationStatus,
+  CourseAllocationStatus,
   type CreateAllocationsPayload,
   type CreateAllocationsResponse,
   getLocalDateString,

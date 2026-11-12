@@ -21,8 +21,8 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly placeholder?: string | undefined;
   readonly className?: string | undefined;
   readonly align?: 'left' | 'right' | undefined;
+  readonly showMenuLabel?: boolean | undefined;
   readonly onScrollEnd?: (() => void) | undefined;
-  readonly isLoadingMore?: boolean | undefined;
   readonly onSearch?: ((query: string) => void) | undefined;
   readonly isSearching?: boolean | undefined;
 }
@@ -35,8 +35,8 @@ export function MultiSelectDropdown<T extends string = string>({
   singleSelect = false,
   className,
   align = 'right',
+  showMenuLabel = false,
   onScrollEnd,
-  isLoadingMore = false,
   onSearch,
   isSearching = false,
 }: Readonly<MultiSelectDropdownProps<T>>) {
@@ -45,6 +45,13 @@ export function MultiSelectDropdown<T extends string = string>({
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const lastScrollTopRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      lastScrollTopRef.current = 0;
+    }
+  }, [isOpen]);
 
   // Close when clicking outside
   useClickOutside(
@@ -113,13 +120,15 @@ export function MultiSelectDropdown<T extends string = string>({
     onChange([]);
   };
 
-  const triggerLabel = useMemo(() => {
-    if (selectedValues.length === 0) return label;
-    if (selectedValues.length === 1) {
-      const match = options.find((o) => o.value === selectedValues[0]);
-      return match ? match.label : label;
-    }
-    return `${label} (${selectedValues.length})`;
+  const { displayLabel, extraCount } = useMemo(() => {
+    if (selectedValues.length === 0) return { displayLabel: label, extraCount: 0 };
+    const firstMatch = options.find((o) => o.value === selectedValues[0]);
+    const firstName = firstMatch ? firstMatch.label : label;
+
+    return {
+      displayLabel: firstName,
+      extraCount: selectedValues.length - 1,
+    };
   }, [label, options, selectedValues]);
 
   useEffect(() => {
@@ -139,7 +148,10 @@ export function MultiSelectDropdown<T extends string = string>({
 
   return (
     <div
-      className={cn('relative inline-block min-w-[130px] sm:min-w-[140px]', className)}
+      className={cn(
+        'relative max-w-full min-w-0',
+        className || 'inline-block min-w-[130px] sm:min-w-[140px]',
+      )}
       ref={containerRef}
     >
       {/* Trigger Button with Rounded Border & Hover Effect */}
@@ -155,12 +167,21 @@ export function MultiSelectDropdown<T extends string = string>({
           });
         }}
         className={cn(
-          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-left text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:outline-none',
+          'flex h-11 w-full max-w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-left text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:outline-none',
           selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
         )}
       >
-        <Span className="truncate">{triggerLabel}</Span>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+          <Span title={displayLabel} className="min-w-0 flex-1 truncate">
+            {displayLabel}
+          </Span>
+          {extraCount > 0 ? (
+            <Span className="inline-flex shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
+              +{extraCount}
+            </Span>
+          ) : null}
+        </div>
         <svg
           className={cn(
             'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
@@ -181,22 +202,32 @@ export function MultiSelectDropdown<T extends string = string>({
         <div
           role="listbox"
           className={cn(
-            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-lg duration-100',
+            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 max-w-[calc(100vw-2rem)] min-w-full rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-xl duration-100 sm:max-w-md sm:min-w-[280px]',
             align === 'left' ? 'left-0' : 'right-0',
           )}
         >
-          {/* Header Row: Optional Clear only (Title removed per specification) */}
-          {selectedValues.length > 0 ? (
-            <div className="flex items-center justify-end border-b border-slate-100 px-2 pb-1.5">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
-              >
-                <Span>Clear</Span>
-              </button>
+          {/* Header Row: Optional Title & Optional Clear */}
+          {(showMenuLabel || selectedValues.length > 0) && (
+            <div
+              className={cn(
+                'flex items-center border-b border-slate-100 px-2 pb-1.5',
+                showMenuLabel ? 'justify-between' : 'justify-end',
+              )}
+            >
+              {showMenuLabel ? (
+                <Span className="text-xs font-bold text-slate-700">{label}</Span>
+              ) : null}
+              {selectedValues.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="cursor-pointer text-xs font-semibold text-[#0044D3] hover:underline"
+                >
+                  <Span>Clear</Span>
+                </button>
+              ) : null}
             </div>
-          ) : null}
+          )}
 
           {/* Search Box inside Dropdown (for larger option lists or when onSearch is provided) */}
           {options.length > 5 || onSearch ? (
@@ -233,8 +264,15 @@ export function MultiSelectDropdown<T extends string = string>({
             onScroll={(e) => {
               if (!onScrollEnd) return;
               const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-              if (scrollHeight - scrollTop - clientHeight < 25) {
-                onScrollEnd();
+              const isScrollingDown = scrollTop > lastScrollTopRef.current;
+              lastScrollTopRef.current = scrollTop;
+
+              if (isScrollingDown) {
+                const remaining = scrollHeight - scrollTop - clientHeight;
+                // Proactively trigger next page as soon as user starts scrolling down without waiting for bottom
+                if (remaining < 450) {
+                  onScrollEnd();
+                }
               }
             }}
           >
@@ -254,11 +292,13 @@ export function MultiSelectDropdown<T extends string = string>({
                       aria-selected={isChecked}
                       onClick={() => toggleOption(opt.value)}
                       className={cn(
-                        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50',
+                        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50',
                         isChecked ? 'bg-blue-50 font-semibold text-[#0044D3]' : 'text-slate-700',
                       )}
                     >
-                      <Span className="truncate">{opt.label}</Span>
+                      <Span title={opt.label} className="min-w-0 flex-1 truncate">
+                        {opt.label}
+                      </Span>
                     </button>
                   );
                 }
@@ -277,25 +317,22 @@ export function MultiSelectDropdown<T extends string = string>({
                       }
                     }}
                     className={cn(
-                      'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none',
+                      'flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none',
                       isChecked ? 'bg-blue-50/50 font-semibold text-[#0044D3]' : 'text-slate-700',
                     )}
                   >
                     <Checkbox
                       checked={isChecked}
                       onChange={() => {}} // handled by parent container click
-                      className="pointer-events-none"
+                      className="pointer-events-none shrink-0"
                     />
-                    <Span className="truncate">{opt.label}</Span>
+                    <Span title={opt.label} className="min-w-0 flex-1 truncate">
+                      {opt.label}
+                    </Span>
                   </div>
                 );
               })
             )}
-            {isLoadingMore ? (
-              <div className="flex items-center justify-center py-2 text-xs text-slate-400">
-                <Span>Loading more...</Span>
-              </div>
-            ) : null}
           </div>
         </div>
       ) : null}

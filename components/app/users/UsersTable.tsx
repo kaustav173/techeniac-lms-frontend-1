@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
 import { ChangeRoleModal, type UserToChangeRole } from '@/components/app/users/ChangeRoleModal';
-import { CreateUserDrawer } from '@/components/app/users/CreateUserDrawer';
+import { CreateUserModal } from '@/components/app/users/CreateUserModal';
 import { EditUserModal } from '@/components/app/users/EditUserModal';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useToast } from '@/hooks/useToast';
 import { useUsers } from '@/hooks/useUsers';
+import { cn } from '@/lib/cn';
 import {
   type ChangeRoleFormData,
   type CreateUserFormData,
@@ -478,7 +479,9 @@ export function UsersTable() {
                 tooltip="Sort all users by Status"
                 className="w-[12%] text-center"
               />
-              <TableHead className="w-[10%] text-center">Action</TableHead>
+              <TableHead className="w-[10%] text-center font-semibold text-slate-700">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -553,7 +556,8 @@ export function UsersTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              displayedUsers.map((u) => {
+              displayedUsers.map((u, idx) => {
+                const isActionMenuOpen = openActionMenuId === u.id;
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
@@ -570,6 +574,7 @@ export function UsersTable() {
                     key={u.id}
                     tabIndex={0}
                     role="link"
+                    style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         const target = e.target as HTMLElement;
@@ -589,7 +594,10 @@ export function UsersTable() {
                         router.push(`/admin/users/${u.id}`);
                       }
                     }}
-                    className="h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset"
+                    className={cn(
+                      'animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none focus-visible:ring-inset',
+                      isActionMenuOpen && 'relative z-30',
+                    )}
                   >
                     {/* User Column (Name only) */}
                     <TableCell className="w-[32%]">
@@ -652,11 +660,17 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Actions Column with Three-Dots Menu */}
-                    <TableCell className="w-[10%] text-center" onClick={(e) => e.stopPropagation()}>
+                    <TableCell
+                      className={cn('w-[10%] text-center', isActionMenuOpen && 'relative z-30')}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div
                         data-action-menu
-                        className="relative inline-block text-left"
-                        ref={openActionMenuId === u.id ? actionMenuRef : undefined}
+                        className={cn(
+                          'relative inline-block text-left',
+                          isActionMenuOpen && 'z-40',
+                        )}
+                        ref={isActionMenuOpen ? actionMenuRef : undefined}
                       >
                         <Button
                           type="button"
@@ -664,7 +678,7 @@ export function UsersTable() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenActionMenuId(openActionMenuId === u.id ? null : u.id);
+                            setOpenActionMenuId(isActionMenuOpen ? null : u.id);
                           }}
                           title="User actions"
                           aria-label={`Actions for ${u.name}`}
@@ -675,8 +689,8 @@ export function UsersTable() {
                           </svg>
                         </Button>
 
-                        {openActionMenuId === u.id && (
-                          <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-30 w-48 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                        {isActionMenuOpen && (
+                          <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-48 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
                             <Button
                               type="button"
                               variant="ghost"
@@ -861,12 +875,13 @@ export function UsersTable() {
             onLimitChange={handleLimitChange}
             isLoading={isTableLoading}
             pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+            itemLabel="users"
           />
         )}
       </TableContainer>
 
       {/* Drawers and Modals */}
-      <CreateUserDrawer
+      <CreateUserModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={handleCreateUser}

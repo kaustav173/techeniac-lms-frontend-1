@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/cn';
 
@@ -52,6 +53,15 @@ export function DebouncedSearchInput({
     }, delayMs);
   };
 
+  const handleClear = () => {
+    setLocalValue('');
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    onSearchChangeRef.current('');
+  };
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -59,6 +69,8 @@ export function DebouncedSearchInput({
       }
     };
   }, []);
+
+  const hasValue = Boolean(localValue && localValue.length > 0);
 
   return (
     <div className={cn('relative w-full', className)}>
@@ -83,8 +95,33 @@ export function DebouncedSearchInput({
         value={localValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl pl-10 text-sm font-medium"
+        className={cn(
+          'h-11 w-full rounded-xl pl-10 text-sm font-medium placeholder:font-normal placeholder:text-slate-400',
+          hasValue && 'pr-10',
+        )}
       />
+      {hasValue && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleClear}
+          title="Clear search"
+          aria-label="Clear search input"
+          className="absolute inset-y-0 right-1.5 my-auto h-7 w-7 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-400"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Button>
+      )}
     </div>
   );
 }

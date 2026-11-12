@@ -1,10 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
+import { getBatchStatusBadgeClass, isBatchStatus } from '@/components/app/batches/batchStatus';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
-import { Select } from '@/components/ui/Select';
-import { H2, H3, P, Span } from '@/components/ui/Typography';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { formatDateIST } from '@/lib/date';
 import type { LearningHistoryResult } from '@/services/performance.service';
 
@@ -12,286 +17,637 @@ interface LearningHistoryViewProps {
   readonly history: LearningHistoryResult | undefined;
   readonly isLoading?: boolean;
   readonly isMentorPastView?: boolean;
+  readonly summaryOnly?: boolean;
+  readonly hideSummary?: boolean;
   readonly isError?: boolean;
   readonly error?: unknown;
   readonly onRetry?: () => void;
+}
+
+function getStatusBadgeClass(status: string): string {
+  const upper = status.toUpperCase();
+  if (isBatchStatus(upper)) {
+    return getBatchStatusBadgeClass(upper);
+  }
+  return 'border border-[#E1E6EC] bg-white text-[#475467]';
+}
+
+function LearningHistorySummaryCards({
+  summary,
+}: {
+  readonly summary: LearningHistoryResult['summary'];
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Total Allocations */}
+      <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+              Courses Assigned
+            </Span>
+            <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827]">
+              {summary.totalAllocations}
+            </H3>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          </div>
+        </div>
+        <div className="mt-4 space-y-1.5">
+          <Span className="inline-flex w-fit items-center rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-1 text-xs font-semibold text-[#475467]">
+            {summary.completedAllocations} / {summary.totalAllocations} Completed
+          </Span>
+          <P className="text-xs text-[#667085]">
+            {summary.totalAllocations > 0 &&
+            summary.completedAllocations === summary.totalAllocations
+              ? 'All courses fully completed'
+              : 'Assigned curriculum courses'}
+          </P>
+        </div>
+      </div>
+
+      {/* Overall Progress */}
+      <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+              All Course Progress
+            </Span>
+            <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-[#0044D3]">
+              {summary.overallProgress}%
+            </H3>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
+            </svg>
+          </div>
+        </div>
+        <div className="mt-4 space-y-1.5">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
+            <div
+              className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.max(0, summary.overallProgress))}%` }}
+            />
+          </div>
+          <P className="text-xs text-[#667085]">
+            {summary.overallProgress === 100
+              ? 'All assigned curriculum completed'
+              : `${100 - summary.overallProgress}% remaining to complete`}
+          </P>
+        </div>
+      </div>
+
+      {/* Average Score */}
+      <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-shadow hover:shadow-md sm:col-span-2 sm:p-6 xl:col-span-1">
+        <div className="flex items-start justify-between">
+          <div>
+            <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
+              Average Grade
+            </Span>
+            <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-emerald-600">
+              {summary.averageMarks !== null ? summary.averageMarks : '—'}
+            </H3>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div className="mt-4 space-y-1.5">
+          <Span className="inline-flex w-fit items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+            Cumulative Score
+          </Span>
+          <P className="text-xs text-[#667085]">Across graded assignments</P>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function LearningHistoryView({
   history,
   isLoading = false,
   isMentorPastView = false,
+  summaryOnly = false,
+  hideSummary = false,
   isError = false,
   error,
   onRetry,
 }: LearningHistoryViewProps) {
   const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+  const [collapsedBatches, setCollapsedBatches] = useState<Record<string, boolean>>({});
+  const [collapsedCourses, setCollapsedCourses] = useState<Record<string, boolean>>({});
+
+  const toggleBatch = (batchId: string) => {
+    setCollapsedBatches((prev) => ({
+      ...prev,
+      [batchId]: !prev[batchId],
+    }));
+  };
+
+  const toggleCourse = (allocationId: string) => {
+    setCollapsedCourses((prev) => ({
+      ...prev,
+      [allocationId]: !prev[allocationId],
+    }));
+  };
+
+  const rawBatches = history?.batches;
+  const batches = useMemo(() => rawBatches ?? [], [rawBatches]);
+  const summary = history?.summary;
+  const user = history?.user;
+
+  // Dropdown options for batch selector
+  const batchOptions = useMemo<SingleSelectOption[]>(
+    () => [
+      { value: 'ALL', label: 'All' },
+      ...batches.map((b) => ({
+        value: b.batchId,
+        label: `${b.batchName} (${b.status})`,
+      })),
+    ],
+    [batches],
+  );
 
   if (isError) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xs">
+      <div className="rounded-2xl border border-[#E1E6EC] bg-white p-8 shadow-xs">
         <ErrorMessage error={error} onRetry={onRetry} />
       </div>
     );
   }
 
-  if (isLoading || !history) {
+  if (isLoading || !history || !summary || !user) {
+    if (summaryOnly) {
+      return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs sm:p-6"
+            >
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="mt-3 h-8 w-16 rounded-md" />
+              <Skeleton className="mt-2 h-3.5 w-36 rounded-md" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col gap-6">
-        <div className="h-28 animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-xs" />
-        <div className="h-64 animate-pulse rounded-3xl border border-slate-200 bg-white p-6 shadow-xs" />
+        {!hideSummary && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs sm:p-6"
+              >
+                <Skeleton className="h-4 w-28 rounded-md" />
+                <Skeleton className="mt-3 h-8 w-16 rounded-md" />
+                <Skeleton className="mt-2 h-3.5 w-36 rounded-md" />
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="h-64 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+          <Skeleton className="h-6 w-48 rounded-md" />
+          <Skeleton className="mt-4 h-40 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
-  const { batches, summary, user } = history;
+  // Summary only mode (for dashboards)
+  if (summaryOnly) {
+    return <LearningHistorySummaryCards summary={summary} />;
+  }
 
-  // Empty state handling (PER-06, PER-08)
+  // Empty state handling
   if (batches.length === 0) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-xs">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <div className="rounded-2xl border border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#0044D3]">
           <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="2"
+              strokeWidth="1.8"
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
         </div>
-        <H3 className="mt-4 text-base font-bold text-slate-800">
-          {isMentorPastView
-            ? 'No Past Mentee History Found'
-            : 'No Course Allocations or Grades Yet'}
+        <H3 className="mt-4 text-base font-bold text-[#111827]">
+          {isMentorPastView ? 'No History' : 'No Course Allocations or Grades Yet'}
         </H3>
-        <P className="mx-auto mt-2 max-w-md text-xs text-slate-500">
-          {isMentorPastView
-            ? 'You do not have any past course allocations or submission records from when you were enrolled as a mentee.'
-            : 'Your assigned curriculum, progress tracker, and assignment grades will appear here once allocated.'}
-        </P>
+        {!isMentorPastView && (
+          <P className="mx-auto mt-2 max-w-md text-xs text-[#667085]">
+            Your assigned curriculum, progress tracker, and assignment grades will appear here once
+            allocated.
+          </P>
+        )}
       </div>
     );
   }
 
-  // Filter by selected batch (PER-09)
+  // Filter by selected batch
   const displayedBatches =
     selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
 
   return (
     <div className="flex flex-col gap-6">
-      {/* 1. Header Overview Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Total Allocations */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            Courses Assigned
-          </Span>
-          <H3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-            {summary.totalAllocations}
-          </H3>
-          <P className="mt-1 text-xs text-slate-500">
-            {summary.completedAllocations} of {summary.totalAllocations} completed
-          </P>
-        </div>
+      {/* 1. Header Overview Summary Cards (Responsive 3-Card Grid) */}
+      {!hideSummary && <LearningHistorySummaryCards summary={summary} />}
 
-        {/* Overall Progress */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            Overall Curriculum Progress
-          </Span>
-          <H3 className="mt-2 text-3xl font-bold tracking-tight text-blue-600">
-            {summary.overallProgress}%
-          </H3>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-blue-600"
-              style={{ width: `${Math.min(100, Math.max(0, summary.overallProgress))}%` }}
-            />
+      {/* 2. Batch Selector Filter Toolbar */}
+      {batches.length > 1 ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-bold tracking-tight text-[#111827]">
+              Enrolled Batches
+            </span>
+            <span className="inline-flex h-5 items-center rounded-full bg-[#E1E6EC]/70 px-2 text-[11px] font-semibold text-[#475467]">
+              {batches.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs font-semibold text-[#667085] sm:inline">
+              Filter by Batch:
+            </span>
+            <div className="w-full sm:w-64">
+              <SingleSelectDropdown
+                label="Batch"
+                value={selectedBatchId}
+                onChange={setSelectedBatchId}
+                options={batchOptions}
+                placeholder="Batch"
+                aria-label="Filter learning history by batch"
+                triggerClassName="h-10 rounded-2xl border-[#E1E6EC] bg-white px-3 text-xs font-semibold shadow-2xs hover:border-slate-300"
+                menuClassName="w-full sm:min-w-[260px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+              />
+            </div>
           </div>
         </div>
-
-        {/* Average Score */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            Overall Average Grade
-          </Span>
-          <H3 className="mt-2 text-3xl font-bold tracking-tight text-emerald-600">
-            {summary.averageMarks !== null ? summary.averageMarks : '—'}
-          </H3>
-          <P className="mt-1 text-xs text-slate-500">Cumulative graded assignment score</P>
-        </div>
-
-        {/* Profile Context */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
-          <Span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
-            Learner Profile
-          </Span>
-          <H3 className="mt-2 truncate text-lg font-bold text-slate-900">{user.name}</H3>
-          <P className="truncate text-xs text-slate-500">{user.email}</P>
-        </div>
-      </div>
-
-      {/* 2. Batch Selector Filter (PER-09) */}
-      {batches.length > 1 && (
-        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs">
-          <Span className="text-xs font-medium text-slate-600">
-            Filter learning history by batch:
-          </Span>
-          <div className="w-56">
-            <Select
-              value={selectedBatchId}
-              onChange={(e) => setSelectedBatchId(e.target.value)}
-              className="h-8 text-xs font-semibold"
-            >
-              <option value="ALL">All Enrolled Batches</option>
-              {batches.map((b) => (
-                <option key={b.batchId} value={b.batchId}>
-                  {b.batchName} ({b.status})
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       {/* 3. Batch Sections & Course Allocations */}
-      {displayedBatches.map((batch) => (
-        <section
-          key={batch.batchId}
-          className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs"
-        >
-          {/* Batch Header Bar */}
-          <div className="flex flex-col gap-1 border-b border-slate-200 bg-slate-50/75 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <H2 className="text-base font-bold text-slate-900">{batch.batchName}</H2>
-              <P className="text-xs text-slate-500">
-                Started {formatDateIST(batch.startDate)}
-                {batch.endDate && ` • Completed ${formatDateIST(batch.endDate)}`}
-              </P>
-            </div>
-            <Span className="inline-flex w-fit items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
-              Batch Status: {batch.status}
-            </Span>
-          </div>
+      {displayedBatches.map((batch) => {
+        const isCollapsed = Boolean(collapsedBatches[batch.batchId]);
 
-          {/* Allocations under this Batch */}
-          <div className="divide-y divide-slate-100 p-6">
-            {batch.courseAllocations.map((alloc) => (
-              <div key={alloc.allocationId} className="py-6 first:pt-0 last:pb-0">
-                {/* Course Header */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <H3 className="text-sm font-bold text-slate-900">{alloc.courseTitle}</H3>
-                    <P className="text-xs text-slate-500">
-                      Assigned: {formatDateIST(alloc.startDate)} • Due:{' '}
-                      {formatDateIST(alloc.dueDate)}
-                      {alloc.completedAt && ` • Completed: ${formatDateIST(alloc.completedAt)}`}
-                    </P>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        alloc.status === 'COMPLETED'
-                          ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                          : 'border border-blue-200 bg-blue-50 text-blue-700'
-                      }`}
-                    >
-                      {alloc.status}
-                    </Span>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                      <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-blue-600"
-                          style={{
-                            width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
-                          }}
-                        />
-                      </div>
-                      <Span>{alloc.progressPercent}%</Span>
-                    </div>
-                  </div>
+        return (
+          <section
+            key={batch.batchId}
+            className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs"
+          >
+            {/* Batch Header Bar */}
+            <button
+              type="button"
+              onClick={() => toggleBatch(batch.batchId)}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? `Expand ${batch.batchName}` : `Collapse ${batch.batchName}`}
+              className={`flex w-full cursor-pointer flex-col gap-3 bg-[#F8FAFC] px-6 py-4 text-left transition-colors hover:bg-[#F1F5F9] sm:flex-row sm:items-center sm:justify-between ${
+                !isCollapsed ? 'border-b border-[#E1E6EC]' : ''
+              }`}
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#0044D3]">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
                 </div>
+                <span className="text-base font-bold text-[#111827]">{batch.batchName}</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#475467] shadow-2xs">
+                    <svg
+                      className="h-3.5 w-3.5 text-[#98A2B3]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span>
+                      Started:{' '}
+                      <strong className="font-semibold text-[#111827]">
+                        {formatDateIST(batch.startDate)}
+                      </strong>
+                    </span>
+                  </span>
 
-                {/* Submissions Table for this Allocation */}
-                {alloc.assignments.length > 0 ? (
-                  <div className="mt-4 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/40">
-                    <table className="w-full text-left text-xs text-slate-600">
-                      <thead className="border-b border-slate-200 bg-slate-100/60 text-[10.5px] font-bold tracking-wider text-slate-500 uppercase">
-                        <tr>
-                          <th className="px-4 py-2.5">Assignment</th>
-                          <th className="px-4 py-2.5">Submitted</th>
-                          <th className="px-4 py-2.5 text-center">Version</th>
-                          <th className="px-4 py-2.5 text-center">Score</th>
-                          <th className="px-4 py-2.5 text-center">Grade</th>
-                          <th className="px-4 py-2.5">Mentor Feedback</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {alloc.assignments.map((assign) => (
-                          <tr key={assign.assignmentId} className="bg-white">
-                            <td className="px-4 py-3">
-                              <Span className="font-semibold text-slate-900">
-                                {assign.assignmentTitle}
-                              </Span>
-                            </td>
-                            <td className="px-4 py-3 text-xs text-slate-500">
-                              <div className="flex flex-col">
-                                <Span>{formatDateIST(assign.submittedAt)}</Span>
-                                {assign.isLate && (
-                                  <Span className="text-[10px] font-semibold text-rose-600">
-                                    (Late Submission)
-                                  </Span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-center text-xs font-medium">
-                              v{assign.version}
-                            </td>
-                            <td className="px-4 py-3 text-center text-xs font-bold text-slate-800">
-                              {assign.marks !== null ? (
-                                <Span>
-                                  {assign.marks} / {assign.maxMarks}
-                                </Span>
-                              ) : (
-                                <Span className="text-slate-400">Pending Review</Span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {assign.gradeLabel ? (
-                                <Span className="inline-block w-8 rounded border border-emerald-200 bg-emerald-50 py-0.5 text-center text-xs font-bold text-emerald-700">
-                                  {assign.gradeLabel}
-                                </Span>
-                              ) : (
-                                <Span className="text-slate-400">—</Span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {assign.feedback ? (
-                                <P className="text-xs whitespace-pre-wrap text-slate-700 italic">
-                                  &ldquo;{assign.feedback}&rdquo;
-                                </P>
-                              ) : (
-                                <Span className="text-xs text-slate-400">No feedback provided</Span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="mt-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-center">
-                    <P className="text-xs text-slate-400">
-                      No assignments submitted for this course allocation yet.
-                    </P>
-                  </div>
-                )}
+                  {batch.endDate ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 shadow-2xs">
+                      <svg
+                        className="h-3.5 w-3.5 text-emerald-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span>
+                        Completed:{' '}
+                        <strong className="font-semibold text-emerald-800">
+                          {formatDateIST(batch.endDate)}
+                        </strong>
+                      </span>
+                    </span>
+                  ) : null}
+                </div>
               </div>
-            ))}
-          </div>
-        </section>
-      ))}
+
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${getStatusBadgeClass(
+                    batch.status,
+                  )}`}
+                >
+                  {batch.status.replace(/_/g, ' ')}
+                </span>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg border border-[#E1E6EC] bg-white text-[#667085] shadow-2xs transition-transform duration-200 ${
+                    isCollapsed ? '-rotate-90' : 'rotate-0'
+                  }`}
+                  aria-hidden="true"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* Allocations under this Batch */}
+            {!isCollapsed ? (
+              <div className="flex flex-col gap-4 bg-[#F8FAFC]/40 p-6">
+                {batch.courseAllocations.map((alloc) => {
+                  const isCourseCollapsed = Boolean(collapsedCourses[alloc.allocationId]);
+
+                  return (
+                    <div
+                      key={alloc.allocationId}
+                      className="rounded-xl border border-[#E1E6EC] bg-white p-5 shadow-2xs"
+                    >
+                      {/* Course Header */}
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <H3 className="text-sm font-bold text-[#111827]">{alloc.courseTitle}</H3>
+
+                          {/* Metadata Date Badges */}
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-0.5 text-[11px] font-medium text-[#475467]">
+                              <svg
+                                className="h-3.5 w-3.5 text-[#98A2B3]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                              <span>
+                                Assigned:{' '}
+                                <strong className="font-semibold text-[#111827]">
+                                  {formatDateIST(alloc.startDate)}
+                                </strong>
+                              </span>
+                            </span>
+
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-0.5 text-[11px] font-medium text-[#475467]">
+                              <svg
+                                className="h-3.5 w-3.5 text-[#98A2B3]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              <span>
+                                Due:{' '}
+                                <strong className="font-semibold text-[#111827]">
+                                  {formatDateIST(alloc.dueDate)}
+                                </strong>
+                              </span>
+                            </span>
+
+                            {alloc.completedAt ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                                <svg
+                                  className="h-3.5 w-3.5 text-emerald-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                                <span>
+                                  Completed:{' '}
+                                  <strong className="font-semibold text-emerald-800">
+                                    {formatDateIST(alloc.completedAt)}
+                                  </strong>
+                                </span>
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Progress Indicator & Collapse Button */}
+                        <div className="flex flex-shrink-0 items-center gap-3">
+                          <div className="flex items-center gap-3.5 rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] px-4 py-2 shadow-2xs">
+                            <span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
+                              Progress
+                            </span>
+                            <div className="h-2.5 w-36 overflow-hidden rounded-full bg-[#E1E6EC] sm:w-52 md:w-64 lg:w-72">
+                              <div
+                                className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
+                                }}
+                              />
+                            </div>
+                            <span className="min-w-9 text-right text-xs font-extrabold text-[#111827]">
+                              {alloc.progressPercent}%
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleCourse(alloc.allocationId)}
+                            aria-expanded={!isCourseCollapsed}
+                            aria-label={
+                              isCourseCollapsed
+                                ? `Expand submissions for ${alloc.courseTitle}`
+                                : `Collapse submissions for ${alloc.courseTitle}`
+                            }
+                            title={
+                              isCourseCollapsed ? 'Expand submissions' : 'Collapse submissions'
+                            }
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] text-[#667085] shadow-2xs transition-all hover:border-slate-300 hover:bg-white hover:text-[#111827]"
+                          >
+                            <svg
+                              className={`h-4 w-4 transition-transform duration-200 ${
+                                isCourseCollapsed ? '-rotate-90' : 'rotate-0'
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Submissions Table for this Allocation */}
+                      {!isCourseCollapsed ? (
+                        alloc.assignments.length > 0 ? (
+                          <div className="mt-4 overflow-hidden rounded-xl border border-[#E1E6EC] bg-[#F8FAFC]/40">
+                            <table className="w-full text-left text-xs text-[#111827]">
+                              <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC] text-[11px] font-semibold tracking-wider text-[#667085] uppercase">
+                                <tr>
+                                  <th className="px-4 py-3">Assignment</th>
+                                  <th className="px-4 py-3">Submitted</th>
+                                  <th className="px-4 py-3 text-center">Version</th>
+                                  <th className="px-4 py-3 text-center">Score</th>
+                                  <th className="px-4 py-3 text-center">Grade</th>
+                                  <th className="px-4 py-3">Mentor Feedback</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-[#E1E6EC]/60">
+                                {alloc.assignments.map((assign) => (
+                                  <tr
+                                    key={assign.assignmentId}
+                                    className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
+                                  >
+                                    <td className="px-4 py-3">
+                                      <Span className="font-semibold text-[#111827]">
+                                        {assign.assignmentTitle}
+                                      </Span>
+                                    </td>
+                                    <td className="px-4 py-3 text-xs text-[#667085]">
+                                      <div className="flex flex-col">
+                                        <Span>{formatDateIST(assign.submittedAt)}</Span>
+                                        {assign.isLate ? (
+                                          <Span className="text-[10px] font-semibold text-rose-600">
+                                            (Late Submission)
+                                          </Span>
+                                        ) : null}
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-center text-xs font-medium text-[#667085]">
+                                      v{assign.version}
+                                    </td>
+                                    <td className="px-4 py-3 text-center text-xs font-bold text-[#111827]">
+                                      {assign.marks !== null ? (
+                                        <Span>
+                                          {assign.marks} / {assign.maxMarks}
+                                        </Span>
+                                      ) : (
+                                        <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                          Pending Review
+                                        </Span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      {assign.gradeLabel ? (
+                                        <Span className="inline-block min-w-8 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-center text-xs font-bold text-emerald-700">
+                                          {assign.gradeLabel}
+                                        </Span>
+                                      ) : (
+                                        <Span className="text-[#667085]">—</Span>
+                                      )}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      {assign.feedback ? (
+                                        <P className="text-xs whitespace-pre-wrap text-[#111827] italic">
+                                          &ldquo;{assign.feedback}&rdquo;
+                                        </P>
+                                      ) : (
+                                        <Span className="text-xs text-[#667085]">
+                                          No feedback provided
+                                        </Span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="mt-3 rounded-xl border border-dashed border-[#E1E6EC] bg-[#F8FAFC] p-4 text-center">
+                            <P className="text-xs text-[#667085]">
+                              No assignments submitted for this course allocation yet.
+                            </P>
+                          </div>
+                        )
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
     </div>
   );
 }

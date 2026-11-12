@@ -65,7 +65,11 @@ export interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionEle
 
 export const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
   ({ className, children, ...props }, ref) => (
-    <tbody ref={ref} className={cn('divide-y divide-[#F2F4F7]', className)} {...props}>
+    <tbody
+      ref={ref}
+      className={cn('table-body-animated divide-y divide-[#F2F4F7]', className)}
+      {...props}
+    >
       {children}
     </tbody>
   ),
@@ -98,7 +102,11 @@ export interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement>
 
 export const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ className, children, ...props }, ref) => (
-    <tr ref={ref} className={cn('transition-colors hover:bg-[#F9FAFB]/80', className)} {...props}>
+    <tr
+      ref={ref}
+      className={cn('animate-row-enter transition-colors hover:bg-[#F9FAFB]/80', className)}
+      {...props}
+    >
       {children}
     </tr>
   ),

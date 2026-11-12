@@ -3,7 +3,11 @@
 import React from 'react';
 
 import { Span } from '@/components/ui/Typography';
-import { type CourseAllocationStatus, isTerminalAllocationStatus } from '@/hooks/useAllocations';
+import {
+  AllocationDisplayStatus,
+  CourseAllocationStatus,
+  isTerminalAllocationStatus,
+} from '@/hooks/useAllocations';
 
 export interface AllocationStatusBadgeProps {
   readonly status: CourseAllocationStatus;
@@ -11,33 +15,38 @@ export interface AllocationStatusBadgeProps {
 }
 
 export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBadgeProps) {
+  const isOverdueActive = Boolean(isOverdue && !isTerminalAllocationStatus(status));
+
   let badgeStyle = 'bg-slate-100 text-slate-700 border-slate-300';
-  let label = status as string;
+  let label: string = status;
+  let title: string | undefined = undefined;
 
   switch (status) {
-    case 'ASSIGNED':
+    case CourseAllocationStatus.ASSIGNED:
       badgeStyle = 'bg-blue-50 text-blue-700 border-blue-300';
-      label = 'Assigned';
+      label = AllocationDisplayStatus.ASSIGNED;
       break;
-    case 'IN_PROGRESS':
+    case CourseAllocationStatus.IN_PROGRESS:
       badgeStyle = 'bg-indigo-50 text-indigo-700 border-indigo-300';
-      label = 'In Progress';
+      label = AllocationDisplayStatus.IN_PROGRESS;
       break;
-    case 'COMPLETED':
+    case CourseAllocationStatus.COMPLETED:
       badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-300';
-      label = 'Completed';
+      label = AllocationDisplayStatus.COMPLETED;
       break;
-    case 'REVOKED':
+    case CourseAllocationStatus.REVOKED:
       badgeStyle = 'bg-rose-50 text-rose-700 border-rose-300';
-      label = 'Revoked';
+      label = AllocationDisplayStatus.REVOKED;
       break;
-    case 'CLOSED_ROLE_CHANGE':
+    case CourseAllocationStatus.CLOSED_ROLE_CHANGE:
       badgeStyle = 'bg-slate-100 text-slate-600 border-slate-300';
-      label = 'Closed (Role)';
+      label = AllocationDisplayStatus.ROLE_CHANGED;
+      title = 'Closed due to mentee role change';
       break;
-    case 'CLOSED_BATCH_CHANGE':
+    case CourseAllocationStatus.CLOSED_BATCH_CHANGE:
       badgeStyle = 'bg-slate-100 text-slate-600 border-slate-300';
-      label = 'Closed (Transfer)';
+      label = AllocationDisplayStatus.BATCH_TRANSFERRED;
+      title = 'Closed due to batch transfer';
       break;
     default: {
       const _exhaustiveCheck: never = status;
@@ -47,18 +56,21 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
     }
   }
 
+  // When overdue and non-terminal, display a single high-visibility Overdue badge instead of two badges side-by-side
+  if (isOverdueActive) {
+    badgeStyle = 'bg-rose-50 text-rose-700 border-rose-300 font-bold';
+    title = `${label} (Overdue)`;
+    label = AllocationDisplayStatus.OVERDUE;
+  }
+
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="inline-flex items-center whitespace-nowrap">
       <Span
-        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}
+        title={title}
+        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${badgeStyle}`}
       >
         {label}
       </Span>
-      {isOverdue && !isTerminalAllocationStatus(status) ? (
-        <Span className="inline-flex items-center rounded-full border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
-          OVERDUE
-        </Span>
-      ) : null}
     </div>
   );
 }
