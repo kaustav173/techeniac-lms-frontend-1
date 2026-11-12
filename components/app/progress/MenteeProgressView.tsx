@@ -34,8 +34,9 @@ import {
   useAllocationsList,
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
+import { formatDateDDMMYY } from '@/lib/date';
 
-type AllocationSortField = 'course' | 'dueDate';
+type AllocationSortField = 'course' | 'due';
 
 const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
   { value: CourseAllocationStatus.ASSIGNED, label: AllocationDisplayStatus.ASSIGNED },
@@ -225,7 +226,7 @@ export function MenteeProgressView() {
                   Batch
                 </TableHead>
                 <SortableColumnHeader<AllocationSortField>
-                  field="dueDate"
+                  field="due"
                   label="Due Date"
                   sortField={sortField}
                   sortOrder={sortOrder}
@@ -350,7 +351,7 @@ export function MenteeProgressView() {
                       {/* 3. Due Date */}
                       <TableCell className="w-[14%] px-4 py-4 align-middle">
                         <Span className="block text-sm font-medium text-[#111827]">
-                          {new Date(alloc.dueDate).toLocaleDateString()}
+                          {formatDateDDMMYY(alloc.dueDate)}
                         </Span>
                       </TableCell>
 
