@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Alert } from '@/components/ui/Alert';
-import { Code, H3, H4, P, Span } from '@/components/ui/Typography';
+import { H3, H4, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import { isSafeHttpUrl } from '@/lib/url';
 import { SubmissionStatus, type SubmissionVersion } from '@/types/submissions';
@@ -22,22 +22,32 @@ function SubmissionResourceLink({
   const isSafe = isSafeHttpUrl(url);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50">
-      <Span className="block text-xs font-medium text-slate-500 dark:text-slate-400">{label}</Span>
-      {isSafe ? (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-1 block truncate text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-        >
-          {url}
-        </a>
-      ) : (
-        <Span className="mt-1 block truncate font-mono text-xs text-slate-600 dark:text-slate-400">
-          {url}
-        </Span>
-      )}
+    <div className="flex items-center gap-3 rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] p-3 text-xs">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#0044D3]">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <div className="min-w-0">
+        <Span className="block truncate font-semibold text-[#111827]">{label}</Span>
+        {isSafe ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block truncate text-[#0044D3] hover:underline"
+          >
+            {url}
+          </a>
+        ) : (
+          <Span className="block truncate text-[#667085]">{url}</Span>
+        )}
+      </div>
     </div>
   );
 }
@@ -60,48 +70,55 @@ export function SubmissionVersionHistory({
   const sortedVersions = [...versions].sort((a, b) => b.version - a.version);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
       <div className="flex items-center justify-between">
-        <H3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Submission History
-        </H3>
-        <Span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-2">
+          <svg
+            className="h-5 w-5 text-[#111827]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <H3 className="text-base font-bold text-[#111827]">Submission History</H3>
+        </div>
+        <Span className="text-xs font-medium text-[#667085]">
           {versions.length} {versions.length === 1 ? 'version' : 'versions'} submitted
         </Span>
       </div>
 
-      <div className="space-y-4">
-        {sortedVersions.map((versionItem) => (
-          <div
-            key={versionItem.id}
-            className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
-          >
+      <div className="space-y-6 divide-y divide-[#E1E6EC]/60">
+        {sortedVersions.map((versionItem, index) => (
+          <div key={versionItem.id} className={`space-y-4 ${index > 0 ? 'pt-6' : ''}`}>
             {/* Header: Version number, IST Timestamp, Badges */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <Span className="inline-flex items-center rounded-lg bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                <Span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-[#0044D3]">
                   Version {versionItem.version}
                 </Span>
-                <Span className="text-xs text-slate-500 dark:text-slate-400">
-                  Submitted at:{' '}
-                  <strong className="text-slate-700 dark:text-slate-300">
-                    {formatDateTimeIST(versionItem.submittedAt)}
-                  </strong>
+                <Span className="text-xs text-[#667085]">
+                  Submitted at: {formatDateTimeIST(versionItem.submittedAt)}
                 </Span>
               </div>
 
               <div className="flex items-center gap-2">
                 {versionItem.isLate ? (
-                  <Span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+                  <Span className="rounded-full bg-rose-50 px-3 py-0.5 text-xs font-semibold text-rose-600">
                     Late Submission
                   </Span>
                 ) : (
-                  <Span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <Span className="rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-600">
                     On Time
                   </Span>
                 )}
 
-                <Span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                <Span className="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold text-slate-700 uppercase">
                   {versionItem.status}
                 </Span>
               </div>
@@ -109,10 +126,8 @@ export function SubmissionVersionHistory({
 
             {/* Submitted Artifacts/Links */}
             <div className="space-y-2">
-              <H4 className="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
-                Submitted Resources
-              </H4>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <H4 className="text-xs font-bold text-[#111827]">Submitted Resources</H4>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SubmissionResourceLink
                   label="PDF Document Link"
                   url={versionItem.submissionData.pdfUrl}
@@ -130,38 +145,49 @@ export function SubmissionVersionHistory({
 
             {/* Grading & Feedback section if evaluated */}
             {versionItem.marks !== null || versionItem.feedback ? (
-              <div className="space-y-2 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/20">
-                <div className="flex items-center justify-between">
-                  <H4 className="text-xs font-bold tracking-wider text-indigo-900 uppercase dark:text-indigo-300">
-                    Evaluation & Feedback
-                  </H4>
+              <div className="space-y-3 rounded-2xl border border-indigo-100 bg-[#F8FAFC] p-4">
+                <div className="flex items-center justify-between border-b border-[#E1E6EC]/60 pb-2">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="h-4 w-4 text-[#667085]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                    <H4 className="text-xs font-bold text-[#111827]">Evaluation &amp; Feedback</H4>
+                  </div>
                   {versionItem.gradedAt ? (
-                    <Span className="text-xs text-indigo-600 dark:text-indigo-400">
+                    <Span className="text-[11px] text-[#667085]">
                       Graded on: {formatDateTimeIST(versionItem.gradedAt)}
                     </Span>
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-[#111827]">
                   {versionItem.marks !== null ? (
-                    <P className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      Score:{' '}
-                      <Code className="text-base text-indigo-700 dark:text-indigo-300">
+                    <div className="flex items-center gap-1.5">
+                      <span>Score:</span>
+                      <Span className="inline-flex items-center rounded-lg bg-blue-100 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
                         {versionItem.marks}
-                      </Code>
-                      {maxMarks ? ` / ${maxMarks}` : ''}
-                    </P>
+                      </Span>
+                      <span>{maxMarks ? `/ ${maxMarks}` : ''}</span>
+                    </div>
+                  ) : null}
+
+                  {versionItem.feedback ? (
+                    <div className="flex items-center gap-1.5 border-l border-[#E1E6EC] pl-4">
+                      <span className="text-[#667085]">Mentor Feedback:</span>
+                      <span className="text-[#111827] italic">{versionItem.feedback}</span>
+                    </div>
                   ) : null}
                 </div>
-
-                {versionItem.feedback ? (
-                  <div className="mt-2 text-xs text-slate-700 dark:text-slate-300">
-                    <P className="mb-1 font-medium text-slate-900 dark:text-slate-200">
-                      Mentor Feedback:
-                    </P>
-                    <P className="whitespace-pre-wrap italic">{versionItem.feedback}</P>
-                  </div>
-                ) : null}
               </div>
             ) : null}
 

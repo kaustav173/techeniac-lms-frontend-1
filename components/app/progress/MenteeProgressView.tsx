@@ -166,8 +166,8 @@ export function MenteeProgressView() {
             />
           </div>
 
-          {/* 2. Admin-Styled Status Filter (MultiSelectDropdown) */}
-          <div className="w-full sm:w-48">
+          {/* 2. Admin-Styled Status Filter (MultiSelectDropdown: button 173px, listbox 172px) */}
+          <div className="w-full sm:w-[173px]">
             <MultiSelectDropdown
               label="Status"
               options={STATUS_FILTER_OPTIONS}
@@ -176,6 +176,7 @@ export function MenteeProgressView() {
               singleSelect={false}
               align="left"
               className="w-full"
+              menuClassName="sm:min-w-[172px] sm:w-[172px]"
             />
           </div>
 

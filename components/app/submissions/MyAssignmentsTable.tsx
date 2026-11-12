@@ -133,8 +133,7 @@ export function MyAssignmentsTable({
         item.title.toLowerCase().includes(q) ||
         item.courseTitle.toLowerCase().includes(q) ||
         (item.topicTitle && item.topicTitle.toLowerCase().includes(q));
-      const matchesStatus =
-        activeStatuses.length === 0 || activeStatuses.includes(item.status);
+      const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(item.status);
       return matchesSearch && matchesStatus;
     });
   }, [assignments, searchQuery, activeStatuses]);
@@ -204,7 +203,7 @@ export function MyAssignmentsTable({
             options={STATUS_OPTIONS}
             selectedValues={activeStatuses}
             onChange={(vals) => {
-              onStatusesChange?.(vals as AssignmentDerivedStatus[]);
+              onStatusesChange?.(vals);
               onStatusChange?.(vals[0]);
               pagination?.onPageChange(1);
             }}
@@ -493,7 +492,8 @@ export function MyAssignmentsTable({
                                 <Span>
                                   {assignment.status === AssignmentDerivedStatus.PENDING
                                     ? 'Start & Submit'
-                                    : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
+                                    : assignment.status ===
+                                        AssignmentDerivedStatus.RESUBMIT_REQUESTED
                                       ? 'Resubmit'
                                       : 'View Details'}
                                 </Span>

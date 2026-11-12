@@ -446,8 +446,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 />
               </div>
 
-              {/* 4. Course Status Filter (Multi-select dropdown) */}
-              <div className="w-full sm:w-[165px]">
+              {/* 4. Course Status Filter (Multi-select dropdown: button 173px, listbox 172px) */}
+              <div className="w-full sm:w-[173px]">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -456,6 +456,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   singleSelect={false}
                   align="right"
                   className="w-full"
+                  menuClassName="sm:min-w-[172px] sm:w-[172px]"
                 />
               </div>
             </div>

@@ -182,13 +182,7 @@ export function AssignmentSubmissionForm({
   };
 
   if (isReadOnlyBatch) {
-    return (
-      <Alert
-        variant="warning"
-        title="Submissions Closed"
-        message={`This assignment is part of a batch with status "${batchStatus}". Submissions are closed.`}
-      />
-    );
+    return null;
   }
 
   if (isLateBlocked) {

@@ -44,16 +44,23 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
-      <DashboardContent className="space-y-8">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-2 text-xs text-[#667085]">
-          <Link href="/mentee/assignments" className="font-medium hover:text-[#0044D3]">
-            ← Back to All Assignments
+      <DashboardContent className="space-y-6">
+        {/* Back Link Navigation */}
+        <div>
+          <Link
+            href="/mentee/assignments"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-[#111827] transition-colors hover:text-[#0044D3]"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Assignments
           </Link>
-          <Span>/</Span>
-          <Span className="truncate font-semibold text-[#111827]">
-            {assignment?.title ?? 'Assignment Workspace'}
-          </Span>
         </div>
 
         {error ? (
@@ -74,100 +81,157 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
             </P>
           </div>
         ) : (
-          <div className="animate-slide-up space-y-8">
-            {/* Assignment Overview Card */}
-            <div className="space-y-6 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-              <div className="flex flex-col justify-between gap-4 border-b border-[#E1E6EC] pb-6 md:flex-row md:items-start">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#0044D3]">
-                      {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
-                    </Span>
-                    <Span className="text-xs text-[#667085]">
-                      {assignment.scope === AssignmentScope.COURSE
-                        ? 'Final Capstone'
-                        : 'Topic Assignment'}
-                    </Span>
-                  </div>
-                  <H1 className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
+          <div className="animate-slide-up space-y-6">
+            {/* 1. Assignment Overview Card (Image 2 style) */}
+            <div className="flex flex-col justify-between gap-6 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs lg:flex-row lg:items-center">
+              <div className="flex items-start gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0044D3]">
+                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <div className="space-y-1.5">
+                  <Span className="inline-block rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-[#0044D3]">
+                    {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
+                  </Span>
+                  <H1 className="text-2xl font-bold tracking-tight text-[#111827]">
                     {assignment.title}
                   </H1>
-                  <P className="text-xs text-[#667085]">
-                    Course:{' '}
-                    <Span className="text-[#111827]">
+                  <div className="flex items-center gap-2 text-xs font-medium text-[#667085]">
+                    <svg
+                      className="h-4 w-4 text-[#667085]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                      <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                    <span>
                       {assignment.course?.title || assignment.courseId}
-                    </Span>
-                    {assignment.topic?.title || assignment.topicId ? (
-                      <>
-                        {' '}
-                        • Topic:{' '}
-                        <Span className="text-[#111827]">
-                          {assignment.topic?.title || assignment.topicId}
-                        </Span>
-                      </>
-                    ) : null}
-                  </P>
+                      {assignment.topic?.title || assignment.topicId
+                        ? ` • ${assignment.topic?.title || assignment.topicId}`
+                        : ''}
+                    </span>
+                  </div>
                 </div>
+              </div>
 
-                {/* Deadlines and Marks Panel */}
-                <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs md:min-w-[240px]">
+              {/* Due Date & Estimated Time & Status Badge */}
+              <div className="flex flex-wrap items-center gap-6 rounded-2xl border border-[#E1E6EC] bg-[#F8FAFC] px-6 py-4 text-xs">
+                <div className="flex items-center gap-3">
+                  <svg
+                    className="h-5 w-5 text-[#667085]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
                   <div>
-                    <Span className="block text-[10px] font-semibold tracking-wider text-[#667085] uppercase">
-                      Due Date (IST Standard)
-                    </Span>
-                    <Span className="mt-0.5 block font-bold text-[#111827]">
+                    <Span className="block text-[11px] text-[#667085]">Due Date</Span>
+                    <Span className="font-semibold text-[#111827]">
                       {formatDateTimeIST(allocation.dueDate)}
                     </Span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 border-t border-[#E1E6EC] pt-2 text-[11px]">
-                    <div>
-                      <Span className="text-[#667085]">Estimated Time:</Span>
-                      <Span className="block font-semibold text-[#111827]">
-                        {assignment.estimatedMinutes} mins
-                      </Span>
-                    </div>
-                    <div>
-                      <Span className="text-[#667085]">Max Marks:</Span>
-                      <Span className="block font-semibold text-[#111827]">
-                        {assignment.maxMarks}
-                      </Span>
-                    </div>
-                  </div>
-                  <div className="border-t border-[#E1E6EC] pt-2 text-[11px]">
-                    <Span className="text-[#667085]">Late Submissions:</Span>{' '}
-                    <Span
-                      className={
-                        assignment.allowLate
-                          ? 'font-semibold text-emerald-600'
-                          : 'font-semibold text-rose-600'
-                      }
-                    >
-                      {assignment.allowLate ? 'Allowed (Flagged)' : 'Blocked'}
+                </div>
+
+                <div className="hidden h-8 w-px bg-[#E1E6EC] sm:block" />
+
+                <div className="flex items-center gap-3">
+                  <svg
+                    className="h-5 w-5 text-[#667085]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.8"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <div>
+                    <Span className="block text-[11px] text-[#667085]">Estimated Time</Span>
+                    <Span className="font-semibold text-[#111827]">
+                      {assignment.estimatedMinutes} mins
                     </Span>
                   </div>
                 </div>
-              </div>
 
-              {/* Instructions */}
-              <div>
-                <H2 className="text-sm font-bold tracking-wider text-[#111827] uppercase">
-                  Instructions
-                </H2>
-                {assignment.instructions ? (
-                  <div className="mt-2 rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs leading-relaxed text-[#111827]">
-                    <P className="whitespace-pre-wrap">{assignment.instructions}</P>
-                  </div>
-                ) : (
-                  <P className="mt-2 text-xs text-[#667085] italic">
-                    No specific instructions provided for this assignment.
-                  </P>
-                )}
-              </div>
+                <div className="hidden h-8 w-px bg-[#E1E6EC] sm:block" />
 
-              {/* Learning Resources */}
-              {Array.isArray(assignment.resources) && assignment.resources.length > 0 ? (
                 <div>
-                  <H3 className="text-xs font-bold tracking-wider text-[#111827] uppercase">
+                  {assignment.allowLate ? (
+                    <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Open
+                    </Span>
+                  ) : (
+                    <Span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
+                      <svg
+                        className="h-3.5 w-3.5 text-rose-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                        />
+                      </svg>
+                      Blocked
+                    </Span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Instructions Card */}
+            <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="h-5 w-5 text-[#111827]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <H2 className="text-base font-bold text-[#111827]">Instructions</H2>
+              </div>
+              {assignment.instructions ? (
+                <div className="mt-3 text-xs leading-relaxed text-[#111827]">
+                  <P className="whitespace-pre-wrap">{assignment.instructions}</P>
+                </div>
+              ) : (
+                <P className="mt-3 text-xs text-[#667085]">
+                  No specific instructions provided for this assignment.
+                </P>
+              )}
+
+              {/* Reference Materials if any */}
+              {Array.isArray(assignment.resources) && assignment.resources.length > 0 ? (
+                <div className="mt-4 border-t border-[#E1E6EC]/60 pt-4">
+                  <H3 className="text-xs font-bold tracking-wider text-[#667085] uppercase">
                     Reference Materials
                   </H3>
                   <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -189,6 +253,28 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                 </div>
               ) : null}
             </div>
+
+            {/* 3. Submissions Closed Alert (Image 2 style) */}
+            {(!allocation.isBatchActive || allocation.batchStatus === 'ON_HOLD') && (
+              <div className="flex items-center gap-3.5 rounded-2xl border border-amber-200 bg-[#FEF9EE] p-5 shadow-xs">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#111827]">Submissions Closed</h3>
+                  <p className="text-xs text-[#667085]">
+                    This assignment is part of a batch with status &quot;{allocation.batchStatus}
+                    &quot;. Submissions are closed.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Submission Form Component */}
             <AssignmentSubmissionForm
