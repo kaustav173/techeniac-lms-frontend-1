@@ -215,10 +215,11 @@ export function MenteeProgressView() {
                   sortOrder={sortOrder}
                   onSort={handleSort}
                   tooltip="Sort by Course Name"
-                  className="w-[28%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                  labelClassName="text-xs font-semibold text-[#667085]"
+                  className="w-[28%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base"
+                  buttonClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                  labelClassName="text-sm font-semibold text-[#667085] sm:text-base"
                 />
-                <TableHead className="w-[20%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[20%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
                   Batch
                 </TableHead>
                 <SortableColumnHeader<AllocationSortField>
@@ -228,17 +229,18 @@ export function MenteeProgressView() {
                   sortOrder={sortOrder}
                   onSort={handleSort}
                   tooltip="Sort by Due Date"
-                  className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                  labelClassName="text-xs font-semibold text-[#667085]"
+                  className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base"
+                  buttonClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                  labelClassName="text-sm font-semibold text-[#667085] sm:text-base"
                 />
-                <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
                   Progress
                 </TableHead>
-                <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                <TableHead className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
                   Status
                 </TableHead>
-                <TableHead className="w-[6%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
-                  Action
+                <TableHead className="w-[6%] px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-base">
+                  Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -386,7 +388,7 @@ export function MenteeProgressView() {
                         <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
                       </TableCell>
 
-                      {/* 6. Action: Eye Icon Link */}
+                      {/* 6. Action: Three Dots Link */}
                       <TableCell className="w-[6%] px-4 py-4 text-center align-middle">
                         <div className="flex items-center justify-center">
                           <Link
@@ -400,26 +402,15 @@ export function MenteeProgressView() {
                                   : 'Continue Learning'
                             }
                             aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
-                            className="inline-flex p-1 text-slate-400 transition-colors hover:text-[#0044D3] focus-visible:text-[#0044D3] focus-visible:outline-none"
+                            className="inline-flex rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:text-[#0044D3] focus-visible:outline-none"
                           >
                             <svg
                               className="h-5 w-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={1.75}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
                               aria-hidden="true"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                             </svg>
                           </Link>
                         </div>
