@@ -349,7 +349,7 @@ function CalendarPopover({
                 className={cn(
                   'relative z-10 mx-auto flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
                   cell.isDisabled || isOutOfRange
-                    ? 'cursor-not-allowed opacity-25 hover:bg-transparent pointer-events-none'
+                    ? 'pointer-events-none cursor-not-allowed opacity-25 hover:bg-transparent'
                     : isDaySelected
                       ? 'bg-blue-600 font-bold text-white shadow-xs hover:bg-blue-700'
                       : cell.isInRange

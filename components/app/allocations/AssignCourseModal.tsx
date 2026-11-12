@@ -756,9 +756,7 @@ function AssignCourseModalDialog({
                   id="assign-due-date"
                   type="date"
                   min={
-                    startDate && startDate > getLocalDateString()
-                      ? startDate
-                      : getLocalDateString()
+                    startDate && startDate > getLocalDateString() ? startDate : getLocalDateString()
                   }
                   value={dueDate || (estimatedDueDateText ?? '')}
                   hasError={Boolean(dueDateError)}
