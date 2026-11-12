@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -35,24 +36,24 @@ interface PerformanceTableProps {
   readonly onRetry?: () => void;
 }
 
-function PerformanceTableSkeleton({ count = 5 }: { count?: number }) {
+function PerformanceTableSkeleton({ count = 10 }: { count?: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
         <TableRow key={`perf-skel-${i}`} className="h-16">
-          <TableCell className="w-[22%] px-6 py-4">
+          <TableCell className="w-[24%] px-6 py-4">
             <div className="flex flex-col gap-1.5">
               <Skeleton className="h-4 w-32 rounded-md" />
               <Skeleton className="h-3 w-40 rounded-md" />
             </div>
           </TableCell>
-          <TableCell className="w-[12%] px-4 py-4">
+          <TableCell className="w-[14%] px-4 py-4">
             <Skeleton className="h-5 w-20 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%] px-4 py-4">
             <Skeleton className="h-4 w-24 rounded-md" />
           </TableCell>
-          <TableCell className="w-[14%] px-4 py-4">
+          <TableCell className="w-[16%] px-4 py-4">
             <div className="flex w-32 flex-col gap-1.5">
               <Skeleton className="h-3 w-10 rounded-md" />
               <Skeleton className="h-1.5 w-full rounded-full" />
@@ -61,17 +62,14 @@ function PerformanceTableSkeleton({ count = 5 }: { count?: number }) {
           <TableCell className="w-[10%] px-4 py-4 text-center">
             <Skeleton className="mx-auto h-4 w-12 rounded-md" />
           </TableCell>
-          <TableCell className="w-[10%] px-4 py-4 text-center">
+          <TableCell className="w-[12%] px-4 py-4 text-center">
             <div className="flex flex-col items-center gap-1">
               <Skeleton className="h-4 w-10 rounded-md" />
               <Skeleton className="h-3 w-14 rounded-md" />
             </div>
           </TableCell>
-          <TableCell className="w-[8%] px-4 py-4 text-center">
+          <TableCell className="w-[10%] px-4 py-4 text-center">
             <Skeleton className="mx-auto h-4 w-8 rounded-md" />
-          </TableCell>
-          <TableCell className="w-[10%] px-6 py-4 text-center">
-            <Skeleton className="mx-auto h-6 w-10 rounded-md" />
           </TableCell>
         </TableRow>
       ))}
@@ -198,10 +196,12 @@ export function PerformanceTable({
                 aria-sort={getAriaSort('name')}
                 className="px-6 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleSort('name')}
-                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'name' && sortOrder
                       ? `Sorted by name (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
@@ -212,22 +212,62 @@ export function PerformanceTable({
                     Mentee
                   </Span>
                   {renderSortIcon('name')}
-                </button>
+                </Button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
-                Batch
+              <TableHead
+                aria-sort={getAriaSort('batch')}
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('batch')}
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'batch' && sortOrder
+                      ? `Sorted by batch (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
+                      : 'Sort by batch'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Batch
+                  </Span>
+                  {renderSortIcon('batch')}
+                </Button>
               </TableHead>
-              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
-                Courses
+              <TableHead
+                aria-sort={getAriaSort('courses')}
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('courses')}
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    sortBy === 'courses' && sortOrder
+                      ? `Sorted by courses (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
+                      : 'Sort by courses'
+                  }
+                >
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Courses
+                  </Span>
+                  {renderSortIcon('courses')}
+                </Button>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('completionPercentage')}
                 className="px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleSort('completionPercentage')}
-                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'completionPercentage' && sortOrder
                       ? `Sorted by completion (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
@@ -238,16 +278,18 @@ export function PerformanceTable({
                     Completion
                   </Span>
                   {renderSortIcon('completionPercentage')}
-                </button>
+                </Button>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('averageMarks')}
                 className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleSort('averageMarks')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'averageMarks' && sortOrder
                       ? `Sorted by average score (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
@@ -258,16 +300,18 @@ export function PerformanceTable({
                     Avg Score
                   </Span>
                   {renderSortIcon('averageMarks')}
-                </button>
+                </Button>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('onTimeRate')}
                 className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleSort('onTimeRate')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'onTimeRate' && sortOrder
                       ? `Sorted by submissions on-time rate (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
@@ -278,16 +322,18 @@ export function PerformanceTable({
                     Submissions
                   </Span>
                   {renderSortIcon('onTimeRate')}
-                </button>
+                </Button>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('overdueCount')}
                 className="px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
               >
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleSort('overdueCount')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
+                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                   title={
                     sortBy === 'overdueCount' && sortOrder
                       ? `Sorted by overdue tasks (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
@@ -298,33 +344,13 @@ export function PerformanceTable({
                     Overdue
                   </Span>
                   {renderSortIcon('overdueCount')}
-                </button>
-              </TableHead>
-              <TableHead
-                aria-sort={getAriaSort('grade')}
-                className="px-6 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm"
-              >
-                <button
-                  type="button"
-                  onClick={() => handleSort('grade')}
-                  className="group inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#667085] transition-colors hover:text-[#111827] focus-visible:outline-none"
-                  title={
-                    sortBy === 'grade' && sortOrder
-                      ? `Sorted by grade (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                      : 'Sort by grade'
-                  }
-                >
-                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                    Grade
-                  </Span>
-                  {renderSortIcon('grade')}
-                </button>
+                </Button>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-slate-100">
             {isTableLoading ? (
-              <PerformanceTableSkeleton count={Math.min(Math.max(limit || 5, 5), 8)} />
+              <PerformanceTableSkeleton count={10} />
             ) : (
               mentees.map((row) => (
                 <TableRow
@@ -398,17 +424,6 @@ export function PerformanceTable({
                       </Span>
                     ) : (
                       <Span className="text-xs text-slate-400">0</Span>
-                    )}
-                  </TableCell>
-
-                  {/* Latest Grade Badge */}
-                  <TableCell className="px-6 py-4 text-center">
-                    {row.latestGrade ? (
-                      <Span className="inline-block w-8 rounded border border-blue-200 bg-blue-50 py-0.5 text-center text-xs font-bold text-blue-700">
-                        {row.latestGrade}
-                      </Span>
-                    ) : (
-                      <Span className="text-xs text-slate-400">—</Span>
                     )}
                   </TableCell>
                 </TableRow>

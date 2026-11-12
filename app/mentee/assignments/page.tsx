@@ -9,7 +9,7 @@ import { MyAssignmentsTable } from '@/components/app/submissions/MyAssignmentsTa
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { PageTitle, Span, SubText } from '@/components/ui/Typography';
+import { Span } from '@/components/ui/Typography';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import type { AssignmentDerivedStatus } from '@/types/submissions';
@@ -38,11 +38,6 @@ function MenteeAssignmentsContent() {
     setPage(1);
   };
 
-  const handleClearCourseFilter = () => {
-    setPage(1);
-    router.replace('/mentee/assignments', { scroll: false });
-  };
-
   if (!isAuthorized || !user) {
     return (
       <PortalSessionState
@@ -57,31 +52,27 @@ function MenteeAssignmentsContent() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_ASSIGNMENTS_NAV} />
 
-      <DashboardContent>
-        {/* Page Header */}
-        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-              My Course Assignments
-            </PageTitle>
-            <SubText className="mt-1 text-[#667085]">
-              Submit assignment deliverables, review mentor grades, and inspect revision history in
-              Indian Standard Time (IST).
-            </SubText>
+      <DashboardContent className="animate-slide-up space-y-6">
+        {activeCourseId ? (
+          <div className="flex items-center gap-2">
+            <Span className="text-xs font-medium text-[#64748B]">Filtered by course:</Span>
+            <Span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#0044D3]">
+              {assignments[0]?.courseTitle ?? activeCourseId}
+            </Span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setPage(1);
+                router.replace('/mentee/assignments', { scroll: false });
+              }}
+              className="h-6 rounded-full px-2 text-xs font-medium text-slate-500 hover:text-slate-800"
+            >
+              Clear Filter
+            </Button>
           </div>
-
-          {activeCourseId ? (
-            <div className="flex items-center gap-2">
-              <Span className="text-xs text-[#667085]">Filtered by course:</Span>
-              <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0044D3]">
-                {assignments[0]?.courseTitle ?? activeCourseId}
-              </Span>
-              <Button variant="outline" size="sm" onClick={handleClearCourseFilter}>
-                Clear Filter
-              </Button>
-            </div>
-          ) : null}
-        </div>
+        ) : null}
 
         {/* Assignments Table & Filters */}
         <MyAssignmentsTable

@@ -845,10 +845,11 @@ export function CourseOutlineTree({
             {onOutlineReorder && (
               <Button
                 type="button"
+                size="sm"
                 disabled={!isOrderDirty || isSavingOrder}
                 isLoading={isSavingOrder}
                 onClick={() => void handleSaveOrder()}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-xs transition-colors focus-visible:ring-[#0044D3] ${
+                className={`inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-xs transition-colors focus-visible:ring-[#0044D3] ${
                   isOrderDirty && !isSavingOrder
                     ? 'cursor-pointer bg-[#0044D3] text-white hover:bg-[#0039B3]'
                     : 'cursor-not-allowed bg-slate-200 text-slate-400'

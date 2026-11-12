@@ -143,7 +143,7 @@ export function CourseDetailsEditor({
       {/* Course Name & Status Banner directly above Course Details form */}
       <div className="mb-4 flex w-full max-w-6xl flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <H2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          <H2 className="max-w-full text-xl font-bold tracking-tight break-words break-all text-slate-900 sm:text-2xl">
             {title || course.title}
           </H2>
           <Span

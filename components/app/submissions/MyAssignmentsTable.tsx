@@ -23,7 +23,7 @@ import { P, Span } from '@/components/ui/Typography';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
 import { cn } from '@/lib/cn';
-import { formatDateTimeIST } from '@/lib/date';
+import { formatDateTime } from '@/lib/date';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
 
@@ -55,10 +55,10 @@ const STATUS_OPTIONS: MultiSelectOption<AssignmentDerivedStatus>[] = [
   { value: AssignmentDerivedStatus.RESUBMIT_REQUESTED, label: 'Resubmit Requested' },
   { value: AssignmentDerivedStatus.GRADED, label: 'Graded' },
   { value: AssignmentDerivedStatus.OVERDUE, label: 'Overdue' },
-  { value: AssignmentDerivedStatus.CLOSED, label: 'Closed' },
+  { value: AssignmentDerivedStatus.CLOSED, label: 'Submissions Closed' },
 ];
 
-type SortField = 'title' | 'courseTitle' | 'dueDate' | 'maxMarks' | 'status';
+type SortField = 'title' | 'courseTitle' | 'dueDate' | 'estimatedMinutes' | 'maxMarks' | 'status';
 
 export function MyAssignmentsTable({
   assignments,
@@ -136,6 +136,8 @@ export function MyAssignmentsTable({
         cmp = (a.courseTitle || '').localeCompare(b.courseTitle || '');
       } else if (sortField === 'dueDate') {
         cmp = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      } else if (sortField === 'estimatedMinutes') {
+        cmp = (a.estimatedMinutes || 0) - (b.estimatedMinutes || 0);
       } else if (sortField === 'maxMarks') {
         cmp = (a.maxMarks || 0) - (b.maxMarks || 0);
       } else if (sortField === 'status') {
@@ -172,10 +174,10 @@ export function MyAssignmentsTable({
 
   return (
     <div className="space-y-4">
-      {/* Search & Status Filter Toolbar (Admin Style) */}
+      {/* Search & Status Filter Toolbar (Admin Style, Expanded Search) */}
       <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="w-full sm:w-72 lg:w-80">
+          <div className="w-full sm:w-96 lg:w-[533px]">
             <DebouncedSearchInput
               value={searchQuery}
               onSearchChange={handleSearchChange}
@@ -235,22 +237,22 @@ export function MyAssignmentsTable({
           <Table className="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[30%] px-5 py-3.5">Assignment</TableHead>
-                <TableHead className="w-[20%] px-4 py-3.5">Course</TableHead>
-                <TableHead className="w-[18%] px-4 py-3.5">Due Date (IST)</TableHead>
-                <TableHead className="w-[16%] px-4 py-3.5">Est. Time & Marks</TableHead>
-                <TableHead className="w-[10%] px-4 py-3.5">Status</TableHead>
-                <TableHead className="w-16 px-5 py-3.5 text-right">Action</TableHead>
+                <TableHead className="w-[24%] px-5 py-3.5">Assignment</TableHead>
+                <TableHead className="w-[18%] px-4 py-3.5">Course</TableHead>
+                <TableHead className="w-[16%] px-4 py-3.5">Due Date</TableHead>
+                <TableHead className="w-[12%] px-4 py-3.5">Est. Time</TableHead>
+                <TableHead className="w-[10%] px-4 py-3.5">Marks</TableHead>
+                <TableHead className="w-[12%] px-4 py-3.5">Status</TableHead>
+                <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 5 }).map((_, idx) => (
+              {Array.from({ length: 10 }).map((_, idx) => (
                 <TableRow key={`assign-skel-${idx}`} className="h-16">
                   <TableCell className="px-5 py-4">
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-44 rounded-md" />
-                      <Skeleton className="h-3 w-32 rounded-md" />
-                    </div>
+                    <Skeleton className="h-4 w-44 rounded-md" />
                   </TableCell>
                   <TableCell className="px-4 py-4">
                     <Skeleton className="h-4 w-36 rounded-md" />
@@ -259,13 +261,13 @@ export function MyAssignmentsTable({
                     <Skeleton className="h-4 w-28 rounded-md" />
                   </TableCell>
                   <TableCell className="px-4 py-4">
-                    <div className="space-y-1">
-                      <Skeleton className="h-3 w-20 rounded-md" />
-                      <Skeleton className="h-3 w-16 rounded-md" />
-                    </div>
+                    <Skeleton className="h-4 w-16 rounded-md" />
                   </TableCell>
                   <TableCell className="px-4 py-4">
-                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-16 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-6 w-24 rounded-full" />
                   </TableCell>
                   <TableCell className="px-5 py-4 text-right">
                     <Skeleton className="ml-auto h-8 w-8 rounded-full" />
@@ -297,7 +299,7 @@ export function MyAssignmentsTable({
                   sortField={sortField}
                   sortOrder={sortOrder}
                   onSort={handleSort}
-                  className="w-[30%] px-5 py-3.5"
+                  className="w-[24%] px-5 py-3.5"
                 />
                 <SortableColumnHeader<SortField>
                   field="courseTitle"
@@ -305,23 +307,31 @@ export function MyAssignmentsTable({
                   sortField={sortField}
                   sortOrder={sortOrder}
                   onSort={handleSort}
-                  className="w-[20%] px-4 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="dueDate"
-                  label="Due Date (IST)"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
                   className="w-[18%] px-4 py-3.5"
                 />
                 <SortableColumnHeader<SortField>
-                  field="maxMarks"
-                  label="Est. Time & Marks"
+                  field="dueDate"
+                  label="Due Date"
                   sortField={sortField}
                   sortOrder={sortOrder}
                   onSort={handleSort}
                   className="w-[16%] px-4 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="estimatedMinutes"
+                  label="Est. Time"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[12%] px-4 py-3.5"
+                />
+                <SortableColumnHeader<SortField>
+                  field="maxMarks"
+                  label="Marks"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  className="w-[10%] px-4 py-3.5"
                 />
                 <SortableColumnHeader<SortField>
                   field="status"
@@ -329,10 +339,10 @@ export function MyAssignmentsTable({
                   sortField={sortField}
                   sortOrder={sortOrder}
                   onSort={handleSort}
-                  className="w-[10%] px-4 py-3.5"
+                  className="w-[12%] px-4 py-3.5"
                 />
                 <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
-                  Action
+                  Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -347,68 +357,53 @@ export function MyAssignmentsTable({
                       isActionMenuOpen && 'relative z-30',
                     )}
                   >
-                    {/* Assignment Column (Title, Topic, Scope) */}
+                    {/* Assignment Column (Truncated with full name tooltip on hover) */}
                     <TableCell className="px-5 py-4">
-                      <div className="space-y-1">
-                        <Link
-                          href={`/mentee/assignments/${assignment.id}`}
-                          {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                          className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
-                        >
-                          {assignment.title}
-                        </Link>
-                        <div className="flex items-center gap-2 text-xs text-[#667085]">
-                          {assignment.topicTitle ? <Span>{assignment.topicTitle}</Span> : null}
-                          {assignment.topicTitle ? <Span>•</Span> : null}
-                          <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
-                            {assignment.scope}
-                          </Span>
-                        </div>
-                      </div>
+                      <Link
+                        href={`/mentee/assignments/${assignment.id}`}
+                        {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                        title={assignment.title}
+                        className="block max-w-[200px] truncate font-semibold text-[#111827] hover:text-[#0044D3] sm:max-w-[240px]"
+                      >
+                        {assignment.title}
+                      </Link>
                     </TableCell>
 
-                    {/* Course Column (Separate Column) */}
+                    {/* Course Column */}
                     <TableCell className="px-4 py-4">
-                      <div className="space-y-0.5">
-                        <Span className="line-clamp-1 font-semibold text-[#111827]">
-                          {assignment.courseTitle}
-                        </Span>
-                        <Span className="block text-xs text-[#667085]">Curriculum Track</Span>
-                      </div>
+                      <Span
+                        title={assignment.courseTitle}
+                        className="block max-w-[180px] truncate font-medium text-[#111827]"
+                      >
+                        {assignment.courseTitle}
+                      </Span>
                     </TableCell>
 
-                    {/* Due Date Column */}
+                    {/* Due Date Column (Without IST) */}
                     <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5">
-                        <Span className="font-medium text-[#111827]">
-                          {formatDateTimeIST(assignment.dueDate)}
-                        </Span>
-                        {assignment.allowLate ? (
-                          <Span className="block text-xs text-[#667085]">
-                            Late submissions accepted
-                          </Span>
-                        ) : (
-                          <Span className="block text-xs text-rose-500">Strict deadline</Span>
-                        )}
-                      </div>
+                      <Span className="font-medium text-[#111827]">
+                        {formatDateTime(assignment.dueDate)}
+                      </Span>
                     </TableCell>
 
-                    {/* Est. Time & Marks Column */}
+                    {/* Est. Time Column */}
                     <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-xs text-[#667085]">
-                        <div>
-                          Est:{' '}
-                          <Span className="font-semibold text-[#111827]">
-                            {assignment.estimatedMinutes} mins
+                      <Span className="text-xs font-semibold text-[#111827]">
+                        {assignment.estimatedMinutes} mins
+                      </Span>
+                    </TableCell>
+
+                    {/* Marks Column */}
+                    <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <div className="space-y-0.5 text-xs">
+                        <Span className="font-semibold text-[#111827]">
+                          {assignment.maxMarks} pts
+                        </Span>
+                        {assignment.passMarks ? (
+                          <Span className="block text-[11px] text-[#667085]">
+                            (Pass: {assignment.passMarks})
                           </Span>
-                        </div>
-                        <div>
-                          Max Marks:{' '}
-                          <Span className="font-semibold text-[#111827]">
-                            {assignment.maxMarks}
-                          </Span>
-                          {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
-                        </div>
+                        ) : null}
                       </div>
                     </TableCell>
 

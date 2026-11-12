@@ -187,7 +187,9 @@ export function PaginationControls({
             onChange={(newLimit) => onLimitChange(Number(newLimit))}
             options={selectOptions}
             direction="up"
+            align="right"
             size="sm"
+            menuClassName="w-[159px] min-w-[159px] max-w-[159px] z-[60]"
             aria-label="Entries per page"
           />
         </div>

@@ -85,8 +85,8 @@ export function ForgotPasswordForm() {
         <div>
           <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
           <P className="text-sm leading-relaxed text-slate-600">
-            We sent a password reset link to{' '}
-            <Span className="font-semibold text-slate-800">{email}</Span>.
+            If an account exists for <Span className="font-semibold text-slate-800">{email}</Span>,
+            a password reset link has been sent.
           </P>
         </div>
 
@@ -143,7 +143,7 @@ export function ForgotPasswordForm() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <Span className="leading-none">Return to sign in</Span>
+              <Span className="leading-none">Return</Span>
             </Link>
           </div>
         </div>
@@ -231,7 +231,7 @@ export function ForgotPasswordForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <Span className="leading-none">Return to sign in</Span>
+          <Span className="leading-none">Return</Span>
         </Link>
       </div>
     </Form>

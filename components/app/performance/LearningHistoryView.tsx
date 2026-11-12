@@ -116,7 +116,7 @@ function LearningHistorySummaryCards({
         <div className="flex items-start justify-between">
           <div>
             <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-              Average Grade
+              Average Score
             </Span>
             <H3 className="mt-2 text-3xl font-extrabold tracking-tight text-emerald-600">
               {summary.averageMarks !== null ? summary.averageMarks : '—'}
@@ -568,7 +568,6 @@ export function LearningHistoryView({
                                   <th className="px-4 py-3">Submitted</th>
                                   <th className="px-4 py-3 text-center">Version</th>
                                   <th className="px-4 py-3 text-center">Score</th>
-                                  <th className="px-4 py-3 text-center">Grade</th>
                                   <th className="px-4 py-3">Mentor Feedback</th>
                                 </tr>
                               </thead>
@@ -605,15 +604,6 @@ export function LearningHistoryView({
                                         <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                                           Pending Review
                                         </Span>
-                                      )}
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                      {assign.gradeLabel ? (
-                                        <Span className="inline-block min-w-8 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-center text-xs font-bold text-emerald-700">
-                                          {assign.gradeLabel}
-                                        </Span>
-                                      ) : (
-                                        <Span className="text-[#667085]">—</Span>
                                       )}
                                     </td>
                                     <td className="px-4 py-3">

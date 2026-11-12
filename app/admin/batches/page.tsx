@@ -8,7 +8,7 @@ import { Header } from '@/components/layout/Header';
 export const metadata: Metadata = {
   title: 'Batches Management | TechEniac LMS',
   description:
-    'Manage cohorts, member rosters, allocated courses, and lifecycle status transitions.',
+    'Manage batches, member rosters, allocated courses, and lifecycle status transitions.',
 };
 
 export default function AdminBatchesPage() {

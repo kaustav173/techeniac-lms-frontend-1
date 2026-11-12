@@ -158,11 +158,11 @@ export function resolveAuditTargetEntity(item: ApiAuditItem): ResolvedAuditTarge
 
   // 6. GRADING
   if (item.type === 'GRADING' || item.action === 'GRADE_SUBMISSION') {
-    let gradeLabel = typeof val.gradeLabel === 'string' ? val.gradeLabel.trim() : '';
-    if (!gradeLabel && (typeof val.marks === 'number' || typeof val.marks === 'string')) {
-      gradeLabel = `${String(val.marks)}/100`;
+    let scoreDisplay = '';
+    if (typeof val.marks === 'number' || typeof val.marks === 'string') {
+      scoreDisplay = `Score: ${String(val.marks)}`;
     }
-    const gradeDisplay = gradeLabel ? `Grade: ${gradeLabel}` : 'Grade';
+    const displayLabel = scoreDisplay || 'Graded';
 
     const studentName =
       (typeof val.studentName === 'string' && val.studentName.trim()) ||
@@ -176,13 +176,13 @@ export function resolveAuditTargetEntity(item: ApiAuditItem): ResolvedAuditTarge
       'Assignment';
 
     return {
-      name: gradeDisplay,
+      name: displayLabel,
       type: studentName,
-      tooltip: `${studentName} — ${assignmentTitle} (${gradeDisplay})`,
+      tooltip: `${studentName} — ${assignmentTitle} (${displayLabel})`,
       isGrading: true,
       studentName,
       assignmentTitle,
-      grade: gradeDisplay,
+      grade: displayLabel,
     };
   }
 

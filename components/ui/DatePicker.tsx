@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } fro
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/Button';
+import { CalendarIcon } from '@/components/ui/Icons';
 import {
   SingleSelectDropdown,
   type SingleSelectOption,
@@ -572,20 +573,7 @@ export function DatePicker({
         <Span className={cn('truncate font-medium', !value && 'text-slate-400')}>
           {value ? formatDateDMY(value) : placeholder}
         </Span>
-        <svg
-          className="h-4 w-4 shrink-0 text-slate-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
+        <CalendarIcon className="h-4 w-4 shrink-0 text-slate-400" />
       </Button>
 
       {/* Calendar Popover */}

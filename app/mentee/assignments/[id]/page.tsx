@@ -74,7 +74,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
             </P>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="animate-slide-up space-y-8">
             {/* Assignment Overview Card */}
             <div className="space-y-6 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
               <div className="flex flex-col justify-between gap-4 border-b border-[#E1E6EC] pb-6 md:flex-row md:items-start">
@@ -93,11 +93,17 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                     {assignment.title}
                   </H1>
                   <P className="text-xs text-[#667085]">
-                    Course: <Span className="text-[#111827]">{assignment.courseId}</Span>
-                    {assignment.topicId ? (
+                    Course:{' '}
+                    <Span className="text-[#111827]">
+                      {assignment.course?.title || assignment.courseId}
+                    </Span>
+                    {assignment.topic?.title || assignment.topicId ? (
                       <>
                         {' '}
-                        • Topic: <Span className="text-[#111827]">{assignment.topicId}</Span>
+                        • Topic:{' '}
+                        <Span className="text-[#111827]">
+                          {assignment.topic?.title || assignment.topicId}
+                        </Span>
                       </>
                     ) : null}
                   </P>

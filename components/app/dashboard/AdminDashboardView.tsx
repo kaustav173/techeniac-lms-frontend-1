@@ -9,10 +9,8 @@ import { Header, HeaderSkeleton } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { CardTitle, P, PageTitle, SectionTitle, Span, SubText } from '@/components/ui/Typography';
-import { useAuth } from '@/hooks/useAuth';
+import { CardTitle, P, Span, SubText } from '@/components/ui/Typography';
 import { useAdminDashboard } from '@/hooks/useDashboard';
-import type { AuthUser } from '@/services/auth.service';
 
 export function AdminDashboardSkeleton() {
   return (
@@ -20,22 +18,6 @@ export function AdminDashboardSkeleton() {
       <HeaderSkeleton title="Dashboard" />
 
       <DashboardContent>
-        {/* Welcome Section Skeleton */}
-        <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <Skeleton className="h-8 w-64 rounded-xl" />
-              <Skeleton className="h-4 w-96 rounded-md" />
-              <div className="flex gap-2 pt-2">
-                <Skeleton className="h-7 w-28 rounded-full" />
-                <Skeleton className="h-7 w-28 rounded-full" />
-                <Skeleton className="h-7 w-28 rounded-full" />
-              </div>
-            </div>
-            <Skeleton className="h-24 w-64 rounded-2xl" />
-          </div>
-        </div>
-
         {/* 5 KPI Metric Cards Skeleton */}
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, idx) => (
@@ -48,12 +30,6 @@ export function AdminDashboardSkeleton() {
               <Skeleton className="mt-3 h-3 w-28 rounded-md" />
             </div>
           ))}
-        </div>
-
-        {/* Section Title Skeleton */}
-        <div className="mb-6 space-y-1">
-          <Skeleton className="h-6 w-56 rounded-md" />
-          <Skeleton className="h-3.5 w-80 rounded-md" />
         </div>
 
         {/* 7 Core Feature Cards Skeleton */}
@@ -80,16 +56,7 @@ export function AdminDashboardSkeleton() {
   );
 }
 
-export interface AdminDashboardViewProps {
-  readonly initialUser?: AuthUser;
-}
-
-export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}) {
-  const { user: authUser } = useAuth();
-  const user = authUser ?? initialUser;
-  const userName = user?.name ?? 'Administrator';
-  const userEmail = user?.email ?? '';
-
+export function AdminDashboardView() {
   const {
     data: dashboard,
     isError: isErrorDashboard,
@@ -102,59 +69,6 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
       <Header {...ADMIN_PORTAL_NAV} />
 
       <DashboardContent>
-        {/* Welcome & Command Center Header */}
-        <div className="mb-8 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <PageTitle>Super Admin Control Center</PageTitle>
-              <SubText className="mt-2 text-base text-[#667085]">
-                Welcome back, <strong>{userName}</strong>. Monitor organizational curriculum, cohort
-                allocations, live progress telemetry, and compliance audit records.
-              </SubText>
-
-              {/* Quick Navigation Pills */}
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Link
-                  href="/admin/users"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-[#0044D3] hover:bg-blue-50 hover:text-[#0044D3]"
-                >
-                  <Span>+ Manage Users</Span>
-                </Link>
-                <Link
-                  href="/admin/batches"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-                >
-                  <Span>+ Manage Batches</Span>
-                </Link>
-                <Link
-                  href="/admin/courses"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-sky-600 hover:bg-sky-50 hover:text-sky-700"
-                >
-                  <Span>+ Course Builder</Span>
-                </Link>
-                <Link
-                  href="/admin/allocations"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors hover:border-amber-600 hover:bg-amber-50 hover:text-amber-700"
-                >
-                  <Span>+ New Allocation</Span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] p-4 text-xs sm:min-w-64">
-              <Span className="block text-xs font-bold tracking-wider text-[#667085] uppercase">
-                Active Administrator
-              </Span>
-              <Span className="mt-1 block text-base font-bold text-[#111827]">{userName}</Span>
-              <Span className="mt-0.5 block text-sm text-[#667085]">{userEmail}</Span>
-              <Span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700">
-                <Span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
-                Super Admin Privilege
-              </Span>
-            </div>
-          </div>
-        </div>
-
         {/* Admin Dashboard Error Alert */}
         {isErrorDashboard ? (
           <div className="mb-6">
@@ -185,16 +99,28 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
           {/* Card 1: Users */}
           <Link
             href="/admin/users"
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md"
+            className="group animate-in fade-in slide-in-from-bottom-2 relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 duration-300 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Total Users
                 </Span>
-                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#0044D3]">
-                  →
-                </Span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:bg-[#0044D3] group-hover:text-white group-hover:shadow-xs">
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </div>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#111827]">
                 {dashboard?.users?.totalUsers ?? 0}
@@ -211,16 +137,28 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
           {/* Card 2: Batches */}
           <Link
             href="/admin/batches"
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500 hover:shadow-md"
+            className="group animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all delay-75 duration-200 duration-300 hover:-translate-y-0.5 hover:border-emerald-500 hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                  Live Cohorts
+                  Live Batches
                 </Span>
-                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600">
-                  →
-                </Span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-xs">
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </div>
               </div>
               <P className="mt-1 text-3xl font-bold text-emerald-600">
                 {dashboard?.batches?.liveBatches ?? 0}
@@ -237,16 +175,28 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
           {/* Card 3: Courses */}
           <Link
             href="/admin/courses"
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-500 hover:shadow-md"
+            className="group animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all delay-100 duration-200 duration-300 hover:-translate-y-0.5 hover:border-sky-500 hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
-                  Curriculum
+                  Courses
                 </Span>
-                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-sky-600">
-                  →
-                </Span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:bg-sky-600 group-hover:text-white group-hover:shadow-xs">
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </div>
               </div>
               <P className="mt-1 text-3xl font-bold text-[#0044D3]">
                 {dashboard?.courses?.publishedCourses ?? 0}
@@ -254,7 +204,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <Span className="block text-xs text-[#667085]">
-                {dashboard?.courses?.totalCourses ?? 0} total curriculum tracks
+                {dashboard?.courses?.totalCourses ?? 0} total courses
               </Span>
             </div>
           </Link>
@@ -262,16 +212,28 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
           {/* Card 4: Allocations */}
           <Link
             href="/admin/allocations"
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:shadow-md"
+            className="group animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all delay-150 duration-200 duration-300 hover:-translate-y-0.5 hover:border-amber-500 hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Active Allocations
                 </Span>
-                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-amber-600">
-                  →
-                </Span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:bg-amber-600 group-hover:text-white group-hover:shadow-xs">
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </div>
               </div>
               <P className="mt-1 text-3xl font-bold text-amber-600">
                 {dashboard?.allocations?.activeAllocations ?? 0}
@@ -287,16 +249,28 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
           {/* Card 5: Submissions / Reviews */}
           <Link
             href="/admin/progress"
-            className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-500 hover:shadow-md"
+            className="group animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all delay-200 duration-200 duration-300 hover:-translate-y-0.5 hover:border-rose-500 hover:shadow-md"
           >
             <div>
               <div className="flex items-center justify-between">
                 <Span className="block text-[11px] font-bold tracking-wider text-[#667085] uppercase">
                   Pending Reviews
                 </Span>
-                <Span className="text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-rose-600">
-                  →
-                </Span>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 group-hover:bg-rose-600 group-hover:text-white group-hover:shadow-xs">
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+                  </svg>
+                </div>
               </div>
               <P className="mt-1 text-3xl font-bold text-rose-600">
                 {dashboard?.submissions?.pendingReviewCount ?? 0}
@@ -309,14 +283,6 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
               </Span>
             </div>
           </Link>
-        </div>
-
-        {/* Administration Pillars */}
-        <div className="mb-6">
-          <SectionTitle>System Governance & Modules</SectionTitle>
-          <SubText className="mt-1">
-            Access core governance, curriculum design, progress telemetry, and compliance domains
-          </SubText>
         </div>
 
         {/* 7 Core Clickable Feature Cards */}
@@ -370,7 +336,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             </div>
           </Link>
 
-          {/* Module 2: Batches & Cohorts */}
+          {/* Module 2: Batches */}
           <Link
             href="/admin/batches"
             className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-600 hover:shadow-md"
@@ -398,15 +364,15 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-emerald-700">
-                Cohorts & Batches
+                Batches
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Organize learners into structured cohorts, assign mentors, and schedule training
+                Organize learners into structured batches, assign mentors, and schedule training
                 timelines.
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-              <Span>View Cohorts</Span>
+              <Span>View Batches</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"
@@ -419,7 +385,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
             </div>
           </Link>
 
-          {/* Module 3: Course Curriculum & Builder */}
+          {/* Module 3: Courses & Builder */}
           <Link
             href="/admin/courses"
             className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-sky-600 hover:shadow-md"
@@ -443,15 +409,14 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                   </svg>
                 </div>
                 <Span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
-                  {dashboard?.courses?.totalCourses ?? 0} Tracks
+                  {dashboard?.courses?.totalCourses ?? 0} Courses
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-sky-700">
-                Course Curriculum
+                Courses & Builder
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Design modular learning paths, structured topics, subtopics, and benchmark
-                assignments.
+                Design modular courses, structured topics, subtopics, and benchmark assignments.
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-sky-700">
@@ -499,8 +464,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 Course Allocations
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Assign curriculum tracks to cohorts and mentees, configure due dates, and monitor
-                schedules.
+                Assign courses to batches and mentees, configure due dates, and monitor schedules.
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
@@ -548,7 +512,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 Progress Matrix
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Inspect cross-cohort milestone clearance, review pending tasks, and identify overdue
+                Inspect cross-batch milestone clearance, review pending tasks, and identify overdue
                 learners.
               </SubText>
             </div>
@@ -597,7 +561,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 Performance Telemetry
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Benchmark cohort milestone velocity, track grading turnaround, and analyze overall
+                Benchmark batch milestone velocity, track grading turnaround, and analyze overall
                 learning cadence.
               </SubText>
             </div>
@@ -617,7 +581,7 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
 
           {/* Module 7: Security Audit Logs */}
           <Link
-            href="/admin/audit-logs"
+            href="/admin/logs"
             className="group flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-700 hover:shadow-md"
           >
             <div>
@@ -643,15 +607,15 @@ export function AdminDashboardView({ initialUser }: AdminDashboardViewProps = {}
                 </Span>
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-slate-900">
-                Audit Log Trail
+                Logs
               </CardTitle>
               <SubText className="mt-2 text-xs leading-relaxed">
-                Filterable event records: authentication, user role adjustments, syllabus edits, and
+                Filterable event records: authentication, user role adjustments, course edits, and
                 batch state changes.
               </SubText>
             </div>
             <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-              <Span>Inspect Audit Trail</Span>
+              <Span>Inspect Logs</Span>
               <svg
                 className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
                 fill="none"

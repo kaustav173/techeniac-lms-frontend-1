@@ -547,7 +547,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             </thead>
             <tbody className="divide-y divide-[#E1E6EC]/60">
               {isLoading || isFetching ? (
-                Array.from({ length: 6 }).map((_, idx) => (
+                Array.from({ length: 10 }).map((_, idx) => (
                   <tr key={`alloc-skel-${idx}`} className="h-16">
                     <td className="py-3.5 pr-2 pl-6">
                       <Skeleton className="h-5 w-5 rounded-md" />

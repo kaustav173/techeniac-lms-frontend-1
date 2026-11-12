@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import {
@@ -39,6 +39,7 @@ import {
   useProgressTrackers,
   useUpdateTopicDeadlineMutation,
 } from '@/hooks/useProgress';
+import { cn } from '@/lib/cn';
 import { formatDateDDMMYY, toISTDateInputValue } from '@/lib/date';
 
 interface ProgressTrackerViewProps {
@@ -95,6 +96,28 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
   const [inlineDeadline, setInlineDeadline] = useState<string>('');
   const [inlineError, setInlineError] = useState<string | null>(null);
+
+  // 3-dots action menu state
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuId) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setOpenActionMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenActionMenuId(null);
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionMenuId]);
 
   const updateDeadlineMutation = useUpdateTopicDeadlineMutation();
   const prefetchProgress = usePrefetchAllocationProgress();
@@ -377,9 +400,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
         <div className="space-y-6">
           {/* Filters Bar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+            <div className="flex flex-1 flex-wrap items-center gap-3">
               {/* 1. Search mentee, course, batch */}
-              <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+              <div className="min-w-[240px] flex-1">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
@@ -388,7 +411,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="min-w-0 lg:col-span-1">
+              <div className="w-full sm:w-[169px]">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
@@ -406,7 +429,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="min-w-0 lg:col-span-1">
+              <div className="w-full sm:w-[158px]">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
@@ -424,7 +447,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 4. Course Status Filter (Multi-select dropdown) */}
-              <div className="min-w-0 lg:col-span-1">
+              <div className="w-full sm:w-[165px]">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -496,7 +519,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     Status
                   </TableHead>
                   <TableHead className="w-[10%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
-                    Action
+                    Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -622,42 +645,76 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                           <AllocationStatusBadge status={item.status} isOverdue={isOverdue} />
                         </TableCell>
 
-                        {/* Action Inspect Button */}
-                        <TableCell className="w-[10%] px-4 py-3.5 text-center whitespace-nowrap">
-                          <div className="flex items-center justify-center">
+                        {/* Action Menu (3-dots) */}
+                        <TableCell
+                          className={cn(
+                            'w-[10%] px-4 py-3.5 text-center whitespace-nowrap',
+                            openActionMenuId === item.allocationId && 'relative z-30',
+                          )}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div
+                            className={cn(
+                              'relative inline-block text-left',
+                              openActionMenuId === item.allocationId && 'z-40',
+                            )}
+                            ref={openActionMenuId === item.allocationId ? actionMenuRef : undefined}
+                          >
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenModal(item.allocationId);
+                                setOpenActionMenuId(
+                                  openActionMenuId === item.allocationId ? null : item.allocationId,
+                                );
                               }}
                               onMouseEnter={() => prefetchProgress(item.allocationId)}
-                              title="Inspect syllabus outline"
-                              aria-label={`Inspect syllabus outline for ${item.menteeName}`}
-                              className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-blue-50 hover:text-[#0044D3]"
+                              title="Progress actions"
+                              aria-label={`Actions for ${item.menteeName}`}
+                              className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                             >
-                              <svg
-                                className="h-4.5 w-4.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={1.75}
-                                aria-hidden="true"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                               </svg>
                             </Button>
+
+                            {openActionMenuId === item.allocationId && (
+                              <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenActionMenuId(null);
+                                    handleOpenModal(item.allocationId);
+                                  }}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                >
+                                  <svg
+                                    className="h-3.5 w-3.5 text-[#0044D3]"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                  </svg>
+                                  <Span>Inspect Progress</Span>
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

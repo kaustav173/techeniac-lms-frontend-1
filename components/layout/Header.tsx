@@ -181,7 +181,7 @@ function HeaderInner({
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // Automatically close profile dropdown and signout confirmation whenever route / pathname changes
+  // Automatically close profile dropdown and signout confirmation whenever route / pathname changes (render-phase state adjustment per React docs)
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
@@ -270,9 +270,9 @@ function HeaderInner({
 
   return (
     <>
-      {/* Top Sticky Navbar Header (Responsive for Desktop & Mobile) */}
+      {/* Top Navbar Header (Responsive for Desktop & Mobile) */}
       <header
-        className={`sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
+        className={`flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8 ${contentMarginClass}`}
       >
         <div className="flex items-center gap-3">
           {/* Mobile hamburger menu toggle */}

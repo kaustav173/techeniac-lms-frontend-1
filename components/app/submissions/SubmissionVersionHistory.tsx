@@ -152,12 +152,6 @@ export function SubmissionVersionHistory({
                       {maxMarks ? ` / ${maxMarks}` : ''}
                     </P>
                   ) : null}
-
-                  {versionItem.gradeLabel ? (
-                    <Span className="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200">
-                      Grade: {versionItem.gradeLabel}
-                    </Span>
-                  ) : null}
                 </div>
 
                 {versionItem.feedback ? (
