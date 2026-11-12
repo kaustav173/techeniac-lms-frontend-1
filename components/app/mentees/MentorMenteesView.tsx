@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
   TableBody,
+  TableCell,
   TableContainer,
   TableHead,
   TableHeader,
@@ -454,22 +455,55 @@ export function MentorMenteesView() {
       {/* Main Content Area */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         {isLoadingMentees ? (
-          <div className="space-y-4 p-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between gap-4 border-b border-[#E1E6EC]/60 py-3.5 last:border-0"
-              >
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-                <Skeleton className="h-6 w-28" />
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-8 w-20" />
-              </div>
-            ))}
-          </div>
+          <TableContainer className="rounded-none border-0 shadow-none">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    Mentee
+                  </TableHead>
+                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    Course
+                  </TableHead>
+                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    Course Code
+                  </TableHead>
+                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    Mapped Since
+                  </TableHead>
+                  <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <TableRow key={i} className="h-16 border-b border-[#E1E6EC]/60">
+                    <TableCell className="w-[32%] py-3.5">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-36" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5">
+                      <Skeleton className="h-4 w-28" />
+                    </TableCell>
+                    <TableCell className="py-3.5">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="py-3.5">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="py-3.5 text-right">
+                      <div className="flex justify-end">
+                        <Skeleton className="h-8 w-8 rounded-lg" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         ) : menteesError ? null : mentees.length === 0 ? (
           /* Empty State: Mentor has no mentees mapped in total */
           <div className="p-12 text-center">

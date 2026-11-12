@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { TableCell, TableRow } from '@/components/ui/Table';
@@ -27,11 +28,17 @@ export function MenteeTableRow({
   actions,
   isActionMenuOpen,
 }: Readonly<MenteeTableRowProps>) {
+  const router = useRouter();
+  const targetUrl = mentee.name
+    ? `/mentor/progress?search=${encodeURIComponent(mentee.name)}`
+    : '/mentor/progress';
+
   return (
     <TableRow
       key={mentee.id}
+      onClick={() => router.push(targetUrl)}
       className={cn(
-        'h-16 transition-colors hover:bg-[#F9FAFB]/90 focus-visible:bg-[#F9FAFB] focus-visible:outline-none',
+        'h-16 cursor-pointer transition-colors hover:bg-[#F9FAFB]/90 focus-visible:bg-[#F9FAFB] focus-visible:outline-none',
         isActionMenuOpen && 'relative z-20',
       )}
     >
@@ -57,7 +64,10 @@ export function MenteeTableRow({
         {mentee.startDate ? mentee.startDate.slice(0, 10) : '—'}
       </TableCell>
       {actions ? (
-        <TableCell className={cn('text-right', isActionMenuOpen && 'relative z-20')}>
+        <TableCell
+          onClick={(e) => e.stopPropagation()}
+          className={cn('text-right', isActionMenuOpen && 'relative z-20')}
+        >
           {actions}
         </TableCell>
       ) : null}

@@ -96,8 +96,8 @@ export default function MentorPage() {
     },
     {
       id: 'mentees',
-      href: '/mentor/my-mentees',
-      title: 'My Mentees',
+      href: '/mentor/mentees',
+      title: 'Mentees',
       badge: `${mentees.length} Mapped`,
       badgeClass: 'bg-emerald-100 text-emerald-800',
       iconBg: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white',
@@ -193,7 +193,7 @@ export default function MentorPage() {
     {
       id: 'performance',
       href: '/mentor/performance',
-      title: 'Mentee Performance',
+      title: 'Performance',
       badge: 'Analytics',
       badgeClass: 'bg-amber-100 text-amber-800',
       iconBg: 'bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white',
@@ -324,7 +324,7 @@ export default function MentorPage() {
 
           {/* Tile 2: Mentees */}
           <Link
-            href="/mentor/my-mentees"
+            href="/mentor/mentees"
             className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
           >
             <div>
