@@ -319,13 +319,19 @@ function CalendarPopover({
               ) : null}
               {isStartWithEnd ? (
                 <div
-                  className="absolute inset-y-0 right-0 left-1/2 bg-blue-50"
+                  className={cn(
+                    'absolute inset-y-0 right-0 left-1/2 bg-blue-50',
+                    idx % 7 === 6 && 'rounded-r-full',
+                  )}
                   aria-hidden="true"
                 />
               ) : null}
               {isEndWithStart ? (
                 <div
-                  className="absolute inset-y-0 right-1/2 left-0 bg-blue-50"
+                  className={cn(
+                    'absolute inset-y-0 right-1/2 left-0 bg-blue-50',
+                    idx % 7 === 0 && 'rounded-l-full',
+                  )}
                   aria-hidden="true"
                 />
               ) : null}
@@ -343,11 +349,11 @@ function CalendarPopover({
                 className={cn(
                   'relative z-10 mx-auto flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full p-0 text-sm font-semibold transition-colors',
                   cell.isDisabled || isOutOfRange
-                    ? 'cursor-not-allowed opacity-25 hover:bg-transparent'
+                    ? 'pointer-events-none cursor-not-allowed opacity-25 hover:bg-transparent'
                     : isDaySelected
-                      ? 'bg-[#0044D3] font-bold text-white shadow-xs hover:bg-[#0036AB]'
+                      ? 'bg-blue-600 font-bold text-white shadow-xs hover:bg-blue-700'
                       : cell.isInRange
-                        ? 'font-semibold text-[#0044D3] hover:bg-blue-100'
+                        ? 'font-semibold text-blue-700 hover:bg-blue-100'
                         : cell.isCurrentMonth
                           ? 'font-semibold text-slate-700 hover:bg-slate-100'
                           : 'font-normal text-slate-300 hover:bg-slate-50',
@@ -422,7 +428,7 @@ export function DatePicker({
     const focusTimer = setTimeout(() => {
       if (popoverRef.current) {
         const selectedBtn = popoverRef.current.querySelector<HTMLElement>(
-          'button[class*="bg-[#0044D3]"]',
+          'button[class*="bg-blue-600"]',
         );
         if (selectedBtn) {
           selectedBtn.focus();
@@ -558,7 +564,7 @@ export function DatePicker({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         className={cn(
-          'flex h-11 w-full items-center justify-between rounded-xl border bg-white px-3.5 text-left text-sm font-normal transition-colors focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none',
+          'flex h-11 w-full items-center justify-between rounded-xl border bg-white px-3.5 text-left text-sm font-normal transition-colors focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none',
           hasError ? 'border-red-500 text-red-900' : 'border-[#E1E6EC] text-slate-900',
           className,
         )}

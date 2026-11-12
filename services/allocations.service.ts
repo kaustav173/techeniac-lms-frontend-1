@@ -34,13 +34,6 @@ export function isTerminalAllocationStatus(status: CourseAllocationStatus): bool
   );
 }
 
-export function getLocalDateString(date: Date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 export type AllocationTargetType = 'BATCH' | 'SELECTED_MENTEES' | 'INDIVIDUAL_MENTEES';
 
 export interface AssignmentDueOverride {
@@ -121,6 +114,7 @@ export interface AllocationFilters {
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly status?: CourseAllocationStatus | 'OVERDUE' | undefined;
+  readonly statuses?: readonly (CourseAllocationStatus | 'OVERDUE')[] | undefined;
   readonly isOverdue?: boolean | undefined;
   readonly search?: string | undefined;
   readonly dueDateFrom?: string | undefined;
@@ -218,6 +212,9 @@ export const allocationsService = {
     if (filters.batchId) params.batchId = filters.batchId;
     if (filters.menteeId) params.menteeId = filters.menteeId;
     if (filters.status) params.status = filters.status;
+    if (filters.statuses && filters.statuses.length > 0) {
+      params.statuses = filters.statuses.join(',');
+    }
     if (filters.isOverdue !== undefined) params.isOverdue = String(filters.isOverdue);
     if (filters.search) params.search = filters.search;
     if (filters.dueDateFrom) params.dueDateFrom = filters.dueDateFrom;
