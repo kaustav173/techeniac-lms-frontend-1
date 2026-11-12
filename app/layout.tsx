@@ -23,6 +23,10 @@ const plusJakartaSans = localFont({
 export const metadata: Metadata = {
   title: 'TechEniac LMS',
   description: 'TechEniac Learning Management System',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({

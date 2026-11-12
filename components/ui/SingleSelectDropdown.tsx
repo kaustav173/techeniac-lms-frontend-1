@@ -15,10 +15,12 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly value: T;
   readonly onChange: (value: T) => void;
   readonly options: readonly SingleSelectOption<T>[];
+  readonly label?: string | undefined;
   readonly placeholder?: string | undefined;
   readonly triggerLabel?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
+  readonly triggerClassName?: string | undefined;
   readonly menuClassName?: string | undefined;
   readonly direction?: 'down' | 'up' | undefined;
   readonly size?: 'sm' | 'md' | undefined;
@@ -31,10 +33,12 @@ export function SingleSelectDropdown<T extends string | number = string>({
   value,
   onChange,
   options,
+  label,
   placeholder = 'Select an option',
   triggerLabel,
   disabled = false,
   className,
+  triggerClassName,
   menuClassName,
   direction = 'down',
   size = 'md',
@@ -76,6 +80,13 @@ export function SingleSelectDropdown<T extends string | number = string>({
   );
 
   const displayLabel = triggerLabel ?? (selectedOption ? selectedOption.label : placeholder);
+  const isDefaultOrAll =
+    value === '' ||
+    value === undefined ||
+    value === null ||
+    value === 'ALL' ||
+    selectedOption?.value === '' ||
+    selectedOption?.value === 'ALL';
 
   const handleSelect = (optionValue: T) => {
     onChange(optionValue);
@@ -103,9 +114,23 @@ export function SingleSelectDropdown<T extends string | number = string>({
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
           size === 'sm' && 'h-9 px-3 text-xs font-semibold',
           size === 'md' && 'h-11 px-4 text-sm font-semibold',
+          triggerClassName,
         )}
       >
-        <Span className="truncate">{displayLabel}</Span>
+        <Span className="truncate">
+          {label ? (
+            isDefaultOrAll ? (
+              <Span className="font-semibold text-slate-700">{label}</Span>
+            ) : (
+              <>
+                <Span className="font-normal text-slate-500">{label}: </Span>
+                <Span className="font-semibold text-slate-900">{displayLabel}</Span>
+              </>
+            )
+          ) : (
+            displayLabel
+          )}
+        </Span>
         <svg
           className={cn(
             'shrink-0 text-slate-400 transition-transform duration-200',

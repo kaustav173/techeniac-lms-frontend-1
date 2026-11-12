@@ -64,10 +64,10 @@ export function AllocationStatusBadge({ status, isOverdue }: AllocationStatusBad
   }
 
   return (
-    <div className="inline-flex items-center">
+    <div className="inline-flex items-center whitespace-nowrap">
       <Span
         title={title}
-        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}
+        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${badgeStyle}`}
       >
         {label}
       </Span>

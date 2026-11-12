@@ -22,6 +22,7 @@ import {
 import { P, Span } from '@/components/ui/Typography';
 import { useHoverPrefetch } from '@/hooks/useHoverPrefetch';
 import { usePrefetchAssignmentDetails } from '@/hooks/useSubmissions';
+import { cn } from '@/lib/cn';
 import { formatDateTimeIST } from '@/lib/date';
 import { useClickOutside } from '@/lib/useClickOutside';
 import { AssignmentDerivedStatus, type AssignmentWithSubmissionStatus } from '@/types/submissions';
@@ -336,155 +337,167 @@ export function MyAssignmentsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedAssignments.map((assignment, idx) => (
-                <TableRow
-                  key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                  className="transition-colors hover:bg-[#F6F8FC]/60"
-                >
-                  {/* Assignment Column (Title, Topic, Scope) */}
-                  <TableCell className="px-5 py-4">
-                    <div className="space-y-1">
-                      <Link
-                        href={`/mentee/assignments/${assignment.id}`}
-                        {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                        className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
-                      >
-                        {assignment.title}
-                      </Link>
-                      <div className="flex items-center gap-2 text-xs text-[#667085]">
-                        {assignment.topicTitle ? <Span>{assignment.topicTitle}</Span> : null}
-                        {assignment.topicTitle ? <Span>•</Span> : null}
-                        <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
-                          {assignment.scope}
-                        </Span>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  {/* Course Column (Separate Column) */}
-                  <TableCell className="px-4 py-4">
-                    <div className="space-y-0.5">
-                      <Span className="line-clamp-1 font-semibold text-[#111827]">
-                        {assignment.courseTitle}
-                      </Span>
-                      <Span className="block text-xs text-[#667085]">Curriculum Track</Span>
-                    </div>
-                  </TableCell>
-
-                  {/* Due Date Column */}
-                  <TableCell className="px-4 py-4 whitespace-nowrap">
-                    <div className="space-y-0.5">
-                      <Span className="font-medium text-[#111827]">
-                        {formatDateTimeIST(assignment.dueDate)}
-                      </Span>
-                      {assignment.allowLate ? (
-                        <Span className="block text-xs text-[#667085]">
-                          Late submissions accepted
-                        </Span>
-                      ) : (
-                        <Span className="block text-xs text-rose-500">Strict deadline</Span>
-                      )}
-                    </div>
-                  </TableCell>
-
-                  {/* Est. Time & Marks Column */}
-                  <TableCell className="px-4 py-4 whitespace-nowrap">
-                    <div className="space-y-0.5 text-xs text-[#667085]">
-                      <div>
-                        Est:{' '}
-                        <Span className="font-semibold text-[#111827]">
-                          {assignment.estimatedMinutes} mins
-                        </Span>
-                      </div>
-                      <div>
-                        Max Marks:{' '}
-                        <Span className="font-semibold text-[#111827]">{assignment.maxMarks}</Span>
-                        {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  {/* Status Column */}
-                  <TableCell className="px-4 py-4 whitespace-nowrap">
-                    <SubmissionStatusBadge
-                      status={assignment.status}
-                      isLate={assignment.latestSubmission?.isLate}
-                    />
-                    {assignment.latestSubmission?.marks !== null &&
-                    assignment.latestSubmission?.marks !== undefined ? (
-                      <div className="mt-1 text-xs font-semibold text-emerald-600">
-                        Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
-                      </div>
-                    ) : null}
-                  </TableCell>
-
-                  {/* 3-Dots Action Menu */}
-                  <TableCell
-                    className="px-5 py-4 text-right whitespace-nowrap"
-                    onClick={(e) => e.stopPropagation()}
+              {paginatedAssignments.map((assignment, idx) => {
+                const isActionMenuOpen = openActionMenuId === assignment.id;
+                return (
+                  <TableRow
+                    key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
+                    className={cn(
+                      'transition-colors hover:bg-[#F6F8FC]/60',
+                      isActionMenuOpen && 'relative z-30',
+                    )}
                   >
-                    <div
-                      className="relative inline-block text-left"
-                      ref={openActionMenuId === assignment.id ? actionMenuRef : undefined}
-                    >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenActionMenuId(
-                            openActionMenuId === assignment.id ? null : assignment.id,
-                          );
-                        }}
-                        title="Assignment actions"
-                        aria-label={`Actions for ${assignment.title}`}
-                        aria-haspopup="menu"
-                        aria-expanded={openActionMenuId === assignment.id}
-                        className="h-11 w-11 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      >
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                        </svg>
-                      </Button>
-
-                      {openActionMenuId === assignment.id && (
-                        <div
-                          role="menu"
-                          aria-label={`Actions for ${assignment.title}`}
-                          className="animate-in fade-in zoom-in-95 absolute top-11 right-0 z-30 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
+                    {/* Assignment Column (Title, Topic, Scope) */}
+                    <TableCell className="px-5 py-4">
+                      <div className="space-y-1">
+                        <Link
+                          href={`/mentee/assignments/${assignment.id}`}
+                          {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                          className="line-clamp-1 font-semibold text-[#111827] hover:text-[#0044D3]"
                         >
-                          <Link
-                            role="menuitem"
-                            href={`/mentee/assignments/${assignment.id}`}
-                            {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                            onClick={() => setOpenActionMenuId(null)}
-                            className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                          {assignment.title}
+                        </Link>
+                        <div className="flex items-center gap-2 text-xs text-[#667085]">
+                          {assignment.topicTitle ? <Span>{assignment.topicTitle}</Span> : null}
+                          {assignment.topicTitle ? <Span>•</Span> : null}
+                          <Span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-[#667085]">
+                            {assignment.scope}
+                          </Span>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Course Column (Separate Column) */}
+                    <TableCell className="px-4 py-4">
+                      <div className="space-y-0.5">
+                        <Span className="line-clamp-1 font-semibold text-[#111827]">
+                          {assignment.courseTitle}
+                        </Span>
+                        <Span className="block text-xs text-[#667085]">Curriculum Track</Span>
+                      </div>
+                    </TableCell>
+
+                    {/* Due Date Column */}
+                    <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <div className="space-y-0.5">
+                        <Span className="font-medium text-[#111827]">
+                          {formatDateTimeIST(assignment.dueDate)}
+                        </Span>
+                        {assignment.allowLate ? (
+                          <Span className="block text-xs text-[#667085]">
+                            Late submissions accepted
+                          </Span>
+                        ) : (
+                          <Span className="block text-xs text-rose-500">Strict deadline</Span>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    {/* Est. Time & Marks Column */}
+                    <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <div className="space-y-0.5 text-xs text-[#667085]">
+                        <div>
+                          Est:{' '}
+                          <Span className="font-semibold text-[#111827]">
+                            {assignment.estimatedMinutes} mins
+                          </Span>
+                        </div>
+                        <div>
+                          Max Marks:{' '}
+                          <Span className="font-semibold text-[#111827]">
+                            {assignment.maxMarks}
+                          </Span>
+                          {assignment.passMarks ? ` (Pass: ${assignment.passMarks})` : ''}
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Status Column */}
+                    <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <SubmissionStatusBadge
+                        status={assignment.status}
+                        isLate={assignment.latestSubmission?.isLate}
+                      />
+                      {assignment.latestSubmission?.marks !== null &&
+                      assignment.latestSubmission?.marks !== undefined ? (
+                        <div className="mt-1 text-xs font-semibold text-emerald-600">
+                          Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
+                        </div>
+                      ) : null}
+                    </TableCell>
+
+                    {/* 3-Dots Action Menu */}
+                    <TableCell
+                      className={cn(
+                        'px-5 py-4 text-right whitespace-nowrap',
+                        isActionMenuOpen && 'relative z-30',
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div
+                        className={cn(
+                          'relative inline-block text-left',
+                          isActionMenuOpen && 'z-40',
+                        )}
+                        ref={isActionMenuOpen ? actionMenuRef : undefined}
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenActionMenuId(isActionMenuOpen ? null : assignment.id);
+                          }}
+                          title="Assignment actions"
+                          aria-label={`Actions for ${assignment.title}`}
+                          aria-haspopup="menu"
+                          aria-expanded={isActionMenuOpen}
+                          className="h-11 w-11 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        >
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                        </Button>
+
+                        {isActionMenuOpen && (
+                          <div
+                            role="menu"
+                            aria-label={`Actions for ${assignment.title}`}
+                            className="animate-in fade-in zoom-in-95 absolute top-11 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
                           >
-                            <Span>
-                              {assignment.status === AssignmentDerivedStatus.PENDING
-                                ? 'Start & Submit'
-                                : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
-                                  ? 'Resubmit'
-                                  : 'View Details'}
-                            </Span>
-                          </Link>
-                          {assignment.courseId ? (
                             <Link
                               role="menuitem"
-                              href={`/mentee/courses/${assignment.courseId}`}
+                              href={`/mentee/assignments/${assignment.id}`}
+                              {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                               onClick={() => setOpenActionMenuId(null)}
                               className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                             >
-                              <Span>Go to Course</Span>
+                              <Span>
+                                {assignment.status === AssignmentDerivedStatus.PENDING
+                                  ? 'Start & Submit'
+                                  : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
+                                    ? 'Resubmit'
+                                    : 'View Details'}
+                              </Span>
                             </Link>
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                            {assignment.courseId ? (
+                              <Link
+                                role="menuitem"
+                                href={`/mentee/courses/${assignment.courseId}`}
+                                onClick={() => setOpenActionMenuId(null)}
+                                className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                              >
+                                <Span>Go to Course</Span>
+                              </Link>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

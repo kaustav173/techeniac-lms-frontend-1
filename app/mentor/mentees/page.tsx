@@ -1,22 +1,5 @@
-import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
-import { MentorMenteesView } from '@/components/app/mentees/MentorMenteesView';
-import { MENTOR_MENTEES_NAV } from '@/components/app/navigation/portal-nav.config';
-import { DashboardContent } from '@/components/layout/DashboardContent';
-import { Header } from '@/components/layout/Header';
-
-export const metadata: Metadata = {
-  title: 'My Mentees | Mentor Portal',
-  description: 'View and manage mentees actively mapped to you across your assigned cohorts.',
-};
-
-export default function MentorMenteesPage() {
-  return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-      <Header {...MENTOR_MENTEES_NAV} />
-      <DashboardContent>
-        <MentorMenteesView />
-      </DashboardContent>
-    </div>
-  );
+export default function MentorMenteesRedirectPage() {
+  redirect('/mentor/my-mentees');
 }
