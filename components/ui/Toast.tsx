@@ -10,16 +10,17 @@ export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 export interface ToastProps {
   readonly id: string;
   readonly message: string;
+  readonly title?: string | undefined;
   readonly variant: ToastVariant;
   readonly duration: number;
   readonly onDismiss: (id: string) => void;
 }
 
 const variantStyles: Record<ToastVariant, string> = {
-  success: 'bg-slate-900 text-white border-slate-700',
-  error: 'bg-red-900 text-white border-red-700',
-  warning: 'bg-amber-800 text-white border-amber-600',
-  info: 'bg-blue-900 text-white border-blue-700',
+  success: 'bg-slate-900 text-white border-slate-700/80',
+  error: 'bg-red-950 text-white border-red-800/80',
+  warning: 'bg-amber-950 text-white border-amber-800/80',
+  info: 'bg-blue-950 text-white border-blue-800/80',
 };
 
 const iconPaths: Record<ToastVariant, React.ReactElement> = {
@@ -54,7 +55,7 @@ const iconColors: Record<ToastVariant, string> = {
   info: 'text-blue-300',
 };
 
-export function Toast({ id, message, variant, duration, onDismiss }: ToastProps) {
+export function Toast({ id, message, title, variant, duration, onDismiss }: ToastProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -72,12 +73,14 @@ export function Toast({ id, message, variant, duration, onDismiss }: ToastProps)
     setTimeout(() => onDismiss(id), 200);
   };
 
+  const isAlert = variant === 'error';
+
   return (
     <div
-      role="status"
-      aria-live="polite"
+      role={isAlert ? 'alert' : 'status'}
+      aria-live={isAlert ? 'assertive' : 'polite'}
       className={cn(
-        'pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg',
+        'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-3.5 text-sm shadow-xl backdrop-blur-xs',
         'animate-in fade-in slide-in-from-top-2 duration-200',
         isExiting && '-translate-y-2 opacity-0 transition-all duration-200 ease-in',
         variantStyles[variant],
@@ -85,7 +88,7 @@ export function Toast({ id, message, variant, duration, onDismiss }: ToastProps)
     >
       {/* Icon */}
       <svg
-        className={cn('h-4 w-4 shrink-0', iconColors[variant])}
+        className={cn('mt-0.5 h-4 w-4 shrink-0', iconColors[variant])}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -95,8 +98,20 @@ export function Toast({ id, message, variant, duration, onDismiss }: ToastProps)
         {iconPaths[variant]}
       </svg>
 
-      {/* Message */}
-      <Span className="flex-1 text-sm leading-snug text-white">{message}</Span>
+      {/* Message and optional title */}
+      <div className="min-w-0 flex-1">
+        {title ? (
+          <Span className="block text-xs font-semibold tracking-wide text-white">{title}</Span>
+        ) : null}
+        <Span
+          className={cn(
+            'block text-xs leading-snug',
+            title ? 'mt-0.5 text-slate-300' : 'font-medium text-white',
+          )}
+        >
+          {message}
+        </Span>
+      </div>
 
       {/* Close button */}
       <button
