@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
@@ -38,7 +39,7 @@ export interface MyAssignmentsPaginationConfig {
   onLimitChange: (newLimit: number) => void;
 }
 
-interface MyAssignmentsTableProps {
+export interface MyAssignmentsTableProps {
   assignments: AssignmentWithSubmissionStatus[];
   isLoading: boolean;
   isFetching?: boolean;
@@ -46,6 +47,8 @@ interface MyAssignmentsTableProps {
   onRetry?: (() => void) | undefined;
   selectedStatus?: AssignmentDerivedStatus | undefined;
   onStatusChange?: ((status?: AssignmentDerivedStatus) => void) | undefined;
+  selectedStatuses?: AssignmentDerivedStatus[] | undefined;
+  onStatusesChange?: ((statuses: AssignmentDerivedStatus[]) => void) | undefined;
   pagination?: MyAssignmentsPaginationConfig | undefined;
 }
 
@@ -68,8 +71,11 @@ export function MyAssignmentsTable({
   onRetry,
   selectedStatus,
   onStatusChange,
+  selectedStatuses,
+  onStatusesChange,
   pagination,
 }: Readonly<MyAssignmentsTableProps>) {
+  const router = useRouter();
   const prefetchAssignment = usePrefetchAssignmentDetails();
   const { getHoverHandlers } = useHoverPrefetch();
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,6 +83,11 @@ export function MyAssignmentsTable({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  const activeStatuses = useMemo<AssignmentDerivedStatus[]>(() => {
+    if (selectedStatuses !== undefined) return selectedStatuses;
+    return selectedStatus ? [selectedStatus] : [];
+  }, [selectedStatuses, selectedStatus]);
 
   useClickOutside(actionMenuRef, () => setOpenActionMenuId(null), openActionMenuId !== null);
 
@@ -115,16 +126,18 @@ export function MyAssignmentsTable({
       }
     }
 
-    if (!searchQuery.trim()) return unique;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
     return unique.filter((item) => {
-      return (
+      const matchesSearch =
+        !q ||
         item.title.toLowerCase().includes(q) ||
         item.courseTitle.toLowerCase().includes(q) ||
-        (item.topicTitle && item.topicTitle.toLowerCase().includes(q))
-      );
+        (item.topicTitle && item.topicTitle.toLowerCase().includes(q));
+      const matchesStatus =
+        activeStatuses.length === 0 || activeStatuses.includes(item.status);
+      return matchesSearch && matchesStatus;
     });
-  }, [assignments, searchQuery]);
+  }, [assignments, searchQuery, activeStatuses]);
 
   const sortedAssignments = useMemo(() => {
     if (!sortField) return filteredAssignments;
@@ -147,7 +160,7 @@ export function MyAssignmentsTable({
     });
   }, [filteredAssignments, sortField, sortOrder]);
 
-  const hasActiveFilters = Boolean(searchQuery.trim() || selectedStatus);
+  const hasActiveFilters = Boolean(searchQuery.trim() || activeStatuses.length > 0);
 
   const effectiveTotal = sortedAssignments.length;
   const effectiveTotalPages = pagination
@@ -169,6 +182,7 @@ export function MyAssignmentsTable({
   const handleClearFilters = () => {
     setSearchQuery('');
     onStatusChange?.(undefined);
+    onStatusesChange?.([]);
     pagination?.onPageChange(1);
   };
 
@@ -188,11 +202,13 @@ export function MyAssignmentsTable({
           <MultiSelectDropdown
             label="Status"
             options={STATUS_OPTIONS}
-            selectedValues={selectedStatus ? [selectedStatus] : []}
+            selectedValues={activeStatuses}
             onChange={(vals) => {
+              onStatusesChange?.(vals as AssignmentDerivedStatus[]);
               onStatusChange?.(vals[0]);
+              pagination?.onPageChange(1);
             }}
-            singleSelect={true}
+            singleSelect={false}
             align="left"
           />
 
@@ -287,229 +303,237 @@ export function MyAssignmentsTable({
           </P>
         </div>
       ) : (
-        <TableContainer
-          className={`w-full ${isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''}`}
-        >
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <SortableColumnHeader<SortField>
-                  field="title"
-                  label="Assignment"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[24%] px-5 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="courseTitle"
-                  label="Course"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[18%] px-4 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="dueDate"
-                  label="Due Date"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[16%] px-4 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="estimatedMinutes"
-                  label="Est. Time"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[12%] px-4 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="maxMarks"
-                  label="Marks"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[10%] px-4 py-3.5"
-                />
-                <SortableColumnHeader<SortField>
-                  field="status"
-                  label="Status"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  className="w-[12%] px-4 py-3.5"
-                />
-                <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedAssignments.map((assignment, idx) => {
-                const isActionMenuOpen = openActionMenuId === assignment.id;
-                return (
-                  <TableRow
-                    key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                    className={cn(
-                      'transition-colors hover:bg-[#F6F8FC]/60',
-                      isActionMenuOpen && 'relative z-30',
-                    )}
-                  >
-                    {/* Assignment Column (Truncated with full name tooltip on hover) */}
-                    <TableCell className="px-5 py-4">
-                      <Link
-                        href={`/mentee/assignments/${assignment.id}`}
-                        {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                        title={assignment.title}
-                        className="block max-w-[200px] truncate font-semibold text-[#111827] hover:text-[#0044D3] sm:max-w-[240px]"
-                      >
-                        {assignment.title}
-                      </Link>
-                    </TableCell>
-
-                    {/* Course Column */}
-                    <TableCell className="px-4 py-4">
-                      <Span
-                        title={assignment.courseTitle}
-                        className="block max-w-[180px] truncate font-medium text-[#111827]"
-                      >
-                        {assignment.courseTitle}
-                      </Span>
-                    </TableCell>
-
-                    {/* Due Date Column (Without IST) */}
-                    <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <Span className="font-medium text-[#111827]">
-                        {formatDateTime(assignment.dueDate)}
-                      </Span>
-                    </TableCell>
-
-                    {/* Est. Time Column */}
-                    <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <Span className="text-xs font-semibold text-[#111827]">
-                        {assignment.estimatedMinutes} mins
-                      </Span>
-                    </TableCell>
-
-                    {/* Marks Column */}
-                    <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <div className="space-y-0.5 text-xs">
-                        <Span className="font-semibold text-[#111827]">
-                          {assignment.maxMarks} pts
-                        </Span>
-                        {assignment.passMarks ? (
-                          <Span className="block text-[11px] text-[#667085]">
-                            (Pass: {assignment.passMarks})
-                          </Span>
-                        ) : null}
-                      </div>
-                    </TableCell>
-
-                    {/* Status Column */}
-                    <TableCell className="px-4 py-4 whitespace-nowrap">
-                      <SubmissionStatusBadge
-                        status={assignment.status}
-                        isLate={assignment.latestSubmission?.isLate}
-                      />
-                      {assignment.latestSubmission?.marks !== null &&
-                      assignment.latestSubmission?.marks !== undefined ? (
-                        <div className="mt-1 text-xs font-semibold text-emerald-600">
-                          Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
-                        </div>
-                      ) : null}
-                    </TableCell>
-
-                    {/* 3-Dots Action Menu */}
-                    <TableCell
+        <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <TableContainer
+            className={`w-full rounded-none border-0 shadow-none ${isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''}`}
+          >
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <SortableColumnHeader<SortField>
+                    field="title"
+                    label="Assignment"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[26%] px-5 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <SortableColumnHeader<SortField>
+                    field="courseTitle"
+                    label="Course"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <SortableColumnHeader<SortField>
+                    field="dueDate"
+                    label="Due Date"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <SortableColumnHeader<SortField>
+                    field="estimatedMinutes"
+                    label="Est. Time"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <SortableColumnHeader<SortField>
+                    field="maxMarks"
+                    label="Max Marks"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[12%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <SortableColumnHeader<SortField>
+                    field="status"
+                    label="Status"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                  />
+                  <TableHead className="w-16 px-4 py-3.5 text-center font-semibold text-[#667085]">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedAssignments.map((assignment, idx) => {
+                  const isActionMenuOpen = openActionMenuId === assignment.id;
+                  const shouldOpenUpward = idx >= paginatedAssignments.length - 2;
+                  return (
+                    <TableRow
+                      key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
+                      onClick={() => router.push(`/mentee/assignments/${assignment.id}`)}
                       className={cn(
-                        'px-5 py-4 text-right whitespace-nowrap',
+                        'cursor-pointer transition-colors hover:bg-[#F6F8FC]/60',
                         isActionMenuOpen && 'relative z-30',
                       )}
-                      onClick={(e) => e.stopPropagation()}
                     >
-                      <div
-                        className={cn(
-                          'relative inline-block text-left',
-                          isActionMenuOpen && 'z-40',
-                        )}
-                        ref={isActionMenuOpen ? actionMenuRef : undefined}
-                      >
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenActionMenuId(isActionMenuOpen ? null : assignment.id);
-                          }}
-                          title="Assignment actions"
-                          aria-label={`Actions for ${assignment.title}`}
-                          aria-haspopup="menu"
-                          aria-expanded={isActionMenuOpen}
-                          className="h-11 w-11 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      {/* Assignment Column (Truncated with full name tooltip on hover) */}
+                      <TableCell className="px-5 py-4">
+                        <Link
+                          href={`/mentee/assignments/${assignment.id}`}
+                          {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                          title={assignment.title}
+                          className="block max-w-[200px] truncate font-semibold text-[#111827] hover:text-[#0044D3] sm:max-w-[240px]"
                         >
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </Button>
+                          {assignment.title}
+                        </Link>
+                      </TableCell>
 
-                        {isActionMenuOpen && (
-                          <div
-                            role="menu"
+                      {/* Course Column */}
+                      <TableCell className="px-4 py-4">
+                        <Span
+                          title={assignment.courseTitle}
+                          className="block max-w-[180px] truncate font-medium text-[#111827]"
+                        >
+                          {assignment.courseTitle}
+                        </Span>
+                      </TableCell>
+
+                      {/* Due Date Column (Without IST) */}
+                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                        <Span className="font-medium text-[#111827]">
+                          {formatDateTime(assignment.dueDate)}
+                        </Span>
+                      </TableCell>
+
+                      {/* Est. Time Column */}
+                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                        <Span className="text-xs font-semibold text-[#111827]">
+                          {assignment.estimatedMinutes} mins
+                        </Span>
+                      </TableCell>
+
+                      {/* Marks Column */}
+                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                        <div className="space-y-0.5 text-xs">
+                          <Span className="font-semibold text-[#111827]">
+                            {assignment.maxMarks} pts
+                          </Span>
+                          {assignment.passMarks ? (
+                            <Span className="block text-[11px] text-[#667085]">
+                              (Pass: {assignment.passMarks})
+                            </Span>
+                          ) : null}
+                        </div>
+                      </TableCell>
+
+                      {/* Status Column */}
+                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                        <SubmissionStatusBadge
+                          status={assignment.status}
+                          isLate={assignment.latestSubmission?.isLate}
+                        />
+                        {assignment.latestSubmission?.marks !== null &&
+                        assignment.latestSubmission?.marks !== undefined ? (
+                          <div className="mt-1 text-xs font-semibold text-emerald-600">
+                            Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
+                          </div>
+                        ) : null}
+                      </TableCell>
+
+                      {/* 3-Dots Action Menu */}
+                      <TableCell
+                        className={cn(
+                          'px-4 py-4 text-center whitespace-nowrap',
+                          isActionMenuOpen && 'relative z-30',
+                        )}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div
+                          className={cn(
+                            'relative inline-block text-left',
+                            isActionMenuOpen && 'z-40',
+                          )}
+                          ref={isActionMenuOpen ? actionMenuRef : undefined}
+                        >
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenActionMenuId(isActionMenuOpen ? null : assignment.id);
+                            }}
+                            title="Assignment actions"
                             aria-label={`Actions for ${assignment.title}`}
-                            className="animate-in fade-in zoom-in-95 absolute top-11 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
+                            aria-haspopup="menu"
+                            aria-expanded={isActionMenuOpen}
+                            className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                           >
-                            <Link
-                              role="menuitem"
-                              href={`/mentee/assignments/${assignment.id}`}
-                              {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                              onClick={() => setOpenActionMenuId(null)}
-                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </Button>
+
+                          {isActionMenuOpen && (
+                            <div
+                              role="menu"
+                              aria-label={`Actions for ${assignment.title}`}
+                              className={cn(
+                                'animate-in fade-in zoom-in-95 absolute right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl',
+                                shouldOpenUpward ? 'bottom-full mb-1' : 'top-10',
+                              )}
                             >
-                              <Span>
-                                {assignment.status === AssignmentDerivedStatus.PENDING
-                                  ? 'Start & Submit'
-                                  : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
-                                    ? 'Resubmit'
-                                    : 'View Details'}
-                              </Span>
-                            </Link>
-                            {assignment.courseId ? (
                               <Link
                                 role="menuitem"
-                                href={`/mentee/courses/${assignment.courseId}`}
+                                href={`/mentee/assignments/${assignment.id}`}
+                                {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                                 onClick={() => setOpenActionMenuId(null)}
                                 className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                               >
-                                <Span>Go to Course</Span>
+                                <Span>
+                                  {assignment.status === AssignmentDerivedStatus.PENDING
+                                    ? 'Start & Submit'
+                                    : assignment.status === AssignmentDerivedStatus.RESUBMIT_REQUESTED
+                                      ? 'Resubmit'
+                                      : 'View Details'}
+                                </Span>
                               </Link>
-                            ) : null}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+                              {assignment.courseId ? (
+                                <Link
+                                  role="menuitem"
+                                  href={`/mentee/courses/${assignment.courseId}`}
+                                  onClick={() => setOpenActionMenuId(null)}
+                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                >
+                                  <Span>Go to Course</Span>
+                                </Link>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-      {pagination && !error && effectiveTotal > 0 ? (
-        <PaginationControls
-          page={effectivePage}
-          limit={pagination.limit}
-          total={effectiveTotal}
-          totalPages={effectiveTotalPages}
-          onPageChange={pagination.onPageChange}
-          onLimitChange={pagination.onLimitChange}
-          itemLabel="assignments"
-          pageSizeOptions={[10, 20, 50]}
-        />
-      ) : null}
+          {pagination && !error && effectiveTotal > 0 ? (
+            <PaginationControls
+              page={effectivePage}
+              limit={pagination.limit}
+              total={effectiveTotal}
+              totalPages={effectiveTotalPages}
+              onPageChange={pagination.onPageChange}
+              onLimitChange={pagination.onLimitChange}
+              itemLabel="assignments"
+              pageSizeOptions={[10, 20, 50]}
+              className="border-t border-[#E1E6EC]"
+            />
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

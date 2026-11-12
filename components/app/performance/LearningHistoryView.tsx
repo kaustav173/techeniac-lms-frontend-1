@@ -572,9 +572,9 @@ export function LearningHistoryView({
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-[#E1E6EC]/60">
-                                {alloc.assignments.map((assign) => (
+                                {alloc.assignments.map((assign, assignIdx) => (
                                   <tr
-                                    key={assign.assignmentId}
+                                    key={`${assign.assignmentId}-v${assign.version}-${assignIdx}`}
                                     className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
                                   >
                                     <td className="px-4 py-3">

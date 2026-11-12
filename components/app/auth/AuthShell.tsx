@@ -58,9 +58,9 @@ export function AuthShell({ children, title, footerContent }: Readonly<AuthShell
         </div>
       </div>
 
-      {/* Right 50%: Form Workspace Container with Rounded Card Border */}
+      {/* Right 50%: Form Workspace Container */}
       <div className="flex flex-1 flex-col items-center justify-center bg-[#F8FAFC] px-4 py-10 sm:px-8 md:min-h-screen md:w-1/2 md:p-12 lg:p-16">
-        <div className="w-full max-w-[440px] rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-9 lg:max-w-[480px]">
+        <div className="w-full max-w-[440px] rounded-3xl bg-white p-6 shadow-sm sm:p-9 lg:max-w-[480px]">
           {/* Form Title */}
           <div className="mb-6 text-center sm:text-left">
             <H1 className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">

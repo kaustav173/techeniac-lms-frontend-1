@@ -402,7 +402,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-1 flex-wrap items-center gap-3">
               {/* 1. Search mentee, course, batch */}
-              <div className="min-w-[240px] flex-1">
+              <div className="w-full sm:w-[375px]">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
