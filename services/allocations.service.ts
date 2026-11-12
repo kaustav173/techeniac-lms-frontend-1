@@ -121,6 +121,7 @@ export interface AllocationFilters {
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly status?: CourseAllocationStatus | undefined;
+  readonly statuses?: readonly string[] | string[] | undefined;
   readonly isOverdue?: boolean | undefined;
   readonly search?: string | undefined;
   readonly dueDateFrom?: string | undefined;
@@ -210,6 +211,9 @@ export const allocationsService = {
     if (filters.batchId) params.batchId = filters.batchId;
     if (filters.menteeId) params.menteeId = filters.menteeId;
     if (filters.status) params.status = filters.status;
+    if (filters.statuses && filters.statuses.length > 0) {
+      params.statuses = filters.statuses.join(',');
+    }
     if (filters.isOverdue !== undefined) params.isOverdue = String(filters.isOverdue);
     if (filters.search) params.search = filters.search;
     if (filters.dueDateFrom) params.dueDateFrom = filters.dueDateFrom;
