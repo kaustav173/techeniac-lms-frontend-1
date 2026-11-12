@@ -1,290 +1,473 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import { MENTEE_PROGRESS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { getButtonClassName } from '@/components/ui/Button';
+import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
+import { PaginationControls } from '@/components/patterns/PaginationControls';
+import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
+import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H2, H3, P, PageTitle, Span, SubText } from '@/components/ui/Typography';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
+import { P, Span } from '@/components/ui/Typography';
+import {
+  AllocationDisplayStatus,
+  type AllocationFilters,
   type CourseAllocation,
+  CourseAllocationStatus,
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
-import { useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/cn';
+import { formatDateDDMMYY } from '@/lib/date';
 
-function ProgressKpi({
-  label,
-  value,
-  subtext,
-  barPercent,
-  colorClass = 'text-[#111827]',
-}: Readonly<{
-  label: string;
-  value: string | number;
-  subtext: string;
-  barPercent?: number;
-  colorClass?: string;
-}>) {
-  return (
-    <div className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs">
-      <div>
-        <Span className="text-xs font-bold tracking-wider text-[#667085] uppercase">{label}</Span>
-        <div className="mt-2 flex items-baseline gap-2">
-          <H2 className={`text-2xl font-extrabold ${colorClass}`}>{value}</H2>
-          <Span className="text-xs text-[#667085]">{subtext}</Span>
-        </div>
-      </div>
-      {barPercent != null && (
-        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
-          <div
-            className="h-full rounded-full bg-[#0044D3] transition-all duration-500"
-            style={{ width: `${Math.min(100, Math.max(0, barPercent))}%` }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+type AllocationSortField = 'course' | 'due';
+
+const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
+  { value: CourseAllocationStatus.ASSIGNED, label: AllocationDisplayStatus.ASSIGNED },
+  { value: CourseAllocationStatus.IN_PROGRESS, label: AllocationDisplayStatus.IN_PROGRESS },
+  { value: 'OVERDUE', label: AllocationDisplayStatus.OVERDUE },
+  { value: CourseAllocationStatus.COMPLETED, label: AllocationDisplayStatus.COMPLETED },
+];
 
 export function MenteeProgressView() {
-  const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
+  const router = useRouter();
+  const { user, sessionError } = useAuth();
+
+  // 1. Filter & Pagination State
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [search, setSearch] = useState<string>('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [sortField, setSortField] = useState<AllocationSortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // 2. Paginated & Filtered Query for the Table
+  const queryFilters: AllocationFilters = useMemo(
+    () => ({
+      menteeId: user?.id,
+      page,
+      limit,
+      search: search.trim() || undefined,
+      statuses:
+        selectedStatuses.length > 0
+          ? (selectedStatuses as (CourseAllocationStatus | 'OVERDUE')[])
+          : undefined,
+      sortBy: sortField ?? 'createdAt',
+      sortOrder: sortField ? sortOrder : 'desc',
+    }),
+    [user?.id, page, limit, search, selectedStatuses, sortField, sortOrder],
+  );
+
   const {
     data: allocationsData,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch,
-  } = useAllocationsList({
-    menteeId: user?.id,
-    limit: 100,
+  } = useAllocationsList(queryFilters, {
+    enabled: Boolean(user?.id),
   });
 
-  const allocations = useMemo<readonly CourseAllocation[]>(() => {
-    const items = allocationsData?.items ?? [];
-    const seen = new Set<string>();
-    const unique: CourseAllocation[] = [];
-    for (const item of items) {
-      if (item?.id) {
-        if (!seen.has(item.id)) {
-          seen.add(item.id);
-          unique.push(item);
-        }
+  const isInitialLoading = !user?.id || isLoading;
+
+  const allocations = useMemo<readonly CourseAllocation[]>(
+    () => allocationsData?.items ?? [],
+    [allocationsData],
+  );
+
+  const pagination = useMemo(
+    () =>
+      allocationsData?.pagination ?? {
+        page,
+        limit,
+        total: allocations.length,
+        totalPages: Math.ceil(allocations.length / limit) || 1,
+      },
+    [allocationsData, page, limit, allocations.length],
+  );
+
+  // 3. Action Handlers
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+  };
+
+  const handleStatusChange = (vals: string[]) => {
+    setSelectedStatuses(vals);
+    setPage(1);
+  };
+
+  const handleSort = (field: AllocationSortField) => {
+    let nextField: AllocationSortField | null = field;
+    let nextOrder: 'asc' | 'desc' = 'asc';
+
+    if (sortField === field) {
+      if (sortOrder === 'asc') {
+        nextOrder = 'desc';
       } else {
-        unique.push(item);
+        nextField = null;
+        nextOrder = 'asc';
       }
     }
-    return unique;
-  }, [allocationsData]);
 
-  const active = useMemo(
-    () => allocations.filter((a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS'),
-    [allocations],
-  );
-  const completed = useMemo(
-    () => allocations.filter((a) => a.status === 'COMPLETED'),
-    [allocations],
-  );
-  const overdue = useMemo(
-    () =>
-      allocations.filter((a) => {
-        const isClosed = isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED';
-        return Boolean(a.isOverdue) && a.status !== 'COMPLETED' && !isClosed;
-      }),
-    [allocations],
+    setSortField(nextField);
+    setSortOrder(nextOrder);
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
+    setPage(1);
+  };
+
+  const hasActiveFilters = Boolean(
+    search.trim() || selectedStatuses.length > 0 || sortField !== null,
   );
 
-  const averagePace = useMemo(() => {
-    if (!allocations.length) return 0;
-    const total = allocations.reduce((sum, a) => sum + Number(a.progressPercent || 0), 0);
-    return Math.round((total / allocations.length) * 10) / 10;
-  }, [allocations]);
-
-  if (!isAuthorized || !user) {
-    return (
-      <PortalSessionState
-        sessionError={sessionError}
-        loadingMessage="Loading student progress telemetry..."
-      />
-    );
+  if (sessionError && !user) {
+    return <PortalSessionState sessionError={sessionError} variant="mentee" />;
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_PROGRESS_NAV} />
       <DashboardContent className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-[#E1E6EC] pb-6 sm:flex-row sm:items-end">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <Span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-xs font-bold text-[#0044D3]">
-                📈
-              </Span>
-              <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                Learner Telemetry
-              </Span>
-              <Span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-[#0044D3]">
-                Student Progress
-              </Span>
-            </div>
-            <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-              Learning Progress & Milestones
-            </PageTitle>
-            <SubText className="mt-1 text-[#667085]">
-              Real-time curriculum completion pace, milestone deadlines, and syllabus tracking
-              (FR-8.1, FR-8.2).
-            </SubText>
+        {/* Filter Bar (Search + Admin-style Status + Clear) */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {/* 1. Debounced Search (Course, Batch, or Status) */}
+          <div className="w-full sm:max-w-md">
+            <DebouncedSearchInput
+              value={search}
+              onSearchChange={handleSearchChange}
+              placeholder="Search by course, batch, or status..."
+              className="w-full"
+            />
           </div>
-          <Span className="text-xs font-medium text-[#667085]">
-            {allocations.length} {allocations.length === 1 ? 'Course' : 'Courses'} Allocated
-          </Span>
-        </div>
 
-        {/* Telemetry KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ProgressKpi
-            label="Average Completion"
-            value={`${averagePace}%`}
-            subtext="across tracks"
-            barPercent={averagePace}
-          />
-          <ProgressKpi
-            label="Active Courses"
-            value={active.length}
-            subtext="in progress"
-            colorClass="text-[#0044D3]"
-          />
-          <ProgressKpi
-            label="Completed"
-            value={completed.length}
-            subtext={`of ${allocations.length} total`}
-            colorClass="text-emerald-600"
-          />
-          <ProgressKpi
-            label="Cadence Status"
-            value={overdue.length}
-            subtext={overdue.length === 1 ? 'course overdue' : 'courses overdue'}
-            colorClass={overdue.length > 0 ? 'text-rose-600' : 'text-[#111827]'}
-          />
-        </div>
-
-        {/* Course Breakdown Header */}
-        <div>
-          <H2 className="text-base font-bold text-[#111827]">Enrolled Course Breakdown</H2>
-          <P className="text-xs text-[#667085]">
-            Per-allocation completion telemetry, milestones, and syllabus access
-          </P>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-4">
-            <Skeleton className="h-44 w-full rounded-2xl" />
-            <Skeleton className="h-44 w-full rounded-2xl" />
-            <Skeleton className="h-44 w-full rounded-2xl" />
+          {/* 2. Admin-Styled Status Filter (MultiSelectDropdown) */}
+          <div className="w-full sm:w-48">
+            <MultiSelectDropdown
+              label="Status"
+              options={STATUS_FILTER_OPTIONS}
+              selectedValues={selectedStatuses}
+              onChange={handleStatusChange}
+              singleSelect={false}
+              align="left"
+              className="w-full"
+            />
           </div>
-        ) : isError ? (
+
+          {/* 3. Clear Filters Button */}
+          {hasActiveFilters && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+              aria-label="Clear all filters"
+              className="h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          )}
+        </div>
+
+        {/* Error Banner */}
+        {isError && (
           <div className="rounded-2xl border border-rose-200 bg-white p-6 shadow-xs">
-            <ErrorMessage error={error} onRetry={() => void refetch()} />
+            <ErrorMessage
+              error={error}
+              title="Failed to load your course progress"
+              onRetry={() => void refetch()}
+            />
           </div>
-        ) : allocations.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-8 text-center">
-            <Span className="text-3xl">📚</Span>
-            <H3 className="mt-3 text-base font-bold text-[#111827]">No Course Allocations Found</H3>
-            <P className="mt-1 max-w-sm text-xs text-[#667085]">
-              You are not currently allocated to any curriculum tracks. Your mentor or administrator
-              will assign courses shortly.
-            </P>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {allocations.map((alloc, idx) => {
-              const isCompleted = alloc.status === 'COMPLETED';
-              const isClosed = isTerminalAllocationStatus(alloc.status) && !isCompleted;
-              const isOverdue = Boolean(alloc.isOverdue) && !isCompleted && !isClosed;
-              return (
-                <div
-                  key={alloc.id ? `${alloc.id}-${idx}` : `alloc-${idx}`}
-                  className={`flex flex-col justify-between gap-6 rounded-2xl border bg-white p-6 shadow-xs transition-all hover:border-[#0044D3]/30 sm:flex-row sm:items-center ${
-                    isOverdue
-                      ? 'border-rose-200 bg-rose-50/20'
-                      : isCompleted
-                        ? 'border-emerald-200 bg-emerald-50/20'
-                        : 'border-[#E1E6EC]'
-                  }`}
-                >
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Span className="text-xs font-bold text-[#0044D3] uppercase">
-                        {alloc.batch?.name ?? 'Core Track'}
-                      </Span>
-                      <Span className="text-slate-300">•</Span>
-                      <Span className="text-xs text-[#667085]">
-                        {alloc.batch?.code ?? 'M7 Allocation'}
-                      </Span>
-                      <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
-                    </div>
-                    <H3 className="mt-2 text-lg font-bold text-[#111827]">
-                      {alloc.course?.title ?? 'Course Track'}
-                    </H3>
-                    <div className="mt-4 max-w-md">
-                      <div className="mb-1 flex items-center justify-between text-xs font-semibold">
-                        <Span className="text-[#667085]">Course Pace</Span>
-                        <Span
-                          className={
-                            isCompleted
-                              ? 'text-emerald-700'
-                              : isOverdue
-                                ? 'text-rose-600'
-                                : 'text-[#0044D3]'
-                          }
-                        >
-                          {alloc.progressPercent}%
-                        </Span>
+        )}
+
+        {/* Progress Telemetry Data Table */}
+        <TableContainer className="rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <Table className="w-full min-w-[680px] table-fixed text-left text-sm text-[#111827]">
+            <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
+              <TableRow>
+                <SortableColumnHeader<AllocationSortField>
+                  field="course"
+                  label="Course"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  tooltip="Sort by Course Name"
+                  className="w-[28%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base"
+                  buttonClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                  labelClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                />
+                <TableHead className="w-[20%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
+                  Batch
+                </TableHead>
+                <SortableColumnHeader<AllocationSortField>
+                  field="due"
+                  label="Due Date"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  tooltip="Sort by Due Date"
+                  className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base"
+                  buttonClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                  labelClassName="text-sm font-semibold text-[#667085] sm:text-base"
+                />
+                <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
+                  Progress
+                </TableHead>
+                <TableHead className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-base">
+                  Status
+                </TableHead>
+                <TableHead className="w-[6%] px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-base">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody
+              className={cn(
+                'divide-y divide-[#F2F4F7]',
+                isFetching && !isInitialLoading && 'opacity-60 transition-opacity',
+              )}
+            >
+              {isInitialLoading ? (
+                Array.from({ length: limit }).map((_, idx) => (
+                  <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
+                    <TableCell className="w-[28%] px-4 py-4">
+                      <Skeleton className="h-4 w-44 rounded-md" />
+                    </TableCell>
+                    <TableCell className="w-[20%] px-4 py-4">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-32 rounded-md" />
+                        <Skeleton className="h-3 w-20 rounded-md" />
                       </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-[#E1E6EC]">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-[#0044D3]'}`}
-                          style={{ width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%` }}
-                        />
+                    </TableCell>
+                    <TableCell className="w-[14%] px-4 py-4">
+                      <Skeleton className="h-4 w-20 rounded-md" />
+                    </TableCell>
+                    <TableCell className="w-[18%] px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-2 w-20 rounded-full" />
+                        <Skeleton className="h-3 w-8 rounded-md" />
                       </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#667085]">
-                      <Span className="text-xs">
-                        ⏱{' '}
-                        {alloc.estimatedMinutes != null
-                          ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m est.`
-                          : 'Self-paced'}
-                      </Span>
-                      <Span className="text-xs">
-                        📅 Due {new Date(alloc.dueDate).toLocaleDateString()}
-                      </Span>
-                      {alloc.completedAt && (
-                        <Span className="text-xs text-emerald-700">
-                          ✓ Finished {new Date(alloc.completedAt).toLocaleDateString()}
-                        </Span>
+                    </TableCell>
+                    <TableCell className="w-[14%] px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="w-[6%] px-4 py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <Skeleton className="h-5 w-5 rounded" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : isError ? null : allocations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-5 py-14 text-center">
+                    <div className="mx-auto max-w-sm space-y-2">
+                      <Span className="text-3xl">📚</Span>
+                      <P className="text-base font-bold text-[#111827]">
+                        No Enrolled Courses Found
+                      </P>
+                      <P className="text-xs text-[#667085]">
+                        {hasActiveFilters
+                          ? 'No course allocations match your current search and filter parameters.'
+                          : 'You are not currently allocated to any curriculum tracks. Your mentor will assign courses shortly.'}
+                      </P>
+                      {hasActiveFilters && (
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleClearFilters}
+                          >
+                            Clear Filters
+                          </Button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
-                    <Link
-                      href={`/mentee/courses/${alloc.id}`}
-                      className={getButtonClassName(isCompleted ? 'outline' : 'primary', 'sm')}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                allocations.map((alloc) => {
+                  const isCompleted = alloc.status === CourseAllocationStatus.COMPLETED;
+                  const isClosed = isTerminalAllocationStatus(alloc.status) && !isCompleted;
+                  const isOverdue = Boolean(alloc.isOverdue) && !isCompleted && !isClosed;
+                  const progress = Number.isFinite(alloc.progressPercent)
+                    ? alloc.progressPercent
+                    : 0;
+
+                  return (
+                    <TableRow
+                      key={alloc.id}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Open syllabus for ${alloc.course?.title ?? 'course'}`}
+                      onClick={() => router.push(`/mentee/courses/${alloc.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          router.push(`/mentee/courses/${alloc.id}`);
+                        }
+                      }}
+                      className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-100/80 focus-visible:outline-none"
                     >
-                      {isCompleted
-                        ? 'Review Syllabus →'
-                        : isClosed
-                          ? 'View Syllabus →'
-                          : 'Continue Learning →'}
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
+                      {/* 1. Course Name (truncated with full name on hover) */}
+                      <TableCell className="w-[28%] px-4 py-4 align-middle">
+                        <P
+                          title={alloc.course?.title ?? 'Untitled Course'}
+                          className="truncate text-base font-semibold text-[#111827]"
+                        >
+                          {alloc.course?.title ?? 'Untitled Course'}
+                        </P>
+                      </TableCell>
+
+                      {/* 2. Batch Cohort & Code */}
+                      <TableCell className="w-[20%] px-4 py-4 align-middle">
+                        <div className="space-y-0.5">
+                          <Span
+                            title={alloc.batch?.name ?? 'Individual Allocation'}
+                            className="block truncate text-sm font-semibold text-[#111827]"
+                          >
+                            {alloc.batch?.name ?? 'Individual Allocation'}
+                          </Span>
+                          <Span
+                            title={alloc.batch?.code ?? 'Core Track'}
+                            className="block truncate text-xs text-[#667085]"
+                          >
+                            {alloc.batch?.code ?? 'Core Track'}
+                          </Span>
+                        </div>
+                      </TableCell>
+
+                      {/* 3. Due Date */}
+                      <TableCell className="w-[14%] px-4 py-4 align-middle">
+                        <Span className="block text-sm font-medium text-[#111827]">
+                          {formatDateDDMMYY(alloc.dueDate)}
+                        </Span>
+                      </TableCell>
+
+                      {/* 4. Progress Bar & Percentage */}
+                      <TableCell className="w-[18%] px-4 py-4 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-2 w-20 overflow-hidden rounded-full bg-[#E1E6EC]">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isCompleted
+                                  ? 'bg-emerald-500'
+                                  : isOverdue
+                                    ? 'bg-rose-500'
+                                    : 'bg-[#0044D3]'
+                              }`}
+                              style={{
+                                width: `${Math.min(100, Math.max(0, progress))}%`,
+                              }}
+                            />
+                          </div>
+                          <Span
+                            className={`text-xs font-bold ${
+                              isCompleted
+                                ? 'text-emerald-700'
+                                : isOverdue
+                                  ? 'text-rose-600'
+                                  : 'text-[#0044D3]'
+                            }`}
+                          >
+                            {progress}%
+                          </Span>
+                        </div>
+                      </TableCell>
+
+                      {/* 5. Status Badge */}
+                      <TableCell className="w-[14%] px-4 py-4 align-middle">
+                        <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
+                      </TableCell>
+
+                      {/* 6. Action: Three Dots Link */}
+                      <TableCell className="w-[6%] px-4 py-4 text-center align-middle">
+                        <div className="flex items-center justify-center">
+                          <Link
+                            href={`/mentee/courses/${alloc.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            title={
+                              isCompleted
+                                ? 'Review Syllabus'
+                                : isClosed
+                                  ? 'View Syllabus'
+                                  : 'Continue Learning'
+                            }
+                            aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
+                          >
+                            <svg
+                              className="h-5 w-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              aria-hidden="true"
+                            >
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* 4. Pagination Controls (10 items / page default) */}
+        {pagination.total > 0 && (
+          <div className="mt-4">
+            <PaginationControls
+              page={pagination.page}
+              limit={pagination.limit}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              onPageChange={(newPage) => setPage(newPage)}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
+              itemLabel="courses"
+              pageSizeOptions={[10, 20, 50]}
+              isLoading={isInitialLoading}
+            />
           </div>
         )}
       </DashboardContent>
