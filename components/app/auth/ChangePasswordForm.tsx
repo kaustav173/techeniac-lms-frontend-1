@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { changePasswordSchema, extractZodErrors } from '@/lib/validation';
 
@@ -17,6 +18,7 @@ import { PasswordVisibilityToggle } from './PasswordVisibilityToggle';
 
 export function ChangePasswordForm() {
   const { changePassword, refreshUser } = useAuth();
+  const { toastSuccess, toastError } = useToast();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,11 +49,13 @@ export function ChangePasswordForm() {
     try {
       await changePassword(currentPassword, newPassword);
       await refreshUser();
+      toastSuccess('Password updated successfully.', 'Password Changed');
       setIsSuccess(true);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update password. Please try again.';
       setErrors({ general: message });
+      toastError(message, 'Password Update Failed');
     } finally {
       setIsSubmitting(false);
     }

@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/Label';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
@@ -93,6 +94,7 @@ export interface ProfileViewProps {
 
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const { changePassword, updateProfile, refreshUser } = useAuth();
+  const { toastSuccess, toastError } = useToast();
 
   const [isEditingName, setIsEditingName] = useState(false);
 
@@ -181,11 +183,13 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     try {
       await updateProfile(result.data.name);
       setProfileSuccessMessage('Profile name updated successfully.');
+      toastSuccess('Profile name updated successfully.', 'Profile Updated');
       setIsEditingName(false);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
       setProfileErrors({ general: message });
+      toastError(message, 'Update Failed');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -214,6 +218,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       const msg = await changePassword(currentPassword, newPassword);
       await refreshUser();
       setSuccessMessage(msg || 'Password updated successfully.');
+      toastSuccess(msg || 'Password updated successfully.', 'Password Changed');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -231,6 +236,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       } else {
         setErrors({ general: message });
       }
+      toastError(message, 'Password Update Failed');
     } finally {
       setIsSubmitting(false);
     }

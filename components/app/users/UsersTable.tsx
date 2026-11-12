@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { DEFAULT_PAGE_SIZE_OPTIONS } from '@/components/app/batches/batchStatus';
 import { BulkImportModal, type CsvUserRowWithLine } from '@/components/app/users/BulkImportModal';
@@ -79,27 +80,53 @@ export function UsersTable() {
   const [sortField, setSortField] = useState<UserSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Action Menu state
-  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  // Floating Action Menu state
+  interface ActionMenuState {
+    id: string;
+    user: UserItem;
+    isPending: boolean;
+    isSelf: boolean;
+    isBlockedAdmin: boolean;
+    isDeactivateDisabled: boolean;
+    deactivateTooltip?: string | undefined;
+    coords: {
+      top: number;
+      right: number;
+      placement: 'top' | 'bottom';
+    };
+  }
+
+  const [activeMenuState, setActiveMenuState] = useState<ActionMenuState | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!openActionMenuId) return;
+    if (!activeMenuState) return;
     const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(`[data-action-trigger="${activeMenuState.id}"]`)) {
+        return;
+      }
       if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
-        setOpenActionMenuId(null);
+        setActiveMenuState(null);
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenActionMenuId(null);
+      if (e.key === 'Escape') setActiveMenuState(null);
+    };
+    const handleDismiss = () => {
+      setActiveMenuState(null);
     };
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleDismiss, true);
+    window.addEventListener('resize', handleDismiss);
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleDismiss, true);
+      window.removeEventListener('resize', handleDismiss);
     };
-  }, [openActionMenuId]);
+  }, [activeMenuState]);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -241,10 +268,10 @@ export function UsersTable() {
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
       const newUser = await createUser(data);
-      toastSuccess(`User ${newUser.name} created successfully.`);
+      toastSuccess(`User ${newUser.name} created successfully.`, 'User Created');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create user';
-      toastError(msg);
+      toastError(msg, 'Creation Failed');
       throw err;
     }
   };
@@ -252,10 +279,10 @@ export function UsersTable() {
   const handleRoleChangeSuccess = async (userId: string, data: ChangeRoleFormData) => {
     try {
       await changeRole(userId, data);
-      toastSuccess(`Role updated to ${data.newRole}.`);
+      toastSuccess(`Role updated to ${data.newRole}.`, 'Role Updated');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update role';
-      toastError(msg);
+      toastError(msg, 'Update Failed');
       throw err;
     }
   };
@@ -263,10 +290,10 @@ export function UsersTable() {
   const handleEditUserSuccess = async (userId: string, data: { name: string; email: string }) => {
     try {
       await updateUser(userId, data);
-      toastSuccess(`User ${data.name} updated successfully.`);
+      toastSuccess(`User ${data.name} updated successfully.`, 'User Updated');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update user';
-      toastError(msg);
+      toastError(msg, 'Update Failed');
       throw err;
     }
   };
@@ -276,10 +303,10 @@ export function UsersTable() {
     setInFlightAction((prev) => ({ ...prev, [userId]: 'resend' }));
     try {
       const res = await resendInvite(userId);
-      toastSuccess(res.message);
+      toastSuccess(res.message, 'Invite Sent');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : `Failed to resend invite to ${userName}`;
-      toastError(msg);
+      toastError(msg, 'Invite Failed');
     } finally {
       setInFlightAction((prev) => {
         const next = { ...prev };
@@ -295,10 +322,14 @@ export function UsersTable() {
   ) => {
     const result = await createUsersBulk(rows, onProgress);
     if (result.failures.length === 0) {
-      toastSuccess(`Bulk import complete: ${result.successCount} user(s) created.`);
+      toastSuccess(
+        `Bulk import complete: ${result.successCount} user(s) created.`,
+        'Import Completed',
+      );
     } else {
       toastError(
         `Bulk import finished: ${result.successCount} created, ${result.failures.length} failed.`,
+        'Import Failed',
       );
     }
     return result;
@@ -308,21 +339,27 @@ export function UsersTable() {
     const nextActivate = user.status !== 'ACTIVE';
     if (!nextActivate) {
       if (currentUser && user.id === currentUser.id) {
-        toastError('You cannot deactivate your own administrative account.');
+        toastError('You cannot deactivate your own administrative account.', 'Action Not Allowed');
         return;
       }
       if (user.isLastSuperAdmin) {
-        toastError('Cannot deactivate the last active Super Admin on the platform.');
+        toastError(
+          'Cannot deactivate the last active Super Admin on the platform.',
+          'Action Not Allowed',
+        );
         return;
       }
     }
     setInFlightAction((prev) => ({ ...prev, [user.id]: 'status' }));
     try {
       await toggleStatus(user.id, nextActivate);
-      toastSuccess(`User ${user.name} ${nextActivate ? 'activated' : 'deactivated'} successfully.`);
+      toastSuccess(
+        `User ${user.name} ${nextActivate ? 'activated' : 'deactivated'} successfully.`,
+        'Status Updated',
+      );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to toggle status';
-      toastError(msg);
+      toastError(msg, 'Status Update Failed');
     } finally {
       setInFlightAction((prev) => {
         const next = { ...prev };
@@ -461,33 +498,19 @@ export function UsersTable() {
                 tooltip="Sort all users by Email"
                 className="w-[32%]"
               />
-              <SortableColumnHeader<UserSortField>
-                field="role"
-                label="Role"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Role"
-                className="w-[14%]"
-              />
-              <SortableColumnHeader<UserSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all users by Status"
-                className="w-[12%] text-center"
-              />
+              <TableHead className="w-[14%] font-semibold text-slate-700">Role</TableHead>
+              <TableHead className="w-[12%] text-center font-semibold text-slate-700">
+                Status
+              </TableHead>
               <TableHead className="w-[10%] text-center font-semibold text-slate-700">
-                Action
+                Actions
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isTableLoading ? (
               // Loading Skeleton Rows - calibrated to exact data row dimensions
-              Array.from({ length: limit }).map((_, i) => (
+              Array.from({ length: 10 }).map((_, i) => (
                 <TableRow key={`loading-skel-${i}`} className="h-14">
                   <TableCell className="w-[32%]">
                     <Skeleton className="h-4 w-40 rounded-md" />
@@ -557,12 +580,11 @@ export function UsersTable() {
               </TableRow>
             ) : (
               displayedUsers.map((u, idx) => {
-                const isActionMenuOpen = openActionMenuId === u.id;
+                const isActionMenuOpen = activeMenuState?.id === u.id;
                 const isSelf = currentUser?.id === u.id;
                 const isBlockedAdmin = Boolean(u.isLastSuperAdmin && u.status === 'ACTIVE');
                 const isDeactivateDisabled = (isSelf || isBlockedAdmin) && u.status === 'ACTIVE';
-                const isRowPending = Boolean(inFlightAction[u.id]);
-                const isPending = Boolean(u.mustChangePassword || !u.hasLoggedIn);
+                const isPending = Boolean(u.mustChangePassword && u.status === 'ACTIVE');
                 const deactivateTooltip = isSelf
                   ? 'Cannot deactivate your own account'
                   : isBlockedAdmin
@@ -660,201 +682,49 @@ export function UsersTable() {
                     </TableCell>
 
                     {/* Actions Column with Three-Dots Menu */}
-                    <TableCell
-                      className={cn('w-[10%] text-center', isActionMenuOpen && 'relative z-30')}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div
-                        data-action-menu
-                        className={cn(
-                          'relative inline-block text-left',
-                          isActionMenuOpen && 'z-40',
-                        )}
-                        ref={isActionMenuOpen ? actionMenuRef : undefined}
-                      >
+                    <TableCell className="w-[10%] text-center" onClick={(e) => e.stopPropagation()}>
+                      <div className="inline-block text-left">
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
+                          data-action-trigger={u.id}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenActionMenuId(isActionMenuOpen ? null : u.id);
+                            if (activeMenuState?.id === u.id) {
+                              setActiveMenuState(null);
+                              return;
+                            }
+                            const btn = e.currentTarget;
+                            const rect = btn.getBoundingClientRect();
+                            const menuHeight = 220;
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const placement = spaceBelow < menuHeight + 20 ? 'top' : 'bottom';
+                            const top = placement === 'bottom' ? rect.bottom + 6 : rect.top - 6;
+                            const right = Math.max(8, window.innerWidth - rect.right);
+                            setActiveMenuState({
+                              id: u.id,
+                              user: u,
+                              isPending,
+                              isSelf,
+                              isBlockedAdmin,
+                              isDeactivateDisabled,
+                              deactivateTooltip,
+                              coords: { top, right, placement },
+                            });
                           }}
                           title="User actions"
                           aria-label={`Actions for ${u.name}`}
-                          className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className={`h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900 ${
+                            activeMenuState?.id === u.id
+                              ? 'bg-slate-100 text-slate-900 ring-2 ring-[#0044D3]'
+                              : ''
+                          }`}
                         >
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                           </svg>
                         </Button>
-
-                        {isActionMenuOpen && (
-                          <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-48 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenActionMenuId(null);
-                                setUserToEdit(u);
-                              }}
-                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-                            >
-                              <svg
-                                className="h-3.5 w-3.5 text-slate-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-                                />
-                              </svg>
-                              <Span>Edit Details</Span>
-                            </Button>
-
-                            {isPending ? (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                disabled={inFlightAction[u.id] === 'resend'}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenActionMenuId(null);
-                                  void handleResendInvite(u.id, u.name);
-                                }}
-                                className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
-                              >
-                                <Span className="flex items-center gap-2">
-                                  <svg
-                                    className="h-3.5 w-3.5 text-amber-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                    />
-                                  </svg>
-                                  <Span>
-                                    {inFlightAction[u.id] === 'resend'
-                                      ? 'Sending...'
-                                      : 'Send Invite'}
-                                  </Span>
-                                </Span>
-                                <Span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
-                                  Pending
-                                </Span>
-                              </Button>
-                            ) : null}
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={isSelf || Boolean(u.isLastSuperAdmin)}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenActionMenuId(null);
-                                setUserToChangeRole({
-                                  id: u.id,
-                                  name: u.name,
-                                  email: u.email,
-                                  role: u.role,
-                                  currentRole: u.role,
-                                });
-                              }}
-                              title={
-                                isSelf
-                                  ? 'Cannot change your own role'
-                                  : u.isLastSuperAdmin
-                                    ? 'Cannot change role of last Super Admin'
-                                    : undefined
-                              }
-                              className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <svg
-                                className="h-3.5 w-3.5 text-slate-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                              </svg>
-                              <Span>Change Role</Span>
-                            </Button>
-
-                            <div className="my-1 border-t border-slate-100" />
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              disabled={isDeactivateDisabled || isRowPending}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenActionMenuId(null);
-                                void handleToggleStatus(u);
-                              }}
-                              title={deactivateTooltip}
-                              className={`flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                                u.status === 'ACTIVE'
-                                  ? 'text-red-600 hover:bg-red-50'
-                                  : 'text-emerald-700 hover:bg-emerald-50'
-                              }`}
-                            >
-                              {u.status === 'ACTIVE' ? (
-                                <>
-                                  <svg
-                                    className="h-3.5 w-3.5 text-red-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                                    />
-                                  </svg>
-                                  <Span>Deactivate User</Span>
-                                </>
-                              ) : (
-                                <>
-                                  <svg
-                                    className="h-3.5 w-3.5 text-emerald-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                  <Span>Activate User</Span>
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -910,6 +780,195 @@ export function UsersTable() {
         onClose={() => setIsBulkImportOpen(false)}
         onImport={handleBulkImport}
       />
+
+      {activeMenuState && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              ref={actionMenuRef}
+              data-action-menu
+              style={{
+                position: 'fixed',
+                ...(activeMenuState.coords.placement === 'bottom'
+                  ? { top: `${activeMenuState.coords.top}px` }
+                  : { bottom: `${window.innerHeight - activeMenuState.coords.top}px` }),
+                right: `${activeMenuState.coords.right}px`,
+                zIndex: 9999,
+              }}
+              className="animate-in fade-in zoom-in-95 w-52 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-2xl"
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const targetUser = activeMenuState.user;
+                  setActiveMenuState(null);
+                  setUserToEdit(targetUser);
+                }}
+                className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+              >
+                <svg
+                  className="h-4 w-4 text-slate-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                  />
+                </svg>
+                <Span>Edit Details</Span>
+              </Button>
+
+              {activeMenuState.isPending ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={inFlightAction[activeMenuState.user.id] === 'resend'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const { id, name } = activeMenuState.user;
+                    setActiveMenuState(null);
+                    void handleResendInvite(id, name);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
+                >
+                  <Span className="flex items-center gap-2">
+                    <svg
+                      className="h-4 w-4 text-amber-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <Span>
+                      {inFlightAction[activeMenuState.user.id] === 'resend'
+                        ? 'Sending...'
+                        : 'Send Invite'}
+                    </Span>
+                  </Span>
+                  <Span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                    Pending
+                  </Span>
+                </Button>
+              ) : null}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={activeMenuState.isSelf || Boolean(activeMenuState.user.isLastSuperAdmin)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const targetUser = activeMenuState.user;
+                  setActiveMenuState(null);
+                  setUserToChangeRole({
+                    id: targetUser.id,
+                    name: targetUser.name,
+                    email: targetUser.email,
+                    role: targetUser.role,
+                    currentRole: targetUser.role,
+                  });
+                }}
+                title={
+                  activeMenuState.isSelf
+                    ? 'Cannot change your own role'
+                    : activeMenuState.user.isLastSuperAdmin
+                      ? 'Cannot change role of last Super Admin'
+                      : undefined
+                }
+                className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <svg
+                  className="h-4 w-4 text-slate-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <Span>Change Role</Span>
+              </Button>
+
+              <div className="my-1 border-t border-slate-100" />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={
+                  activeMenuState.isDeactivateDisabled ||
+                  Boolean(inFlightAction[activeMenuState.user.id])
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const targetUser = activeMenuState.user;
+                  setActiveMenuState(null);
+                  void handleToggleStatus(targetUser);
+                }}
+                title={activeMenuState.deactivateTooltip}
+                className={`flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  activeMenuState.user.status === 'ACTIVE'
+                    ? 'text-red-600 hover:bg-red-50'
+                    : 'text-emerald-700 hover:bg-emerald-50'
+                }`}
+              >
+                {activeMenuState.user.status === 'ACTIVE' ? (
+                  <>
+                    <svg
+                      className="h-4 w-4 text-red-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                      />
+                    </svg>
+                    <Span>Deactivate User</Span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="h-4 w-4 text-emerald-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <Span>Activate User</Span>
+                  </>
+                )}
+              </Button>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

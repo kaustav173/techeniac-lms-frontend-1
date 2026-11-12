@@ -18,7 +18,7 @@ export default function MenteePerformancePage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_PERFORMANCE_NAV} />
-      <DashboardContent>
+      <DashboardContent className="animate-slide-up space-y-6">
         <div className="mb-6">
           <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
             My Grades & Performance

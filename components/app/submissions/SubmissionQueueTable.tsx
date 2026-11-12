@@ -523,13 +523,13 @@ export function SubmissionQueueTable() {
                   <Span className="text-sm font-semibold text-[#667085]">Status & Score</Span>
                 </th>
                 <th className="px-6 py-3.5 text-right text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Action</Span>
+                  <Span className="text-sm font-semibold text-[#667085]">Actions</Span>
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isInitialLoading &&
-                Array.from({ length: 6 }).map((_, idx) => (
+                Array.from({ length: 10 }).map((_, idx) => (
                   <TableRow key={`queue-skel-${idx}`} className="h-16">
                     <TableCell className="px-6 py-4">
                       <div className="space-y-1.5">
@@ -696,7 +696,7 @@ export function SubmissionQueueTable() {
                                 <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
                                 {sub.marks !== null && (
                                   <Span className="text-xs font-bold text-slate-800">
-                                    {sub.marks}/{sub.maxMarks} ({sub.gradeLabel})
+                                    {sub.marks}/{sub.maxMarks}
                                   </Span>
                                 )}
                               </div>

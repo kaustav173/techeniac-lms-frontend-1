@@ -20,7 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
-import { H1, H2, H3, P, Small, Span } from '@/components/ui/Typography';
+import { H1, H2, P, Small, Span } from '@/components/ui/Typography';
+import { useToast } from '@/hooks/useToast';
 import { useUser360 } from '@/hooks/useUser360';
 import { cn } from '@/lib/cn';
 import { formatDateIST, formatDateTimeIST } from '@/lib/date';
@@ -60,7 +61,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'batch-history', label: 'Batch History' },
   { key: 'mentor-mapping-history', label: 'Mentor Mapping History' },
   { key: 'course-history', label: 'Course History' },
-  { key: 'assignment-grade-history', label: 'Assignment & Grade History' },
+  { key: 'assignment-grade-history', label: 'Assignment & Score History' },
   { key: 'performance-summary', label: 'Performance Summary' },
   { key: 'audit', label: 'Audit Log' },
 ];
@@ -141,13 +142,15 @@ export function User360Shell({ userId }: User360ShellProps) {
     userId,
     filters,
   );
+  const { toastSuccess, toastError } = useToast();
 
   const handleExportCsv = async () => {
     try {
       setIsExporting(true);
       await downloadCsv();
-    } catch {
-      alert('Failed to download CSV');
+      toastSuccess('User 360 report downloaded successfully.', 'Export Complete');
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : 'Failed to download CSV', 'Export Failed');
     } finally {
       setIsExporting(false);
     }
@@ -709,7 +712,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                       <TableHead>Assignment</TableHead>
                       <TableHead>Version</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Marks & Grade</TableHead>
+                      <TableHead>Marks</TableHead>
                       <TableHead>Graded By</TableHead>
                       <TableHead>Feedback</TableHead>
                       <TableHead>Period Context</TableHead>
@@ -734,7 +737,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                           </Span>
                         </TableCell>
                         <TableCell className="font-medium text-slate-900">
-                          {s.marks !== null ? `${s.marks} (${s.gradeLabel ?? 'N/A'})` : EM_DASH}
+                          {s.marks !== null ? `${s.marks}` : EM_DASH}
                         </TableCell>
                         <TableCell className="text-slate-600">{s.graderName ?? EM_DASH}</TableCell>
                         <TableCell
@@ -793,28 +796,6 @@ export function User360Shell({ userId }: User360ShellProps) {
                 <Small className="text-[11px] text-slate-500">
                   {tabs.performanceSummary.onTimeRatePercent.toFixed(0)}% on-time
                 </Small>
-              </div>
-            </div>
-
-            {/* Grade Distribution */}
-            <div>
-              <H3 className="text-sm font-semibold text-slate-800">Grade Distribution</H3>
-              <div className="mt-2 flex flex-wrap gap-3">
-                {Object.keys(tabs.performanceSummary.gradeDistribution).length === 0 ? (
-                  <P className="text-xs text-slate-500">No grades recorded.</P>
-                ) : (
-                  Object.entries(tabs.performanceSummary.gradeDistribution).map(
-                    ([grade, count]) => (
-                      <div
-                        key={grade}
-                        className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3.5 py-2 text-xs shadow-xs"
-                      >
-                        <Span className="font-bold text-slate-900">Grade {grade}:</Span>
-                        <Span className="font-semibold text-blue-600">{count}</Span>
-                      </div>
-                    ),
-                  )
-                )}
               </div>
             </div>
           </div>

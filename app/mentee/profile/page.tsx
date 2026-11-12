@@ -24,8 +24,8 @@ export default function MenteeProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
-      <Header {...MENTEE_PROFILE_NAV} />
-      <DashboardContent>
+      <Header {...MENTEE_PROFILE_NAV} title="Profile" />
+      <DashboardContent className="animate-slide-up">
         <ProfileView user={user} />
       </DashboardContent>
     </div>

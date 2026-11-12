@@ -25,6 +25,8 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly onScrollEnd?: (() => void) | undefined;
   readonly onSearch?: ((query: string) => void) | undefined;
   readonly isSearching?: boolean | undefined;
+  readonly buttonClassName?: string | undefined;
+  readonly menuClassName?: string | undefined;
 }
 
 export function MultiSelectDropdown<T extends string = string>({
@@ -39,6 +41,8 @@ export function MultiSelectDropdown<T extends string = string>({
   onScrollEnd,
   onSearch,
   isSearching = false,
+  buttonClassName,
+  menuClassName,
 }: Readonly<MultiSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -168,8 +172,9 @@ export function MultiSelectDropdown<T extends string = string>({
         }}
         className={cn(
           'flex h-11 w-full max-w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#E1E6EC] bg-white px-3.5 text-left text-sm font-semibold text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50/70 focus:outline-none',
-          selectedValues.length > 0 && 'border-blue-300 bg-blue-50/40 text-[#0044D3]',
+          selectedValues.length > 0 && 'border-blue-300 bg-white text-[#0044D3]',
           isOpen && 'border-[#0044D3] ring-2 ring-[#0044D3]/15',
+          buttonClassName,
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
@@ -204,6 +209,7 @@ export function MultiSelectDropdown<T extends string = string>({
           className={cn(
             'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 max-w-[calc(100vw-2rem)] min-w-full rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-xl duration-100 sm:max-w-md sm:min-w-[280px]',
             align === 'left' ? 'left-0' : 'right-0',
+            menuClassName,
           )}
         >
           {/* Header Row: Optional Title & Optional Clear */}

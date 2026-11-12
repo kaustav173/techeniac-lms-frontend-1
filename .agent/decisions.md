@@ -247,3 +247,25 @@
     - Mentor $\rightarrow$ `['SUPER_ADMIN']` only.
     - Super Admin $\rightarrow$ `[]` (selection and submit disabled).
   - In `UsersTable`, the "Change Role" button is disabled for `SUPER_ADMIN` rows with tooltip `"Super Admin role cannot be changed"`.
+
+---
+
+## ADR-014: Elimination of Letter Grades across LMS Portals
+
+- **Date**: 2026-11-12
+- **Status**: Accepted
+- **Context**: The frontend previously maintained letter grade filters (`gradeRange`), grade distribution charts, and letter grade columns (`gradeLabel`) alongside numeric score tracking. This produced UI clutter, arbitrary threshold assumptions, and inconsistent reporting across mentee, mentor, and admin portals.
+- **Options**:
+  1. Continue displaying letter grade conversions ("A+", "A", "B", etc.) alongside raw marks.
+  2. Eliminate all letter grade displays, charts, filters, and sort options across the frontend in favor of pure numeric scores and percentage metrics (`marks`, `averageMarks`, `completionPercentage`, `onTimeRate`).
+- **Choice**: Option 2 (Pure quantitative scoring).
+- **Reasons**:
+  - **Single Source of Truth**: Aligns with backend ADR-021. Eliminates contradictory letter grade scales that did not accurately reflect raw mark percentages.
+  - **Streamlined User Experience**: Replaced confusing grade distribution charts with clear score summaries and percentages across student learning history and assignment review modals.
+  - **Portal Dropdown Alignment**: Dropdown overlays and tables now focus strictly on marks, progress, and completion status.
+- **Consequences**:
+  - `GradeDistributionBucket` and `gradeDistribution` metrics are removed from `services/performance.service.ts`.
+  - `LearningHistoryView` displays "Average Score" and removes the redundant "Grade" column.
+  - `User360Shell` renames tab to "Assignment & Score History" and removes letter grade distribution cards.
+  - `SubmissionReviewModal` computes and displays numeric "Percentage" rather than calculating arbitrary letter grades.
+  - `SingleSelectDropdown` is upgraded to render menus via `createPortal(..., document.body)` with collision detection and fixed floating coordinates, preventing dropdown cutoff in modals.

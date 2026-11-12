@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { P, Span } from '@/components/ui/Typography';
 import { useMapMenteesMutation, useReassignMenteeMutation } from '@/hooks/useBatches';
+import { useToast } from '@/hooks/useToast';
 import { formatErrorMessage } from '@/lib/errors';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
@@ -127,6 +128,7 @@ export function MapMenteeModal({
 
   const { mutateAsync: mapMentees, isPending: isMapping } = useMapMenteesMutation();
   const { mutateAsync: reassignMentee, isPending: isReassigning } = useReassignMenteeMutation();
+  const { toastSuccess, toastError } = useToast();
   const isSubmitting = isMapping || isReassigning;
 
   if (!isOpen) return null;
@@ -164,6 +166,7 @@ export function MapMenteeModal({
           newMentorId: selectedMentorId,
           reason: reason.trim(),
         });
+        toastSuccess(`Mentee ${targetMentee.name} reassigned to mentor.`, 'Mentor Reassigned');
       } else {
         const menteeIds = targetMentee ? [targetMentee.id] : selectedMenteeIds;
         if (menteeIds.length === 0) {
@@ -175,12 +178,18 @@ export function MapMenteeModal({
           mentorId: selectedMentorId,
           menteeIds,
         });
+        toastSuccess(
+          `${menteeIds.length} mentee${menteeIds.length === 1 ? '' : 's'} assigned to mentor.`,
+          'Mentor Assigned',
+        );
       }
 
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      setError(formatErrorMessage(err, 'Failed to update mentor mapping.'));
+      const msg = formatErrorMessage(err, 'Failed to update mentor mapping.');
+      setError(msg);
+      toastError(msg, 'Mapping Failed');
     }
   };
 

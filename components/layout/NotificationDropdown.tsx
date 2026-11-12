@@ -219,9 +219,6 @@ export function NotificationDropdown() {
                   </svg>
                 </div>
                 <P className="mt-2 text-xs font-bold text-slate-800">No notifications yet</P>
-                <P className="mt-0.5 text-[11px] text-slate-500">
-                  System alerts and action updates will appear here.
-                </P>
               </div>
             ) : (
               notifications.map((item) => {

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useResetTokenVerification } from '@/hooks/useResetTokenVerification';
+import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { extractZodErrors, resetPasswordSchema } from '@/lib/validation';
 
@@ -44,6 +45,7 @@ export function ResetPasswordForm() {
   const token = searchParams.get('token');
   const { resetPassword } = useAuth();
   const { status, isVerifying } = useResetTokenVerification(token);
+  const { toastSuccess, toastError } = useToast();
 
   const [submissionState, setSubmissionState] = useState<'done' | 'invalid' | null>(null);
   const [password, setPassword] = useState('');
@@ -77,11 +79,13 @@ export function ResetPasswordForm() {
     setIsSubmitting(true);
     try {
       await resetPassword(tokenVal, password);
+      toastSuccess('Password reset successfully. You can now log in.', 'Password Reset');
       setSubmissionState('done');
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to reset password. Please try again.';
       setErrors({ general: message });
+      toastError(message, 'Reset Failed');
       if (err instanceof ApiError && err.status === 401) {
         setSubmissionState('invalid');
       }

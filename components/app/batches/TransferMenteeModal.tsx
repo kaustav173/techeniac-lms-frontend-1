@@ -211,7 +211,7 @@ export function TransferMenteeModal({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             maxLength={500}
-            placeholder="e.g. Schedule realignment or curriculum track adjustment..."
+            placeholder="e.g. Schedule realignment or course track adjustment..."
             className="resize-none text-xs"
           />
         </div>

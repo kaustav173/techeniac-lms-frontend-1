@@ -336,31 +336,46 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                 </P>
               </div>
 
-              <div className="max-h-52 overflow-hidden overflow-y-auto rounded-2xl border border-red-200">
-                <Table className="w-full text-xs">
-                  <TableHeader className="sticky top-0 bg-red-100/70 text-red-900">
+              <div className="max-h-60 overflow-x-auto overflow-y-auto rounded-2xl border border-red-200">
+                <Table className="w-full min-w-[620px] text-xs">
+                  <TableHeader className="sticky top-0 bg-red-100/90 text-red-900 shadow-xs">
                     <TableRow>
-                      <TableHead className="p-2.5 text-xs">Line</TableHead>
-                      <TableHead className="p-2.5 text-xs">Name</TableHead>
-                      <TableHead className="p-2.5 text-xs">Email</TableHead>
-                      <TableHead className="p-2.5 text-xs">Role</TableHead>
-                      <TableHead className="p-2.5 text-xs">Failure Reason</TableHead>
+                      <TableHead className="w-16 p-2.5 text-xs font-semibold whitespace-nowrap">
+                        Line
+                      </TableHead>
+                      <TableHead className="w-32 p-2.5 text-xs font-semibold whitespace-nowrap">
+                        Name
+                      </TableHead>
+                      <TableHead className="w-48 p-2.5 text-xs font-semibold whitespace-nowrap">
+                        Email
+                      </TableHead>
+                      <TableHead className="w-24 p-2.5 text-xs font-semibold whitespace-nowrap">
+                        Role
+                      </TableHead>
+                      <TableHead className="min-w-[200px] p-2.5 text-xs font-semibold">
+                        Failure Reason
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-red-100 bg-white">
                     {importResult.failures.map((f, idx) => (
-                      <TableRow key={`${f.row.email}-${idx}`} className="bg-red-50/30">
-                        <TableCell className="p-2.5 text-xs text-slate-500">
+                      <TableRow
+                        key={`${f.row.email}-${idx}`}
+                        className="bg-red-50/30 hover:bg-red-50/60"
+                      >
+                        <TableCell className="w-16 p-2.5 text-xs whitespace-nowrap text-slate-500">
                           {f.row.rowNumber ? `Line ${f.row.rowNumber}` : `—`}
                         </TableCell>
-                        <TableCell className="p-2.5 text-xs font-medium text-slate-900">
+                        <TableCell className="w-32 p-2.5 text-xs font-medium whitespace-nowrap text-slate-900">
                           {f.row.name}
                         </TableCell>
-                        <TableCell className="p-2.5 text-xs text-slate-600">
+                        <TableCell className="w-48 p-2.5 text-xs break-all text-slate-600">
                           {f.row.email}
                         </TableCell>
-                        <TableCell className="p-2.5 text-xs text-slate-700">{f.row.role}</TableCell>
-                        <TableCell className="p-2.5 text-xs font-medium text-red-600">
+                        <TableCell className="w-24 p-2.5 text-xs whitespace-nowrap text-slate-700">
+                          {f.row.role}
+                        </TableCell>
+                        <TableCell className="min-w-[200px] p-2.5 text-xs leading-relaxed font-medium break-words text-red-600">
                           {f.error}
                         </TableCell>
                       </TableRow>
@@ -426,7 +441,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
               <P className="text-xs font-semibold text-slate-800">
                 Need the correct column format?
               </P>
-              <P className="text-[11px] text-slate-500">
+              <P className="text-xs text-slate-600">
                 Download the pre-formatted CSV template with sample users
               </P>
             </div>

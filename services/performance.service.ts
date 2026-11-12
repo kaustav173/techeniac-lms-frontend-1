@@ -1,13 +1,7 @@
 import { apiBlobClient, apiClient, type RequestOptions } from './api.client';
 
-export interface GradeDistributionBucket {
-  readonly count: number;
-  readonly percentage: number;
-}
-
 export interface PerformanceOverviewMetrics {
   readonly averageMarks: number;
-  readonly gradeDistribution: Record<'A+' | 'A' | 'B' | 'C' | 'D' | 'F', GradeDistributionBucket>;
   readonly onTimeRate: number;
   readonly completionPercentage: number;
   readonly overdueCount: number;
@@ -29,7 +23,6 @@ export interface MenteePerformanceRow {
   readonly onTimeSubmissions: number;
   readonly onTimeRate: number;
   readonly overdueCount: number;
-  readonly latestGrade: string | null;
 }
 
 export interface PaginatedPerformanceData {
@@ -44,13 +37,12 @@ export interface PaginatedPerformanceData {
 }
 
 export interface PerformanceFilterParams {
-  readonly batchId?: string | undefined;
+  readonly batchId?: string | string[] | undefined;
   readonly mentorId?: string | undefined;
-  readonly courseId?: string | undefined;
+  readonly courseId?: string | string[] | undefined;
   readonly startDate?: string | undefined;
   readonly endDate?: string | undefined;
-  readonly gradeRange?: string | undefined;
-  readonly status?: string | undefined;
+  readonly status?: string | string[] | undefined;
   readonly search?: string | undefined;
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
@@ -63,7 +55,6 @@ export interface PerformanceFilterParams {
         | 'name'
         | 'batch'
         | 'courses'
-        | 'grade'
       )
     | undefined;
   readonly sortOrder?: ('ASC' | 'DESC') | undefined;
@@ -79,7 +70,6 @@ export interface LearningHistoryAssignment {
   readonly isLate: boolean;
   readonly status: string;
   readonly marks: number | null;
-  readonly gradeLabel: string | null;
   readonly feedback: string | null;
 }
 
@@ -140,17 +130,22 @@ export const performanceService = {
       if (params.search && params.search.trim() !== '') {
         sanitizedParams.search = params.search.trim();
       }
-      if (params.batchId && params.batchId.trim() !== '') {
-        sanitizedParams.batchId = params.batchId.trim();
+      if (params.batchId) {
+        const val = Array.isArray(params.batchId)
+          ? params.batchId.join(',')
+          : params.batchId.trim();
+        if (val) sanitizedParams.batchId = val;
       }
-      if (params.courseId && params.courseId.trim() !== '') {
-        sanitizedParams.courseId = params.courseId.trim();
+      if (params.courseId) {
+        const val = Array.isArray(params.courseId)
+          ? params.courseId.join(',')
+          : params.courseId.trim();
+        if (val) sanitizedParams.courseId = val;
       }
-      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
-        sanitizedParams.gradeRange = params.gradeRange.trim();
-      }
-      if (params.status && params.status.trim() !== '') {
-        sanitizedParams.status = params.status.trim();
+
+      if (params.status) {
+        const val = Array.isArray(params.status) ? params.status.join(',') : params.status.trim();
+        if (val) sanitizedParams.status = val;
       }
       if (params.startDate && params.startDate.trim() !== '') {
         sanitizedParams.startDate = params.startDate.trim();
@@ -219,14 +214,23 @@ export const performanceService = {
       if (params.sortBy) queryParams.sortBy = params.sortBy;
       if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
       if (params.search && params.search.trim() !== '') queryParams.search = params.search.trim();
-      if (params.batchId && params.batchId.trim() !== '')
-        queryParams.batchId = params.batchId.trim();
-      if (params.courseId && params.courseId.trim() !== '')
-        queryParams.courseId = params.courseId.trim();
-      if (params.gradeRange && params.gradeRange !== 'ALL' && params.gradeRange.trim() !== '') {
-        queryParams.gradeRange = params.gradeRange.trim();
+      if (params.batchId) {
+        const val = Array.isArray(params.batchId)
+          ? params.batchId.join(',')
+          : params.batchId.trim();
+        if (val) queryParams.batchId = val;
       }
-      if (params.status && params.status.trim() !== '') queryParams.status = params.status.trim();
+      if (params.courseId) {
+        const val = Array.isArray(params.courseId)
+          ? params.courseId.join(',')
+          : params.courseId.trim();
+        if (val) queryParams.courseId = val;
+      }
+
+      if (params.status) {
+        const val = Array.isArray(params.status) ? params.status.join(',') : params.status.trim();
+        if (val) queryParams.status = val;
+      }
       if (params.startDate && params.startDate.trim() !== '')
         queryParams.startDate = params.startDate.trim();
       if (params.endDate && params.endDate.trim() !== '')

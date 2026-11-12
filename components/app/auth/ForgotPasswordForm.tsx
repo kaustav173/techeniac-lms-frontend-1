@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get('email') || '';
   const { forgotPassword } = useAuth();
+  const { toastInfo } = useToast();
   const [email, setEmail] = useState(initialEmail);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +47,10 @@ export function ForgotPasswordForm() {
     } finally {
       setIsSubmitting(false);
       setIsDispatched(true);
+      toastInfo(
+        'If your email is registered, a password reset link has been sent.',
+        'Reset Link Sent',
+      );
     }
   };
 
@@ -59,6 +65,10 @@ export function ForgotPasswordForm() {
     } finally {
       setIsResending(false);
       setResendStatus('A new reset link has been sent if this email is registered.');
+      toastInfo(
+        'A new reset link has been dispatched if this email is registered.',
+        'Reset Link Dispatched',
+      );
     }
   };
 
@@ -85,8 +95,8 @@ export function ForgotPasswordForm() {
         <div>
           <H3 className="mb-1 text-xl font-bold text-slate-900">Check your email</H3>
           <P className="text-sm leading-relaxed text-slate-600">
-            We sent a password reset link to{' '}
-            <Span className="font-semibold text-slate-800">{email}</Span>.
+            If an account exists for <Span className="font-semibold text-slate-800">{email}</Span>,
+            a password reset link has been sent.
           </P>
         </div>
 
@@ -143,7 +153,7 @@ export function ForgotPasswordForm() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <Span className="leading-none">Return to sign in</Span>
+              <Span className="leading-none">Return</Span>
             </Link>
           </div>
         </div>
@@ -231,7 +241,7 @@ export function ForgotPasswordForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <Span className="leading-none">Return to sign in</Span>
+          <Span className="leading-none">Return</Span>
         </Link>
       </div>
     </Form>

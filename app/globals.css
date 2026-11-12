@@ -204,8 +204,19 @@ input[type='password']::placeholder {
 }
 
 /* ==========================================================================
-   TABLE ROW ENTRANCE ANIMATION (SMOOTH TOP-TO-BOTTOM LOAD)
+   ENTRANCE & TABLE ROW ANIMATIONS (SMOOTH DATA-LOADED TRANSITIONS)
    ========================================================================== */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes rowFadeSlideDown {
   0% {
     opacity: 0;
@@ -215,6 +226,42 @@ input[type='password']::placeholder {
     opacity: 1;
     transform: none;
   }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-up {
+  animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-1 {
+  animation-delay: 40ms;
+}
+.stagger-2 {
+  animation-delay: 80ms;
+}
+.stagger-3 {
+  animation-delay: 120ms;
+}
+.stagger-4 {
+  animation-delay: 160ms;
+}
+.stagger-5 {
+  animation-delay: 200ms;
+}
+.stagger-6 {
+  animation-delay: 240ms;
 }
 
 .animate-row-enter,
@@ -277,6 +324,8 @@ tbody.table-body-animated > tr:nth-child(n + 13) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-fade-in,
   .animate-row-enter,
   tbody.table-body-animated > tr,
   tbody > tr {
