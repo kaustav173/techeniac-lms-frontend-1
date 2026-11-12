@@ -9,7 +9,6 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { DebouncedSearchInput } from '@/components/patterns/DebouncedSearchInput';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
-import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
@@ -34,8 +33,6 @@ import {
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
 
-type AllocationSortField = 'course' | 'batch' | 'startDate' | 'dueDate';
-
 const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
   { value: CourseAllocationStatus.ASSIGNED, label: AllocationDisplayStatus.ASSIGNED },
   { value: CourseAllocationStatus.IN_PROGRESS, label: AllocationDisplayStatus.IN_PROGRESS },
@@ -46,13 +43,11 @@ const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
 export function MenteeProgressView() {
   const { user } = useAuth();
 
-  // 1. Filter, Pagination & Sort State
+  // 1. Filter & Pagination State
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [search, setSearch] = useState<string>('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<AllocationSortField | 'createdAt'>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // 2. Paginated & Filtered Query for the Table
   const queryFilters: AllocationFilters = useMemo(
@@ -62,10 +57,10 @@ export function MenteeProgressView() {
       limit,
       search: search.trim() || undefined,
       statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-      sortBy: sortField,
-      sortOrder,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
     }),
-    [user?.id, page, limit, search, selectedStatuses, sortField, sortOrder],
+    [user?.id, page, limit, search, selectedStatuses],
   );
 
   const {
@@ -106,30 +101,13 @@ export function MenteeProgressView() {
     setPage(1);
   };
 
-  const handleSort = (field: AllocationSortField) => {
-    setPage(1);
-    if (sortField === field) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
-
   const handleClearFilters = () => {
     setSearch('');
     setSelectedStatuses([]);
-    setSortField('createdAt');
-    setSortOrder('desc');
     setPage(1);
   };
 
-  const hasActiveFilters = Boolean(
-    search.trim() ||
-    selectedStatuses.length > 0 ||
-    sortField !== 'createdAt' ||
-    sortOrder !== 'desc',
-  );
+  const hasActiveFilters = Boolean(search.trim() || selectedStatuses.length > 0);
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
@@ -201,33 +179,15 @@ export function MenteeProgressView() {
           <Table className="w-full table-fixed text-left text-sm text-[#111827]">
             <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
               <TableRow>
-                <SortableColumnHeader<AllocationSortField>
-                  field="course"
-                  label="Course"
-                  sortField={sortField === 'course' ? 'course' : null}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  tooltip="Sort by Course Name"
-                  className="w-[30%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                />
-                <SortableColumnHeader<AllocationSortField>
-                  field="batch"
-                  label="Batch"
-                  sortField={sortField === 'batch' ? 'batch' : null}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  tooltip="Sort by Batch"
-                  className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                />
-                <SortableColumnHeader<AllocationSortField>
-                  field="dueDate"
-                  label="Timeline"
-                  sortField={sortField === 'dueDate' ? 'dueDate' : null}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  tooltip="Sort by Due Date"
-                  className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                />
+                <TableHead className="w-[30%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  Course
+                </TableHead>
+                <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  Batch
+                </TableHead>
+                <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  Due Date
+                </TableHead>
                 <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
                   Progress
                 </TableHead>
@@ -315,7 +275,7 @@ export function MenteeProgressView() {
                       <TableCell className="w-[30%] px-4 py-4 align-middle">
                         <H3
                           title={alloc.course?.title ?? 'Untitled Course'}
-                          className="truncate font-semibold text-[#111827]"
+                          className="truncate text-sm font-semibold text-[#111827]"
                         >
                           {alloc.course?.title ?? 'Untitled Course'}
                         </H3>
@@ -333,21 +293,15 @@ export function MenteeProgressView() {
                         </div>
                       </TableCell>
 
-                      {/* 3. Timeline (Est. Hours & Due Date) */}
+                      {/* 3. Due Date */}
                       <TableCell className="w-[18%] px-4 py-4 align-middle">
                         <div className="space-y-0.5 text-xs text-[#667085]">
-                          <Span className="block">
-                            ⏱{' '}
-                            {alloc.estimatedMinutes != null
-                              ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m est.`
-                              : 'Self-paced'}
-                          </Span>
-                          <Span className="block">
-                            📅 Due {new Date(alloc.dueDate).toLocaleDateString()}
+                          <Span className="block font-medium text-[#111827]">
+                            Due {new Date(alloc.dueDate).toLocaleDateString()}
                           </Span>
                           {alloc.completedAt && (
                             <Span className="block font-medium text-emerald-700">
-                              ✓ {new Date(alloc.completedAt).toLocaleDateString()}
+                              ✓ Finished {new Date(alloc.completedAt).toLocaleDateString()}
                             </Span>
                           )}
                         </div>
