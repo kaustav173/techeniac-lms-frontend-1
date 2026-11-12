@@ -1,1 +1,3 @@
-export { default, metadata } from '../page';
+'use client';
+
+export { default } from '../page';
