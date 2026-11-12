@@ -231,7 +231,7 @@ export function User360Shell({ userId }: User360ShellProps) {
       {/* Top Navigation & Identity Banner */}
       <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="mb-3">
               <Link
                 href="/admin/users"
@@ -254,9 +254,11 @@ export function User360Shell({ userId }: User360ShellProps) {
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <H1 className="text-2xl font-bold tracking-tight text-slate-900">{user.name}</H1>
+              <H1 className="text-2xl font-bold tracking-tight break-words break-all text-slate-900">
+                {user.name}
+              </H1>
               <Span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   user.role === 'SUPER_ADMIN'
                     ? 'bg-purple-100 text-purple-800'
                     : user.role === 'MENTOR'
@@ -267,28 +269,28 @@ export function User360Shell({ userId }: User360ShellProps) {
                 {user.role}
               </Span>
               <Span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getActiveStatusBadgeClass(
+                className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getActiveStatusBadgeClass(
                   user.isActive,
                 )}`}
               >
                 {user.isActive ? 'Active' : 'Inactive'}
               </Span>
             </div>
-            <P className="mt-1 text-sm text-slate-500">{user.email}</P>
+            <P className="mt-1 text-sm break-all text-slate-500">{user.email}</P>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <Button
-              variant="outline"
+              variant="primary"
               size="sm"
               onClick={() => {
                 void handleExportCsv();
               }}
               disabled={isExporting}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+              className="inline-flex items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-xs"
             >
               <svg
-                className="h-3.5 w-3.5 text-slate-500"
+                className="h-3.5 w-3.5 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -300,7 +302,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                   d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
                 />
               </svg>
-              <Span>{isExporting ? 'Exporting...' : 'Export as CSV'}</Span>
+              <Span className="text-white">{isExporting ? 'Exporting...' : 'Export as CSV'}</Span>
             </Button>
           </div>
         </div>
@@ -439,29 +441,31 @@ export function User360Shell({ userId }: User360ShellProps) {
           <div className="space-y-4">
             <H2 className="text-base font-semibold text-slate-900">User Identity & Profile</H2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">User ID</Span>
                 <P className="mt-1 text-sm font-bold break-all text-slate-900">{user.id}</P>
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Full Name</Span>
-                <P className="mt-1 text-base font-bold text-slate-900">{user.name}</P>
+                <P className="mt-1 text-base font-bold break-words break-all text-slate-900">
+                  {user.name}
+                </P>
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Email Address</Span>
                 <P className="mt-1 text-base font-bold break-all text-slate-900">{user.email}</P>
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Current Role</Span>
                 <P className="mt-1 text-base font-bold text-slate-900">{user.role}</P>
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Account Created</Span>
                 <P className="mt-1 text-base font-bold text-slate-900">
                   {formatDateIST(user.createdAt)}
                 </P>
               </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
+              <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 transition-colors hover:bg-slate-50">
                 <Span className="text-sm font-semibold text-slate-600">Last Login</Span>
                 <P className="mt-1 text-base font-bold text-slate-900">
                   {user.lastLoginAt ? formatDateIST(user.lastLoginAt) : 'Never'}
@@ -594,8 +598,9 @@ export function User360Shell({ userId }: User360ShellProps) {
                           {m.batchCode}
                         </TableCell>
                         <TableCell className="text-slate-700">{m.mappedRole}</TableCell>
-                        <TableCell className="text-slate-800">
-                          {m.peerName} <Span className="text-slate-500">({m.peerEmail})</Span>
+                        <TableCell className="break-words text-slate-800">
+                          {m.peerName}{' '}
+                          <Span className="break-all text-slate-500">({m.peerEmail})</Span>
                         </TableCell>
                         <TableCell className="text-slate-600">
                           {formatDateIST(m.startDate)} &ndash;{' '}
