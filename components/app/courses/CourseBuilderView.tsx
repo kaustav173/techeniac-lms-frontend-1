@@ -647,6 +647,129 @@ function AddAssignmentModal({
   );
 }
 
+export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMarginClass: string }) {
+  return (
+    <div
+      className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
+    >
+      {/* Top Command Bar Skeleton */}
+      <div className="flex items-center justify-between bg-white px-4 py-2.5 sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
+            <Skeleton className="h-3.5 w-3.5 rounded-full" />
+            <Skeleton className="h-3.5 w-24 rounded-md" />
+          </div>
+          <div className="h-4 w-px bg-slate-200" aria-hidden="true" />
+          <Skeleton className="h-5 w-48 rounded-md" />
+          <Skeleton className="h-5 w-14 rounded-full" />
+        </div>
+      </div>
+
+      {/* Dual Pane Layout Skeleton */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Pane: Outline Tree Skeleton */}
+        <div className="hidden w-[330px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <Skeleton className="h-5 w-32 rounded-md" />
+          </div>
+          <div className="mt-3">
+            <Skeleton className="h-9 w-full rounded-xl" />
+          </div>
+          <div className="mt-4 space-y-2.5">
+            {/* Topic 1 */}
+            <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded-md" />
+                <Skeleton className="h-4 w-36 rounded-md" />
+              </div>
+              <div className="ml-6 space-y-1 pt-1">
+                <Skeleton className="h-3.5 w-28 rounded-md" />
+                <Skeleton className="h-3.5 w-32 rounded-md" />
+              </div>
+            </div>
+            {/* Topic 2 */}
+            <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded-md" />
+                <Skeleton className="h-4 w-32 rounded-md" />
+              </div>
+              <div className="ml-6 space-y-1 pt-1">
+                <Skeleton className="h-3.5 w-24 rounded-md" />
+              </div>
+            </div>
+            {/* Topic 3 */}
+            <div className="rounded-xl border border-slate-200/80 p-2.5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded-md" />
+                <Skeleton className="h-4 w-44 rounded-md" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
+        <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-5xl space-y-4">
+            {/* Card 1: Course Basics */}
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+              <div className="border-b border-slate-100 pb-4">
+                <Skeleton className="h-6 w-48 rounded-md" />
+                <Skeleton className="mt-1.5 h-3.5 w-72 rounded-md" />
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {/* Title Field */}
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-20 rounded-md" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+
+                {/* Description Field */}
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-28 rounded-md" />
+                  <Skeleton className="h-28 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Estimated Benchmark Time */}
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+              <div className="border-b border-slate-100 pb-3">
+                <Skeleton className="h-5 w-48 rounded-md" />
+                <Skeleton className="mt-1 h-3.5 w-64 rounded-md" />
+              </div>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-16 rounded-md" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-16 rounded-md" />
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Visibility Status */}
+            <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-32 rounded-md" />
+                <Skeleton className="h-3 w-56 rounded-md" />
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end pt-1">
+              <Skeleton className="h-10 w-36 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
   const { contentMarginClass } = useSidebar();
 
@@ -656,125 +779,7 @@ export function CourseBuilderSkeleton({ portal = 'admin' }: { portal?: 'admin' |
       className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
     >
       <HeaderSkeleton title="Course Builder" />
-
-      <div
-        className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
-      >
-        {/* Top Command Bar Skeleton */}
-        <div className="flex items-center justify-between bg-white px-4 py-2.5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
-              <Skeleton className="h-3.5 w-3.5 rounded-full" />
-              <Skeleton className="h-3.5 w-24 rounded-md" />
-            </div>
-            <div className="h-4 w-px bg-slate-200" aria-hidden="true" />
-            <Skeleton className="h-5 w-48 rounded-md" />
-            <Skeleton className="h-5 w-14 rounded-full" />
-          </div>
-        </div>
-
-        {/* Dual Pane Layout Skeleton */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Pane: Outline Tree Skeleton */}
-          <div className="hidden w-[330px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <Skeleton className="h-5 w-32 rounded-md" />
-            </div>
-            <div className="mt-3">
-              <Skeleton className="h-9 w-full rounded-xl" />
-            </div>
-            <div className="mt-4 space-y-2.5">
-              {/* Topic 1 */}
-              <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-md" />
-                  <Skeleton className="h-4 w-36 rounded-md" />
-                </div>
-                <div className="ml-6 space-y-1 pt-1">
-                  <Skeleton className="h-3.5 w-28 rounded-md" />
-                  <Skeleton className="h-3.5 w-32 rounded-md" />
-                </div>
-              </div>
-              {/* Topic 2 */}
-              <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-md" />
-                  <Skeleton className="h-4 w-32 rounded-md" />
-                </div>
-                <div className="ml-6 space-y-1 pt-1">
-                  <Skeleton className="h-3.5 w-24 rounded-md" />
-                </div>
-              </div>
-              {/* Topic 3 */}
-              <div className="rounded-xl border border-slate-200/80 p-2.5">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-md" />
-                  <Skeleton className="h-4 w-44 rounded-md" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
-          <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="mx-auto max-w-5xl space-y-4">
-              {/* Card 1: Course Basics */}
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-                <div className="border-b border-slate-100 pb-4">
-                  <Skeleton className="h-6 w-48 rounded-md" />
-                  <Skeleton className="mt-1.5 h-3.5 w-72 rounded-md" />
-                </div>
-
-                <div className="mt-5 space-y-4">
-                  {/* Title Field */}
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-20 rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                  </div>
-
-                  {/* Description Field */}
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-28 rounded-md" />
-                    <Skeleton className="h-28 w-full rounded-xl" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: Estimated Benchmark Time */}
-              <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-                <div className="border-b border-slate-100 pb-3">
-                  <Skeleton className="h-5 w-48 rounded-md" />
-                  <Skeleton className="mt-1 h-3.5 w-64 rounded-md" />
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-16 rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-16 rounded-md" />
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3: Visibility Status */}
-              <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32 rounded-md" />
-                  <Skeleton className="h-3 w-56 rounded-md" />
-                </div>
-                <Skeleton className="h-6 w-11 rounded-full" />
-              </div>
-
-              {/* Save Button */}
-              <div className="flex justify-end pt-1">
-                <Skeleton className="h-10 w-36 rounded-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />
     </div>
   );
 }
@@ -1052,11 +1057,19 @@ function CourseBuilderContent({
     }
   };
 
-  if (!course) {
-    return <CourseBuilderSkeleton portal={portal} />;
-  }
-
   const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
+
+  if (!course) {
+    return (
+      <div
+        data-portal={portal}
+        className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900"
+      >
+        <Header {...navConfig} />
+        <CourseBuilderBodySkeleton contentMarginClass={contentMarginClass} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900">
