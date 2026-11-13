@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Textarea } from '@/components/ui/Textarea';
 import { Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
@@ -40,18 +40,23 @@ export function TransferMenteeModal({
     (b) => b.id !== mentee?.currentBatchId && (b.status === 'LIVE' || b.status === 'DRAFT'),
   );
 
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { toastSuccess, toastError } = useToast();
 
   const targetBatchId =
-    selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId)
-      ? selectedBatchId
-      : eligibleBatches[0]?.id || '';
+    selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId) ? selectedBatchId : '';
 
   const targetBatch = eligibleBatches.find((b) => b.id === targetBatchId);
+
+  const batchOptions: readonly MultiSelectOption[] = useMemo(() => {
+    return eligibleBatches.map((b) => ({
+      value: b.id,
+      label: `${b.name} (${b.code}) — ${b.status}`,
+    }));
+  }, [eligibleBatches]);
 
   const { mutateAsync: transferMentee, isPending: isSubmitting } = useTransferMenteeMutation();
 
@@ -167,18 +172,22 @@ export function TransferMenteeModal({
                 Destination Batch
               </Label>
               {hasEligibleBatches ? (
-                <Select
+                <MultiSelectDropdown
                   id="target-batch"
-                  value={targetBatchId}
-                  onChange={(e) => setSelectedBatchId(e.target.value)}
-                  className="h-9 cursor-pointer text-xs font-medium text-slate-900"
-                >
-                  {eligibleBatches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.status})
-                    </option>
-                  ))}
-                </Select>
+                  label="Destination batch"
+                  placeholder="-- Choose destination batch --"
+                  options={batchOptions}
+                  selectedValues={selectedBatchId ? [selectedBatchId] : []}
+                  onChange={(vals) => {
+                    setSelectedBatchId(vals[0] ?? '');
+                    setError(null);
+                  }}
+                  singleSelect={true}
+                  align="left"
+                  className="w-full"
+                  buttonClassName="h-9 text-xs"
+                  usePortal={true}
+                />
               ) : (
                 <Span className="block text-xs text-amber-700 italic">
                   No other active batches available
