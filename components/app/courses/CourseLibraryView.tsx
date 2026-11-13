@@ -50,28 +50,26 @@ const MAX_COURSE_TITLE_LENGTH = 100;
 const MIN_COURSE_TITLE_LENGTH = 3;
 
 export function CourseTableSkeletonRows({ count = 10 }: { count?: number }) {
-  const widths = ['w-56', 'w-72', 'w-48', 'w-64', 'w-60', 'w-52', 'w-80', 'w-44', 'w-68', 'w-50'];
   return (
     <>
       {Array.from({ length: count }).map((_, idx) => (
-        <TableRow key={`course-skel-${idx}`} className="h-16">
+        <TableRow key={`course-skel-${idx}`} className="h-14">
           <TableCell>
-            <div className="space-y-1.5">
-              <Skeleton className={`h-4 ${widths[idx % widths.length]} rounded-md`} />
-              <Skeleton className="h-3 w-28 rounded-md opacity-60" />
+            <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
+              <Skeleton className="h-4 w-64 rounded-md" />
             </div>
           </TableCell>
           <TableCell className="text-center">
-            <Skeleton className="mx-auto h-6 w-16 rounded-full" />
+            <Skeleton className="mx-auto h-4 w-6 rounded-md" />
           </TableCell>
           <TableCell className="text-center">
-            <Skeleton className="mx-auto h-6 w-16 rounded-full" />
+            <Skeleton className="mx-auto h-4 w-6 rounded-md" />
           </TableCell>
           <TableCell className="w-28 text-center">
-            <Skeleton className="mx-auto h-6 w-11 rounded-full" />
+            <Skeleton className="mx-auto h-6 w-16 rounded-full" />
           </TableCell>
           <TableCell className="w-20 text-center">
-            <Skeleton className="mx-auto h-8 w-8 rounded-full" />
+            <Skeleton className="mx-auto h-5 w-5 rounded-md opacity-60" />
           </TableCell>
         </TableRow>
       ))}
@@ -80,34 +78,26 @@ export function CourseTableSkeletonRows({ count = 10 }: { count?: number }) {
 }
 
 export function CourseLibrarySkeleton({ portal = 'admin' }: { portal?: 'admin' | 'mentor' }) {
+  const navConfig = portal === 'mentor' ? MENTOR_COURSES_NAV : ADMIN_COURSES_NAV;
   return (
     <div data-portal={portal} className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-      {/* Top Navbar Header Skeleton */}
-      <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E1E6EC] bg-white px-6 transition-all duration-300 sm:px-8">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-36 rounded-md" />
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs">
-          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-          <div className="hidden space-y-1.5 text-left sm:block">
-            <Skeleton className="h-3.5 w-20 rounded-md" />
-            <Skeleton className="h-2.5 w-14 rounded-md" />
-          </div>
-        </div>
-      </header>
+      <Header {...navConfig} />
       <DashboardContent>
-        {/* Page Header Skeleton */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <Skeleton className="h-8 w-44 rounded-xl" />
-            <Skeleton className="mt-2 h-4 w-80 rounded-md" />
+        {/* Search, Filter Toolbar & Actions Skeleton - Exactly matching Photo 3 */}
+        <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Search Input Skeleton */}
+            <div className="w-full sm:w-72 lg:w-80">
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+            {/* Status Dropdown Skeleton */}
+            <Skeleton className="h-11 w-32 rounded-xl" />
           </div>
-        </div>
 
-        {/* Search & Actions Bar Skeleton */}
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Skeleton className="h-10 w-full rounded-xl sm:w-72" />
-          <Skeleton className="h-10 w-40 rounded-full" />
+          {/* + Create New Course Button Skeleton */}
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-40 rounded-full sm:h-10 sm:w-44" />
+          </div>
         </div>
 
         {/* Courses Table Skeleton */}
@@ -116,11 +106,19 @@ export function CourseLibrarySkeleton({ portal = 'admin' }: { portal?: 'admin' |
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[48%]">Course</TableHead>
-                  <TableHead className="w-28 text-center">Topics</TableHead>
-                  <TableHead className="w-28 text-center">Tasks</TableHead>
-                  <TableHead className="w-28 text-center">Status</TableHead>
-                  <TableHead className="w-20 text-center">Actions</TableHead>
+                  <TableHead className="w-[48%] font-semibold text-slate-700">Course</TableHead>
+                  <TableHead className="w-28 text-center font-semibold text-slate-700">
+                    Topics
+                  </TableHead>
+                  <TableHead className="w-28 text-center font-semibold text-slate-700">
+                    Tasks
+                  </TableHead>
+                  <TableHead className="w-28 text-center font-semibold text-slate-700">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-20 text-center font-semibold text-slate-700">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -128,11 +126,10 @@ export function CourseLibrarySkeleton({ portal = 'admin' }: { portal?: 'admin' |
               </TableBody>
             </Table>
             <div className="flex w-full items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
-              <Skeleton className="h-4 w-32 rounded-md" />
+              <Skeleton className="h-4 w-36 rounded-md" />
               <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-8 rounded-md" />
-                <Skeleton className="h-8 w-8 rounded-md" />
-                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-28 rounded-md" />
+                <Skeleton className="h-8 w-20 rounded-md" />
               </div>
             </div>
           </TableContainer>
@@ -295,6 +292,13 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     }
     if (newDescription.trim().length > 100) {
       setCreateError('Description cannot exceed 100 characters.');
+      return;
+    }
+
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    const duplicate = courses.find((c) => c.title.trim().toLowerCase() === normalizedTitle);
+    if (duplicate) {
+      setCreateError(`A course with the title "${trimmedTitle}" already exists.`);
       return;
     }
 
@@ -473,7 +477,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
         {/* Courses Grid */}
         <div className="mt-6">
-          {loadingCourses ? (
+          {loadingCourses || isFetchingCourses ? (
             <TableContainer className="w-full">
               <Table className="w-full table-fixed">
                 <TableHeader>
@@ -515,11 +519,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                   </P>
                 </div>
               ) : (
-                <TableContainer
-                  className={`w-full ${
-                    isFetchingCourses && !loadingCourses ? 'opacity-60 transition-opacity' : ''
-                  }`}
-                >
+                <TableContainer className="w-full">
                   <Table className="w-full table-fixed">
                     <TableHeader>
                       <TableRow>
@@ -972,26 +972,36 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
           <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
             <Span className="text-xs font-bold text-slate-800">Initial Active State</Span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              role="switch"
-              aria-checked={newIsActive}
-              aria-label="Course active status"
-              onClick={() => setNewIsActive(!newIsActive)}
-              className={cn(
-                'relative !inline-flex !h-6 !w-11 shrink-0 cursor-pointer items-center !rounded-full !border-2 !border-transparent !p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500',
-                newIsActive ? '!bg-emerald-600' : '!bg-slate-300',
-              )}
-            >
+            <div className="flex items-center gap-2.5">
               <Span
-                className={cn(
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
-                  newIsActive ? 'translate-x-5' : 'translate-x-0',
-                )}
-              />
-            </Button>
+                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  newIsActive
+                    ? 'border border-blue-200 bg-blue-50 text-[#0044D3]'
+                    : 'border border-slate-200 bg-slate-100 text-slate-600'
+                }`}
+              >
+                {newIsActive ? 'Active' : 'Inactive'}
+              </Span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newIsActive}
+                aria-label="Course active status"
+                onClick={() => setNewIsActive(!newIsActive)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+                  newIsActive
+                    ? 'bg-[#0044D3] hover:bg-[#0039B3]'
+                    : 'bg-slate-300 hover:bg-slate-400'
+                }`}
+              >
+                <Span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    newIsActive ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </form>
       </Modal>

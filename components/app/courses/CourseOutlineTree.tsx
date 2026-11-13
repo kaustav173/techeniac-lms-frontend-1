@@ -6,13 +6,16 @@ import {
   type DragEndEvent,
   KeyboardSensor,
   MouseSensor,
+  pointerWithin,
   TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
+  type AnimateLayoutChanges,
   arrayMove,
+  defaultAnimateLayoutChanges,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -20,6 +23,13 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useState } from 'react';
+
+const animateLayoutChanges: AnimateLayoutChanges = (args) => {
+  if (args.isSorting || args.wasDragging) {
+    return false;
+  }
+  return defaultAnimateLayoutChanges(args);
+};
 
 import { ActiveNodeSelection } from '@/components/app/courses/types';
 import { Alert } from '@/components/ui/Alert';
@@ -106,6 +116,7 @@ function SortableTopicItem({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: topic.id,
     disabled: Boolean(isBeingSaved || isDisabledDrag),
+    animateLayoutChanges,
     data: {
       type: 'TOPIC',
     },
@@ -113,26 +124,26 @@ function SortableTopicItem({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: isDragging ? undefined : transition,
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative z-10 rounded-xl border bg-white shadow-xs transition-colors ${
+      className={`relative z-10 rounded-xl border transition-colors ${
         isDragging
-          ? 'z-50 scale-[1.01] opacity-95 shadow-xl ring-2 ring-blue-400'
+          ? 'z-50 scale-[1.01] bg-white opacity-95 shadow-xl ring-2 ring-blue-400'
           : isSelected
-            ? 'border-blue-300 ring-1 ring-blue-200'
-            : 'border-slate-200 hover:border-slate-300'
+            ? 'border-[#0044D3] bg-blue-50/70 shadow-xs ring-1 ring-[#0044D3]/30'
+            : 'border-slate-200/90 bg-slate-50/50 hover:border-slate-300 hover:bg-white hover:shadow-2xs'
       }`}
     >
       {/* Topic Header Row */}
       <div
         className={`flex items-center justify-between rounded-t-xl px-2.5 py-2 transition-colors ${
           isCollapsed ? 'rounded-b-xl' : ''
-        } ${isSelected ? 'bg-blue-50/70' : 'hover:bg-slate-50'} ${
+        } ${isSelected ? 'bg-blue-50/70' : 'hover:bg-slate-50/80'} ${
           isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''
         }`}
       >
@@ -165,7 +176,7 @@ function SortableTopicItem({
               e.stopPropagation();
               onToggleCollapse(topic.id);
             }}
-            className="h-auto p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="h-auto p-1 text-slate-400 hover:bg-slate-200/80 hover:text-slate-700"
             title={isCollapsed ? 'Expand topic' : 'Collapse topic'}
           >
             <svg
@@ -187,7 +198,28 @@ function SortableTopicItem({
             className="group/name relative flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate"
             title={topic.title}
           >
-            <Span className="truncate text-base font-bold text-slate-900">{topic.title}</Span>
+            <svg
+              className={`h-4 w-4 shrink-0 transition-colors ${
+                isSelected ? 'text-[#0044D3]' : 'text-slate-400 group-hover/name:text-slate-600'
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              />
+            </svg>
+            <Span
+              className={`truncate text-sm font-bold sm:text-base ${
+                isSelected ? 'text-blue-950' : 'text-slate-900'
+              }`}
+            >
+              {topic.title}
+            </Span>
             <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
               {topic.title}
             </Span>
@@ -266,6 +298,7 @@ function SortableSubtopicItem({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: subtopic.id,
     disabled: Boolean(isBeingSaved || isDisabledDrag),
+    animateLayoutChanges,
     data: {
       type: 'SUBTOPIC',
       topicId: parentTopicId,
@@ -274,24 +307,24 @@ function SortableSubtopicItem({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: isDragging ? undefined : transition,
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-center justify-between rounded-lg px-2 py-1.5 text-sm transition-colors ${
+      className={`group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
         isMenuOpen ? 'relative z-40' : 'relative z-10'
       } ${
         isDragging
           ? 'z-50 scale-[1.01] bg-white opacity-95 shadow-lg ring-2 ring-blue-400'
           : isSelected
-            ? 'border border-blue-300 bg-blue-50 font-semibold text-blue-900 shadow-xs'
-            : 'border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100'
+            ? 'border border-blue-400 bg-blue-50/90 font-semibold text-blue-900 shadow-xs ring-1 ring-blue-400/30'
+            : 'border border-slate-200/80 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50/70'
       } ${isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''}`}
     >
-      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate">
+      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 truncate">
         {/* Subtopic Drag Handle with Mobile Touch Support */}
         <div
           {...attributes}
@@ -312,6 +345,23 @@ function SortableSubtopicItem({
           </svg>
         </div>
 
+        {/* Lesson Document Icon */}
+        <svg
+          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+            isSelected ? 'text-[#0044D3]' : 'text-slate-400 group-hover:text-blue-600'
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+
         {/* Click node to select with Hover Popup */}
         <div
           onClick={() =>
@@ -324,8 +374,14 @@ function SortableSubtopicItem({
           className="group/name relative flex min-w-0 flex-1 items-center gap-1.5 truncate"
           title={subtopic.title}
         >
-          <Span className="truncate text-sm font-semibold sm:text-base">{subtopic.title}</Span>
-          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
+          <Span
+            className={`truncate text-xs font-semibold sm:text-sm ${
+              isSelected ? 'font-bold text-blue-950' : 'text-slate-700'
+            }`}
+          >
+            {subtopic.title}
+          </Span>
+          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {subtopic.title}
           </Span>
         </div>
@@ -424,6 +480,7 @@ function SortableAssignmentItem({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: assignment.id,
     disabled: Boolean(isBeingSaved || isDisabledDrag),
+    animateLayoutChanges,
     data: {
       type: scope === 'TOPIC' ? 'TOPIC_ASSIGNMENT' : 'COURSE_ASSIGNMENT',
       topicId: parentTopicId,
@@ -432,24 +489,24 @@ function SortableAssignmentItem({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: isDragging ? undefined : transition,
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-center justify-between rounded-lg px-2 py-1.5 text-sm transition-colors ${
+      className={`group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
         isMenuOpen ? 'relative z-40' : 'relative z-10'
       } ${
         isDragging
           ? 'z-50 scale-[1.01] bg-white opacity-95 shadow-lg ring-2 ring-purple-400'
           : isSelected
-            ? 'border border-purple-300 bg-purple-50 font-semibold text-purple-900 shadow-xs'
-            : 'border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-100'
+            ? 'border border-purple-400 bg-purple-50/90 font-semibold text-purple-900 shadow-xs ring-1 ring-purple-400/30'
+            : 'border border-slate-200/80 bg-slate-50/40 text-slate-700 hover:border-purple-200 hover:bg-white'
       } ${isBeingSaved ? 'pointer-events-none opacity-60 transition-opacity duration-200' : ''}`}
     >
-      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 truncate">
+      <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 truncate">
         {/* Assignment Drag Grip Handle */}
         <div
           {...attributes}
@@ -470,6 +527,23 @@ function SortableAssignmentItem({
           </svg>
         </div>
 
+        {/* Task Clipboard Icon */}
+        <svg
+          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+            isSelected ? 'text-purple-600' : 'text-purple-400 group-hover:text-purple-600'
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+          />
+        </svg>
+
         <div
           onClick={() =>
             onSelectNode({
@@ -481,8 +555,14 @@ function SortableAssignmentItem({
           className="group/name relative flex min-w-0 flex-1 items-center gap-1.5 truncate"
           title={assignment.title}
         >
-          <Span className="truncate text-sm font-semibold sm:text-base">{assignment.title}</Span>
-          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
+          <Span
+            className={`truncate text-xs font-semibold sm:text-sm ${
+              isSelected ? 'font-bold text-purple-950' : 'text-slate-700'
+            }`}
+          >
+            {assignment.title}
+          </Span>
+          <Span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden max-w-xs rounded-md bg-slate-900/95 px-2.5 py-1 text-xs font-normal break-words whitespace-normal text-white shadow-xl ring-1 ring-white/10 group-hover/name:block">
             {assignment.title}
           </Span>
         </div>
@@ -572,29 +652,144 @@ export function CourseOutlineTree({
 
   // Local reorder buffering state
   const [topics, setTopics] = useState<Topic[]>(() =>
-    [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder),
+    [...(course.topics || [])]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((t, idx) => ({
+        ...t,
+        displayOrder: idx,
+        subtopics: t.subtopics
+          ? [...t.subtopics]
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((s, sIdx) => ({ ...s, displayOrder: sIdx }))
+          : [],
+        assignments: t.assignments
+          ? [...t.assignments]
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((a, aIdx) => ({ ...a, displayOrder: aIdx }))
+          : [],
+      })),
   );
   const [courseAssignments, setCourseAssignments] = useState<Assignment[]>(() =>
-    [...(course.courseAssignments || course.assignments || [])].sort(
-      (a, b) => a.displayOrder - b.displayOrder,
-    ),
+    [...(course.courseAssignments || course.assignments || [])]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((a, idx) => ({ ...a, displayOrder: idx })),
   );
   const [isOrderDirty, setIsOrderDirty] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [saveOrderSuccess, setSaveOrderSuccess] = useState(false);
   const [saveOrderError, setSaveOrderError] = useState<string | null>(null);
 
-  // Sync from props when course changes and order is clean (render-phase adjustment per React docs)
+  // Sync from props when course changes (reconciling added/deleted items even if order is dirty)
   const [prevCourse, setPrevCourse] = useState(course);
   if (prevCourse !== course) {
     setPrevCourse(course);
     if (!isOrderDirty) {
-      setTopics([...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder));
-      setCourseAssignments(
-        [...(course.courseAssignments || course.assignments || [])].sort(
-          (a, b) => a.displayOrder - b.displayOrder,
-        ),
+      setTopics(
+        [...(course.topics || [])]
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map((t, idx) => ({
+            ...t,
+            displayOrder: idx,
+            subtopics: t.subtopics
+              ? [...t.subtopics]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map((s, sIdx) => ({ ...s, displayOrder: sIdx }))
+              : [],
+            assignments: t.assignments
+              ? [...t.assignments]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map((a, aIdx) => ({ ...a, displayOrder: aIdx }))
+              : [],
+          })),
       );
+      setCourseAssignments(
+        [...(course.courseAssignments || course.assignments || [])]
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map((a, idx) => ({ ...a, displayOrder: idx })),
+      );
+    } else {
+      // Reconcile when order is dirty: retain custom user order, but seamlessly integrate added/deleted items
+      const serverTopics = course.topics || [];
+      const serverTopicIds = new Set(serverTopics.map((t) => t.id));
+      const serverTopicMap = new Map(serverTopics.map((t) => [t.id, t]));
+
+      // 1. Keep existing topics in their custom order if they still exist on server, updating their subtopics/assignments
+      const reconciledTopics = topics
+        .filter((t) => serverTopicIds.has(t.id))
+        .map((localTopic) => {
+          const sTopic = serverTopicMap.get(localTopic.id)!;
+          const sSubtopics = sTopic.subtopics || [];
+          const sSubtopicIds = new Set(sSubtopics.map((s) => s.id));
+          const sSubtopicMap = new Map(sSubtopics.map((s) => [s.id, s]));
+
+          // Retain local subtopic order, remove deleted, append newly added
+          const existingSubtopics = (localTopic.subtopics || []).filter((s) =>
+            sSubtopicIds.has(s.id),
+          );
+          const existingSubIds = new Set(existingSubtopics.map((s) => s.id));
+          const addedSubtopics = sSubtopics.filter((s) => !existingSubIds.has(s.id));
+          const mergedSubtopics = [...existingSubtopics, ...addedSubtopics].map((s, idx) => ({
+            ...(sSubtopicMap.get(s.id) || s),
+            displayOrder: idx,
+          }));
+
+          // Retain local topic assignment order, remove deleted, append newly added
+          const sAssigns = sTopic.assignments || [];
+          const sAssignIds = new Set(sAssigns.map((a) => a.id));
+          const sAssignMap = new Map(sAssigns.map((a) => [a.id, a]));
+
+          const existingAssigns = (localTopic.assignments || []).filter((a) =>
+            sAssignIds.has(a.id),
+          );
+          const existingAssignIds = new Set(existingAssigns.map((a) => a.id));
+          const addedAssigns = sAssigns.filter((a) => !existingAssignIds.has(a.id));
+          const mergedAssigns = [...existingAssigns, ...addedAssigns].map((a, idx) => ({
+            ...(sAssignMap.get(a.id) || a),
+            displayOrder: idx,
+          }));
+
+          return {
+            ...sTopic,
+            displayOrder: localTopic.displayOrder,
+            subtopics: mergedSubtopics,
+            assignments: mergedAssigns,
+          };
+        });
+
+      // 2. Append any brand new topics that aren't in local state yet
+      const localTopicIds = new Set(topics.map((t) => t.id));
+      const newlyAddedTopics = serverTopics
+        .filter((t) => !localTopicIds.has(t.id))
+        .map((t, idx) => ({
+          ...t,
+          displayOrder: reconciledTopics.length + idx,
+          subtopics: t.subtopics || [],
+          assignments: t.assignments || [],
+        }));
+
+      setTopics([...reconciledTopics, ...newlyAddedTopics]);
+
+      // 3. Reconcile course-level assignments
+      const serverCourseAssigns = course.courseAssignments || course.assignments || [];
+      const serverCourseAssignIds = new Set(serverCourseAssigns.map((a) => a.id));
+      const serverCourseAssignMap = new Map(serverCourseAssigns.map((a) => [a.id, a]));
+
+      const existingCourseAssigns = courseAssignments.filter((a) =>
+        serverCourseAssignIds.has(a.id),
+      );
+      const existingCourseIds = new Set(existingCourseAssigns.map((a) => a.id));
+      const newlyAddedCourseAssigns = serverCourseAssigns.filter(
+        (a) => !existingCourseIds.has(a.id),
+      );
+
+      const mergedCourseAssigns = [...existingCourseAssigns, ...newlyAddedCourseAssigns].map(
+        (a, idx) => ({
+          ...(serverCourseAssignMap.get(a.id) || a),
+          displayOrder: idx,
+        }),
+      );
+
+      setCourseAssignments(mergedCourseAssigns);
     }
   }
 
@@ -690,6 +885,14 @@ export function CourseOutlineTree({
     };
   }, [activeMenuId]);
 
+  const collisionDetectionStrategy = (args: Parameters<typeof closestCenter>[0]) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    return closestCenter(args);
+  };
+
   const toggleCollapse = (topicId: string) => {
     setCollapsedTopics((prev) => ({ ...prev, [topicId]: !prev[topicId] }));
   };
@@ -708,7 +911,10 @@ export function CourseOutlineTree({
       const oldIndex = topics.findIndex((t) => t.id === active.id);
       const newIndex = topics.findIndex((t) => t.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reordered = arrayMove(topics, oldIndex, newIndex);
+        const reordered = arrayMove(topics, oldIndex, newIndex).map((t, idx) => ({
+          ...t,
+          displayOrder: idx,
+        }));
         setTopics(reordered);
         if (onOutlineReorder) {
           setIsOrderDirty(true);
@@ -740,7 +946,10 @@ export function CourseOutlineTree({
         const oldIndex = currentSubtopics.findIndex((s) => s.id === active.id);
         const newIndex = currentSubtopics.findIndex((s) => s.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex);
+          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex).map((s, idx) => ({
+            ...s,
+            displayOrder: idx,
+          }));
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, subtopics: reordered } : t)),
           );
@@ -776,7 +985,10 @@ export function CourseOutlineTree({
         const oldIndex = currentAssignments.findIndex((a) => a.id === active.id);
         const newIndex = currentAssignments.findIndex((a) => a.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(currentAssignments, oldIndex, newIndex);
+          const reordered = arrayMove(currentAssignments, oldIndex, newIndex).map((a, idx) => ({
+            ...a,
+            displayOrder: idx,
+          }));
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, assignments: reordered } : t)),
           );
@@ -801,7 +1013,10 @@ export function CourseOutlineTree({
       const oldIndex = courseAssignments.findIndex((a) => a.id === active.id);
       const newIndex = courseAssignments.findIndex((a) => a.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reordered = arrayMove(courseAssignments, oldIndex, newIndex);
+        const reordered = arrayMove(courseAssignments, oldIndex, newIndex).map((a, idx) => ({
+          ...a,
+          displayOrder: idx,
+        }));
         setCourseAssignments(reordered);
         if (onOutlineReorder) {
           setIsOrderDirty(true);
@@ -821,7 +1036,7 @@ export function CourseOutlineTree({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={collisionDetectionStrategy}
       modifiers={[restrictToVerticalAxis, restrictToParentElement]}
       onDragEnd={handleDragEnd}
     >
@@ -873,10 +1088,10 @@ export function CourseOutlineTree({
         )}
 
         {/* Tree Content with comfortable scroll area */}
-        <div className="flex-1 [scrollbar-gutter:stable] space-y-2.5 overflow-y-auto p-3.5 pb-24">
-          {/* Topics Section - Clean unboxed layout */}
-          <div>
-            <div className="flex items-center justify-between pb-2">
+        <div className="flex-1 [scrollbar-gutter:stable] space-y-3.5 overflow-y-auto p-3.5 pb-24">
+          {/* 1. Topics Card Section */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -896,8 +1111,10 @@ export function CourseOutlineTree({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
-                <Span className="text-sm font-bold tracking-tight text-slate-900">Topics</Span>
-                <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+                  Topics
+                </Span>
+                <Span className="py-0.2 rounded-full border border-blue-200/80 bg-blue-50 px-2 text-[10px] font-bold text-blue-700">
                   {topics.length}
                 </Span>
               </Button>
@@ -906,7 +1123,7 @@ export function CourseOutlineTree({
                 variant="ghost"
                 disabled={Boolean(isReorderingTopics)}
                 onClick={onAddTopic}
-                className="inline-flex h-auto items-center gap-1.5 rounded-full bg-[#0044D3] px-3 py-1 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 shadow-2xs transition-colors hover:bg-blue-50 disabled:opacity-40"
                 title="Add a new topic"
               >
                 <svg
@@ -925,7 +1142,7 @@ export function CourseOutlineTree({
             {/* Topics List with blur state when saving topics */}
             {!isTopicsSectionCollapsed && (
               <div
-                className={`relative mt-2 transition-all duration-200 ${
+                className={`relative mt-2.5 transition-all duration-200 ${
                   isReorderingTopics
                     ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
                     : ''
@@ -945,12 +1162,8 @@ export function CourseOutlineTree({
                         const isCollapsed = collapsedTopics[topic.id] ?? false;
                         const isSelected =
                           selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
-                        const subtopics = [...(topic.subtopics || [])].sort(
-                          (a, b) => a.displayOrder - b.displayOrder,
-                        );
-                        const topicAssignments = [...(topic.assignments || [])].sort(
-                          (a, b) => a.displayOrder - b.displayOrder,
-                        );
+                        const subtopics = topic.subtopics || [];
+                        const topicAssignments = topic.assignments || [];
 
                         const isReorderingSubtopicsThisTopic = Boolean(
                           reorderingSubtopicTopicIds?.includes(topic.id),
@@ -974,16 +1187,16 @@ export function CourseOutlineTree({
                             onToggleCollapse={toggleCollapse}
                             onRequestDeleteNode={onRequestDeleteNode}
                           >
-                            {/* Subtopics Div & Topic Tasks Div */}
-                            <div className="space-y-3 rounded-b-xl border-t border-slate-100 bg-slate-50/50 p-2.5">
-                              {/* 1. Subtopics Section Div */}
-                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                            {/* Subtopics & Topic Tasks Container */}
+                            <div className="space-y-3 rounded-b-xl border-t border-slate-200/70 bg-white p-3">
+                              {/* 1. Subtopics Section */}
+                              <div>
+                                <div className="flex items-center justify-between px-0.5 pb-1.5">
                                   <div className="flex items-center gap-1.5">
-                                    <Span className="text-xs font-bold tracking-wider text-slate-600 uppercase">
-                                      Subtopics
+                                    <Span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                                      Lessons / Subtopics
                                     </Span>
-                                    <Span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-700">
+                                    <Span className="py-0.2 rounded-full border border-blue-200/80 bg-blue-50 px-2 text-[10px] font-bold text-blue-700">
                                       {subtopics.length}
                                     </Span>
                                   </div>
@@ -992,7 +1205,7 @@ export function CourseOutlineTree({
                                     variant="ghost"
                                     disabled={Boolean(isReorderingSubtopicsThisTopic)}
                                     onClick={() => onAddSubtopic(topic.id)}
-                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-40"
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 shadow-2xs transition-colors hover:bg-blue-50 disabled:opacity-40"
                                     title="Add Subtopic"
                                   >
                                     <svg
@@ -1013,7 +1226,7 @@ export function CourseOutlineTree({
                                 </div>
 
                                 <div
-                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                  className={`relative mt-1 transition-all duration-200 ${
                                     isReorderingSubtopicsThisTopic
                                       ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
                                       : ''
@@ -1023,9 +1236,9 @@ export function CourseOutlineTree({
                                     items={subtopics.map((s) => s.id)}
                                     strategy={verticalListSortingStrategy}
                                   >
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1">
                                       {subtopics.length === 0 ? (
-                                        <div className="py-2 text-center text-xs text-slate-400">
+                                        <div className="rounded-lg border border-dashed border-slate-200/80 bg-white/60 py-2.5 text-center text-xs text-slate-400">
                                           No subtopics yet
                                         </div>
                                       ) : (
@@ -1062,14 +1275,14 @@ export function CourseOutlineTree({
                                 </div>
                               </div>
 
-                              {/* 2. Topic Tasks Section Div */}
-                              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-2.5">
-                                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                              {/* 2. Topic Tasks Section */}
+                              <div className="border-t border-slate-200/70 pt-2.5">
+                                <div className="flex items-center justify-between px-0.5 pb-1.5">
                                   <div className="flex items-center gap-1.5">
-                                    <Span className="text-xs font-bold tracking-wider text-purple-700 uppercase">
-                                      Tasks
+                                    <Span className="text-[11px] font-bold tracking-wider text-purple-700 uppercase">
+                                      Topic Tasks
                                     </Span>
-                                    <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                                    <Span className="py-0.2 rounded-full border border-purple-200/80 bg-purple-50 px-2 text-[10px] font-bold text-purple-700">
                                       {topicAssignments.length}
                                     </Span>
                                   </div>
@@ -1078,7 +1291,7 @@ export function CourseOutlineTree({
                                     variant="ghost"
                                     disabled={Boolean(isReorderingTopicTasksThisTopic)}
                                     onClick={() => onAddTopicAssignment(topic.id)}
-                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
+                                    className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 shadow-2xs transition-colors hover:bg-purple-50 disabled:opacity-40"
                                     title="Add Task"
                                   >
                                     <svg
@@ -1099,7 +1312,7 @@ export function CourseOutlineTree({
                                 </div>
 
                                 <div
-                                  className={`relative mt-1.5 transition-all duration-200 ${
+                                  className={`relative mt-1 transition-all duration-200 ${
                                     isReorderingTopicTasksThisTopic
                                       ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
                                       : ''
@@ -1109,9 +1322,9 @@ export function CourseOutlineTree({
                                     items={topicAssignments.map((a) => a.id)}
                                     strategy={verticalListSortingStrategy}
                                   >
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1">
                                       {topicAssignments.length === 0 ? (
-                                        <div className="py-2 text-center text-xs text-slate-400">
+                                        <div className="rounded-lg border border-dashed border-slate-200/80 bg-white/60 py-2.5 text-center text-xs text-slate-400">
                                           No tasks yet
                                         </div>
                                       ) : (
@@ -1161,8 +1374,10 @@ export function CourseOutlineTree({
           <div className="mt-4">
             <div className="flex items-center justify-between pb-2">
               <div className="flex items-center gap-2">
-                <Span className="text-sm font-bold tracking-tight text-slate-900">Assignments</Span>
-                <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
+                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
+                  Course-Level Assignments
+                </Span>
+                <Span className="rounded-full border border-purple-200/80 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {courseAssignments.length}
                 </Span>
               </div>
@@ -1171,7 +1386,7 @@ export function CourseOutlineTree({
                 variant="ghost"
                 disabled={Boolean(isReorderingCourseAssignments)}
                 onClick={onAddCourseAssignment}
-                className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 transition-colors hover:bg-purple-50 disabled:opacity-40"
+                className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 shadow-2xs transition-colors hover:bg-purple-50 disabled:opacity-40"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -1197,9 +1412,9 @@ export function CourseOutlineTree({
                 items={courseAssignments.map((a) => a.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {courseAssignments.length === 0 ? (
-                    <P className="py-2 text-center text-xs text-slate-400">
+                    <P className="rounded-lg border border-dashed border-slate-200/80 bg-slate-50/50 py-3 text-center text-xs text-slate-400">
                       No course assignments created yet
                     </P>
                   ) : (

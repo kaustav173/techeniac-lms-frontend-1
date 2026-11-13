@@ -24,6 +24,7 @@ function isValidWebUrl(urlString: string): boolean {
 
 interface TopicEditorProps {
   topic: Topic;
+  existingTopics?: Topic[] | undefined;
   impact?: CourseImpact | null | undefined;
   courseEstimatedMinutes?: number | null | undefined;
   otherTopicsMinutes?: number | undefined;
@@ -34,6 +35,7 @@ interface TopicEditorProps {
 
 export function TopicEditor({
   topic,
+  existingTopics,
   impact,
   courseEstimatedMinutes = null,
   otherTopicsMinutes = 0,
@@ -117,8 +119,28 @@ export function TopicEditor({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setErrorMsg('Topic title cannot be empty.');
+      return;
+    }
+
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    const duplicateTopic = existingTopics?.find(
+      (t) => t.id !== topic.id && t.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicateTopic) {
+      setErrorMsg(`A topic with the title "${trimmedTitle}" already exists in this course.`);
+      return;
+    }
+
+    const collidingSubtopic = existingTopics
+      ?.flatMap((t) => t.subtopics || [])
+      .find((s) => s.title.trim().toLowerCase() === normalizedTitle);
+    if (collidingSubtopic) {
+      setErrorMsg(
+        `A topic cannot share the same title "${trimmedTitle}" with an existing subtopic in this course.`,
+      );
       return;
     }
 
@@ -311,6 +333,10 @@ export function TopicEditor({
       >
         {/* Card 1: Core Topic Information */}
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Topic Information</H3>
+          </div>
+
           <div>
             <Label
               required={true}
@@ -324,7 +350,7 @@ export function TopicEditor({
               hasError={Boolean(errorMsg && !title.trim())}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Branching & Trunk Strategies"
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
@@ -337,20 +363,15 @@ export function TopicEditor({
               value={description}
               onChange={(e) => handleChange(() => setDescription(e.target.value))}
               placeholder="Brief scope, prerequisites, and learning objectives for this topic..."
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
         </div>
 
         {/* Card 2: Estimated Duration & Planning */}
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Estimated Duration
-            </Label>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Planned lecture and study duration allocated for this topic.
-            </P>
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -456,12 +477,9 @@ export function TopicEditor({
 
         {/* Card 3: Resources & Attachments Manager */}
         <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Supplementary links, documentation references, and download files.
-              </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
@@ -597,16 +615,14 @@ export function TopicEditor({
             >
               {isActive ? 'Active' : 'Inactive'}
             </Span>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               role="switch"
               aria-checked={isActive}
               aria-label="Topic active status"
               onClick={() => handleChange(() => setIsActive(!isActive))}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-                isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+                isActive ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
               }`}
             >
               <Span
@@ -615,7 +631,7 @@ export function TopicEditor({
                   isActive ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
-            </Button>
+            </button>
           </div>
         </div>
       </form>
