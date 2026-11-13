@@ -479,7 +479,7 @@ export function MyAssignmentsTable({
                             {assignment.courseId ? (
                               <Link
                                 role="menuitem"
-                                href={`/mentee/courses/${assignment.courseId}`}
+                                href={`/mentee/courses/${assignment.allocationId || assignment.courseId}`}
                                 onClick={() => setOpenActionMenuId(null)}
                                 className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                               >

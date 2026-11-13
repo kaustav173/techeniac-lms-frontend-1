@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import React, { Suspense } from 'react';
 
-import { MenteeCourseView } from '@/components/app/courses/MenteeCourseView';
+import {
+  MenteeCourseView,
+  MenteeCourseWorkspaceSkeleton,
+} from '@/components/app/courses/MenteeCourseView';
 
 export const metadata: Metadata = {
   title: 'Course Workspace | Learning Progress',
@@ -21,13 +24,7 @@ async function MenteeCourseContent({ params }: MenteeCoursePageProps) {
 
 export default function MenteeCoursePage({ params }: MenteeCoursePageProps) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[50vh] items-center justify-center text-sm font-medium text-slate-500">
-          Loading course workspace...
-        </div>
-      }
-    >
+    <Suspense fallback={<MenteeCourseWorkspaceSkeleton />}>
       <MenteeCourseContent params={params} />
     </Suspense>
   );
