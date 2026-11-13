@@ -10,7 +10,13 @@ import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
-import type { CourseImpact, ResourceItem, Subtopic, UpdateSubtopicInput } from '@/types/courses';
+import type {
+  CourseImpact,
+  ResourceItem,
+  Subtopic,
+  Topic,
+  UpdateSubtopicInput,
+} from '@/types/courses';
 
 function isValidWebUrl(urlString: string): boolean {
   try {
@@ -25,6 +31,7 @@ function isValidWebUrl(urlString: string): boolean {
 
 interface SubtopicEditorProps {
   subtopic: Subtopic;
+  existingTopics?: Topic[] | undefined;
   impact?: CourseImpact | null | undefined;
   courseEstimatedMinutes?: number | null | undefined;
   parentTopicTitle?: string | undefined;
@@ -37,6 +44,7 @@ interface SubtopicEditorProps {
 
 export function SubtopicEditor({
   subtopic,
+  existingTopics,
   impact,
   courseEstimatedMinutes = null,
   parentTopicTitle,
@@ -120,8 +128,29 @@ export function SubtopicEditor({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setErrorMsg('Subtopic title cannot be empty.');
+      return;
+    }
+
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    const parentTopic = existingTopics?.find((t) => t.subtopics?.some((s) => s.id === subtopic.id));
+    const duplicateSibling = parentTopic?.subtopics?.find(
+      (s) => s.id !== subtopic.id && s.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicateSibling) {
+      setErrorMsg(`A subtopic with the title "${trimmedTitle}" already exists in this topic.`);
+      return;
+    }
+
+    const duplicateTopic = existingTopics?.find(
+      (t) => t.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicateTopic) {
+      setErrorMsg(
+        `A subtopic cannot share the same title "${trimmedTitle}" with a topic in this course.`,
+      );
       return;
     }
 

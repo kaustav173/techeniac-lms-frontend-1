@@ -288,6 +288,13 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       return;
     }
 
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    const duplicate = courses.find((c) => c.title.trim().toLowerCase() === normalizedTitle);
+    if (duplicate) {
+      setCreateError(`A course with the title "${trimmedTitle}" already exists.`);
+      return;
+    }
+
     const totalEstimatedMins =
       estimatedMinutes !== null && estimatedMinutes > 0 ? estimatedMinutes : undefined;
 

@@ -9,7 +9,14 @@ import { Label } from '@/components/ui/Label';
 import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
-import { Assignment, ResourceItem, SubmissionMode, UpdateAssignmentInput } from '@/types/courses';
+import {
+  Assignment,
+  AssignmentScope,
+  ResourceItem,
+  SubmissionMode,
+  Topic,
+  UpdateAssignmentInput,
+} from '@/types/courses';
 
 function isValidWebUrl(urlString: string): boolean {
   try {
@@ -24,6 +31,8 @@ function isValidWebUrl(urlString: string): boolean {
 
 interface AssignmentEditorProps {
   assignment: Assignment;
+  existingTopics?: Topic[] | undefined;
+  existingCourseAssignments?: Assignment[] | undefined;
   onSaveAssignment: (payload: UpdateAssignmentInput) => Promise<Assignment>;
   onConflict: () => void;
   onDirtyChange: (dirty: boolean) => void;
@@ -31,6 +40,8 @@ interface AssignmentEditorProps {
 
 export function AssignmentEditor({
   assignment,
+  existingTopics,
+  existingCourseAssignments,
   onSaveAssignment,
   onConflict,
   onDirtyChange,
@@ -107,9 +118,32 @@ export function AssignmentEditor({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setErrorMsg('Assignment title cannot be empty.');
       return;
+    }
+
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    if (assignment.scope === AssignmentScope.COURSE) {
+      const duplicateCourseAssign = existingCourseAssignments?.find(
+        (a) => a.id !== assignment.id && a.title.trim().toLowerCase() === normalizedTitle,
+      );
+      if (duplicateCourseAssign) {
+        setErrorMsg(
+          `A course assignment with the title "${trimmedTitle}" already exists in this course.`,
+        );
+        return;
+      }
+    } else if (assignment.scope === AssignmentScope.TOPIC && assignment.topicId) {
+      const currentTopic = existingTopics?.find((t) => t.id === assignment.topicId);
+      const duplicateTopicAssign = currentTopic?.assignments?.find(
+        (a) => a.id !== assignment.id && a.title.trim().toLowerCase() === normalizedTitle,
+      );
+      if (duplicateTopicAssign) {
+        setErrorMsg(`A task with the title "${trimmedTitle}" already exists in this topic.`);
+        return;
+      }
     }
 
     if (totalDurationMinutes <= 0) {

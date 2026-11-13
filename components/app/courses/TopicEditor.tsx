@@ -24,6 +24,7 @@ function isValidWebUrl(urlString: string): boolean {
 
 interface TopicEditorProps {
   topic: Topic;
+  existingTopics?: Topic[] | undefined;
   impact?: CourseImpact | null | undefined;
   courseEstimatedMinutes?: number | null | undefined;
   otherTopicsMinutes?: number | undefined;
@@ -34,6 +35,7 @@ interface TopicEditorProps {
 
 export function TopicEditor({
   topic,
+  existingTopics,
   impact,
   courseEstimatedMinutes = null,
   otherTopicsMinutes = 0,
@@ -117,8 +119,28 @@ export function TopicEditor({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setErrorMsg('Topic title cannot be empty.');
+      return;
+    }
+
+    const normalizedTitle = trimmedTitle.toLowerCase();
+    const duplicateTopic = existingTopics?.find(
+      (t) => t.id !== topic.id && t.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicateTopic) {
+      setErrorMsg(`A topic with the title "${trimmedTitle}" already exists in this course.`);
+      return;
+    }
+
+    const collidingSubtopic = existingTopics
+      ?.flatMap((t) => t.subtopics || [])
+      .find((s) => s.title.trim().toLowerCase() === normalizedTitle);
+    if (collidingSubtopic) {
+      setErrorMsg(
+        `A topic cannot share the same title "${trimmedTitle}" with an existing subtopic in this course.`,
+      );
       return;
     }
 

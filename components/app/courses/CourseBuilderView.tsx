@@ -134,6 +134,7 @@ function CourseActiveEditor({
       <TopicEditor
         key={`${topic.id}-${topic.updatedAt}`}
         topic={topic}
+        existingTopics={course.topics}
         impact={impact}
         courseEstimatedMinutes={course.estimatedMinutes}
         otherTopicsMinutes={otherTopicsMinutes}
@@ -166,6 +167,7 @@ function CourseActiveEditor({
       <SubtopicEditor
         key={`${subtopic.id}-${subtopic.updatedAt}`}
         subtopic={subtopic}
+        existingTopics={course.topics}
         impact={impact}
         courseEstimatedMinutes={course.estimatedMinutes}
         parentTopicTitle={parentTopic?.title}
@@ -195,6 +197,8 @@ function CourseActiveEditor({
       <AssignmentEditor
         key={`${assignment.id}-${assignment.updatedAt}`}
         assignment={assignment}
+        existingTopics={course.topics}
+        existingCourseAssignments={course.courseAssignments || course.assignments}
         onSaveAssignment={(payload) => updateAssignment(assignment.id, payload)}
         onConflict={onConflict}
         onDirtyChange={onDirtyChange}
@@ -207,11 +211,17 @@ function CourseActiveEditor({
 
 interface AddTopicModalProps {
   isOpen: boolean;
+  existingTopics?: Topic[] | undefined;
   onClose: () => void;
   onCreate: (title: string) => Promise<void>;
 }
 
-function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProps>) {
+function AddTopicModal({
+  isOpen,
+  existingTopics,
+  onClose,
+  onCreate,
+}: Readonly<AddTopicModalProps>) {
   const [title, setTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -227,6 +237,23 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
     }
     if (trimmed.length > 150) {
       setError('Topic title cannot exceed 150 characters.');
+      return;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const duplicateTopic = existingTopics?.find((t) => t.title.trim().toLowerCase() === normalized);
+    if (duplicateTopic) {
+      setError(`A topic with the title "${trimmed}" already exists in this course.`);
+      return;
+    }
+
+    const collidingSubtopic = existingTopics
+      ?.flatMap((t) => t.subtopics || [])
+      .find((s) => s.title.trim().toLowerCase() === normalized);
+    if (collidingSubtopic) {
+      setError(
+        `A topic cannot share the same title "${trimmed}" with an existing subtopic in this course.`,
+      );
       return;
     }
 
@@ -319,11 +346,18 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
 interface AddSubtopicModalProps {
   isOpen: boolean;
   topicId: string | null;
+  existingTopics?: Topic[] | undefined;
   onClose: () => void;
   onCreate: (topicId: string, title: string) => Promise<void>;
 }
 
-function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSubtopicModalProps>) {
+function AddSubtopicModal({
+  isOpen,
+  topicId,
+  existingTopics,
+  onClose,
+  onCreate,
+}: Readonly<AddSubtopicModalProps>) {
   const [title, setTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -339,6 +373,22 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
     }
     if (trimmed.length > 150) {
       setError('Subtopic title cannot exceed 150 characters.');
+      return;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const currentTopic = existingTopics?.find((t) => t.id === topicId);
+    const duplicateSibling = currentTopic?.subtopics?.find(
+      (s) => s.title.trim().toLowerCase() === normalized,
+    );
+    if (duplicateSibling) {
+      setError(`A subtopic with the title "${trimmed}" already exists in this topic.`);
+      return;
+    }
+
+    const duplicateTopic = existingTopics?.find((t) => t.title.trim().toLowerCase() === normalized);
+    if (duplicateTopic) {
+      setError(`A subtopic cannot share the same title "${trimmed}" with a topic in this course.`);
       return;
     }
 
@@ -461,6 +511,8 @@ interface AddAssignmentModalProps {
   isOpen: boolean;
   scope: AssignmentScope;
   topicId: string | null;
+  existingCourseAssignments?: Assignment[] | undefined;
+  existingTopics?: Topic[] | undefined;
   onClose: () => void;
   onCreate: (payload: CreateAssignmentInput) => Promise<void>;
 }
@@ -469,6 +521,8 @@ function AddAssignmentModal({
   isOpen,
   scope,
   topicId,
+  existingCourseAssignments,
+  existingTopics,
   onClose,
   onCreate,
 }: Readonly<AddAssignmentModalProps>) {
@@ -499,6 +553,28 @@ function AddAssignmentModal({
     if (validationError) {
       setError(validationError);
       return;
+    }
+
+    const normalized = trimmedTitle.toLowerCase();
+    if (scope === AssignmentScope.COURSE) {
+      const duplicateCourseAssign = existingCourseAssignments?.find(
+        (a) => a.title.trim().toLowerCase() === normalized,
+      );
+      if (duplicateCourseAssign) {
+        setError(
+          `A course assignment with the title "${trimmedTitle}" already exists in this course.`,
+        );
+        return;
+      }
+    } else if (scope === AssignmentScope.TOPIC && topicId) {
+      const currentTopic = existingTopics?.find((t) => t.id === topicId);
+      const duplicateTopicAssign = currentTopic?.assignments?.find(
+        (a) => a.title.trim().toLowerCase() === normalized,
+      );
+      if (duplicateTopicAssign) {
+        setError(`A task with the title "${trimmedTitle}" already exists in this topic.`);
+        return;
+      }
     }
 
     setError(null);
@@ -1369,6 +1445,7 @@ function CourseBuilderContent({
       {/* Add Topic Modal */}
       <AddTopicModal
         isOpen={isAddTopicOpen}
+        existingTopics={course?.topics}
         onClose={() => setIsAddTopicOpen(false)}
         onCreate={handleCreateTopic}
       />
@@ -1377,6 +1454,7 @@ function CourseBuilderContent({
       <AddSubtopicModal
         isOpen={isAddSubtopicOpen}
         topicId={targetTopicId}
+        existingTopics={course?.topics}
         onClose={() => {
           setIsAddSubtopicOpen(false);
           setTargetTopicId(null);
@@ -1389,6 +1467,8 @@ function CourseBuilderContent({
         isOpen={isAddAssignmentOpen}
         scope={assignmentScope}
         topicId={assignmentTopicId}
+        existingCourseAssignments={course?.courseAssignments || course?.assignments}
+        existingTopics={course?.topics}
         onClose={() => {
           setIsAddAssignmentOpen(false);
           setAssignmentTopicId(null);
