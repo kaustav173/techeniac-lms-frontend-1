@@ -126,7 +126,7 @@ export function Modal({
         </div>
 
         {/* Modal Body */}
-        <div className="space-y-5 overflow-y-auto p-6">{children}</div>
+        <div className="space-y-5 overflow-x-hidden overflow-y-auto p-6">{children}</div>
 
         {/* Modal Footer */}
         {footer ? (

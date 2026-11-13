@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Textarea } from '@/components/ui/Textarea';
 import { Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
@@ -42,18 +42,23 @@ export function TransferMenteeModal({
     (b) => b.id !== mentee?.currentBatchId && (b.status === 'LIVE' || b.status === 'DRAFT'),
   );
 
-  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { toastSuccess, toastError } = useToast();
 
   const targetBatchId =
-    selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId)
-      ? selectedBatchId
-      : eligibleBatches[0]?.id || '';
+    selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId) ? selectedBatchId : '';
 
   const targetBatch = eligibleBatches.find((b) => b.id === targetBatchId);
+
+  const batchOptions: readonly MultiSelectOption[] = useMemo(() => {
+    return eligibleBatches.map((b) => ({
+      value: b.id,
+      label: `${b.name} (${b.code}) — ${b.status}`,
+    }));
+  }, [eligibleBatches]);
 
   const { mutateAsync: transferMentee, isPending: isSubmitting } = useTransferMenteeMutation();
 
@@ -132,22 +137,27 @@ export function TransferMenteeModal({
 
         {/* Pathway Card: Origin to Destination */}
         <div className="rounded-xl border border-slate-200/90 bg-slate-50/60 p-3.5 shadow-2xs">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-start">
             {/* Origin Batch */}
-            <div className="rounded-lg border border-slate-200/70 bg-white p-2.5">
-              <Span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <div className="min-w-0 space-y-1">
+              <Span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
                 Current Batch
               </Span>
-              <Span
-                className="mt-0.5 block truncate text-xs font-bold text-slate-900"
-                title={mentee.currentBatchName}
-              >
-                {mentee.currentBatchName}
-              </Span>
+              <div className="flex h-10 min-w-0 items-center rounded-xl border border-slate-200/80 bg-white px-3 shadow-2xs">
+                <Span
+                  className="truncate text-xs font-semibold text-slate-900"
+                  title={mentee.currentBatchName}
+                >
+                  {mentee.currentBatchName}
+                </Span>
+              </div>
             </div>
 
             {/* Transfer Direction Arrow */}
-            <div className="flex items-center justify-center text-slate-400" aria-hidden="true">
+            <div
+              className="flex items-center justify-center py-1 text-slate-400 sm:mb-3 sm:self-end sm:py-0"
+              aria-hidden="true"
+            >
               <svg
                 className="h-4 w-4 rotate-90 text-blue-600 sm:rotate-0"
                 fill="none"
@@ -160,7 +170,7 @@ export function TransferMenteeModal({
             </div>
 
             {/* Destination Batch Selector */}
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <Label
                 htmlFor="target-batch"
                 required
@@ -174,22 +184,28 @@ export function TransferMenteeModal({
                   <Span className="text-xs text-slate-500">Loading batches...</Span>
                 </div>
               ) : hasEligibleBatches ? (
-                <Select
+                <MultiSelectDropdown
                   id="target-batch"
-                  value={targetBatchId}
-                  onChange={(e) => setSelectedBatchId(e.target.value)}
-                  className="h-9 cursor-pointer text-xs font-medium text-slate-900"
-                >
-                  {eligibleBatches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.status})
-                    </option>
-                  ))}
-                </Select>
+                  label="Destination batch"
+                  placeholder="-- Choose destination batch --"
+                  options={batchOptions}
+                  selectedValues={selectedBatchId ? [selectedBatchId] : []}
+                  onChange={(vals) => {
+                    setSelectedBatchId(vals[0] ?? '');
+                    setError(null);
+                  }}
+                  singleSelect={true}
+                  align="left"
+                  className="w-full min-w-0"
+                  buttonClassName="h-10 text-xs"
+                  usePortal={true}
+                />
               ) : (
-                <Span className="block text-xs text-amber-700 italic">
-                  No other active batches available
-                </Span>
+                <div className="flex h-10 items-center rounded-xl border border-amber-200 bg-amber-50/50 px-3">
+                  <Span className="text-xs text-amber-700 italic">
+                    No other active batches available
+                  </Span>
+                </div>
               )}
             </div>
           </div>
