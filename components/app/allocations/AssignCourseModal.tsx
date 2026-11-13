@@ -21,6 +21,7 @@ import { type ApiBatchSummary, useBatchDetail, useInfiniteBatches } from '@/hook
 import { useCourseDetail, useInfiniteCourses } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/useToast';
 import { useUsers } from '@/hooks/useUsers';
+import { cn } from '@/lib/cn';
 import { toISTDateInputValue } from '@/lib/date';
 
 export interface AssignCourseModalProps {
@@ -112,7 +113,7 @@ function AssignCourseModalDialog({
       Boolean(selectedBatchId) &&
       (targetType === 'SELECTED_MENTEES' || !infiniteBatches.some((b) => b.id === selectedBatchId)),
   });
-  const canTargetIndividualMentees = userRole === 'SUPER_ADMIN';
+  const canTargetIndividualMentees = userRole === 'SUPER_ADMIN' && !initialBatchId;
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
     targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
     { enabled: targetType === 'INDIVIDUAL_MENTEES' && canTargetIndividualMentees },
@@ -606,7 +607,12 @@ function AssignCourseModalDialog({
           <div className="space-y-4">
             <div>
               <Label required>Target Scope</Label>
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              <div
+                className={cn(
+                  'grid grid-cols-1 gap-2.5',
+                  canTargetIndividualMentees ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+                )}
+              >
                 <Button
                   type="button"
                   variant="outline"
