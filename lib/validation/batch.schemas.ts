@@ -27,14 +27,29 @@ export const createBatchSchema = z
       .max(20, 'Batch code must not exceed 20 characters')
       .regex(/^[A-Z0-9-]+$/, 'Batch code must be uppercase alphanumeric and hyphens only')
       .transform((val) => val.toUpperCase()),
-    startDate: z.string({ required_error: 'Start date is required' }),
-    endDate: z.string({ required_error: 'End date is required' }),
+    startDate: z
+      .string({ required_error: 'Please select start date' })
+      .trim()
+      .min(1, 'Please select start date'),
+    endDate: z
+      .string({ required_error: 'Please select end date' })
+      .trim()
+      .min(1, 'Please select end date'),
     description: z.string().max(5000, 'Description must not exceed 5000 characters').optional(),
   })
-  .refine((data) => new Date(data.startDate) <= new Date(data.endDate), {
-    message: 'Start date must be earlier than or equal to end date',
-    path: ['endDate'],
-  });
+  .refine(
+    (data) => {
+      if (!data.startDate || !data.endDate) return true;
+      const start = new Date(data.startDate).getTime();
+      const end = new Date(data.endDate).getTime();
+      if (Number.isNaN(start) || Number.isNaN(end)) return true;
+      return start <= end;
+    },
+    {
+      message: 'Start date must be earlier than or equal to end date',
+      path: ['endDate'],
+    },
+  );
 
 export type CreateBatchFormData = z.infer<typeof createBatchSchema>;
 
