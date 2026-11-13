@@ -748,6 +748,9 @@ export function AssignmentEditor({
                   />
                   <Span className="text-xs leading-tight font-semibold text-blue-900">
                     &ldquo;I have completed this assignment&rdquo; confirmation
+                    <Span className="mt-0.5 block text-xs font-normal text-blue-700">
+                      Mandatory for all mentees (cannot be turned off)
+                    </Span>
                   </Span>
                 </Label>
               </div>

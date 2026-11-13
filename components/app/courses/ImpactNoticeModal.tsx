@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { AlertIcon, CheckCircleIcon } from '@/components/ui/Icons';
 import { P, Span } from '@/components/ui/Typography';
 import type { CourseImpact } from '@/types/courses';
 
@@ -48,12 +49,14 @@ export function ImpactNoticeModal({
         <div className="flex min-w-0 items-start gap-3">
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-              isDestructive
+              isDeleteAction
                 ? 'border border-rose-200/80 bg-rose-50 text-rose-600'
-                : 'border border-blue-200/80 bg-blue-50 text-blue-600'
+                : isDestructive
+                  ? 'border border-amber-200/80 bg-amber-50 text-amber-600'
+                  : 'border border-blue-200/80 bg-blue-50 text-blue-600'
             }`}
           >
-            {isDestructive ? (
+            {isDeleteAction ? (
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -68,27 +71,16 @@ export function ImpactNoticeModal({
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
+            ) : isDestructive ? (
+              <AlertIcon className="h-5 w-5" />
             ) : (
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <CheckCircleIcon className="h-5 w-5" />
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="block text-base leading-snug font-bold [overflow-wrap:anywhere] break-words text-slate-900">
+            <Span className="block text-base leading-snug font-bold [overflow-wrap:anywhere] break-words text-slate-900">
               {actionTitle}
-            </span>
+            </Span>
           </div>
         </div>
       }
@@ -133,9 +125,9 @@ export function ImpactNoticeModal({
                 />
               </svg>
               <div className="min-w-0 flex-1 leading-relaxed [overflow-wrap:anywhere] break-words">
-                <span className="font-semibold text-slate-800">
+                <Span className="font-semibold text-slate-800">
                   {isDeleteAction ? 'Soft Deletion Policy: ' : 'Policy Notice: '}
-                </span>
+                </Span>
                 {actionMessage ||
                   (isDeleteAction
                     ? 'This item will be soft-deleted. Historical learner submissions, activity logs, and grading records are permanently retained.'
