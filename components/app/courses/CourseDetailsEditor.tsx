@@ -146,15 +146,6 @@ export function CourseDetailsEditor({
           <H2 className="max-w-full text-xl font-bold tracking-tight break-words break-all text-slate-900 sm:text-2xl">
             {title || course.title}
           </H2>
-          <Span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              isActive
-                ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border border-slate-200 bg-slate-100 text-slate-600'
-            }`}
-          >
-            {isActive ? 'Active' : 'Inactive'}
-          </Span>
         </div>
       </div>
 
@@ -319,16 +310,14 @@ export function CourseDetailsEditor({
               >
                 {isActive ? 'Active' : 'Inactive'}
               </Span>
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 role="switch"
                 aria-checked={isActive}
                 aria-label="Course visibility status"
                 onClick={() => handleChange(() => setIsActive(!isActive))}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] ${
-                  isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+                  isActive ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
                 }`}
               >
                 <Span
@@ -337,7 +326,7 @@ export function CourseDetailsEditor({
                     isActive ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
-              </Button>
+              </button>
             </div>
           </div>
         </div>
