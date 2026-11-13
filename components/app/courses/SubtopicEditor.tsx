@@ -249,10 +249,12 @@ export function SubtopicEditor({
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Subtopic Lesson Editor
+            {parentTopicTitle
+              ? `Topic: ${parentTopicTitle} • Subtopic Lesson`
+              : 'Subtopic Lesson • Content'}
           </Span>
           <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
-            {subtopic.title}
+            {title || subtopic.title}
           </H2>
         </div>
 
@@ -308,6 +310,13 @@ export function SubtopicEditor({
       >
         {/* Card 1: Core Lesson Information & Markdown */}
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Lesson Information & Content</H3>
+            <P className="mt-0.5 text-xs text-slate-500">
+              Curriculum subtopic lesson title and formatted markdown reading material.
+            </P>
+          </div>
+
           <div>
             <Label
               required={true}
@@ -321,7 +330,7 @@ export function SubtopicEditor({
               hasError={Boolean(errorMsg && !title.trim())}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Interactive Rebase and Squash Commits"
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
@@ -364,7 +373,7 @@ export function SubtopicEditor({
                 value={content}
                 onChange={(e) => handleChange(() => setContent(e.target.value))}
                 placeholder="Enter markdown lesson content, instructions, command code blocks, diagrams..."
-                className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
               />
             ) : (
               <div className="mt-2.5 min-h-[300px] rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
@@ -383,10 +392,8 @@ export function SubtopicEditor({
 
         {/* Card 2: Estimated Duration & Caps */}
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Estimated Duration
-            </Label>
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
             <P className="mt-0.5 text-xs text-slate-500">
               Planned completion time for this subtopic lesson.
             </P>
@@ -493,7 +500,7 @@ export function SubtopicEditor({
 
         {/* Card 3: Resources & Attachments Manager */}
         <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
               <P className="mt-0.5 text-xs text-slate-500">

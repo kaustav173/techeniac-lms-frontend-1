@@ -235,12 +235,12 @@ export function AssignmentEditor({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
-              {assignment.scope} Task
+              {assignment.scope} Task • Evaluation
             </Span>
             <Span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</Span>
           </div>
           <H2 className="mt-1.5 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
-            {assignment.title}
+            {title || assignment.title}
           </H2>
         </div>
 
@@ -283,6 +283,13 @@ export function AssignmentEditor({
       >
         {/* Card 1: Core Specifications */}
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Task Information & Prompt</H3>
+            <P className="mt-0.5 text-xs text-slate-500">
+              Deliverable title and comprehensive instructions presented to cadets.
+            </P>
+          </div>
+
           <div>
             <Label
               required={true}
@@ -296,7 +303,7 @@ export function AssignmentEditor({
               hasError={Boolean(errorMsg && !title.trim())}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Build a Raft Distributed Consensus Node"
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
@@ -309,19 +316,17 @@ export function AssignmentEditor({
               value={instructions}
               onChange={(e) => handleChange(() => setInstructions(e.target.value))}
               placeholder="State the technical specifications, requirements, and constraints for cadets..."
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
         </div>
 
         {/* Card 2: Time, Marks & Late Submissions */}
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Grading & Duration Calibration
-            </Label>
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Grading & Duration Calibration</H3>
             <P className="mt-0.5 text-xs text-slate-500">
-              Configure evaluation thresholds and expected completion time.
+              Configure evaluation pass thresholds, maximum marks, and duration benchmark.
             </P>
           </div>
 
@@ -452,7 +457,7 @@ export function AssignmentEditor({
 
         {/* Card 3: Submission Modes Chooser */}
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
+          <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Mentee Submission Deliverables</H3>
             <P className="mt-0.5 text-xs text-slate-500">
               Configure accepted deliverable formats. At least one deliverable must not be
@@ -551,11 +556,11 @@ export function AssignmentEditor({
 
         {/* Card 4: Resources Manager */}
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
               <P className="mt-0.5 text-xs text-slate-500">
-                Starter code repositories, rubrics, and reference assets
+                Starter code repositories, rubrics, and reference assets.
               </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">

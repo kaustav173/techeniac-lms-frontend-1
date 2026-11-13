@@ -269,7 +269,7 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
         className="space-y-4"
       >
         <div>
-          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+          <Label required={true} className="block text-xs font-semibold text-slate-700">
             Topic Title
           </Label>
           <Input
@@ -281,7 +281,7 @@ function AddTopicModal({ isOpen, onClose, onCreate }: Readonly<AddTopicModalProp
               if (error) setError(null);
             }}
             placeholder="e.g. Distributed Consensus"
-            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
           />
         </div>
       </form>
@@ -381,7 +381,7 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
         className="space-y-4"
       >
         <div>
-          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+          <Label required={true} className="block text-xs font-semibold text-slate-700">
             Subtopic Title
           </Label>
           <Input
@@ -393,7 +393,7 @@ function AddSubtopicModal({ isOpen, topicId, onClose, onCreate }: Readonly<AddSu
               if (error) setError(null);
             }}
             placeholder="e.g. Raft Leader Election Protocol"
-            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
           />
         </div>
       </form>
@@ -552,7 +552,7 @@ function AddAssignmentModal({
         className="space-y-4"
       >
         <div>
-          <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+          <Label required={true} className="block text-xs font-semibold text-slate-700">
             Assignment Title
           </Label>
           <Input
@@ -564,16 +564,16 @@ function AddAssignmentModal({
               if (error) setError(null);
             }}
             placeholder="e.g. Implement Raft Log Compaction"
-            className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-blue-600 focus:outline-hidden"
+            className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-semibold text-slate-700">
               Est. Hours
             </Label>
-            <div className="relative mt-1">
+            <div className="relative mt-1.5">
               <Input
                 type="number"
                 min={0}
@@ -582,16 +582,16 @@ function AddAssignmentModal({
                   setHours(e.target.value);
                   if (error) setError(null);
                 }}
-                className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+                className="h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 pr-9 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
               />
-              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                 hrs
               </Span>
             </div>
           </div>
           <div>
-            <Label className="block text-xs font-bold text-slate-700 uppercase">Est. Minutes</Label>
-            <div className="relative mt-1">
+            <Label className="block text-xs font-semibold text-slate-700">Est. Minutes</Label>
+            <div className="relative mt-1.5">
               <Input
                 type="number"
                 min={0}
@@ -601,9 +601,9 @@ function AddAssignmentModal({
                   setMinutes(sanitizeDurationMinutes(e.target.value));
                   if (error) setError(null);
                 }}
-                className="h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 pr-8 text-xs focus:border-blue-600 focus:outline-hidden"
+                className="h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 pr-9 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
               />
-              <Span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs font-medium text-slate-400">
+              <Span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-slate-400">
                 mins
               </Span>
             </div>
@@ -612,7 +612,7 @@ function AddAssignmentModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-semibold text-slate-700">
               Max Marks
             </Label>
             <Input
@@ -624,11 +624,11 @@ function AddAssignmentModal({
                 setMaxMarks(Number(e.target.value));
                 if (error) setError(null);
               }}
-              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
             />
           </div>
           <div>
-            <Label required={true} className="block text-xs font-bold text-slate-700 uppercase">
+            <Label required={true} className="block text-xs font-semibold text-slate-700">
               Pass Marks
             </Label>
             <Input
@@ -639,7 +639,7 @@ function AddAssignmentModal({
                 setPassMarks(Number(e.target.value));
                 if (error) setError(null);
               }}
-              className="mt-1 h-8 w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs focus:border-blue-600 focus:outline-hidden"
+              className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-[#0044D3] focus:ring-1 focus:ring-[#0044D3] focus:outline-hidden"
             />
           </div>
         </div>
@@ -1118,7 +1118,7 @@ function CourseBuilderContent({
         className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
       >
         {/* Builder Top Command Bar */}
-        <div className="flex items-center justify-between bg-white px-3 py-2 sm:px-6">
+        <div className="flex items-center justify-between border-b border-slate-200/80 bg-white px-3 py-2.5 shadow-2xs sm:px-6">
           <div className="flex min-w-0 items-center gap-2 truncate sm:gap-3">
             <Link
               href={`/${portal}/courses`}
@@ -1149,48 +1149,71 @@ function CourseBuilderContent({
               type="button"
               variant="ghost"
               onClick={() => handleSelectNode({ type: 'COURSE', id: course.id })}
-              className={`hidden h-auto min-w-0 items-center gap-2 truncate rounded-xl px-2.5 py-1 text-left transition-colors sm:flex ${
+              className={`hidden h-auto min-w-0 items-center gap-2 truncate rounded-xl px-3 py-1.5 text-left transition-all sm:flex ${
                 selectedNode.type === 'COURSE' && selectedNode.id === course.id
-                  ? 'bg-blue-50/90 text-blue-900 ring-1 ring-blue-500/40 hover:bg-blue-50/90'
+                  ? 'bg-blue-50/90 text-blue-900 shadow-2xs ring-1 ring-blue-500/40'
                   : 'text-slate-800 hover:bg-slate-100/80'
               }`}
               title="Click to view & edit Course Details"
             >
+              <svg
+                className="h-4 w-4 shrink-0 text-[#0044D3]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
               <Span className="max-w-[280px] truncate text-sm font-bold md:max-w-md lg:max-w-xl">
                 {course.title}
               </Span>
             </Button>
           </div>
 
-          {/* View Switcher on < lg screens */}
-          <div className="flex items-center rounded-full bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setMobileTab('outline')}
-              className={`h-auto rounded-full px-3 py-1 transition-colors ${
-                mobileTab === 'outline'
-                  ? 'bg-white font-bold text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              Outline
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setMobileTab('editor')}
-              className={`flex h-auto items-center gap-1 rounded-full px-3 py-1 transition-colors ${
-                mobileTab === 'editor'
-                  ? 'bg-white font-bold text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Span>Editor</Span>
-              {isDirty && (
-                <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
-              )}
-            </Button>
+          {/* Right Action / Dirty State Indicator */}
+          <div className="flex items-center gap-3">
+            {isDirty && (
+              <div className="hidden items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800 lg:flex">
+                <Span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                <Span>Unsaved changes in active form</Span>
+              </div>
+            )}
+
+            {/* View Switcher on < lg screens */}
+            <div className="flex items-center rounded-full bg-slate-100 p-0.5 text-xs font-medium lg:hidden">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setMobileTab('outline')}
+                className={`h-auto rounded-full px-3 py-1 transition-colors ${
+                  mobileTab === 'outline'
+                    ? 'bg-white font-bold text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Outline
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setMobileTab('editor')}
+                className={`flex h-auto items-center gap-1 rounded-full px-3 py-1 transition-colors ${
+                  mobileTab === 'editor'
+                    ? 'bg-white font-bold text-slate-900 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <Span>Editor</Span>
+                {isDirty && (
+                  <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Unsaved changes" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
