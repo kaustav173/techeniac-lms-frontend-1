@@ -96,14 +96,12 @@ export function NotificationDropdown() {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const closeDropdown = useCallback(() => {
-    setIsOpen((prev) => {
-      if (prev) {
-        markAllAsRead();
-      }
-      return false;
-    });
-    triggerRef.current?.focus();
-  }, [markAllAsRead]);
+    if (isOpen) {
+      setIsOpen(false);
+      markAllAsRead();
+      triggerRef.current?.focus();
+    }
+  }, [isOpen, markAllAsRead]);
 
   // Close on outside click
   useEffect(() => {
@@ -140,14 +138,13 @@ export function NotificationDropdown() {
   }, [isOpen, closeDropdown]);
 
   const handleToggle = () => {
-    setIsOpen((prev) => {
-      if (prev) {
-        markAllAsRead();
-        triggerRef.current?.focus();
-        return false;
-      }
-      return true;
-    });
+    if (isOpen) {
+      setIsOpen(false);
+      markAllAsRead();
+      triggerRef.current?.focus();
+    } else {
+      setIsOpen(true);
+    }
   };
 
   return (
