@@ -151,6 +151,24 @@ function CircularProgressRing({
 }
 
 /* -------------------------------------------------------------------------- */
+/* Mentee Course Workspace Skeleton Loading Shell                             */
+/* -------------------------------------------------------------------------- */
+
+export function MenteeCourseWorkspaceSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] antialiased">
+      <Header {...MENTEE_COURSES_NAV} />
+      <DashboardContent className="space-y-6">
+        <Skeleton className="h-6 w-32 rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-3xl" />
+        <Skeleton className="h-10 w-64 rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
+      </DashboardContent>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Main MenteeCourseView Component                                            */
 /* -------------------------------------------------------------------------- */
 
@@ -249,17 +267,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
   }, [activeTopics, progressMap]);
 
   if (isProgressLoading || isCourseLoading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-[#F6F8FC] antialiased">
-        <Header {...MENTEE_COURSES_NAV} />
-        <DashboardContent className="space-y-6">
-          <Skeleton className="h-6 w-32 rounded-lg" />
-          <Skeleton className="h-32 w-full rounded-3xl" />
-          <Skeleton className="h-10 w-64 rounded-xl" />
-          <Skeleton className="h-64 w-full rounded-3xl" />
-        </DashboardContent>
-      </div>
-    );
+    return <MenteeCourseWorkspaceSkeleton />;
   }
 
   if (isProgressError || isCourseError || !allocation) {
