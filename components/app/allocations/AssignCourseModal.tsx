@@ -5,9 +5,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { FieldError } from '@/components/ui/FieldError';
-import { Input } from '@/components/ui/Input';
+import { CheckIcon } from '@/components/ui/Icons';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { H3, P, Span } from '@/components/ui/Typography';
@@ -108,6 +109,10 @@ function AssignCourseModalDialog({
   const selectedCourse = useMemo(() => {
     return activeCourses.find((c) => c.id === selectedCourseId);
   }, [activeCourses, selectedCourseId]);
+
+  const selectedBatch = useMemo(() => {
+    return batchesList.find((b) => b.id === selectedBatchId);
+  }, [batchesList, selectedBatchId]);
 
   // Update calculated due date preview if course has estimated minutes
   const estimatedDueDateText = useMemo(() => {
@@ -224,14 +229,12 @@ function AssignCourseModalDialog({
     }
 
     if (!dueDate && (!selectedCourse?.estimatedMinutes || selectedCourse.estimatedMinutes <= 0)) {
-      setDateError(
-        'Due date is required because this course has no estimated duration (CRS-30, ALC-11).',
-      );
+      setDateError('Due date is required because this course has no estimated duration.');
       return;
     }
 
     if (dueDate && new Date(dueDate).getTime() < new Date(startDate).getTime()) {
-      setDateError('Due date cannot be earlier than start date (ALC-12).');
+      setDateError('Due date cannot be earlier than start date.');
       return;
     }
 
@@ -302,8 +305,8 @@ function AssignCourseModalDialog({
                 Skipped Mentees: {skippedAllocations.length}
               </P>
               <P className="mt-0.5 text-xs text-amber-700">
-                These mentees already hold an open allocation of this course and were safely skipped
-                (ALC-13, ALC-21).
+                These mentees already hold an open allocation of this course and were safely
+                skipped.
               </P>
               <ul className="mt-2 max-h-32 divide-y divide-amber-100 overflow-y-auto rounded-lg border border-amber-200/60 bg-white/70 text-xs text-amber-900">
                 {skippedAllocations.map((s, idx) => (
@@ -326,7 +329,6 @@ function AssignCourseModalDialog({
       onClose={onClose}
       isSubmitting={createMutation.isPending}
       title="Assign Course Deployment"
-      description="Deploy curriculum track to cohorts and mentees with scheduled pacing (M7)."
       size="lg"
       footer={
         <div className="flex w-full items-center justify-between gap-3">
@@ -525,7 +527,7 @@ function AssignCourseModalDialog({
                 >
                   <P className="text-sm font-semibold text-slate-900">Whole Batch</P>
                   <Span className="mt-0.5 block text-xs text-slate-500">
-                    All active mentees enrolled in cohort
+                    All active mentees enrolled in batch
                   </Span>
                 </Button>
 
@@ -576,7 +578,7 @@ function AssignCourseModalDialog({
             {targetType !== 'INDIVIDUAL_MENTEES' ? (
               <div>
                 <Label htmlFor="assign-batch-select" required>
-                  Select Target Cohort / Batch
+                  Select Target Batch
                 </Label>
                 <Select
                   id="assign-batch-select"
@@ -588,17 +590,13 @@ function AssignCourseModalDialog({
                   disabled={isLoadingBatches}
                   className="w-full text-sm"
                 >
-                  <option value="">-- Choose active or draft cohort --</option>
+                  <option value="">-- Choose active or draft batch --</option>
                   {activeBatches.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name} ({b.code}) — {b.status}
                     </option>
                   ))}
                 </Select>
-                <P className="mt-1 text-xs text-slate-400">
-                  Allocations to a Draft batch will be visible to mentees when the batch transitions
-                  to Live (FR-7.1).
-                </P>
               </div>
             ) : null}
 
@@ -715,65 +713,86 @@ function AssignCourseModalDialog({
         {/* STEP 3: Schedule & Review */}
         {currentStep === 3 ? (
           <div className="space-y-5">
-            {/* Summary card */}
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Span className="font-mono text-[10px] font-bold tracking-wider text-blue-600 uppercase">
-                    Target Deployment
-                  </Span>
-                  <H3 className="mt-0.5 text-base font-bold text-slate-900">
+            {/* Selected Course & Target Summary Card */}
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Span className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
+                      Course Name
+                    </Span>
+                    {selectedCourse?.estimatedMinutes ? (
+                      <Span className="rounded-md bg-slate-200/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                        {Math.floor(selectedCourse.estimatedMinutes / 60)}h{' '}
+                        {selectedCourse.estimatedMinutes % 60}m
+                      </Span>
+                    ) : null}
+                  </div>
+                  <H3 className="mt-1 truncate text-base font-bold text-slate-900">
                     {selectedCourse?.title ?? 'Selected Course'}
                   </H3>
+                  {selectedBatch ? (
+                    <P className="mt-0.5 truncate text-xs text-slate-500">
+                      Target Batch:{' '}
+                      <span className="font-medium text-slate-700">{selectedBatch.name}</span>{' '}
+                      <span className="text-slate-400">({selectedBatch.code})</span>
+                    </P>
+                  ) : null}
                 </div>
-                <Span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                  {targetType === 'BATCH'
-                    ? 'Whole Cohort'
-                    : targetType === 'SELECTED_MENTEES'
-                      ? `${selectedMenteeIds.length} Mentees in Batch`
-                      : `${selectedMenteeIds.length} Independent Mentees`}
-                </Span>
+
+                <div className="shrink-0">
+                  <Span className="inline-flex items-center rounded-full border border-blue-200/80 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 shadow-2xs">
+                    {targetType === 'BATCH'
+                      ? 'Whole Batch'
+                      : targetType === 'SELECTED_MENTEES'
+                        ? `${selectedMenteeIds.length} Mentees in Batch`
+                        : `${selectedMenteeIds.length} Independent Mentees`}
+                  </Span>
+                </div>
               </div>
             </div>
 
             {/* Date Inputs */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="assign-start-date" required>
                   Start Date
                 </Label>
-                <Input
+                <DatePicker
                   id="assign-start-date"
-                  type="date"
-                  min={today}
                   value={startDate}
-                  hasError={Boolean(startDateError)}
-                  errorId="assign-start-date-error"
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
+                  onChange={(val) => {
+                    setStartDate(val);
                     if (dateError) setDateError(null);
                   }}
-                  className="w-full text-sm"
+                  rangeStart={startDate}
+                  rangeEnd={dueDate || estimatedDueDateText || undefined}
+                  minDate={today}
+                  maxDate={dueDate || undefined}
+                  hasError={Boolean(startDateError)}
+                  placement="auto"
+                  placeholder="Select start date"
                 />
                 <FieldError id="assign-start-date-error" error={startDateError} />
               </div>
 
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="assign-due-date">
                   Due Date {selectedCourse?.estimatedMinutes ? '(Auto-prefilled)' : '(Required)'}
                 </Label>
-                <Input
+                <DatePicker
                   id="assign-due-date"
-                  type="date"
-                  min={startDate && startDate > today ? startDate : today}
                   value={dueDate || (estimatedDueDateText ?? '')}
-                  hasError={Boolean(dueDateError)}
-                  errorId="assign-due-date-error"
-                  onChange={(e) => {
-                    setDueDate(e.target.value);
+                  onChange={(val) => {
+                    setDueDate(val);
                     if (dateError) setDateError(null);
                   }}
-                  className="w-full text-sm"
+                  rangeStart={startDate}
+                  rangeEnd={dueDate || estimatedDueDateText || undefined}
+                  minDate={startDate && startDate > today ? startDate : today}
+                  hasError={Boolean(dueDateError)}
+                  placement="auto"
+                  placeholder="Select due date"
                 />
                 <FieldError id="assign-due-date-error" error={dueDateError} />
                 {estimatedDueDateText && !dueDate ? (
@@ -784,19 +803,51 @@ function AssignCourseModalDialog({
               </div>
             </div>
 
-            <div className="space-y-1.5 rounded-xl border border-slate-300 bg-slate-50 p-4 text-xs text-slate-700 shadow-2xs">
-              <P className="text-sm font-semibold text-slate-900">Deployment Policy Notice:</P>
-              <P className="leading-relaxed text-slate-700">
-                • Mentees who already hold an open allocation of this course will be safely skipped
-                (ALC-13).
-              </P>
-              <P className="leading-relaxed text-slate-700">
-                • Creating this allocation automatically inserts topic progress rows for all active
-                course topics (M8).
-              </P>
-              <P className="leading-relaxed text-slate-700">
-                • Mentees will receive automated allocation welcome emails with their due date.
-              </P>
+            <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5">
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                  <svg
+                    className="h-3 w-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <Span className="text-xs font-semibold text-slate-800">
+                  Deployment Policy Notice
+                </Span>
+              </div>
+
+              <div className="mt-2.5 space-y-2 border-t border-slate-200/60 pt-2.5 text-xs text-slate-600">
+                <div className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                  <Span className="leading-relaxed">
+                    Mentees who already hold an active allocation of this course will be safely
+                    skipped.
+                  </Span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                  <Span className="leading-relaxed">
+                    Automatically initializes topic progress tracking for all active course topics.
+                  </Span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                  <Span className="leading-relaxed">
+                    Enrolled mentees will receive an email notification with their assigned schedule
+                    and due date.
+                  </Span>
+                </div>
+              </div>
             </div>
           </div>
         ) : null}
