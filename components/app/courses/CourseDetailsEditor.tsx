@@ -166,9 +166,9 @@ export function CourseDetailsEditor({
             <Span>Live Impact Notice</Span>
           </div>
           <P className="mt-1 leading-relaxed text-amber-800">
-            This course is allocated to <strong>{affectedMentees} active mentees</strong>. Changes
-            saved here take effect live immediately across all enrolled dashboards with an audit log
-            record.
+            This course is allocated to{' '}
+            <Span className="font-bold">{affectedMentees} active mentees</Span>. Changes saved here
+            take effect live immediately across all enrolled dashboards with an audit log record.
           </P>
         </div>
       )}

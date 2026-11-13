@@ -75,9 +75,9 @@ export function ImpactNoticeModal({
           </div>
           <P className="mt-1 leading-relaxed">
             This course is currently allocated to{' '}
-            <strong className="font-bold underline">{affectedCount} active mentees</strong> across{' '}
-            <strong>{impact?.openAllocationsCount} batches/allocations</strong>. Any modification
-            applies live immediately to all affected cadets.
+            <Span className="font-bold underline">{affectedCount} active mentees</Span> across{' '}
+            <Span className="font-bold">{impact?.openAllocationsCount} batches/allocations</Span>.
+            Any modification applies live immediately to all affected cadets.
           </P>
         </div>
       )}

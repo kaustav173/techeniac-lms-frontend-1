@@ -351,12 +351,14 @@ function HeaderInner({
                 </div>
               </div>
             ) : (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
                 aria-expanded={isProfileDropdownOpen}
                 aria-haspopup="true"
-                className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                className="flex h-auto items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#0044D3]"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0044D3] text-base font-bold text-white shadow-xs">
                   {userInitials}
@@ -381,7 +383,7 @@ function HeaderInner({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </Button>
             )}
 
             {/* Profile Dropdown Menu */}
@@ -415,14 +417,16 @@ function HeaderInner({
 
                 <div className="my-1 border-t border-[#E1E6EC]" />
 
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   role="menuitem"
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
                     setIsSignOutConfirmOpen(true);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#D92D20] transition-colors hover:bg-red-50"
+                  className="flex h-auto w-full items-center justify-start gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-[#D92D20] transition-colors hover:bg-red-50 hover:text-[#D92D20]"
                 >
                   <svg
                     className="h-4 w-4 text-[#D92D20]"
@@ -439,7 +443,7 @@ function HeaderInner({
                     />
                   </svg>
                   <Span>Sign out</Span>
-                </button>
+                </Button>
               </div>
             )}
           </div>

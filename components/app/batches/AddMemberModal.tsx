@@ -216,7 +216,8 @@ export function AddMemberModal({
       title="Add Batch Members"
       description={
         <Span className="text-xs text-slate-600">
-          Enroll mentors or mentees into <strong className="text-slate-900">{batchName}</strong>
+          Enroll mentors or mentees into{' '}
+          <Span className="font-bold text-slate-900">{batchName}</Span>
         </Span>
       }
       size="lg"

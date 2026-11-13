@@ -24,7 +24,7 @@ import React, { useEffect, useState } from 'react';
 import { ActiveNodeSelection } from '@/components/app/courses/types';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { H2, Span } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
@@ -937,9 +937,9 @@ export function CourseOutlineTree({
                 >
                   <div className="space-y-2">
                     {topics.length === 0 ? (
-                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
+                      <P className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
                         No topics created yet. Click + Topic above to add your first topic.
-                      </div>
+                      </P>
                     ) : (
                       topics.map((topic) => {
                         const isCollapsed = collapsedTopics[topic.id] ?? false;
@@ -1199,9 +1199,9 @@ export function CourseOutlineTree({
               >
                 <div className="space-y-1.5">
                   {courseAssignments.length === 0 ? (
-                    <div className="py-2 text-center text-xs text-slate-400">
+                    <P className="py-2 text-center text-xs text-slate-400">
                       No course assignments created yet
-                    </div>
+                    </P>
                   ) : (
                     courseAssignments.map((assignment) => {
                       const isSelected =

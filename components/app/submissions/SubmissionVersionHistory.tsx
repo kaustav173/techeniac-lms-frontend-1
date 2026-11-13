@@ -173,18 +173,18 @@ export function SubmissionVersionHistory({
                 <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-[#111827]">
                   {versionItem.marks !== null ? (
                     <div className="flex items-center gap-1.5">
-                      <span>Score:</span>
+                      <Span>Score:</Span>
                       <Span className="inline-flex items-center rounded-lg bg-blue-100 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
                         {versionItem.marks}
                       </Span>
-                      <span>{maxMarks ? `/ ${maxMarks}` : ''}</span>
+                      <Span>{maxMarks ? `/ ${maxMarks}` : ''}</Span>
                     </div>
                   ) : null}
 
                   {versionItem.feedback ? (
                     <div className="flex items-center gap-1.5 border-l border-[#E1E6EC] pl-4">
-                      <span className="text-[#667085]">Mentor Feedback:</span>
-                      <span className="text-[#111827] italic">{versionItem.feedback}</span>
+                      <Span className="text-[#667085]">Mentor Feedback:</Span>
+                      <Span className="text-[#111827] italic">{versionItem.feedback}</Span>
                     </div>
                   ) : null}
                 </div>

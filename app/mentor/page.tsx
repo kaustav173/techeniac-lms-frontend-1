@@ -278,7 +278,7 @@ export default function MentorPage() {
                     href="/mentor/courses"
                     className="inline-flex items-center gap-1.5 rounded-full bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
                   >
-                    <span>Explore Course Catalog</span>
+                    <Span>Explore Course Catalog</Span>
                     <svg
                       className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1"
                       fill="none"

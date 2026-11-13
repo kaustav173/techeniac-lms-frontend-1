@@ -99,22 +99,25 @@ export function RevokeAllocationModal({
             </svg>
             <Span>Warning</Span>
             <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 hidden w-72 rounded-xl border border-amber-200 bg-white p-2.5 text-xs font-normal text-slate-700 shadow-xl group-hover:block">
-              This will mark the allocation status as <strong>REVOKED</strong>. The course will be
-              hidden from the mentee&apos;s active learning list, but all recorded topic progress
-              and history will be preserved.
+              <Span>
+                This will mark the allocation status as <Span className="font-bold">REVOKED</Span>.
+                The course will be hidden from the mentee&apos;s active learning list, but all
+                recorded topic progress and history will be preserved.
+              </Span>
             </div>
           </div>
         </div>
 
         <div className="space-y-1 text-xs text-slate-600">
           <P>
-            <strong>Mentee:</strong> {allocation.user?.name} ({allocation.user?.email})
+            <Span className="font-bold">Mentee:</Span> {allocation.user?.name} (
+            {allocation.user?.email})
           </P>
           <P>
-            <strong>Course:</strong> {allocation.course?.title}
+            <Span className="font-bold">Course:</Span> {allocation.course?.title}
           </P>
           <P>
-            <strong>Current Progress:</strong> {allocation.progressPercent}%
+            <Span className="font-bold">Current Progress:</Span> {allocation.progressPercent}%
           </P>
         </div>
       </div>

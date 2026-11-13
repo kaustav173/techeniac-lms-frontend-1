@@ -216,9 +216,9 @@ export function AssignmentSubmissionForm({
         </H3>
         <P className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Due Date:{' '}
-          <strong className="text-slate-700 dark:text-slate-300">
+          <Span className="font-bold text-slate-700 dark:text-slate-300">
             {formatDateTimeIST(dueDate)}
-          </strong>
+          </Span>
         </P>
       </div>
 
@@ -338,9 +338,9 @@ export function AssignmentSubmissionForm({
               htmlFor="confirmed_complete"
               className="cursor-pointer text-xs leading-relaxed font-medium text-slate-700 select-none dark:text-slate-300"
             >
-              <strong className="text-slate-900 dark:text-slate-100">
+              <Span className="font-bold text-slate-900 dark:text-slate-100">
                 I confirm that I have completed this assignment
-              </strong>{' '}
+              </Span>{' '}
               and that all submitted work and resources represent my own original effort.
             </Label>
           </div>

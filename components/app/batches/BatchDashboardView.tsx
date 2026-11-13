@@ -1085,8 +1085,7 @@ export function BatchDashboardView({
                       </Span>
                     </div>
                     <P className="mt-1.5 text-sm text-slate-600">
-                      Changed by{' '}
-                      <strong className="font-semibold text-slate-900">{h.changedBy}</strong>
+                      Changed by <Span className="font-semibold text-slate-900">{h.changedBy}</Span>
                       {h.reason ? ` — "${h.reason}"` : ''}
                     </P>
                   </div>

@@ -116,18 +116,20 @@ function MenteeActionMenu({
       )}
       ref={menuRef}
     >
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         aria-haspopup="true"
         aria-expanded={isMenuOpen}
         aria-label={`Actions for ${menteeName ?? 'mentee'}`}
         onClick={handleToggle}
-        className="flex h-8 w-8 cursor-pointer items-center justify-center p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
       >
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
         </svg>
-      </button>
+      </Button>
 
       {isMenuOpen ? (
         <div
@@ -430,10 +432,12 @@ export function MentorMenteesView() {
           />
 
           {hasActiveFilters ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={handleClearFilters}
-              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
               title="Clear filters"
               aria-label="Clear filters"
             >
@@ -447,7 +451,7 @@ export function MentorMenteesView() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -556,8 +560,10 @@ export function MentorMenteesView() {
                             : 'none'
                       }
                     >
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={handleMenteeSort}
                         className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                         title={
@@ -572,7 +578,7 @@ export function MentorMenteesView() {
                           Mentee
                         </Span>
                         {renderSortIcon(menteeSort !== null, menteeSort)}
-                      </button>
+                      </Button>
                     </TableHead>
                     <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
                       Course
@@ -590,8 +596,10 @@ export function MentorMenteesView() {
                             : 'none'
                       }
                     >
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={handleMappedSinceSort}
                         className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                         title={
@@ -606,7 +614,7 @@ export function MentorMenteesView() {
                           Mapped Since
                         </Span>
                         {renderSortIcon(mappedSinceSort !== null, mappedSinceSort)}
-                      </button>
+                      </Button>
                     </TableHead>
                     <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
                       Actions

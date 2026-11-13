@@ -112,12 +112,12 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                       <path d="M12 14l9-5-9-5-9 5 9 5z" />
                       <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                     </svg>
-                    <span>
+                    <Span>
                       {assignment.course?.title || assignment.courseId}
                       {assignment.topic?.title || assignment.topicId
                         ? ` • ${assignment.topic?.title || assignment.topicId}`
                         : ''}
-                    </span>
+                    </Span>
                   </div>
                 </div>
               </div>
@@ -175,7 +175,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                 <div>
                   {assignment.allowLate ? (
                     <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <Span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       Open
                     </Span>
                   ) : (
@@ -267,11 +267,11 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#111827]">Submissions Closed</h3>
-                  <p className="text-xs text-[#667085]">
+                  <H3 className="text-sm font-bold text-[#111827]">Submissions Closed</H3>
+                  <P className="text-xs text-[#667085]">
                     This assignment is part of a batch with status &quot;{allocation.batchStatus}
                     &quot;. Submissions are closed.
-                  </p>
+                  </P>
                 </div>
               </div>
             )}
