@@ -654,115 +654,127 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
       className={`flex flex-1 flex-col overflow-hidden transition-all duration-300 ${contentMarginClass}`}
     >
       {/* Top Command Bar Skeleton */}
-      <div className="flex items-center justify-between bg-white px-4 py-2.5 sm:px-6">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3.5 shadow-xs">
             <Skeleton className="h-3.5 w-3.5 rounded-full" />
             <Skeleton className="h-3.5 w-24 rounded-md" />
           </div>
-          <div className="h-4 w-px bg-slate-200" aria-hidden="true" />
-          <Skeleton className="h-5 w-48 rounded-md" />
-          <Skeleton className="h-5 w-14 rounded-full" />
+          <div className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden="true" />
+          <Skeleton className="h-5 w-52 rounded-md" />
         </div>
       </div>
 
       {/* Dual Pane Layout Skeleton */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Pane: Outline Tree Skeleton */}
-        <div className="hidden w-[330px] flex-col border-r border-slate-200 bg-white p-4 lg:flex">
-          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        {/* Left Pane: Outline Tree Skeleton (Matching lg:w-[420px] xl:w-[460px]) */}
+        <div className="hidden flex-col overflow-hidden border-r border-slate-200 bg-slate-50/60 p-3.5 lg:flex lg:w-[420px] lg:flex-none xl:w-[460px]">
+          {/* Header */}
+          <div className="flex items-center justify-between rounded-xl border-b border-slate-200 bg-white px-4 py-3 shadow-xs">
             <Skeleton className="h-5 w-32 rounded-md" />
+            <Skeleton className="h-6 w-20 rounded-full" />
           </div>
-          <div className="mt-3">
-            <Skeleton className="h-9 w-full rounded-xl" />
+
+          {/* Topics Section Header */}
+          <div className="mt-3.5 flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-12 rounded-md" />
+              <Skeleton className="h-4 w-5 rounded-full" />
+            </div>
+            <Skeleton className="h-6 w-16 rounded-full" />
           </div>
-          <div className="mt-4 space-y-2.5">
-            {/* Topic 1 */}
-            <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
-              <div className="flex items-center gap-2">
+
+          {/* Topic Cards (6 rows matching actual data) */}
+          <div className="mt-2 space-y-2">
+            {[180, 210, 195, 170, 150, 185].map((pixelWidth, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-3 rounded-md" />
+                  <Skeleton className="h-3.5 w-3.5 rounded-md" />
+                  <Skeleton className="h-4 rounded-md" style={{ width: `${pixelWidth}px` }} />
+                </div>
                 <Skeleton className="h-4 w-4 rounded-md" />
-                <Skeleton className="h-4 w-36 rounded-md" />
               </div>
-              <div className="ml-6 space-y-1 pt-1">
-                <Skeleton className="h-3.5 w-28 rounded-md" />
-                <Skeleton className="h-3.5 w-32 rounded-md" />
-              </div>
+            ))}
+          </div>
+
+          {/* Course Assignments Section Header */}
+          <div className="mt-4 flex items-center justify-between border-t border-slate-200/80 px-1 pt-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3.5 w-36 rounded-md" />
+              <Skeleton className="h-4 w-5 rounded-full" />
             </div>
-            {/* Topic 2 */}
-            <div className="space-y-1.5 rounded-xl border border-slate-200/80 p-2.5">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded-md" />
-                <Skeleton className="h-4 w-32 rounded-md" />
-              </div>
-              <div className="ml-6 space-y-1 pt-1">
-                <Skeleton className="h-3.5 w-24 rounded-md" />
-              </div>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+
+          {/* Course Assignment Card */}
+          <div className="mt-2 flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50/50 px-3 py-2.5 shadow-xs">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-3 rounded-md" />
+              <Skeleton className="h-4 w-48 rounded-md" />
             </div>
-            {/* Topic 3 */}
-            <div className="rounded-xl border border-slate-200/80 p-2.5">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded-md" />
-                <Skeleton className="h-4 w-44 rounded-md" />
-              </div>
-            </div>
+            <Skeleton className="h-3.5 w-3.5 rounded-md" />
           </div>
         </div>
 
-        {/* Right Pane: Form Field Editor Skeleton matching CourseDetailsEditor */}
-        <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-5xl space-y-4">
-            {/* Card 1: Course Basics */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-              <div className="border-b border-slate-100 pb-4">
-                <Skeleton className="h-6 w-48 rounded-md" />
-                <Skeleton className="mt-1.5 h-3.5 w-72 rounded-md" />
+        {/* Right Pane: Form Field Editor Skeleton */}
+        <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto bg-slate-50/50 p-4 sm:p-6 lg:p-8">
+          <div className="w-full max-w-4xl space-y-6">
+            {/* Top Banner Card */}
+            <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <Skeleton className="h-4 w-28 rounded-full" />
+                <Skeleton className="mt-2 h-7 w-72 rounded-md sm:h-8" />
               </div>
+              <Skeleton className="h-10 w-32 rounded-full" />
+            </div>
 
-              <div className="mt-5 space-y-4">
-                {/* Title Field */}
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3.5 w-20 rounded-md" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
-                </div>
-
-                {/* Description Field */}
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3.5 w-28 rounded-md" />
-                  <Skeleton className="h-28 w-full rounded-xl" />
-                </div>
+            {/* Card 1: Title & Instructions */}
+            <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+              <div className="space-y-1.5">
+                <Skeleton className="h-3.5 w-28 rounded-md" />
+                <Skeleton className="h-11 w-full rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-3.5 w-52 rounded-md" />
+                <Skeleton className="h-32 w-full rounded-xl" />
               </div>
             </div>
 
-            {/* Card 2: Estimated Benchmark Time */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-              <div className="border-b border-slate-100 pb-3">
+            {/* Card 2: Grading & Duration Calibration */}
+            <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+              <div>
                 <Skeleton className="h-5 w-48 rounded-md" />
-                <Skeleton className="mt-1 h-3.5 w-64 rounded-md" />
+                <Skeleton className="mt-1 h-3 w-64 rounded-md" />
               </div>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
-                  <Skeleton className="h-3.5 w-16 rounded-md" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-3 w-20 rounded-md" />
+                  <Skeleton className="h-11 w-full rounded-xl" />
                 </div>
                 <div className="space-y-1.5">
-                  <Skeleton className="h-3.5 w-16 rounded-md" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-3 w-20 rounded-md" />
+                  <Skeleton className="h-11 w-full rounded-xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3 w-20 rounded-md" />
+                  <Skeleton className="h-11 w-full rounded-xl" />
                 </div>
               </div>
-            </div>
-
-            {/* Card 3: Visibility Status */}
-            <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs sm:px-7 sm:py-4">
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-32 rounded-md" />
-                <Skeleton className="h-3 w-56 rounded-md" />
+              {/* Late Submissions Toggle Row */}
+              <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-40 rounded-md" />
+                  <Skeleton className="h-3 w-60 rounded-md" />
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-6 w-11 rounded-full" />
+                </div>
               </div>
-              <Skeleton className="h-6 w-11 rounded-full" />
-            </div>
-
-            {/* Save Button */}
-            <div className="flex justify-end pt-1">
-              <Skeleton className="h-10 w-36 rounded-full" />
             </div>
           </div>
         </div>
