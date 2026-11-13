@@ -8,6 +8,7 @@ import { AssignCourseModal } from '@/components/app/allocations/AssignCourseModa
 import { AssignmentOverridesModal } from '@/components/app/allocations/AssignmentOverridesModal';
 import { EditAllocationModal } from '@/components/app/allocations/EditAllocationModal';
 import { RevokeAllocationModal } from '@/components/app/allocations/RevokeAllocationModal';
+import { formatDurationMinutes } from '@/components/app/courses/types';
 import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { SortableColumnHeader } from '@/components/patterns/SortableColumnHeader';
 import { Button } from '@/components/ui/Button';
@@ -39,13 +40,20 @@ import { formatDateIST } from '@/lib/date';
 
 const EM_DASH = '—';
 
-function formatDuration(mins: number | null | undefined): string {
-  if (!mins || mins <= 0) return EM_DASH;
-  const hours = Math.floor(mins / 60);
-  const remainingMins = mins % 60;
-  if (hours === 0) return `${remainingMins}m`;
-  if (remainingMins === 0) return `${hours}h`;
-  return `${hours}h ${remainingMins}m`;
+function mergeSelectedOptionLabels<T>(
+  selectedMap: Record<string, string>,
+  loadedItems: readonly T[],
+  getId: (item: T) => string,
+  getLabel: (item: T) => string,
+): readonly MultiSelectOption<string>[] {
+  const optionsMap = new Map<string, string>();
+  Object.entries(selectedMap).forEach(([val, label]) => {
+    optionsMap.set(val, label);
+  });
+  loadedItems.forEach((item) => {
+    optionsMap.set(getId(item), getLabel(item));
+  });
+  return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
 }
 
 type SortField = 'course' | 'mentee' | 'batch' | 'started' | 'due' | 'duration';
@@ -158,27 +166,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     return coursesData?.pages.flatMap((page) => page.courses) ?? [];
   }, [coursesData]);
 
-  const courseOptions: readonly MultiSelectOption<string>[] = useMemo(() => {
-    const optionsMap = new Map<string, string>();
-    Object.entries(selectedCourseOptions).forEach(([val, label]) => {
-      optionsMap.set(val, label);
-    });
-    loadedCourses.forEach((c) => {
-      optionsMap.set(c.id, c.title);
-    });
-    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [loadedCourses, selectedCourseOptions]);
+  const courseOptions: readonly MultiSelectOption<string>[] = useMemo(
+    () =>
+      mergeSelectedOptionLabels(
+        selectedCourseOptions,
+        loadedCourses,
+        (c) => c.id,
+        (c) => c.title,
+      ),
+    [loadedCourses, selectedCourseOptions],
+  );
 
-  const batchOptions: readonly MultiSelectOption<string>[] = useMemo(() => {
-    const optionsMap = new Map<string, string>();
-    Object.entries(selectedBatchOptions).forEach(([val, label]) => {
-      optionsMap.set(val, label);
-    });
-    loadedBatches.forEach((b) => {
-      optionsMap.set(b.id, b.name);
-    });
-    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [loadedBatches, selectedBatchOptions]);
+  const batchOptions: readonly MultiSelectOption<string>[] = useMemo(
+    () =>
+      mergeSelectedOptionLabels(
+        selectedBatchOptions,
+        loadedBatches,
+        (b) => b.id,
+        (b) => b.name,
+      ),
+    [loadedBatches, selectedBatchOptions],
+  );
 
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
@@ -576,7 +584,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                       {formatDateIST(alloc.dueDate)}
                     </TableCell>
                     <TableCell className="px-4 py-3.5 align-middle font-medium text-[#475467]">
-                      {formatDuration(alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes)}
+                      {formatDurationMinutes(
+                        alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
+                      )}
                     </TableCell>
                     <TableCell className="px-4 py-3.5 align-middle whitespace-nowrap">
                       <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />

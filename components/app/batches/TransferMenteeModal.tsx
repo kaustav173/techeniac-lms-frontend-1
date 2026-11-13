@@ -24,6 +24,7 @@ export interface BatchOption {
 export interface TransferMenteeModalProps {
   mentee: { id: string; name: string; currentBatchId: string; currentBatchName: string } | null;
   availableBatches: BatchOption[];
+  isLoadingBatches?: boolean | undefined;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (menteeId: string, targetBatchId: string, reason?: string) => void;
@@ -32,6 +33,7 @@ export interface TransferMenteeModalProps {
 export function TransferMenteeModal({
   mentee,
   availableBatches,
+  isLoadingBatches = false,
   isOpen,
   onClose,
   onSuccess,
@@ -112,7 +114,7 @@ export function TransferMenteeModal({
             variant="primary"
             size="sm"
             isLoading={isSubmitting}
-            disabled={!targetBatchId || !hasEligibleBatches || isSubmitting}
+            disabled={!targetBatchId || !hasEligibleBatches || isSubmitting || isLoadingBatches}
           >
             Execute Transfer
           </Button>
@@ -166,7 +168,12 @@ export function TransferMenteeModal({
               >
                 Destination Batch
               </Label>
-              {hasEligibleBatches ? (
+              {isLoadingBatches ? (
+                <div className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-500">
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+                  <Span className="text-xs text-slate-500">Loading batches...</Span>
+                </div>
+              ) : hasEligibleBatches ? (
                 <Select
                   id="target-batch"
                   value={targetBatchId}
@@ -203,7 +210,7 @@ export function TransferMenteeModal({
             <Label htmlFor="transfer-reason" className="text-xs font-medium text-slate-700">
               Transfer Reason <Span className="font-normal text-slate-400">(optional)</Span>
             </Label>
-            <Span className="font-mono text-[10px] text-slate-400">{reason.length}/500</Span>
+            <Span className="text-[10px] text-slate-400">{reason.length}/500</Span>
           </div>
           <Textarea
             id="transfer-reason"

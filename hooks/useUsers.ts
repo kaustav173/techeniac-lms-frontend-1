@@ -54,6 +54,8 @@ export const userKeys = {
   all: ['users'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
   list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
+  infinites: () => [...userKeys.all, 'infinite'] as const,
+  infinite: (filters: Record<string, unknown>) => [...userKeys.infinites(), filters] as const,
 };
 
 export const DEFAULT_USERS_PAGE_SIZE = 10;
@@ -242,7 +244,12 @@ export function useInfiniteUsers(
   const limit = filters.limit ?? 10;
 
   return useInfiniteQuery({
-    queryKey: ['users', 'infinite', filters.role, filters.status, limit, trimmedSearch],
+    queryKey: userKeys.infinite({
+      role: filters.role,
+      status: filters.status,
+      limit,
+      search: trimmedSearch,
+    }),
     queryFn: async ({ pageParam = 1 }) => {
       const res = await usersService.listUsers({
         page: pageParam,

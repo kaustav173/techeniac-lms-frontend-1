@@ -46,6 +46,9 @@ const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'inactive', label: 'Inactive' },
 ];
 
+const MAX_COURSE_TITLE_LENGTH = 100;
+const MIN_COURSE_TITLE_LENGTH = 3;
+
 export function CourseTableSkeletonRows({ count = 10 }: { count?: number }) {
   const widths = ['w-56', 'w-72', 'w-48', 'w-64', 'w-60', 'w-52', 'w-80', 'w-44', 'w-68', 'w-50'];
   return (
@@ -282,12 +285,12 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       setCreateError('Course title cannot be empty.');
       return;
     }
-    if (trimmedTitle.length < 3) {
-      setCreateError('Course title must be at least 3 characters.');
+    if (trimmedTitle.length < MIN_COURSE_TITLE_LENGTH) {
+      setCreateError(`Course title must be at least ${MIN_COURSE_TITLE_LENGTH} characters.`);
       return;
     }
-    if (trimmedTitle.length > 20) {
-      setCreateError('Title cannot exceed 20 characters.');
+    if (trimmedTitle.length > MAX_COURSE_TITLE_LENGTH) {
+      setCreateError(`Course title cannot exceed ${MAX_COURSE_TITLE_LENGTH} characters.`);
       return;
     }
     if (newDescription.trim().length > 100) {
@@ -885,18 +888,20 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               >
                 Title
               </Label>
-              <Span className="text-[10px] font-medium text-slate-400">{newTitle.length}/20</Span>
+              <Span className="text-[10px] font-medium text-slate-400">
+                {newTitle.length}/{MAX_COURSE_TITLE_LENGTH}
+              </Span>
             </div>
             <Input
               type="text"
-              maxLength={20}
+              maxLength={MAX_COURSE_TITLE_LENGTH}
               value={newTitle}
               hasError={Boolean(createError)}
               onChange={(e) => {
-                setNewTitle(e.target.value.slice(0, 20));
+                setNewTitle(e.target.value.slice(0, MAX_COURSE_TITLE_LENGTH));
                 if (createError) setCreateError(null);
               }}
-              placeholder="e.g. Git & GitHub Mastery"
+              placeholder="e.g. Distributed Systems Engineering"
               className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
           </div>

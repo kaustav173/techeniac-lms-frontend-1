@@ -29,14 +29,20 @@ export function MenteeTableRow({
   isActionMenuOpen,
 }: Readonly<MenteeTableRowProps>) {
   const router = useRouter();
-  const targetUrl = mentee.name
-    ? `/mentor/progress?search=${encodeURIComponent(mentee.name)}`
-    : '/mentor/progress';
+  const targetUrl = mentee.id ? `/mentor/progress?menteeId=${mentee.id}` : '/mentor/progress';
 
   return (
     <TableRow
       key={mentee.id}
+      tabIndex={0}
+      role="button"
       onClick={() => router.push(targetUrl)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(targetUrl);
+        }
+      }}
       className={cn(
         'h-16 cursor-pointer transition-colors hover:bg-[#F9FAFB]/90 focus-visible:bg-[#F9FAFB] focus-visible:outline-none',
         isActionMenuOpen && 'relative z-20',

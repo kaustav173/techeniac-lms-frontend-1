@@ -16,7 +16,11 @@ import { isSafeHttpUrl } from '@/lib/url';
 import type { BatchStatus } from '@/lib/validation/batch.schemas';
 import type { Assignment } from '@/types/courses';
 import { SubmissionMode } from '@/types/courses';
-import type { SubmissionData, SubmissionVersion } from '@/types/submissions';
+import {
+  isAllocationBatchReadOnly,
+  type SubmissionData,
+  type SubmissionVersion,
+} from '@/types/submissions';
 
 interface AssignmentSubmissionFormProps {
   assignment: Assignment;
@@ -98,11 +102,7 @@ export function AssignmentSubmissionForm({
 
   const isPastDue = isDatePast(dueDate);
   const isLateBlocked = isPastDue && !assignment.allowLate;
-  const isReadOnlyBatch =
-    !isBatchActive ||
-    batchStatus === 'ON_HOLD' ||
-    batchStatus === 'COMPLETED' ||
-    batchStatus === 'ARCHIVED';
+  const isReadOnlyBatch = isAllocationBatchReadOnly(isBatchActive, batchStatus);
 
   const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
   const isResubmission = Boolean(latestVersion);

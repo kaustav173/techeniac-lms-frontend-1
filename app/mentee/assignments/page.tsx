@@ -24,9 +24,12 @@ function MenteeAssignmentsContent() {
   const [limit, setLimit] = useState(10);
   const [selectedStatuses, setSelectedStatuses] = useState<AssignmentDerivedStatus[]>([]);
 
+  const singleStatus = selectedStatuses.length === 1 ? selectedStatuses[0] : undefined;
+
   const { assignments, isLoading, isFetching, error, refetch } = useMyAssignments({
     page: 1,
     limit: 100,
+    status: singleStatus,
     courseId: activeCourseId,
   });
 

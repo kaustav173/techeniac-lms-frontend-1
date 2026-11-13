@@ -18,6 +18,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useCourseDetail } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/useToast';
+import { toISTDateInputValue } from '@/lib/date';
 
 export interface AssignmentOverridesModalProps {
   readonly allocation: CourseAllocation | null;
@@ -78,27 +79,36 @@ export function AssignmentOverridesModal({
       setDateError('Please specify an override due date.');
       return;
     }
-    if (
-      allocation.startDate &&
-      new Date(overrideDueDate).getTime() < new Date(allocation.startDate).getTime()
-    ) {
+
+    const minDateIST = toISTDateInputValue(allocation.startDate);
+    const maxDateIST = toISTDateInputValue(allocation.dueDate);
+
+    if (minDateIST && overrideDueDate < minDateIST) {
       setDateError('Override due date cannot be earlier than allocation start date.');
       return;
     }
-    if (
-      allocation.dueDate &&
-      new Date(overrideDueDate).getTime() > new Date(allocation.dueDate).getTime()
-    ) {
+    if (maxDateIST && overrideDueDate > maxDateIST) {
       setDateError('Override due date cannot exceed overall course allocation due date.');
       return;
     }
 
     try {
+      const targetTime = new Date(`${overrideDueDate}T23:59:59+05:30`).getTime();
+      const dueTime = allocation.dueDate ? new Date(allocation.dueDate).getTime() : Infinity;
+      const startTime = allocation.startDate ? new Date(allocation.startDate).getTime() : -Infinity;
+
+      const isoDueDate =
+        targetTime > dueTime
+          ? allocation.dueDate
+          : targetTime < startTime
+            ? allocation.startDate
+            : new Date(targetTime).toISOString();
+
       await setOverrideMutation.mutateAsync({
         id: allocation.id,
         payload: {
           assignmentId: selectedAssignmentId,
-          dueDate: new Date(overrideDueDate).toISOString(),
+          dueDate: isoDueDate,
         },
       });
       toastSuccess('Assignment due date override saved.', 'Override Saved');
@@ -203,8 +213,8 @@ export function AssignmentOverridesModal({
               hasError={Boolean(dateError)}
               placeholder="Select due date"
               className="w-full"
-              minDate={allocation.startDate ? allocation.startDate.split('T')[0] : undefined}
-              maxDate={allocation.dueDate ? allocation.dueDate.split('T')[0] : undefined}
+              minDate={allocation.startDate ? toISTDateInputValue(allocation.startDate) : undefined}
+              maxDate={allocation.dueDate ? toISTDateInputValue(allocation.dueDate) : undefined}
             />
             <FieldError id="override-due-date-error" error={dateError} />
           </div>

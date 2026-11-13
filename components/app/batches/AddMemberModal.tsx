@@ -37,6 +37,9 @@ function AddMemberCandidateList({
   selectedUserIds,
   onToggleUser,
   search,
+  isError = false,
+  error = null,
+  onRetry,
   disabled = false,
 }: Readonly<{
   isLoading: boolean;
@@ -48,6 +51,9 @@ function AddMemberCandidateList({
   selectedUserIds: string[];
   onToggleUser: (userId: string) => void;
   search: string;
+  isError?: boolean | undefined;
+  error?: unknown;
+  onRetry?: (() => void) | undefined;
   disabled?: boolean | undefined;
 }>) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,6 +66,25 @@ function AddMemberCandidateList({
       }
     }
   };
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6 text-center">
+        <ErrorMessage error={error} title="Failed to load users" />
+        {onRetry && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onRetry}
+            className="mt-3 text-xs"
+          >
+            Try Again
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -149,7 +174,16 @@ export function AddMemberModal({
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useInfiniteUsers(
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    isError,
+    error: fetchError,
+    refetch,
+  } = useInfiniteUsers(
     {
       role,
       status: 'active',
@@ -167,6 +201,17 @@ export function AddMemberModal({
     const flat = data.pages.flatMap((page) => page.users);
     return flat.filter((user) => !existingMemberUserIds.includes(user.id));
   }, [data, existingMemberUserIds]);
+
+  useEffect(() => {
+    if (
+      !isFetchingNextPage &&
+      hasNextPage &&
+      candidates.length === 0 &&
+      Boolean(data?.pages?.length)
+    ) {
+      void fetchNextPage();
+    }
+  }, [candidates.length, hasNextPage, isFetchingNextPage, data?.pages?.length, fetchNextPage]);
 
   const totalCandidatesCount = data?.pages[0]?.total ?? candidates.length;
 
@@ -210,6 +255,7 @@ export function AddMemberModal({
           userIds: selectedMenteeIds,
           memberRole: 'MENTEE',
         });
+        setSelectedMenteeIds([]);
       }
       if (selectedMentorIds.length > 0) {
         await addMembers({
@@ -217,15 +263,14 @@ export function AddMemberModal({
           userIds: selectedMentorIds,
           memberRole: 'MENTOR',
         });
+        setSelectedMentorIds([]);
       }
       toastSuccess(
         `Enrolled ${totalSelectedCount} member${totalSelectedCount === 1 ? '' : 's'} into ${batchName}.`,
         'Members Enrolled',
       );
       void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      void queryClient.invalidateQueries({ queryKey: ['users', 'infinite'] });
-      setSelectedMenteeIds([]);
-      setSelectedMentorIds([]);
+      void queryClient.invalidateQueries({ queryKey: userKeys.infinites() });
       setSearch('');
       setSubmitError(null);
       onSuccess();
@@ -381,6 +426,11 @@ export function AddMemberModal({
             selectedUserIds={role === 'MENTEE' ? selectedMenteeIds : selectedMentorIds}
             onToggleUser={toggleUser}
             search={search}
+            isError={isError}
+            error={fetchError}
+            onRetry={() => {
+              void refetch();
+            }}
             disabled={isArchived}
           />
         </div>

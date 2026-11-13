@@ -82,6 +82,7 @@ export function MyAssignmentsTable({
   const [sortField, setSortField] = useState<SortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const activeStatuses = useMemo<AssignmentDerivedStatus[]>(() => {
@@ -89,18 +90,55 @@ export function MyAssignmentsTable({
     return selectedStatus ? [selectedStatus] : [];
   }, [selectedStatuses, selectedStatus]);
 
-  useClickOutside(actionMenuRef, () => setOpenActionMenuId(null), openActionMenuId !== null);
+  useClickOutside(
+    actionMenuRef,
+    () => {
+      setOpenActionMenuId(null);
+      setMenuPosition(null);
+    },
+    openActionMenuId !== null,
+  );
 
   useEffect(() => {
     if (!openActionMenuId) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpenActionMenuId(null);
+        setMenuPosition(null);
       }
     };
+    const handleScrollOrResize = () => {
+      setOpenActionMenuId(null);
+      setMenuPosition(null);
+    };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
   }, [openActionMenuId]);
+
+  const toggleActionMenu = (e: React.MouseEvent<HTMLButtonElement>, assignmentId: string) => {
+    e.stopPropagation();
+    if (openActionMenuId === assignmentId) {
+      setOpenActionMenuId(null);
+      setMenuPosition(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const menuHeight = 90;
+    const openUpward = spaceBelow < menuHeight + 20;
+
+    setMenuPosition({
+      top: openUpward ? Math.max(10, rect.top - menuHeight) : rect.bottom + 6,
+      right: Math.max(10, window.innerWidth - rect.right),
+    });
+    setOpenActionMenuId(assignmentId);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -365,18 +403,35 @@ export function MyAssignmentsTable({
               <TableBody>
                 {paginatedAssignments.map((assignment, idx) => {
                   const isActionMenuOpen = openActionMenuId === assignment.id;
-                  const shouldOpenUpward = idx >= paginatedAssignments.length - 2;
                   return (
                     <TableRow
                       key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                      onClick={() => router.push(`/mentee/assignments/${assignment.id}`)}
+                      tabIndex={0}
+                      role="button"
+                      onClick={(e) => {
+                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                        router.push(`/mentee/assignments/${assignment.id}`);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          router.push(`/mentee/assignments/${assignment.id}`);
+                        }
+                      }}
                       className={cn(
-                        'cursor-pointer transition-colors hover:bg-[#F6F8FC]/60',
+                        'cursor-pointer transition-colors hover:bg-[#F6F8FC]/60 focus-visible:bg-[#F6F8FC] focus-visible:outline-none',
                         isActionMenuOpen && 'relative z-30',
                       )}
                     >
                       {/* Assignment Column (Truncated with full name tooltip on hover) */}
-                      <TableCell className="px-5 py-4">
+                      <TableCell
+                        className="px-5 py-4"
+                        onClick={(e) => {
+                          if (e.metaKey || e.ctrlKey || e.shiftKey) {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
                         <Link
                           href={`/mentee/assignments/${assignment.id}`}
                           {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
@@ -452,41 +507,42 @@ export function MyAssignmentsTable({
                             'relative inline-block text-left',
                             isActionMenuOpen && 'z-40',
                           )}
-                          ref={isActionMenuOpen ? actionMenuRef : undefined}
                         >
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenActionMenuId(isActionMenuOpen ? null : assignment.id);
-                            }}
+                            onClick={(e) => toggleActionMenu(e, assignment.id)}
                             title="Assignment actions"
                             aria-label={`Actions for ${assignment.title}`}
                             aria-haspopup="menu"
                             aria-expanded={isActionMenuOpen}
-                            className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            className="h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#0044D3]"
                           >
                             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                             </svg>
                           </Button>
 
-                          {isActionMenuOpen && (
+                          {isActionMenuOpen && menuPosition && (
                             <div
+                              ref={actionMenuRef}
                               role="menu"
                               aria-label={`Actions for ${assignment.title}`}
-                              className={cn(
-                                'animate-in fade-in zoom-in-95 absolute right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl',
-                                shouldOpenUpward ? 'bottom-full mb-1' : 'top-10',
-                              )}
+                              style={{
+                                top: `${menuPosition.top}px`,
+                                right: `${menuPosition.right}px`,
+                              }}
+                              className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
                             >
                               <Link
                                 role="menuitem"
                                 href={`/mentee/assignments/${assignment.id}`}
                                 {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                                onClick={() => setOpenActionMenuId(null)}
+                                onClick={() => {
+                                  setOpenActionMenuId(null);
+                                  setMenuPosition(null);
+                                }}
                                 className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                               >
                                 <Span>
@@ -502,7 +558,10 @@ export function MyAssignmentsTable({
                                 <Link
                                   role="menuitem"
                                   href={`/mentee/courses/${assignment.courseId}`}
-                                  onClick={() => setOpenActionMenuId(null)}
+                                  onClick={() => {
+                                    setOpenActionMenuId(null);
+                                    setMenuPosition(null);
+                                  }}
                                   className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                 >
                                   <Span>Go to Course</Span>

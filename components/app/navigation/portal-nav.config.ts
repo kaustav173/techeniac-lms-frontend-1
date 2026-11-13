@@ -267,8 +267,6 @@ export const MENTOR_HISTORY_NAV: PortalNavConfig = {
   ],
 };
 
-export const MENTOR_MY_PERFORMANCE_NAV = MENTOR_HISTORY_NAV;
-
 export const MENTOR_NAV_CONFIG = MENTOR_PROGRESS_NAV;
 
 export const MENTEE_PORTAL_NAV: PortalNavConfig = {

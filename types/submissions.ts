@@ -108,3 +108,15 @@ export interface CreateSubmissionInput {
   submissionData: SubmissionData;
   confirmedComplete: boolean;
 }
+
+export function isAllocationBatchReadOnly(
+  isBatchActive?: boolean | null,
+  batchStatus?: string | null,
+): boolean {
+  return (
+    !isBatchActive ||
+    batchStatus === 'ON_HOLD' ||
+    batchStatus === 'COMPLETED' ||
+    batchStatus === 'ARCHIVED'
+  );
+}

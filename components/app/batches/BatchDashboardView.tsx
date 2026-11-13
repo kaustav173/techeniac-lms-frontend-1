@@ -249,7 +249,7 @@ export function BatchDashboardView({
     refetch: refetchBatch,
   } = useBatchDetail(activeId);
   const { data: batchAllocationsData, refetch: refetchAllocations } = useBatchAllocations(activeId);
-  const { data: availableBatchesList } = useAvailableBatches({
+  const { data: availableBatchesList, isLoading: isLoadingBatches } = useAvailableBatches({
     enabled: Boolean(menteeToTransfer),
   });
   const removeMemberMutation = useRemoveBatchMemberMutation();
@@ -1113,6 +1113,7 @@ export function BatchDashboardView({
         key={`transfer-mentee-${menteeToTransfer?.id ?? 'none'}`}
         mentee={menteeToTransfer}
         availableBatches={availableBatches}
+        isLoadingBatches={isLoadingBatches}
         isOpen={Boolean(menteeToTransfer)}
         onClose={() => setMenteeToTransfer(null)}
         onSuccess={handleTransferSuccess}

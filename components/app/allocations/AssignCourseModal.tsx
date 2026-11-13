@@ -308,7 +308,7 @@ function AssignCourseModalDialog({
               <ul className="mt-2 max-h-32 divide-y divide-amber-100 overflow-y-auto rounded-lg border border-amber-200/60 bg-white/70 text-xs text-amber-900">
                 {skippedAllocations.map((s, idx) => (
                   <li key={idx} className="flex items-center justify-between p-2">
-                    <Span className="truncate font-mono text-[11px]">{s.menteeId}</Span>
+                    <Span className="truncate text-[11px]">{s.menteeId}</Span>
                     <Span className="text-[10px] font-medium text-amber-700">{s.reason}</Span>
                   </li>
                 ))}
@@ -489,7 +489,7 @@ function AssignCourseModalDialog({
                 <P className="mt-1 text-xs text-slate-600">
                   {selectedCourse.description || 'Enterprise curriculum module.'}
                 </P>
-                <div className="mt-3 flex items-center gap-4 font-mono text-xs text-slate-600">
+                <div className="mt-3 flex items-center gap-4 text-xs text-slate-600">
                   <Span>
                     Duration:{' '}
                     {selectedCourse.estimatedMinutes
@@ -719,7 +719,7 @@ function AssignCourseModalDialog({
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <Span className="font-mono text-[10px] font-bold tracking-wider text-blue-600 uppercase">
+                  <Span className="text-[10px] font-bold tracking-wider text-blue-600 uppercase">
                     Target Deployment
                   </Span>
                   <H3 className="mt-0.5 text-base font-bold text-slate-900">
