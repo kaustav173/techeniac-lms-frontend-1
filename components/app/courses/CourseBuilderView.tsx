@@ -789,7 +789,7 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
 
           {/* Topic Cards (6 rows matching actual data) */}
           <div className="mt-2 space-y-2">
-            {[180, 210, 195, 170, 150, 185].map((pixelWidth, i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
                 className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs"
@@ -797,7 +797,7 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-4 w-3 rounded-md" />
                   <Skeleton className="h-3.5 w-3.5 rounded-md" />
-                  <Skeleton className="h-4 rounded-md" style={{ width: `${pixelWidth}px` }} />
+                  <Skeleton className="h-4 w-48 rounded-md" />
                 </div>
                 <Skeleton className="h-4 w-4 rounded-md" />
               </div>
@@ -814,12 +814,13 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
           </div>
 
           {/* Course Assignment Card */}
-          <div className="mt-2 flex items-center justify-between rounded-xl border border-purple-200 bg-purple-50/50 px-3 py-2.5 shadow-xs">
+          <div className="mt-2 flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-xs">
             <div className="flex items-center gap-2">
               <Skeleton className="h-4 w-3 rounded-md" />
+              <Skeleton className="h-3.5 w-3.5 rounded-md" />
               <Skeleton className="h-4 w-48 rounded-md" />
             </div>
-            <Skeleton className="h-3.5 w-3.5 rounded-md" />
+            <Skeleton className="h-4 w-4 rounded-md" />
           </div>
         </div>
 
