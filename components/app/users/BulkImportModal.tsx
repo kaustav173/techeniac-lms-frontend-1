@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
-import { Label } from '@/components/ui/Label';
 import {
   Table,
   TableBody,
@@ -90,6 +89,7 @@ export function parseCsvLine(line: string): string[] {
 }
 
 export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<ParsedRowResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -134,6 +134,7 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
     setImportResult(null);
     setImportProgress(null);
     parseCsv(selected);
+    e.target.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -393,16 +394,38 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
         <div className="space-y-4">
           {/* Upper Section: Drag and Drop CSV Zone */}
           <div
+            role="button"
+            tabIndex={0}
+            aria-label="Upload CSV file"
+            onClick={() => {
+              if (!isProcessing && !isImporting) {
+                fileInputRef.current?.click();
+              }
+            }}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && !isProcessing && !isImporting) {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all ${
+            className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all ${
               isDragging
                 ? 'scale-[1.01] border-[#0044D3] bg-blue-50/70'
-                : 'border-slate-300 bg-slate-50/60 hover:border-slate-400 hover:bg-slate-50'
+                : 'border-slate-300 bg-slate-50/60 hover:border-[#0044D3] hover:bg-blue-50/30'
             }`}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#0044D3]">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              className="hidden"
+              disabled={isProcessing || isImporting}
+            />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#0044D3] transition-colors group-hover:bg-blue-200/80">
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -419,16 +442,9 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
             </div>
             <P className="mt-3 text-sm font-semibold text-slate-800">
               Drag and drop your CSV file here, or{' '}
-              <Label className="cursor-pointer font-bold text-[#0044D3] hover:underline">
+              <Span className="font-bold text-[#0044D3] underline underline-offset-2 group-hover:text-[#0039B3]">
                 browse files
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  disabled={isProcessing}
-                />
-              </Label>
+              </Span>
             </P>
             <P className="mt-1 text-xs text-slate-500">
               Supported format: UTF-8 CSV with header row (name, email, role)
