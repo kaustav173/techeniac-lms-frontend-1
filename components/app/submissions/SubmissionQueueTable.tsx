@@ -3,13 +3,14 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TableCell, TableRow } from '@/components/ui/Table';
-import { H3, Muted, P, Span } from '@/components/ui/Typography';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
@@ -181,6 +182,7 @@ export function SubmissionQueueTable() {
   const [submittedSort, setSubmittedSort] = useState<'asc' | 'desc' | null>(null);
   const [nameSort, setNameSort] = useState<'asc' | 'desc' | null>(null);
   const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
 
   if (urlSearch !== prevUrlSearch || urlMenteeId !== prevUrlMenteeId) {
@@ -207,7 +209,7 @@ export function SubmissionQueueTable() {
     sortBy: nameSort ? 'mentee' : submittedSort ? 'submittedAt' : undefined,
     sortOrder: nameSort ?? submittedSort ?? undefined,
     page,
-    limit: 20,
+    limit,
   });
 
   const isInitialLoading = isLoading && submissions.length === 0;
@@ -365,9 +367,9 @@ export function SubmissionQueueTable() {
   return (
     <div className="flex flex-col gap-6">
       {/* Filters & Actions Bar (FR-10.2, FR-10.3) */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Search with Icon */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-[424px]">
           <svg
             className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
             fill="none"
@@ -392,12 +394,12 @@ export function SubmissionQueueTable() {
             }}
             placeholder="Search by mentee name or email..."
             aria-label="Search by mentee name or email"
-            className="h-[47px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
+            className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
           />
         </div>
 
         {/* Status Dropdown */}
-        <div className="w-full shrink-0 sm:w-56">
+        <div className="w-full shrink-0 sm:w-[167px]">
           <SingleSelectDropdown
             label="Status"
             value={statusFilter}
@@ -410,10 +412,10 @@ export function SubmissionQueueTable() {
             aria-label="Filter by status"
             className="w-full"
             triggerClassName={cn(
-              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
+              'h-[48px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
               statusFilter !== 'ALL' && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
             )}
-            menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+            menuClassName="w-full sm:min-w-[167px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
           />
         </div>
 
@@ -721,40 +723,21 @@ export function SubmissionQueueTable() {
           </table>
         </div>
 
-        {/* Server-Side Pagination Bar (FR-10.7) */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
-            <Muted className="text-xs">
-              Showing {submissions.length} of {total} submissions
-            </Muted>
-
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page <= 1 || isLoading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Previous
-              </Button>
-              <Span className="text-xs text-slate-600">
-                Page {page} of {totalPages}
-              </Span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Server-Side Pagination Bar */}
+        <PaginationControls
+          page={page}
+          limit={limit}
+          total={total}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+          itemLabel="submissions"
+          pageSizeOptions={[10, 20, 50]}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Review & Grading Modal */}

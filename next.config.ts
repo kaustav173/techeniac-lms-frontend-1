@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
   redirects() {
     return Promise.resolve([
       {
-        source: '/mentor/mentees',
-        destination: '/mentor/my-mentees',
+        source: '/mentor/my-mentees',
+        destination: '/mentor/mentees',
         permanent: false,
       },
       {

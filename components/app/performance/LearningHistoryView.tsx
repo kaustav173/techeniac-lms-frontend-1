@@ -180,10 +180,10 @@ export function LearningHistoryView({
   // Dropdown options for batch selector
   const batchOptions = useMemo<SingleSelectOption[]>(
     () => [
-      { value: 'ALL', label: 'All' },
+      { value: 'ALL', label: 'Batch' },
       ...batches.map((b) => ({
         value: b.batchId,
-        label: `${b.batchName} (${b.status})`,
+        label: b.batchName,
       })),
     ],
     [batches],
@@ -281,8 +281,8 @@ export function LearningHistoryView({
       {!hideSummary && <LearningHistorySummaryCards summary={summary} />}
 
       {/* 2. Batch Selector Filter Toolbar */}
-      {batches.length > 1 ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start">
+      {batches.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-3">
           <div className="w-full sm:w-[200px]">
             <SingleSelectDropdown
               label="Batch"
@@ -295,6 +295,27 @@ export function LearningHistoryView({
               menuClassName="w-full sm:min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
             />
           </div>
+
+          {selectedBatchId !== 'ALL' && (
+            <button
+              type="button"
+              onClick={() => setSelectedBatchId('ALL')}
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
+              title="Clear filter"
+              aria-label="Clear filter"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
       ) : null}
 

@@ -139,6 +139,17 @@ const NAV_ICON_DEFS: readonly NavIconDef[] = [
       />
     ),
   },
+  {
+    keywords: ['history', 'past', 'time', 'record'],
+    path: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    ),
+  },
 ];
 
 function getNavIcon(itemOrLabel: HeaderNavItem | string) {
