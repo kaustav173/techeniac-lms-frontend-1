@@ -314,15 +314,17 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             </Form>
           ) : (
             <div className="mt-4 flex items-center justify-center gap-2">
-              <span
+              <Span
                 className="pointer-events-none h-8 w-8 shrink-0 select-none"
                 aria-hidden="true"
               />
               <H2 className="truncate text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
                 {user.name || 'User'}
               </H2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setProfileName(user.name);
                   setProfileErrors({});
@@ -330,7 +332,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                 }}
                 title="Edit name"
                 aria-label="Edit name"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0 text-slate-400 transition-colors hover:bg-blue-50 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
               >
                 <svg
                   className="h-4 w-4"
@@ -346,7 +348,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
           )}
 

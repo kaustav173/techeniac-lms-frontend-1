@@ -3,13 +3,22 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Input } from '@/components/ui/Input';
 import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { TableCell, TableRow } from '@/components/ui/Table';
-import { H3, Muted, P, Span } from '@/components/ui/Typography';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
@@ -181,6 +190,7 @@ export function SubmissionQueueTable() {
   const [submittedSort, setSubmittedSort] = useState<'asc' | 'desc' | null>(null);
   const [nameSort, setNameSort] = useState<'asc' | 'desc' | null>(null);
   const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
 
   if (urlSearch !== prevUrlSearch || urlMenteeId !== prevUrlMenteeId) {
@@ -207,7 +217,7 @@ export function SubmissionQueueTable() {
     sortBy: nameSort ? 'mentee' : submittedSort ? 'submittedAt' : undefined,
     sortOrder: nameSort ?? submittedSort ?? undefined,
     page,
-    limit: 20,
+    limit,
   });
 
   const isInitialLoading = isLoading && submissions.length === 0;
@@ -365,9 +375,9 @@ export function SubmissionQueueTable() {
   return (
     <div className="flex flex-col gap-6">
       {/* Filters & Actions Bar (FR-10.2, FR-10.3) */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Search with Icon */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-[424px]">
           <svg
             className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
             fill="none"
@@ -392,12 +402,12 @@ export function SubmissionQueueTable() {
             }}
             placeholder="Search by mentee name or email..."
             aria-label="Search by mentee name or email"
-            className="h-[47px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
+            className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
           />
         </div>
 
         {/* Status Dropdown */}
-        <div className="w-full shrink-0 sm:w-56">
+        <div className="w-full shrink-0 sm:w-[167px]">
           <SingleSelectDropdown
             label="Status"
             value={statusFilter}
@@ -410,19 +420,21 @@ export function SubmissionQueueTable() {
             aria-label="Filter by status"
             className="w-full"
             triggerClassName={cn(
-              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
+              'h-[48px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
               statusFilter !== 'ALL' && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
             )}
-            menuClassName="w-full sm:min-w-[220px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+            menuClassName="w-full sm:min-w-[167px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
           />
         </div>
 
         {/* Clear Filter icon button */}
         {hasActiveFilters ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={handleClearFilters}
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30 focus-visible:outline-none"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
             title="Clear filters"
             aria-label="Clear filters"
           >
@@ -436,7 +448,7 @@ export function SubmissionQueueTable() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         ) : null}
       </div>
 
@@ -452,310 +464,289 @@ export function SubmissionQueueTable() {
       )}
 
       {/* Queue Table */}
-      <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
-              <tr>
-                <th
-                  className="px-6 py-3.5 text-sm font-semibold text-[#667085]"
-                  aria-sort={
-                    nameSort === 'asc' ? 'ascending' : nameSort === 'desc' ? 'descending' : 'none'
+      <TableContainer>
+        <Table className="w-full border-collapse text-left text-sm">
+          <TableHeader className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+            <TableRow>
+              <TableHead
+                className="px-6 py-3.5 text-sm font-semibold text-[#667085]"
+                aria-sort={
+                  nameSort === 'asc' ? 'ascending' : nameSort === 'desc' ? 'descending' : 'none'
+                }
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNameSort}
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    nameSort === 'asc'
+                      ? 'Sorted A to Z (click for Z to A)'
+                      : nameSort === 'desc'
+                        ? 'Sorted Z to A (click to reset)'
+                        : 'Sort by mentee name'
                   }
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleNameSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
-                    title={
-                      nameSort === 'asc'
-                        ? 'Sorted A to Z (click for Z to A)'
-                        : nameSort === 'desc'
-                          ? 'Sorted Z to A (click to reset)'
-                          : 'Sort by mentee name'
-                    }
-                  >
-                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                      Mentee
-                    </Span>
-                    {renderSortIcon(nameSort !== null, nameSort)}
-                  </Button>
-                </th>
-                <th className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Assignment & Course</Span>
-                </th>
-                <th className="px-3 py-3.5 text-center text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Version</Span>
-                </th>
-                <th
-                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
-                  aria-sort={
-                    submittedSort === 'asc'
-                      ? 'ascending'
-                      : submittedSort === 'desc'
-                        ? 'descending'
-                        : 'none'
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Mentee
+                  </Span>
+                  {renderSortIcon(nameSort !== null, nameSort)}
+                </Button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
+                <Span className="text-sm font-semibold text-[#667085]">Assignment & Course</Span>
+              </TableHead>
+              <TableHead className="px-3 py-3.5 text-center text-sm font-semibold text-[#667085]">
+                <Span className="text-sm font-semibold text-[#667085]">Version</Span>
+              </TableHead>
+              <TableHead
+                className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                aria-sort={
+                  submittedSort === 'asc'
+                    ? 'ascending'
+                    : submittedSort === 'desc'
+                      ? 'descending'
+                      : 'none'
+                }
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSubmittedSort}
+                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                  title={
+                    submittedSort === 'desc'
+                      ? 'Sorted newest first (click for oldest first)'
+                      : submittedSort === 'asc'
+                        ? 'Sorted oldest first (click to reset)'
+                        : 'Sort by submission date'
                   }
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSubmittedSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
-                    title={
-                      submittedSort === 'desc'
-                        ? 'Sorted newest first (click for oldest first)'
-                        : submittedSort === 'asc'
-                          ? 'Sorted oldest first (click to reset)'
-                          : 'Sort by submission date'
-                    }
-                  >
-                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                      Submitted
-                    </Span>
-                    {renderSortIcon(submittedSort !== null, submittedSort)}
-                  </Button>
-                </th>
-                <th className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Status & Score</Span>
-                </th>
-                <th className="px-6 py-3.5 text-right text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Actions</Span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isInitialLoading &&
-                Array.from({ length: 10 }).map((_, idx) => (
-                  <TableRow key={`queue-skel-${idx}`} className="h-16">
-                    <TableCell className="px-6 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-32 rounded-md" />
-                        <Skeleton className="h-3 w-40 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-36 rounded-md" />
-                        <Skeleton className="h-3 w-28 rounded-md" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-3 py-4 text-center">
-                      <Skeleton className="mx-auto h-5 w-8 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-4 w-28 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <Skeleton className="h-6 w-24 rounded-full" />
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    Submitted
+                  </Span>
+                  {renderSortIcon(submittedSort !== null, submittedSort)}
+                </Button>
+              </TableHead>
+              <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
+                <Span className="text-sm font-semibold text-[#667085]">Status & Score</Span>
+              </TableHead>
+              <TableHead className="px-6 py-3.5 text-right text-sm font-semibold text-[#667085]">
+                <Span className="text-sm font-semibold text-[#667085]">Actions</Span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-slate-100">
+            {isInitialLoading &&
+              Array.from({ length: 10 }).map((_, idx) => (
+                <TableRow key={`queue-skel-${idx}`} className="h-16">
+                  <TableCell className="px-6 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-32 rounded-md" />
+                      <Skeleton className="h-3 w-40 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-36 rounded-md" />
+                      <Skeleton className="h-3 w-28 rounded-md" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-3 py-4 text-center">
+                    <Skeleton className="mx-auto h-5 w-8 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-4 w-28 rounded-md" />
+                  </TableCell>
+                  <TableCell className="px-4 py-4">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-right">
+                    <Skeleton className="ml-auto h-8 w-20 rounded-xl" />
+                  </TableCell>
+                </TableRow>
+              ))}
 
-              {!isInitialLoading && !error && submissions.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-10 text-center">
-                    <H3 className="text-sm font-semibold text-slate-700">No submissions found</H3>
-                  </td>
-                </tr>
-              )}
+            {!isInitialLoading && !error && submissions.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="p-10 text-center">
+                  <H3 className="text-sm font-semibold text-slate-700">No submissions found</H3>
+                </TableCell>
+              </TableRow>
+            )}
 
-              {!isInitialLoading &&
-                menteeGroups.map((group, groupIndex) => {
-                  const isExpanded = Boolean(expandedMentees[group.mentee.id]);
-                  const totalItems = group.items.length;
-                  const hasMore = totalItems > 3;
-                  const displayedItems =
-                    isExpanded || !hasMore ? group.items : group.items.slice(0, 3);
-                  const rowSpan = displayedItems.length;
-                  const isLastGroup = groupIndex === menteeGroups.length - 1;
+            {!isInitialLoading &&
+              menteeGroups.map((group, groupIndex) => {
+                const isExpanded = Boolean(expandedMentees[group.mentee.id]);
+                const totalItems = group.items.length;
+                const hasMore = totalItems > 3;
+                const displayedItems =
+                  isExpanded || !hasMore ? group.items : group.items.slice(0, 3);
+                const rowSpan = displayedItems.length;
+                const isLastGroup = groupIndex === menteeGroups.length - 1;
 
-                  return (
-                    <React.Fragment key={group.mentee.id}>
-                      {displayedItems.map((sub, itemIndex) => {
-                        const isFirstItem = itemIndex === 0;
-                        const isLastItem = itemIndex === displayedItems.length - 1;
+                return (
+                  <React.Fragment key={group.mentee.id}>
+                    {displayedItems.map((sub, itemIndex) => {
+                      const isFirstItem = itemIndex === 0;
+                      const isLastItem = itemIndex === displayedItems.length - 1;
 
-                        return (
-                          <tr
-                            key={sub.id}
-                            style={
-                              itemIndex >= 3
-                                ? {
-                                    animationDelay: `${Math.min(itemIndex - 3, 8) * 25}ms`,
-                                  }
-                                : undefined
-                            }
-                            className={cn(
-                              'transition-colors hover:bg-slate-50/60',
-                              itemIndex >= 3 && 'animate-row-expand',
-                              isLastItem && 'border-b border-[#E1E6EC]',
-                            )}
-                          >
-                            {/* Mentee Column (Rendered only on first item of group, spanning all group rows) */}
-                            {isFirstItem ? (
-                              <td
-                                rowSpan={rowSpan}
-                                className="border-r border-b border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
-                              >
-                                <div className="sticky top-16">
-                                  <P className="font-semibold text-slate-900">
-                                    {group.mentee.name}
-                                  </P>
-                                  {group.batchName && (
-                                    <Span className="mt-1 inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-semibold text-[#111827]">
-                                      {group.batchName}
-                                    </Span>
-                                  )}
-                                  {totalItems > 1 && (
-                                    <div className="mt-2 flex items-center gap-2">
-                                      <Span className="text-xs font-medium text-slate-500">
-                                        {totalItems} assignments
-                                      </Span>
-                                      {hasMore && (
-                                        <button
-                                          type="button"
-                                          onClick={() => toggleMenteeExpand(group.mentee.id)}
-                                          aria-expanded={isExpanded}
-                                          title={
-                                            isExpanded
-                                              ? 'Collapse to 3 assignments'
-                                              : `Show all ${totalItems} assignments`
-                                          }
-                                          className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-[#0044D3] transition-all hover:bg-blue-100 hover:text-[#0039B3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none active:scale-95"
-                                        >
-                                          <span>{isExpanded ? 'Less' : `+${totalItems - 3}`}</span>
-                                          <svg
-                                            className={cn(
-                                              'h-3 w-3 transition-transform duration-200',
-                                              isExpanded && 'rotate-180',
-                                            )}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={2.5}
-                                            aria-hidden="true"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                                            />
-                                          </svg>
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            ) : null}
-
-                            {/* Assignment Column */}
-                            <td className="px-4 py-4">
-                              <P
-                                className="max-w-xs truncate font-semibold text-slate-800"
-                                title={sub.assignmentTitle}
-                              >
-                                {truncateText(sub.assignmentTitle, 6, 40)}
-                              </P>
-                              <P
-                                className="max-w-xs truncate text-xs text-slate-500"
-                                title={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
-                              >
-                                {truncateText(
-                                  `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
-                                  6,
-                                  36,
-                                )}
-                              </P>
-                            </td>
-
-                            {/* Version Column */}
-                            <td className="px-3 py-4 text-center">
-                              <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-bold text-[#111827]">
-                                v{sub.version}
-                              </Span>
-                            </td>
-
-                            {/* Submitted At Column */}
-                            <td className="px-4 py-4">
-                              <Span className="text-xs text-slate-700">
-                                {formatDateIST(sub.submittedAt)}
-                              </Span>
-                            </td>
-
-                            {/* Status & Score Column */}
-                            <td className="px-4 py-4">
-                              <div className="flex items-center gap-2">
-                                <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
-                                {sub.marks !== null && (
-                                  <Span className="text-xs font-bold text-slate-800">
-                                    {sub.marks}/{sub.maxMarks}
+                      return (
+                        <TableRow
+                          key={sub.id}
+                          style={
+                            itemIndex >= 3
+                              ? {
+                                  animationDelay: `${Math.min(itemIndex - 3, 8) * 25}ms`,
+                                }
+                              : undefined
+                          }
+                          className={cn(
+                            'transition-colors hover:bg-slate-50/60',
+                            itemIndex >= 3 && 'animate-row-expand',
+                            isLastItem && 'border-b border-[#E1E6EC]',
+                          )}
+                        >
+                          {/* Mentee Column (Rendered only on first item of group, spanning all group rows) */}
+                          {isFirstItem ? (
+                            <TableCell
+                              rowSpan={rowSpan}
+                              className="border-r border-b border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
+                            >
+                              <div className="sticky top-16">
+                                <P className="font-semibold text-slate-900">{group.mentee.name}</P>
+                                {group.batchName && (
+                                  <Span className="mt-1 inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-semibold text-[#111827]">
+                                    {group.batchName}
                                   </Span>
                                 )}
+                                {totalItems > 1 && (
+                                  <div className="mt-2 flex items-center gap-2">
+                                    <Span className="text-xs font-medium text-slate-500">
+                                      {totalItems} assignments
+                                    </Span>
+                                    {hasMore && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleMenteeExpand(group.mentee.id)}
+                                        aria-expanded={isExpanded}
+                                        title={
+                                          isExpanded
+                                            ? 'Collapse to 3 assignments'
+                                            : `Show all ${totalItems} assignments`
+                                        }
+                                        className="inline-flex h-auto cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-[#0044D3] transition-all hover:bg-blue-100 hover:text-[#0039B3] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none active:scale-95"
+                                      >
+                                        <Span>{isExpanded ? 'Less' : `+${totalItems - 3}`}</Span>
+                                        <svg
+                                          className={cn(
+                                            'h-3 w-3 transition-transform duration-200',
+                                            isExpanded && 'rotate-180',
+                                          )}
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth={2.5}
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                          />
+                                        </svg>
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            </td>
+                            </TableCell>
+                          ) : null}
 
-                            {/* Action Column */}
-                            <td className="px-6 py-4 text-right">
-                              <SubmissionActionMenu
-                                submission={sub}
-                                onOpenReview={() => setSelectedSubmissionId(sub.id)}
-                                openUpward={isLastGroup && itemIndex >= displayedItems.length - 2}
-                                onPrefetch={() => prefetchReview(sub.id)}
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </React.Fragment>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
+                          {/* Assignment Column */}
+                          <TableCell className="px-4 py-4">
+                            <P
+                              className="max-w-xs truncate font-semibold text-slate-800"
+                              title={sub.assignmentTitle}
+                            >
+                              {truncateText(sub.assignmentTitle, 6, 40)}
+                            </P>
+                            <P
+                              className="max-w-xs truncate text-xs text-slate-500"
+                              title={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
+                            >
+                              {truncateText(
+                                `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
+                                6,
+                                36,
+                              )}
+                            </P>
+                          </TableCell>
 
-        {/* Server-Side Pagination Bar (FR-10.7) */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
-            <Muted className="text-xs">
-              Showing {submissions.length} of {total} submissions
-            </Muted>
+                          {/* Version Column */}
+                          <TableCell className="px-3 py-4 text-center">
+                            <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-bold text-[#111827]">
+                              v{sub.version}
+                            </Span>
+                          </TableCell>
 
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page <= 1 || isLoading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Previous
-              </Button>
-              <Span className="text-xs text-slate-600">
-                Page {page} of {totalPages}
-              </Span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-full px-4 text-xs font-semibold"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+                          {/* Submitted At Column */}
+                          <TableCell className="px-4 py-4">
+                            <Span className="text-xs text-slate-700">
+                              {formatDateIST(sub.submittedAt)}
+                            </Span>
+                          </TableCell>
+
+                          {/* Status & Score Column */}
+                          <TableCell className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <SubmissionStatusBadge status={sub.status} isLate={sub.isLate} />
+                              {sub.marks !== null && (
+                                <Span className="text-xs font-bold text-slate-800">
+                                  {sub.marks}/{sub.maxMarks}
+                                </Span>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          {/* Action Column */}
+                          <TableCell className="px-6 py-4 text-right">
+                            <SubmissionActionMenu
+                              submission={sub}
+                              onOpenReview={() => setSelectedSubmissionId(sub.id)}
+                              openUpward={isLastGroup && itemIndex >= displayedItems.length - 2}
+                              onPrefetch={() => prefetchReview(sub.id)}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Server-Side Pagination Bar */}
+      <PaginationControls
+        page={page}
+        limit={limit}
+        total={total}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onLimitChange={(newLimit) => {
+          setLimit(newLimit);
+          setPage(1);
+        }}
+        itemLabel="submissions"
+        pageSizeOptions={[10, 20, 50]}
+        isLoading={isLoading}
+      />
 
       {/* Review & Grading Modal */}
       <SubmissionReviewModal

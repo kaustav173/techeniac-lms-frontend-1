@@ -220,7 +220,7 @@ export function PerformanceFiltersBar({
         {/* Search Input */}
         <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
           <svg
-            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#667085]"
+            className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -238,7 +238,7 @@ export function PerformanceFiltersBar({
             placeholder="Search by name or email..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="h-10 pl-9 text-xs"
+            className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
           />
         </div>
 
@@ -255,6 +255,8 @@ export function PerformanceFiltersBar({
             onScrollEnd={handleBatchScrollEnd}
             onSearch={setBatchSearch}
             isSearching={isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())}
+            isLoadingMore={isFetchingNextBatches}
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
           />
         </div>
 
@@ -273,11 +275,13 @@ export function PerformanceFiltersBar({
             isSearching={
               isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
             }
+            isLoadingMore={isFetchingNextCourses}
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
           />
         </div>
 
         {/* Status Filter (Multi-select) */}
-        <div className="w-full sm:w-[165px]">
+        <div className="w-full sm:w-[168px]">
           <MultiSelectDropdown
             label="Status"
             options={STATUS_FILTER_OPTIONS}
@@ -286,6 +290,7 @@ export function PerformanceFiltersBar({
             singleSelect={false}
             align="right"
             className="w-full"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
           />
         </div>
 

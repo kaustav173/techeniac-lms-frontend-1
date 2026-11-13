@@ -96,8 +96,8 @@ export default function MentorPage() {
     },
     {
       id: 'mentees',
-      href: '/mentor/my-mentees',
-      title: 'My Mentees',
+      href: '/mentor/mentees',
+      title: 'Mentees',
       badge: `${mentees.length} Mapped`,
       badgeClass: 'bg-emerald-100 text-emerald-800',
       iconBg: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white',
@@ -193,7 +193,7 @@ export default function MentorPage() {
     {
       id: 'performance',
       href: '/mentor/performance',
-      title: 'Mentee Performance',
+      title: 'Performance',
       badge: 'Analytics',
       badgeClass: 'bg-amber-100 text-amber-800',
       iconBg: 'bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white',
@@ -278,7 +278,21 @@ export default function MentorPage() {
                     href="/mentor/courses"
                     className="inline-flex items-center gap-1.5 rounded-full bg-[#0044D3] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3]"
                   >
-                    Explore Course Catalog →
+                    <Span>Explore Course Catalog</Span>
+                    <svg
+                      className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                      />
+                    </svg>
                   </Link>
                 </div>
               </div>
@@ -316,15 +330,26 @@ export default function MentorPage() {
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-[#E1E6EC]/60 pt-3">
               <Span className="text-xs font-medium text-[#667085]">Waiting in review queue</Span>
-              <Span className="text-xs font-bold text-[#0044D3] transition-transform group-hover:translate-x-1">
-                →
-              </Span>
+              <svg
+                className="h-4 w-4 text-[#0044D3] transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
+              </svg>
             </div>
           </Link>
 
           {/* Tile 2: Mentees */}
           <Link
-            href="/mentor/my-mentees"
+            href="/mentor/mentees"
             className="group relative flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
           >
             <div>
@@ -346,9 +371,20 @@ export default function MentorPage() {
               <Span className="text-xs font-medium text-[#667085]">
                 Paired learners across courses
               </Span>
-              <Span className="text-xs font-bold text-[#0044D3] transition-transform group-hover:translate-x-1">
-                →
-              </Span>
+              <svg
+                className="h-4 w-4 text-[#0044D3] transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
+              </svg>
             </div>
           </Link>
 
@@ -376,9 +412,20 @@ export default function MentorPage() {
               <Span className="text-xs font-medium text-[#667085]">
                 {liveBatchesCount} live course tracks
               </Span>
-              <Span className="text-xs font-bold text-[#0044D3] transition-transform group-hover:translate-x-1">
-                →
-              </Span>
+              <svg
+                className="h-4 w-4 text-[#0044D3] transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
+              </svg>
             </div>
           </Link>
 
@@ -404,9 +451,20 @@ export default function MentorPage() {
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-[#E1E6EC]/60 pt-3">
               <Span className="text-xs font-medium text-[#667085]">Overall graded coursework</Span>
-              <Span className="text-xs font-bold text-[#0044D3] transition-transform group-hover:translate-x-1">
-                →
-              </Span>
+              <svg
+                className="h-4 w-4 text-[#0044D3] transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
+              </svg>
             </div>
           </Link>
         </div>

@@ -25,6 +25,7 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly onScrollEnd?: (() => void) | undefined;
   readonly onSearch?: ((query: string) => void) | undefined;
   readonly isSearching?: boolean | undefined;
+  readonly isLoadingMore?: boolean | undefined;
   readonly buttonClassName?: string | undefined;
   readonly menuClassName?: string | undefined;
 }
@@ -41,6 +42,7 @@ export function MultiSelectDropdown<T extends string = string>({
   onScrollEnd,
   onSearch,
   isSearching = false,
+  isLoadingMore = false,
   buttonClassName,
   menuClassName,
 }: Readonly<MultiSelectDropdownProps<T>>) {
@@ -338,6 +340,12 @@ export function MultiSelectDropdown<T extends string = string>({
                   </div>
                 );
               })
+            )}
+            {isLoadingMore && (
+              <div className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500">
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+                <Span>Loading more...</Span>
+              </div>
             )}
           </div>
         </div>
