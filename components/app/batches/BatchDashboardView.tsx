@@ -612,7 +612,7 @@ export function BatchDashboardView({
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 p-4">
             <div>
-              <H3 className="text-sm font-bold text-slate-800">Cohort Roster</H3>
+              <H3 className="text-sm font-bold text-slate-800">Course Roster</H3>
             </div>
             <div className="flex items-center gap-2">
               {mentors.length > 0 && unmappedMentees.length > 0 && !isArchived ? (
@@ -845,7 +845,7 @@ export function BatchDashboardView({
                       tooltip="Sort allocated courses by Title"
                     />
                     <TableHead>Target Due Date</TableHead>
-                    <TableHead>Cohort Avg Progress</TableHead>
+                    <TableHead>Course Avg Progress</TableHead>
                     <TableHead className="text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -933,9 +933,9 @@ export function BatchDashboardView({
       {/* Tab 3: Timeline */}
       {activeTab === 'timeline' ? (
         <div className="space-y-6">
-          {/* Cohort Schedule Overview */}
+          {/* Course Schedule Overview */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-base font-bold text-slate-900">Cohort Schedule</H3>
+            <H3 className="text-base font-bold text-slate-900">Course Schedule</H3>
             <P className="mt-1 text-sm text-slate-500">
               Active operating window and lifecycle span for this batch.
             </P>
