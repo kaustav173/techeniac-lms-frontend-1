@@ -341,9 +341,6 @@ export function SubtopicEditor({
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Lesson Information & Content</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Curriculum subtopic lesson title and formatted markdown reading material.
-            </P>
           </div>
 
           <div>
@@ -405,8 +402,8 @@ export function SubtopicEditor({
                 className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
               />
             ) : (
-              <div className="mt-2.5 min-h-[300px] rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                {content ? (
+              <div className="mt-2.5 min-h-[300px] rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+                {content.trim() ? (
                   <MarkdownViewer content={content} />
                 ) : (
                   <div className="flex h-36 items-center justify-center text-sm text-slate-400 italic">
@@ -423,9 +420,6 @@ export function SubtopicEditor({
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Planned completion time for this subtopic lesson.
-            </P>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -532,9 +526,6 @@ export function SubtopicEditor({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Supplementary links, documentation references, and download files.
-              </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
@@ -655,9 +646,6 @@ export function SubtopicEditor({
         <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <Span className="block text-base font-bold text-slate-900">Subtopic Active Status</Span>
-            <Span className="mt-0.5 block text-xs text-slate-500">
-              When inactive, hidden from mentees and excluded from progress calculations.
-            </Span>
           </div>
 
           <div className="flex items-center gap-3">

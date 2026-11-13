@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { H2, H3, P, Span } from '@/components/ui/Typography';
+import { H2, H3, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
 import {
@@ -269,9 +269,8 @@ export function AssignmentEditor({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold tracking-wide text-purple-800 uppercase">
-              {assignment.scope} Task • Evaluation
+              {assignment.scope} Task
             </Span>
-            <Span className="font-mono text-xs text-slate-400">#{assignment.id.slice(0, 8)}</Span>
           </div>
           <H2 className="mt-1.5 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {title || assignment.title}
@@ -319,9 +318,6 @@ export function AssignmentEditor({
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Task Information & Prompt</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Deliverable title and comprehensive instructions presented to cadets.
-            </P>
           </div>
 
           <div>
@@ -359,9 +355,6 @@ export function AssignmentEditor({
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Grading & Duration Calibration</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Configure evaluation pass thresholds, maximum marks, and duration benchmark.
-            </P>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -493,10 +486,6 @@ export function AssignmentEditor({
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Mentee Submission Deliverables</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Configure accepted deliverable formats. At least one deliverable must not be
-              &apos;OFF&apos;.
-            </P>
           </div>
 
           <div className="space-y-3">
@@ -504,9 +493,6 @@ export function AssignmentEditor({
             <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <Span className="block text-sm font-semibold text-slate-900">PDF Document</Span>
-                <Span className="text-xs text-slate-500">
-                  Design reports, architectural writeups, and diagrams
-                </Span>
               </div>
               <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                 {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
@@ -532,9 +518,6 @@ export function AssignmentEditor({
             <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <Span className="block text-sm font-semibold text-slate-900">ZIP Archive</Span>
-                <Span className="text-xs text-slate-500">
-                  Source code bundles, compressed repositories, binaries
-                </Span>
               </div>
               <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                 {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
@@ -561,9 +544,6 @@ export function AssignmentEditor({
               <div>
                 <Span className="block text-sm font-semibold text-slate-900">
                   Repository / Demo URL
-                </Span>
-                <Span className="text-xs text-slate-500">
-                  GitHub / GitLab pull request link or deployed site
                 </Span>
               </div>
               <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
@@ -593,9 +573,6 @@ export function AssignmentEditor({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Starter code repositories, rubrics, and reference assets.
-              </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}

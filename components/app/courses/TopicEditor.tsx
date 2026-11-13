@@ -273,7 +273,7 @@ export function TopicEditor({
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Topic Parameters • Curriculum
+            Topic Parameters
           </Span>
           <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {topic.title}
@@ -335,9 +335,6 @@ export function TopicEditor({
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Topic Information</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Curriculum module title and learning scope overview.
-            </P>
           </div>
 
           <div>
@@ -375,9 +372,6 @@ export function TopicEditor({
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Planned lecture and study duration allocated for this topic.
-            </P>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -486,9 +480,6 @@ export function TopicEditor({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Supplementary links, documentation references, and download files.
-              </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}

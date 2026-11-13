@@ -11,9 +11,24 @@ interface MarkdownViewerProps {
 }
 
 interface Block {
-  type: 'h1' | 'h2' | 'h3' | 'h4' | 'code' | 'hr' | 'blockquote' | 'ul' | 'ol' | 'p';
+  type:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'h5'
+    | 'h6'
+    | 'code'
+    | 'hr'
+    | 'blockquote'
+    | 'ul'
+    | 'ol'
+    | 'table'
+    | 'p';
   text?: string | undefined;
   items?: string[] | undefined;
+  tableHeader?: string[] | undefined;
+  tableRows?: string[][] | undefined;
   lang?: string | undefined;
   code?: string | undefined;
 }
@@ -30,43 +45,32 @@ function isSafeMarkdownUrl(urlString: string): boolean {
 }
 
 function renderInline(text: string): React.ReactNode {
-  // Regex to match inline code, bold, italic, and links
-  const tokens = text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g);
+  const tokenRegex =
+    /(!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*|__[^\n_]+__|~~[^~]+~~|\*[^*]+\*|_[^\n_]+_)/g;
+  const tokens = text.split(tokenRegex);
 
   return tokens.map((token, i) => {
     if (!token) return null;
 
-    // Inline code `code`
-    if (token.startsWith('`') && token.endsWith('`') && token.length >= 2) {
-      return (
-        <code
-          key={i}
-          className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-rose-600"
-        >
-          {token.slice(1, -1)}
-        </code>
-      );
+    // Image: ![alt](url)
+    const imgMatch = /^!\[([^\]]*)\]\(([^)]+)\)$/.exec(token);
+    if (imgMatch) {
+      const [, alt, url] = imgMatch;
+      if (url && isSafeMarkdownUrl(url)) {
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={i}
+            src={url}
+            alt={alt || 'Image'}
+            className="my-3 max-h-96 rounded-xl border border-slate-200 object-contain shadow-xs"
+          />
+        );
+      }
+      return null;
     }
 
-    // Bold **text**
-    if (token.startsWith('**') && token.endsWith('**') && token.length >= 4) {
-      return (
-        <strong key={i} className="font-bold text-slate-900">
-          {renderInline(token.slice(2, -2))}
-        </strong>
-      );
-    }
-
-    // Italic *text*
-    if (token.startsWith('*') && token.endsWith('*') && token.length >= 2) {
-      return (
-        <em key={i} className="text-slate-800 italic">
-          {renderInline(token.slice(1, -1))}
-        </em>
-      );
-    }
-
-    // Link [text](url)
+    // Link: [label](url)
     const linkMatch = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
     if (linkMatch) {
       const [, label, url] = linkMatch;
@@ -77,17 +81,61 @@ function renderInline(text: string): React.ReactNode {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-blue-600 underline hover:text-blue-700"
+            className="font-medium text-[#0044D3] underline hover:text-[#0039B3]"
           >
             {label}
           </a>
         );
       }
-
       return (
-        <span key={i} className="font-medium text-slate-700" title="Blocked link">
+        <span key={i} className="font-medium text-slate-700">
           {label}
         </span>
+      );
+    }
+
+    // Inline code: `code`
+    if (token.startsWith('`') && token.endsWith('`') && token.length >= 2) {
+      return (
+        <code
+          key={i}
+          className="rounded-md border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] font-semibold text-rose-600"
+        >
+          {token.slice(1, -1)}
+        </code>
+      );
+    }
+
+    // Bold: **text** or __text__
+    if (
+      (token.startsWith('**') && token.endsWith('**') && token.length >= 4) ||
+      (token.startsWith('__') && token.endsWith('__') && token.length >= 4)
+    ) {
+      return (
+        <strong key={i} className="font-bold text-slate-900">
+          {renderInline(token.slice(2, -2))}
+        </strong>
+      );
+    }
+
+    // Strikethrough: ~~text~~
+    if (token.startsWith('~~') && token.endsWith('~~') && token.length >= 4) {
+      return (
+        <del key={i} className="text-slate-400">
+          {renderInline(token.slice(2, -2))}
+        </del>
+      );
+    }
+
+    // Italic: *text* or _text_
+    if (
+      (token.startsWith('*') && token.endsWith('*') && token.length >= 2) ||
+      (token.startsWith('_') && token.endsWith('_') && token.length >= 2)
+    ) {
+      return (
+        <em key={i} className="text-slate-800 italic">
+          {renderInline(token.slice(1, -1))}
+        </em>
       );
     }
 
@@ -107,15 +155,17 @@ function CodeBlock({ lang, code = '' }: { lang?: string | undefined; code?: stri
   };
 
   return (
-    <div className="relative my-3 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-md">
+    <div className="relative my-3.5 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-md">
       <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-3.5 py-1.5 text-[11px] font-medium text-slate-400">
         <Span className="font-mono text-[10px] font-bold tracking-wider text-slate-300 uppercase">
           {lang || 'CODE'}
         </Span>
         <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={handleCopy}
-          className="rounded px-2 py-0.5 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
+          className="h-6 rounded px-2 text-[10px] font-semibold text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
         >
           {copied ? 'Copied!' : 'Copy'}
         </Button>
@@ -131,51 +181,117 @@ function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case 'h1':
       return (
-        <h1 className="mt-4 mb-2 border-b border-slate-200 pb-2 text-xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="mt-5 mb-3 border-b border-slate-200 pb-2 text-2xl font-bold tracking-tight text-slate-900">
           {renderInline(block.text || '')}
         </h1>
       );
     case 'h2':
       return (
-        <h2 className="mt-4 mb-2 text-base font-bold tracking-tight text-slate-900">
+        <h2 className="mt-4 mb-2 border-b border-slate-100 pb-1.5 text-xl font-bold tracking-tight text-slate-900">
           {renderInline(block.text || '')}
         </h2>
       );
     case 'h3':
       return (
-        <h3 className="mt-3 mb-1 text-sm font-bold text-slate-800">
+        <h3 className="mt-3.5 mb-1.5 text-lg font-bold text-slate-800">
           {renderInline(block.text || '')}
         </h3>
       );
     case 'h4':
       return (
-        <h4 className="mt-2.5 mb-1 text-xs font-bold tracking-wide text-slate-800 uppercase">
+        <h4 className="mt-3 mb-1 text-base font-semibold text-slate-800">
           {renderInline(block.text || '')}
         </h4>
       );
+    case 'h5':
+      return (
+        <h5 className="mt-2.5 mb-1 text-sm font-semibold text-slate-800 uppercase">
+          {renderInline(block.text || '')}
+        </h5>
+      );
+    case 'h6':
+      return (
+        <h6 className="mt-2 mb-1 text-xs font-semibold text-slate-700 uppercase">
+          {renderInline(block.text || '')}
+        </h6>
+      );
     case 'hr':
-      return <hr className="my-4 border-t border-slate-200" />;
+      return <hr className="my-5 border-t border-slate-200" />;
     case 'code':
       return <CodeBlock lang={block.lang} code={block.code} />;
     case 'blockquote':
       return (
-        <blockquote className="my-3 rounded-r-lg border-l-4 border-blue-500 bg-blue-50/60 px-4 py-2 text-xs text-slate-700 italic">
-          {renderInline(block.text || '')}
+        <blockquote className="my-3.5 rounded-r-xl border-l-4 border-[#0044D3] bg-blue-50/60 p-3.5 text-sm text-slate-700 italic">
+          {(block.text || '').split('\n').map((line, idx) => (
+            <React.Fragment key={idx}>
+              {idx > 0 && <br />}
+              {renderInline(line)}
+            </React.Fragment>
+          ))}
         </blockquote>
+      );
+    case 'table':
+      return (
+        <div className="my-3.5 overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
+          <table className="w-full min-w-full divide-y divide-slate-200 text-left text-sm">
+            {block.tableHeader && block.tableHeader.length > 0 && (
+              <thead className="bg-slate-50 text-xs font-bold text-slate-700 uppercase">
+                <tr>
+                  {block.tableHeader.map((th, idx) => (
+                    <th key={idx} className="px-4 py-2.5 font-semibold text-slate-900">
+                      {renderInline(th)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {(block.tableRows || []).map((row, rIdx) => (
+                <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} className="px-4 py-2.5 text-xs text-slate-700">
+                      {renderInline(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       );
     case 'ul':
       return (
-        <ul className="my-2 list-disc space-y-1 pl-5 text-xs text-slate-700">
-          {(block.items || []).map((item, idx) => (
-            <li key={idx} className="leading-relaxed">
-              {renderInline(item)}
-            </li>
-          ))}
+        <ul className="my-2 list-disc space-y-1.5 pl-6 text-sm text-slate-700">
+          {(block.items || []).map((item, idx) => {
+            const taskMatch = /^\[([ xX])\]\s*(.*)$/.exec(item.trim());
+            if (taskMatch) {
+              const isChecked = taskMatch[1]?.toLowerCase() === 'x';
+              const label = taskMatch[2] || '';
+              return (
+                <li key={idx} className="-ml-4 flex list-none items-center gap-2 leading-relaxed">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    readOnly
+                    className="h-4 w-4 rounded border-slate-300 text-[#0044D3]"
+                  />
+                  <span className={isChecked ? 'text-slate-400 line-through' : ''}>
+                    {renderInline(label)}
+                  </span>
+                </li>
+              );
+            }
+            return (
+              <li key={idx} className="leading-relaxed">
+                {renderInline(item)}
+              </li>
+            );
+          })}
         </ul>
       );
     case 'ol':
       return (
-        <ol className="my-2 list-decimal space-y-1 pl-5 text-xs text-slate-700">
+        <ol className="my-2 list-decimal space-y-1.5 pl-6 text-sm text-slate-700">
           {(block.items || []).map((item, idx) => (
             <li key={idx} className="leading-relaxed">
               {renderInline(item)}
@@ -185,8 +301,13 @@ function BlockRenderer({ block }: { block: Block }) {
       );
     case 'p':
       return (
-        <p className="my-1.5 text-xs leading-relaxed text-slate-700">
-          {renderInline(block.text || '')}
+        <p className="my-2 text-sm leading-relaxed text-slate-700">
+          {(block.text || '').split('\n').map((lineText, idx) => (
+            <React.Fragment key={idx}>
+              {idx > 0 && <br />}
+              {renderInline(lineText)}
+            </React.Fragment>
+          ))}
         </p>
       );
     default:
@@ -230,6 +351,37 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
       continue;
     }
 
+    // Table
+    if (
+      line.includes('|') &&
+      i + 1 < lines.length &&
+      /^\s*\|?\s*[-:]+[-| :]*\|?\s*$/.test(lines[i + 1] ?? '')
+    ) {
+      const parseRow = (rowStr: string) =>
+        rowStr
+          .trim()
+          .replace(/^\|/, '')
+          .replace(/\|$/, '')
+          .split('|')
+          .map((c) => c.trim());
+
+      const tableHeader = parseRow(line);
+      i += 2; // skip header and separator
+      const tableRows: string[][] = [];
+
+      while (i < lines.length) {
+        const nextLine = lines[i];
+        if (nextLine === undefined || !nextLine.trim() || !nextLine.includes('|')) {
+          break;
+        }
+        tableRows.push(parseRow(nextLine));
+        i++;
+      }
+
+      blocks.push({ type: 'table', tableHeader, tableRows });
+      continue;
+    }
+
     // Horizontal Rule (---, ***, ___)
     if (/^(\s*[-*_]\s*){3,}$/.test(line)) {
       blocks.push({ type: 'hr' });
@@ -238,40 +390,29 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
     }
 
     // Headings
-    if (line.startsWith('# ')) {
-      blocks.push({ type: 'h1', text: line.slice(2).trim() });
-      i++;
-      continue;
-    }
-    if (line.startsWith('## ')) {
-      blocks.push({ type: 'h2', text: line.slice(3).trim() });
-      i++;
-      continue;
-    }
-    if (line.startsWith('### ')) {
-      blocks.push({ type: 'h3', text: line.slice(4).trim() });
-      i++;
-      continue;
-    }
-    if (line.startsWith('#### ')) {
-      blocks.push({ type: 'h4', text: line.slice(5).trim() });
+    const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line.trim());
+    if (headingMatch && headingMatch[1] && headingMatch[2]) {
+      const level = headingMatch[1].length;
+      const text = headingMatch[2].trim();
+      const type = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+      blocks.push({ type, text });
       i++;
       continue;
     }
 
     // Blockquote
-    if (line.startsWith('>')) {
-      const quoteLines: string[] = [line.replace(/^>\s?/, '')];
+    if (line.trim().startsWith('>')) {
+      const quoteLines: string[] = [line.trim().replace(/^>\s?/, '')];
       i++;
       while (i < lines.length) {
         const nextLine = lines[i];
-        if (nextLine === undefined || !nextLine.startsWith('>')) {
+        if (nextLine === undefined || !nextLine.trim().startsWith('>')) {
           break;
         }
-        quoteLines.push(nextLine.replace(/^>\s?/, ''));
+        quoteLines.push(nextLine.trim().replace(/^>\s?/, ''));
         i++;
       }
-      blocks.push({ type: 'blockquote', text: quoteLines.join(' ') });
+      blocks.push({ type: 'blockquote', text: quoteLines.join('\n') });
       continue;
     }
 
@@ -320,18 +461,21 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
         nextLine === undefined ||
         !nextLine.trim() ||
         nextLine.trim().startsWith('```') ||
-        nextLine.startsWith('#') ||
-        nextLine.startsWith('>') ||
+        /^(#{1,6})\s+/.test(nextLine.trim()) ||
+        nextLine.trim().startsWith('>') ||
         /^\s*[*+-]\s+/.test(nextLine) ||
         /^\s*\d+\.\s+/.test(nextLine) ||
-        /^(\s*[-*_]\s*){3,}$/.test(nextLine)
+        /^(\s*[-*_]\s*){3,}$/.test(nextLine) ||
+        (nextLine.includes('|') &&
+          i + 1 < lines.length &&
+          /^\s*\|?\s*[-:]+[-| :]*\|?\s*$/.test(lines[i + 1] ?? ''))
       ) {
         break;
       }
       pLines.push(nextLine);
       i++;
     }
-    blocks.push({ type: 'p', text: pLines.join(' ') });
+    blocks.push({ type: 'p', text: pLines.join('\n') });
   }
 
   return (

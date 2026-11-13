@@ -144,7 +144,7 @@ export function CourseDetailsEditor({
       <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Course Settings • Configuration
+            Course Settings
           </Span>
           <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
             {title || course.title}
@@ -207,9 +207,6 @@ export function CourseDetailsEditor({
         <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div className="border-b border-slate-100 pb-3.5">
             <H3 className="text-base font-bold text-slate-900">Course Information</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Public curriculum title and syllabus overview presented to enrolled mentees.
-            </P>
           </div>
 
           <div>
@@ -247,9 +244,6 @@ export function CourseDetailsEditor({
         <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           <div>
             <H3 className="text-base font-bold text-slate-900">Estimated Duration & Benchmark</H3>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Total benchmark study and lecture hours planned for the full course syllabus.
-            </P>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
