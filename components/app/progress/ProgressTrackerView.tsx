@@ -401,17 +401,17 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           {/* Filters Bar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-1 flex-wrap items-center gap-3">
-              {/* 1. Search mentee, course, batch */}
-              <div className="min-w-[240px] flex-1">
+              {/* 1. Search mentee, course, batch, or status */}
+              <div className="max-w-[460px] min-w-[280px] flex-1">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
-                  placeholder="Search by mentee, course, or batch..."
+                  placeholder="Search by mentee, course, batch, or status..."
                 />
               </div>
 
               {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[169px]">
+              <div className="w-full sm:w-[195px] lg:w-[220px]">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
@@ -429,7 +429,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[158px]">
+              <div className="w-full sm:w-[195px] lg:w-[220px]">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
@@ -447,7 +447,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 4. Course Status Filter (Multi-select dropdown) */}
-              <div className="w-full sm:w-[165px]">
+              <div className="w-full sm:w-[170px] lg:w-[190px]">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}

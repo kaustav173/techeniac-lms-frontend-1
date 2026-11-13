@@ -311,7 +311,7 @@ function CalendarPopover({
               {cell.isInRange ? (
                 <div
                   className={cn(
-                    'absolute inset-x-0 inset-y-0 bg-blue-50',
+                    'absolute inset-x-0 inset-y-0 bg-blue-100/70',
                     idx % 7 === 0 && 'rounded-l-full',
                     idx % 7 === 6 && 'rounded-r-full',
                   )}
@@ -321,7 +321,7 @@ function CalendarPopover({
               {isStartWithEnd ? (
                 <div
                   className={cn(
-                    'absolute inset-y-0 right-0 left-1/2 bg-blue-50',
+                    'absolute inset-y-0 right-0 left-1/2 bg-blue-100/70',
                     idx % 7 === 6 && 'rounded-r-full',
                   )}
                   aria-hidden="true"
@@ -330,7 +330,7 @@ function CalendarPopover({
               {isEndWithStart ? (
                 <div
                   className={cn(
-                    'absolute inset-y-0 right-1/2 left-0 bg-blue-50',
+                    'absolute inset-y-0 right-1/2 left-0 bg-blue-100/70',
                     idx % 7 === 0 && 'rounded-l-full',
                   )}
                   aria-hidden="true"

@@ -178,7 +178,7 @@ export function MultiSelectDropdown<T extends string = string>({
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-          <Span title={displayLabel} className="min-w-0 flex-1 truncate">
+          <Span title={displayLabel} className="min-w-0 truncate">
             {displayLabel}
           </Span>
           {extraCount > 0 ? (
