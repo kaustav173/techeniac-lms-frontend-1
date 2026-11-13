@@ -1,6 +1,14 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { ToastVariant } from '@/components/ui/Toast';
 
@@ -31,7 +39,6 @@ export const DEFAULT_TOAST_DURATIONS: Record<ToastVariant, number> = {
 };
 
 const MAX_ACTIVE_TOASTS = 4;
-const DEDUPE_WINDOW_MS = 1000;
 const MAX_SAVED_NOTIFICATIONS = 50;
 const STORAGE_KEY = 'techeniac_saved_notifications';
 
@@ -80,36 +87,31 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const [notifications, setNotifications] = useState<SavedNotification[]>(() =>
     getInitialSavedNotifications(),
   );
-  const lastToastRef = useRef<{ key: string; time: number } | null>(null);
+  const activeDedupeKeysRef = useRef<Set<string>>(new Set());
 
-  const persistNotifications = useCallback((items: SavedNotification[]) => {
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      if (notifications.length === 0) {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } else {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+      }
     } catch {
       // Ignore sessionStorage availability errors
     }
-  }, []);
+  }, [notifications]);
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.removeItem(STORAGE_KEY);
-      } catch {
-        // Ignore
-      }
-    }
   }, []);
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => {
       if (prev.length === 0 || prev.every((n) => n.read)) return prev;
-      const updated = prev.map((n) => ({ ...n, read: true }));
-      persistNotifications(updated);
-      return updated;
+      return prev.map((n) => ({ ...n, read: true }));
     });
-  }, [persistNotifications]);
+  }, []);
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -119,14 +121,13 @@ export function ToastProvider({ children }: ToastProviderProps) {
     (message: string, variant: ToastVariant = 'success', duration?: number, title?: string) => {
       const now = Date.now();
       const dedupeKey = `${variant}:${title ?? ''}:${message}`;
-      if (
-        lastToastRef.current &&
-        lastToastRef.current.key === dedupeKey &&
-        now - lastToastRef.current.time < DEDUPE_WINDOW_MS
-      ) {
+      if (activeDedupeKeysRef.current.has(dedupeKey)) {
         return;
       }
-      lastToastRef.current = { key: dedupeKey, time: now };
+      activeDedupeKeysRef.current.add(dedupeKey);
+      queueMicrotask(() => {
+        activeDedupeKeysRef.current.delete(dedupeKey);
+      });
 
       const effectiveDuration = duration ?? DEFAULT_TOAST_DURATIONS[variant] ?? 4000;
       const id = generateToastId();
@@ -150,13 +151,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
         read: false,
       };
 
-      setNotifications((prev) => {
-        const next = [newSaved, ...prev].slice(0, MAX_SAVED_NOTIFICATIONS);
-        persistNotifications(next);
-        return next;
-      });
+      setNotifications((prev) => [newSaved, ...prev].slice(0, MAX_SAVED_NOTIFICATIONS));
     },
-    [persistNotifications],
+    [],
   );
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);

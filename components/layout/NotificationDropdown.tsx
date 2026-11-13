@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { P, Span } from '@/components/ui/Typography';
@@ -93,12 +93,23 @@ export function NotificationDropdown() {
   const { notifications, unreadCount, clearAllNotifications, markAllAsRead } = useToastContext();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const closeDropdown = useCallback(() => {
+    setIsOpen((prev) => {
+      if (prev) {
+        markAllAsRead();
+      }
+      return false;
+    });
+    triggerRef.current?.focus();
+  }, [markAllAsRead]);
 
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        closeDropdown();
       }
     }
     if (isOpen) {
@@ -109,13 +120,15 @@ export function NotificationDropdown() {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, closeDropdown]);
 
   // Close on Escape key
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        event.stopPropagation();
+        event.preventDefault();
+        closeDropdown();
       }
     }
     if (isOpen) {
@@ -124,25 +137,32 @@ export function NotificationDropdown() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, closeDropdown]);
 
   const handleToggle = () => {
-    if (!isOpen) {
-      markAllAsRead();
-    }
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      if (prev) {
+        markAllAsRead();
+        triggerRef.current?.focus();
+        return false;
+      }
+      return true;
+    });
   };
 
   return (
     <div className="relative" ref={containerRef}>
       {/* Bell Trigger Button */}
-      <button
+      <Button
+        ref={triggerRef}
         type="button"
+        variant="outline"
+        size="sm"
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
-        className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#E1E6EC] bg-white text-[#667085] shadow-2xs transition-colors hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E1E6EC] bg-white p-0 text-[#667085] shadow-2xs hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
       >
         <svg
           className="h-5 w-5"
@@ -165,7 +185,7 @@ export function NotificationDropdown() {
             {unreadCount > 9 ? '9+' : unreadCount}
           </Span>
         ) : null}
-      </button>
+      </Button>
 
       {/* Popover Dropdown */}
       {isOpen && (

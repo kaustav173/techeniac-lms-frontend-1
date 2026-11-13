@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 
@@ -114,11 +115,13 @@ export function Toast({ id, message, title, variant, duration, onDismiss }: Toas
       </div>
 
       {/* Close button */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         aria-label="Dismiss notification"
         onClick={handleDismiss}
-        className="ml-auto shrink-0 cursor-pointer rounded p-0.5 opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-white/50 focus:outline-none"
+        className="ml-auto h-auto w-auto shrink-0 rounded p-0.5 text-white opacity-70 hover:bg-white/10 hover:text-white hover:opacity-100 focus-visible:ring-2 focus-visible:ring-white/50"
       >
         <svg
           className="h-3.5 w-3.5 text-white"
@@ -130,7 +133,7 @@ export function Toast({ id, message, title, variant, duration, onDismiss }: Toas
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-      </button>
+      </Button>
     </div>
   );
 }

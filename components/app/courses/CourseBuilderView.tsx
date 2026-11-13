@@ -1021,35 +1021,56 @@ function CourseBuilderContent({
   // Add Item Actions
   const handleCreateTopic = async (title: string) => {
     if (!course) return;
-    const created = await createTopic({
-      title,
-      displayOrder: (course.topics?.length ?? 0) + 1,
-    });
-    toastSuccess(`Topic "${created.title}" created.`, 'Topic Created');
-    setSelectedNode({ type: 'TOPIC', id: created.id });
-    setMobileTab('editor');
+    try {
+      const created = await createTopic({
+        title,
+        displayOrder: (course.topics?.length ?? 0) + 1,
+      });
+      toastSuccess(`Topic "${created.title}" created.`, 'Topic Created');
+      setSelectedNode({ type: 'TOPIC', id: created.id });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : 'Failed to create topic', 'Creation Failed');
+      throw err;
+    }
   };
 
   const handleCreateSubtopic = async (topicId: string, title: string) => {
-    const created = await createSubtopic(topicId, { title });
-    toastSuccess(`Subtopic "${created.title}" created.`, 'Subtopic Created');
-    setSelectedNode({
-      type: 'SUBTOPIC',
-      id: created.id,
-      parentTopicId: topicId,
-    });
-    setMobileTab('editor');
+    try {
+      const created = await createSubtopic(topicId, { title });
+      toastSuccess(`Subtopic "${created.title}" created.`, 'Subtopic Created');
+      setSelectedNode({
+        type: 'SUBTOPIC',
+        id: created.id,
+        parentTopicId: topicId,
+      });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(
+        err instanceof Error ? err.message : 'Failed to create subtopic',
+        'Creation Failed',
+      );
+      throw err;
+    }
   };
 
   const handleCreateAssignment = async (payload: CreateAssignmentInput) => {
-    const created = await createAssignment(payload);
-    toastSuccess(`Assignment "${created.title}" created.`, 'Assignment Created');
-    setSelectedNode({
-      type: 'ASSIGNMENT',
-      id: created.id,
-      parentTopicId: payload.topicId ?? undefined,
-    });
-    setMobileTab('editor');
+    try {
+      const created = await createAssignment(payload);
+      toastSuccess(`Assignment "${created.title}" created.`, 'Assignment Created');
+      setSelectedNode({
+        type: 'ASSIGNMENT',
+        id: created.id,
+        parentTopicId: payload.topicId ?? undefined,
+      });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(
+        err instanceof Error ? err.message : 'Failed to create assignment',
+        'Creation Failed',
+      );
+      throw err;
+    }
   };
 
   // Delete Action Confirmation (FR-6.10, CRS-14)
