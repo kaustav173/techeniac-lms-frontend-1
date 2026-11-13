@@ -287,10 +287,9 @@ export function User360Shell({ userId }: User360ShellProps) {
                 void handleExportCsv();
               }}
               disabled={isExporting}
-              className="inline-flex items-center gap-2 rounded-full px-4 text-xs font-semibold shadow-xs"
             >
               <svg
-                className="h-3.5 w-3.5 text-white"
+                className="h-3.5 w-3.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -302,7 +301,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                   d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
                 />
               </svg>
-              <Span className="text-white">{isExporting ? 'Exporting...' : 'Export as CSV'}</Span>
+              <Span>{isExporting ? 'Exporting...' : 'Export as CSV'}</Span>
             </Button>
           </div>
         </div>
