@@ -89,6 +89,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   );
   const activeDedupeKeysRef = useRef<Set<string>>(new Set());
 
+  // Sync notifications to sessionStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {

@@ -99,7 +99,7 @@ export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
 export function MenteeCoursesView() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['active']);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -267,7 +267,7 @@ export function MenteeCoursesView() {
 
               {/* Attached Pagination Controls */}
               {total > 0 ? (
-                <div className="relative z-20 mt-8 rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+                <div className="relative z-30 mt-8 rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
                   <PaginationControls
                     page={page}
                     limit={limit}
@@ -319,12 +319,8 @@ function MenteeAllocationCard({
 
   return (
     <div
-      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
-        isOverdue
-          ? 'border border-rose-200 hover:border-rose-300'
-          : isCompleted
-            ? 'border border-emerald-200 hover:border-emerald-300'
-            : 'border border-[#E1E6EC] hover:border-[#0044D3]/40'
+      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl border border-blue-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md ${
+        isOverdue ? 'ring-1 ring-rose-200' : isCompleted ? 'ring-1 ring-emerald-200' : ''
       }`}
     >
       <div>

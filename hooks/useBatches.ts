@@ -57,7 +57,7 @@ export function useBatchDetail(
   });
 }
 
-export function useAvailableBatches() {
+export function useAvailableBatches(options?: { enabled?: boolean }) {
   return useQuery<ApiBatchSummary[]>({
     queryKey: batchKeys.available(),
     queryFn: async () => {
@@ -65,6 +65,7 @@ export function useAvailableBatches() {
       return res.items;
     },
     staleTime: 5 * 60_000,
+    ...options,
   });
 }
 

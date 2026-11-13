@@ -16,7 +16,11 @@ import { isSafeHttpUrl } from '@/lib/url';
 import type { BatchStatus } from '@/lib/validation/batch.schemas';
 import type { Assignment } from '@/types/courses';
 import { SubmissionMode } from '@/types/courses';
-import type { SubmissionData, SubmissionVersion } from '@/types/submissions';
+import {
+  isAllocationBatchReadOnly,
+  type SubmissionData,
+  type SubmissionVersion,
+} from '@/types/submissions';
 
 interface AssignmentSubmissionFormProps {
   assignment: Assignment;
@@ -98,11 +102,7 @@ export function AssignmentSubmissionForm({
 
   const isPastDue = isDatePast(dueDate);
   const isLateBlocked = isPastDue && !assignment.allowLate;
-  const isReadOnlyBatch =
-    !isBatchActive ||
-    batchStatus === 'ON_HOLD' ||
-    batchStatus === 'COMPLETED' ||
-    batchStatus === 'ARCHIVED';
+  const isReadOnlyBatch = isAllocationBatchReadOnly(isBatchActive, batchStatus);
 
   const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
   const isResubmission = Boolean(latestVersion);
@@ -189,13 +189,7 @@ export function AssignmentSubmissionForm({
   };
 
   if (isReadOnlyBatch) {
-    return (
-      <Alert
-        variant="warning"
-        title="Submissions Closed"
-        message={`This assignment is part of a batch with status "${batchStatus}". Submissions are closed.`}
-      />
-    );
+    return null;
   }
 
   if (isLateBlocked) {
@@ -222,9 +216,9 @@ export function AssignmentSubmissionForm({
         </H3>
         <P className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Due Date:{' '}
-          <strong className="text-slate-700 dark:text-slate-300">
+          <Span className="font-bold text-slate-700 dark:text-slate-300">
             {formatDateTimeIST(dueDate)}
-          </strong>
+          </Span>
         </P>
       </div>
 
@@ -344,9 +338,9 @@ export function AssignmentSubmissionForm({
               htmlFor="confirmed_complete"
               className="cursor-pointer text-xs leading-relaxed font-medium text-slate-700 select-none dark:text-slate-300"
             >
-              <strong className="text-slate-900 dark:text-slate-100">
+              <Span className="font-bold text-slate-900 dark:text-slate-100">
                 I confirm that I have completed this assignment
-              </strong>{' '}
+              </Span>{' '}
               and that all submitted work and resources represent my own original effort.
             </Label>
           </div>

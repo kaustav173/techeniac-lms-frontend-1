@@ -39,10 +39,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${plusJakartaSans.variable} ${plusJakartaSans.className} light h-full font-sans antialiased`}
       style={{ colorScheme: 'light' }}
     >
       <body
+        suppressHydrationWarning
         className={`${plusJakartaSans.className} flex min-h-full flex-col bg-white font-sans text-slate-900`}
       >
         <QueryProvider>

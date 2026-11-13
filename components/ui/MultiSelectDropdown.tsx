@@ -419,6 +419,12 @@ export function MultiSelectDropdown<T extends string = string>({
             )}
           >
             {menuInner}
+            {isLoadingMore && (
+              <div className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500">
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
+                <Span>Loading more...</Span>
+              </div>
+            )}
           </div>
         )
       ) : null}

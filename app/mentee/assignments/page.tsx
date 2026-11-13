@@ -22,21 +22,16 @@ function MenteeAssignmentsContent() {
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [selectedStatus, setSelectedStatus] = useState<AssignmentDerivedStatus | undefined>(
-    undefined,
-  );
+  const [selectedStatuses, setSelectedStatuses] = useState<AssignmentDerivedStatus[]>([]);
+
+  const singleStatus = selectedStatuses.length === 1 ? selectedStatuses[0] : undefined;
 
   const { assignments, isLoading, isFetching, error, refetch } = useMyAssignments({
     page: 1,
     limit: 100,
-    status: selectedStatus,
+    status: singleStatus,
     courseId: activeCourseId,
   });
-
-  const handleStatusChange = (status?: AssignmentDerivedStatus) => {
-    setSelectedStatus(status);
-    setPage(1);
-  };
 
   if (!isAuthorized || !user) {
     return (
@@ -83,8 +78,11 @@ function MenteeAssignmentsContent() {
           onRetry={() => {
             void refetch();
           }}
-          selectedStatus={selectedStatus}
-          onStatusChange={handleStatusChange}
+          selectedStatuses={selectedStatuses}
+          onStatusesChange={(statuses) => {
+            setSelectedStatuses(statuses);
+            setPage(1);
+          }}
           pagination={{
             page,
             limit,

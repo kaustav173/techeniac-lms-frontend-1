@@ -148,7 +148,7 @@ function SubmissionReviewContent({
       {reviewDetails.instructions && (
         <div className="rounded-xl border border-slate-200/70 bg-white p-3 text-xs text-slate-600 shadow-2xs">
           <Span className="font-semibold text-slate-700">Instructions: </Span>
-          <span>{reviewDetails.instructions}</span>
+          <Span>{reviewDetails.instructions}</Span>
         </div>
       )}
 
@@ -183,7 +183,7 @@ function SubmissionReviewContent({
                       d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                     />
                   </svg>
-                  <span>Project Link</span>
+                  <Span>Project Link</Span>
                 </a>
               )}
               {reviewDetails.submissionData.pdfUrl && (
@@ -211,7 +211,7 @@ function SubmissionReviewContent({
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  <span>Document (PDF)</span>
+                  <Span>Document (PDF)</Span>
                 </a>
               )}
               {reviewDetails.submissionData.zipUrl && (
@@ -239,7 +239,7 @@ function SubmissionReviewContent({
                       d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
                     />
                   </svg>
-                  <span>Archive (ZIP)</span>
+                  <Span>Archive (ZIP)</Span>
                 </a>
               )}
             </>
@@ -334,38 +334,42 @@ function SubmissionReviewContent({
               }
             }}
           >
-            <button
+            <Button
               id={gradeTabId}
               role="tab"
               aria-selected={activeTab === 'grade'}
               aria-controls={gradePanelId}
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setActiveTab('grade')}
               className={cn(
                 'flex-1 cursor-pointer rounded-md py-1.5 text-xs font-semibold transition-all',
                 activeTab === 'grade'
-                  ? 'bg-white text-slate-900 shadow-xs'
+                  ? 'bg-white text-slate-900 shadow-xs hover:bg-white hover:text-slate-900'
                   : 'text-slate-500 hover:text-slate-800',
               )}
             >
               Grade
-            </button>
-            <button
+            </Button>
+            <Button
               id={resubmitTabId}
               role="tab"
               aria-selected={activeTab === 'resubmit'}
               aria-controls={resubmitPanelId}
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setActiveTab('resubmit')}
               className={cn(
                 'flex-1 cursor-pointer rounded-md py-1.5 text-xs font-semibold transition-all',
                 activeTab === 'resubmit'
-                  ? 'bg-white text-amber-900 shadow-xs'
+                  ? 'bg-white text-amber-900 shadow-xs hover:bg-white hover:text-amber-900'
                   : 'text-slate-500 hover:text-slate-800',
               )}
             >
               Request Resubmission
-            </button>
+            </Button>
           </div>
 
           {/* Grade Tab Panel */}

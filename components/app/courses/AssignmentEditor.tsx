@@ -321,9 +321,6 @@ export function AssignmentEditor({
               <Label className="block text-sm font-semibold tracking-wide text-slate-800">
                 Grading & Duration Calibration
               </Label>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Configure evaluation thresholds and expected completion time.
-              </P>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -413,9 +410,6 @@ export function AssignmentEditor({
                 <Span className="block text-sm font-semibold text-slate-900">
                   Late Submissions Allowed
                 </Span>
-                <Span className="mt-0.5 block text-xs text-slate-500">
-                  Allow cadets to turn in assignments after the scheduled allocation due date.
-                </Span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -466,9 +460,6 @@ export function AssignmentEditor({
               <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <Span className="block text-sm font-semibold text-slate-900">PDF Document</Span>
-                  <Span className="text-xs text-slate-500">
-                    Design reports, architectural writeups, and diagrams
-                  </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
@@ -494,9 +485,6 @@ export function AssignmentEditor({
               <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <Span className="block text-sm font-semibold text-slate-900">ZIP Archive</Span>
-                  <Span className="text-xs text-slate-500">
-                    Source code bundles, compressed repositories, binaries
-                  </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
                   {(['OFF', 'OPTIONAL', 'REQUIRED'] as SubmissionMode[]).map((mode) => (
@@ -523,9 +511,6 @@ export function AssignmentEditor({
                 <div>
                   <Span className="block text-sm font-semibold text-slate-900">
                     Repository / Demo URL
-                  </Span>
-                  <Span className="text-xs text-slate-500">
-                    GitHub / GitLab pull request link or deployed site
                   </Span>
                 </div>
                 <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-xs">
@@ -764,7 +749,7 @@ export function AssignmentEditor({
                   <Span className="text-xs leading-tight font-semibold text-blue-900">
                     &ldquo;I have completed this assignment&rdquo; confirmation
                     <Span className="mt-0.5 block text-xs font-normal text-blue-700">
-                      Mandatory for all cadets (cannot be turned off)
+                      Mandatory for all mentees (cannot be turned off)
                     </Span>
                   </Span>
                 </Label>

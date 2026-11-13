@@ -58,7 +58,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Invalid email or password. Please try again.';
-      setErrors({ general: message });
       toastError(message, 'Authentication Failed');
     } finally {
       setIsSubmitting(false);
@@ -72,12 +71,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
         void handleSubmit(e);
       }}
     >
-      {errors.general ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm font-medium text-red-700">
-          {errors.general}
-        </div>
-      ) : null}
-
       {/* Email Field with Mail Icon */}
       <div className="space-y-2">
         <Label

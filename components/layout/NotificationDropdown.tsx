@@ -95,6 +95,11 @@ const getServerSnapshot = () => false;
 
 export function NotificationDropdown() {
   const { notifications, unreadCount, clearAllNotifications, markAllAsRead } = useToastContext();
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const [isOpen, setIsOpen] = useState(false);
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const containerRef = useRef<HTMLDivElement | null>(null);

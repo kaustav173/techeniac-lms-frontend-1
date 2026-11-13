@@ -88,7 +88,7 @@ export function Modal({
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-100 p-6">
-          <div>
+          <div className="min-w-0 flex-1 pr-3">
             <Typography
               id={resolvedTitleId}
               as="h3"
@@ -110,7 +110,7 @@ export function Modal({
             onClick={onClose}
             disabled={isLocked}
             aria-label="Close dialog"
-            className="flex h-10 w-10 items-center justify-center rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
           >
             <svg
               className="h-4 w-4"

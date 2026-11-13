@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { FieldError } from '@/components/ui/FieldError';
 import { Form } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { P, Span } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
@@ -18,6 +18,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useCourseDetail } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/useToast';
+import { toISTDateInputValue } from '@/lib/date';
 
 export interface AssignmentOverridesModalProps {
   readonly allocation: CourseAllocation | null;
@@ -45,13 +46,25 @@ export function AssignmentOverridesModal({
   const setOverrideMutation = useSetAssignmentOverrideMutation();
   const { toastSuccess, toastError } = useToast();
 
-  if (!allocation) return null;
-
   // Flatten course-level and topic-level assignments
-  const allAssignments = [
-    ...(courseDetail?.assignments ?? []),
-    ...(courseDetail?.topics?.flatMap((t) => t.assignments ?? []) ?? []),
-  ];
+  const allAssignments = useMemo(
+    () => [
+      ...(courseDetail?.assignments ?? []),
+      ...(courseDetail?.topics?.flatMap((t) => t.assignments ?? []) ?? []),
+    ],
+    [courseDetail],
+  );
+
+  const assignmentOptions = useMemo(
+    () =>
+      allAssignments.map((assign) => ({
+        value: assign.id,
+        label: `${assign.title} (Max: ${assign.maxMarks} marks)`,
+      })),
+    [allAssignments],
+  );
+
+  if (!allocation) return null;
 
   const handleSaveOverride = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,27 +79,36 @@ export function AssignmentOverridesModal({
       setDateError('Please specify an override due date.');
       return;
     }
-    if (
-      allocation.startDate &&
-      new Date(overrideDueDate).getTime() < new Date(allocation.startDate).getTime()
-    ) {
+
+    const minDateIST = toISTDateInputValue(allocation.startDate);
+    const maxDateIST = toISTDateInputValue(allocation.dueDate);
+
+    if (minDateIST && overrideDueDate < minDateIST) {
       setDateError('Override due date cannot be earlier than allocation start date.');
       return;
     }
-    if (
-      allocation.dueDate &&
-      new Date(overrideDueDate).getTime() > new Date(allocation.dueDate).getTime()
-    ) {
+    if (maxDateIST && overrideDueDate > maxDateIST) {
       setDateError('Override due date cannot exceed overall course allocation due date.');
       return;
     }
 
     try {
+      const targetTime = new Date(`${overrideDueDate}T23:59:59+05:30`).getTime();
+      const dueTime = allocation.dueDate ? new Date(allocation.dueDate).getTime() : Infinity;
+      const startTime = allocation.startDate ? new Date(allocation.startDate).getTime() : -Infinity;
+
+      const isoDueDate =
+        targetTime > dueTime
+          ? allocation.dueDate
+          : targetTime < startTime
+            ? allocation.startDate
+            : new Date(targetTime).toISOString();
+
       await setOverrideMutation.mutateAsync({
         id: allocation.id,
         payload: {
           assignmentId: selectedAssignmentId,
-          dueDate: new Date(overrideDueDate).toISOString(),
+          dueDate: isoDueDate,
         },
       });
       toastSuccess('Assignment due date override saved.', 'Override Saved');
@@ -107,8 +129,7 @@ export function AssignmentOverridesModal({
       isOpen={isOpen}
       onClose={onClose}
       isSubmitting={setOverrideMutation.isPending}
-      title="Assignment Due-Date Overrides"
-      description={`Set custom deadlines for individual assignments for ${allocation.user?.name ?? 'mentee'}.`}
+      title="Due-Date Overrides"
       size="lg"
       footer={
         <Button type="button" variant="primary" onClick={onClose}>
@@ -126,10 +147,7 @@ export function AssignmentOverridesModal({
             {isLoadingOverrides ? (
               <P className="p-4 text-center text-xs text-slate-400">Loading overrides...</P>
             ) : !overrides || overrides.length === 0 ? (
-              <P className="p-4 text-center text-xs text-slate-400">
-                No custom assignment overrides set. All assignments default to allocation due date (
-                {new Date(allocation.dueDate).toLocaleDateString()}).
-              </P>
+              <P className="p-4 text-center text-xs text-slate-400">Not set yet</P>
             ) : (
               overrides.map((ov) => (
                 <div key={ov.id} className="flex items-center justify-between p-3">
@@ -170,36 +188,33 @@ export function AssignmentOverridesModal({
             <Label htmlFor="override-assignment-select" required>
               Assignment
             </Label>
-            <Select
+            <SingleSelectDropdown
               id="override-assignment-select"
               value={selectedAssignmentId}
-              onChange={(e) => setSelectedAssignmentId(e.target.value)}
-              className="w-full bg-white"
-            >
-              <option value="">-- Choose assignment --</option>
-              {allAssignments.map((assign) => (
-                <option key={assign.id} value={assign.id}>
-                  {assign.title} (Max: {assign.maxMarks} marks)
-                </option>
-              ))}
-            </Select>
+              onChange={setSelectedAssignmentId}
+              options={assignmentOptions}
+              placeholder="-- Choose assignment --"
+              className="w-full"
+              triggerClassName="w-full bg-white"
+            />
           </div>
 
           <div>
             <Label htmlFor="override-due-date" required>
-              New Due Date for Assignment
+              New Date
             </Label>
-            <Input
+            <DatePicker
               id="override-due-date"
-              type="date"
               value={overrideDueDate}
-              hasError={Boolean(dateError)}
-              errorId="override-due-date-error"
-              onChange={(e) => {
-                setOverrideDueDate(e.target.value);
+              onChange={(val) => {
+                setOverrideDueDate(val);
                 if (dateError) setDateError(null);
               }}
-              className="w-full bg-white"
+              hasError={Boolean(dateError)}
+              placeholder="Select due date"
+              className="w-full"
+              minDate={allocation.startDate ? toISTDateInputValue(allocation.startDate) : undefined}
+              maxDate={allocation.dueDate ? toISTDateInputValue(allocation.dueDate) : undefined}
             />
             <FieldError id="override-due-date-error" error={dateError} />
           </div>
@@ -213,7 +228,7 @@ export function AssignmentOverridesModal({
               isLoading={setOverrideMutation.isPending}
               disabled={setOverrideMutation.isPending}
             >
-              Apply Override
+              Apply
             </Button>
           </div>
         </Form>

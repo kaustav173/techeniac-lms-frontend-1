@@ -12,12 +12,7 @@ export function useAuthProvider(): AuthContextValue {
   const queryClient = useQueryClient();
   const { clearAllNotifications } = useToastContext();
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/reset-password')) {
-      return false;
-    }
-    return true;
-  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
 
   const refreshUser = useCallback(async () => {
@@ -42,14 +37,17 @@ export function useAuthProvider(): AuthContextValue {
   }, []);
 
   useEffect(() => {
-    // On password reset page, the user is intentionally unauthenticated and using an email token.
-    // Do not attempt session verification or token refresh.
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/reset-password')) {
-      return;
-    }
-
     let isMounted = true;
     void Promise.resolve().then(async () => {
+      // On password reset page, the user is intentionally unauthenticated and using an email token.
+      // Do not attempt session verification or token refresh.
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/reset-password')) {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
       if (isMounted) {
         await refreshUser();
       }

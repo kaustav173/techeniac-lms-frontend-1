@@ -6,7 +6,6 @@ import { MENTEE_PERFORMANCE_NAV } from '@/components/app/navigation/portal-nav.c
 import { LearningHistoryView } from '@/components/app/performance';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
-import { PageTitle, SubText } from '@/components/ui/Typography';
 import { useLearningHistoryQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
 
@@ -19,20 +18,11 @@ export default function MenteePerformancePage() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_PERFORMANCE_NAV} />
       <DashboardContent className="animate-slide-up space-y-6">
-        <div className="mb-6">
-          <PageTitle className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
-            My Grades & Performance
-          </PageTitle>
-          <SubText className="mt-1 text-[#667085]">
-            Track your curriculum completion, assignment scores, letter grades, and mentor feedback
-            (FR-11.4).
-          </SubText>
-        </div>
-
         <LearningHistoryView
           history={history}
           isLoading={isLoading}
           isMentorPastView={false}
+          hideSummary={true}
           isError={isError}
           error={error}
           onRetry={() => void refetch()}

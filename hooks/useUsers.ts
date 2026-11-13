@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
@@ -48,6 +54,8 @@ export const userKeys = {
   all: ['users'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
   list: (filters: UserQueryFilters) => [...userKeys.lists(), filters] as const,
+  infinites: () => [...userKeys.all, 'infinite'] as const,
+  infinite: (filters: Record<string, unknown>) => [...userKeys.infinites(), filters] as const,
 };
 
 export const DEFAULT_USERS_PAGE_SIZE = 10;
@@ -221,4 +229,48 @@ export function useUsers(
     toggleStatus,
     resendInvite,
   };
+}
+
+export function useInfiniteUsers(
+  filters: {
+    role: 'MENTEE' | 'MENTOR';
+    search?: string | undefined;
+    status?: string | undefined;
+    limit?: number | undefined;
+  },
+  options?: { enabled?: boolean },
+) {
+  const trimmedSearch = filters.search?.trim() || undefined;
+  const limit = filters.limit ?? 10;
+
+  return useInfiniteQuery({
+    queryKey: userKeys.infinite({
+      role: filters.role,
+      status: filters.status,
+      limit,
+      search: trimmedSearch,
+    }),
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await usersService.listUsers({
+        page: pageParam,
+        limit,
+        role: filters.role,
+        status: filters.status,
+        search: trimmedSearch,
+      });
+      const totalPages = Math.ceil(res.total / limit);
+      return {
+        users: res.users,
+        total: res.total,
+        page: pageParam,
+        totalPages,
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined;
+    },
+    staleTime: 2 * 60 * 1000,
+    ...options,
+  });
 }
