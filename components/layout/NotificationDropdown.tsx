@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { P, Span } from '@/components/ui/Typography';
@@ -89,11 +89,18 @@ const variantStyles: Record<ToastVariant, { badge: string; icon: React.ReactElem
   },
 };
 
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function NotificationDropdown() {
   const { notifications, unreadCount, clearAllNotifications, markAllAsRead } = useToastContext();
   const [isOpen, setIsOpen] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const effectiveUnreadCount = mounted ? unreadCount : 0;
 
   const closeDropdown = useCallback(() => {
     if (isOpen) {
@@ -158,7 +165,7 @@ export function NotificationDropdown() {
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
+        aria-label={`Notifications${effectiveUnreadCount > 0 ? `, ${effectiveUnreadCount} unread` : ''}`}
         className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E1E6EC] bg-white p-0 text-[#667085] shadow-2xs hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
       >
         <svg
@@ -177,9 +184,9 @@ export function NotificationDropdown() {
         </svg>
 
         {/* Unread Badge Count */}
-        {unreadCount > 0 ? (
+        {effectiveUnreadCount > 0 ? (
           <Span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0044D3] px-1 text-[10px] font-bold text-white shadow-xs">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {effectiveUnreadCount > 9 ? '9+' : effectiveUnreadCount}
           </Span>
         ) : null}
       </Button>
