@@ -282,31 +282,18 @@ export function LearningHistoryView({
 
       {/* 2. Batch Selector Filter Toolbar */}
       {batches.length > 1 ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-bold tracking-tight text-[#111827]">
-              Enrolled Batches
-            </span>
-            <span className="inline-flex h-5 items-center rounded-full bg-[#E1E6EC]/70 px-2 text-[11px] font-semibold text-[#475467]">
-              {batches.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-xs font-semibold text-[#667085] sm:inline">
-              Filter by Batch:
-            </span>
-            <div className="w-full sm:w-64">
-              <SingleSelectDropdown
-                label="Batch"
-                value={selectedBatchId}
-                onChange={setSelectedBatchId}
-                options={batchOptions}
-                placeholder="Batch"
-                aria-label="Filter learning history by batch"
-                triggerClassName="h-10 rounded-2xl border-[#E1E6EC] bg-white px-3 text-xs font-semibold shadow-2xs hover:border-slate-300"
-                menuClassName="w-full sm:min-w-[260px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
-              />
-            </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start">
+          <div className="w-full sm:w-[200px]">
+            <SingleSelectDropdown
+              label="Batch"
+              value={selectedBatchId}
+              onChange={setSelectedBatchId}
+              options={batchOptions}
+              placeholder="Batch"
+              aria-label="Filter learning history by batch"
+              triggerClassName="h-11 rounded-xl border-[#E1E6EC] bg-white px-3.5 text-sm font-semibold shadow-xs hover:border-slate-300"
+              menuClassName="w-full sm:min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+            />
           </div>
         </div>
       ) : null}
@@ -326,13 +313,13 @@ export function LearningHistoryView({
               onClick={() => toggleBatch(batch.batchId)}
               aria-expanded={!isCollapsed}
               aria-label={isCollapsed ? `Expand ${batch.batchName}` : `Collapse ${batch.batchName}`}
-              className={`flex w-full cursor-pointer flex-col gap-3 bg-[#F8FAFC] px-6 py-4 text-left transition-colors hover:bg-[#F1F5F9] sm:flex-row sm:items-center sm:justify-between ${
+              className={`flex w-full cursor-pointer flex-col gap-3.5 bg-[#F8FAFC] px-6 py-5 text-left transition-colors hover:bg-[#F1F5F9] sm:flex-row sm:items-center sm:justify-between ${
                 !isCollapsed ? 'border-b border-[#E1E6EC]' : ''
               }`}
             >
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#0044D3]">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex flex-wrap items-center gap-3.5">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#0044D3]">
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -341,11 +328,13 @@ export function LearningHistoryView({
                     />
                   </svg>
                 </div>
-                <span className="text-base font-bold text-[#111827]">{batch.batchName}</span>
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-white px-2.5 py-0.5 text-[11px] font-medium text-[#475467] shadow-2xs">
+                <span className="text-lg font-bold text-[#111827] sm:text-xl">
+                  {batch.batchName}
+                </span>
+                <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-white px-3 py-1 text-xs font-medium text-[#475467] shadow-2xs">
                     <svg
-                      className="h-3.5 w-3.5 text-[#98A2B3]"
+                      className="h-4 w-4 text-[#98A2B3]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -366,9 +355,9 @@ export function LearningHistoryView({
                   </span>
 
                   {batch.endDate ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 shadow-2xs">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 shadow-2xs">
                       <svg
-                        className="h-3.5 w-3.5 text-emerald-600"
+                        className="h-4 w-4 text-emerald-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -392,13 +381,15 @@ export function LearningHistoryView({
               </div>
 
               <div className="flex items-center gap-3">
-                <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${getStatusBadgeClass(
-                    batch.status,
-                  )}`}
-                >
-                  {batch.status.replace(/_/g, ' ')}
-                </span>
+                {batch.status && batch.status.toUpperCase() !== 'INDIVIDUAL' && (
+                  <span
+                    className={`inline-flex items-center rounded-full px-3.5 py-1 text-xs font-bold ${getStatusBadgeClass(
+                      batch.status,
+                    )}`}
+                  >
+                    {batch.status.replace(/_/g, ' ')}
+                  </span>
+                )}
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-lg border border-[#E1E6EC] bg-white text-[#667085] shadow-2xs transition-transform duration-200 ${
                     isCollapsed ? '-rotate-90' : 'rotate-0'
@@ -419,25 +410,24 @@ export function LearningHistoryView({
 
             {/* Allocations under this Batch */}
             {!isCollapsed ? (
-              <div className="flex flex-col gap-4 bg-[#F8FAFC]/40 p-6">
+              <div className="divide-y divide-[#E1E6EC] bg-white">
                 {batch.courseAllocations.map((alloc) => {
                   const isCourseCollapsed = Boolean(collapsedCourses[alloc.allocationId]);
 
                   return (
-                    <div
-                      key={alloc.allocationId}
-                      className="rounded-xl border border-[#E1E6EC] bg-white p-5 shadow-2xs"
-                    >
+                    <div key={alloc.allocationId} className="p-6 transition-colors sm:p-7">
                       {/* Course Header */}
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          <H3 className="text-sm font-bold text-[#111827]">{alloc.courseTitle}</H3>
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <H3 className="text-base font-bold text-[#111827] sm:text-lg">
+                            {alloc.courseTitle}
+                          </H3>
 
                           {/* Metadata Date Badges */}
                           <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-0.5 text-[11px] font-medium text-[#475467]">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-3 py-1 text-xs font-medium text-[#475467]">
                               <svg
-                                className="h-3.5 w-3.5 text-[#98A2B3]"
+                                className="h-4 w-4 text-[#98A2B3]"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -457,9 +447,9 @@ export function LearningHistoryView({
                               </span>
                             </span>
 
-                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-2.5 py-0.5 text-[11px] font-medium text-[#475467]">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#E1E6EC] bg-[#F8FAFC] px-3 py-1 text-xs font-medium text-[#475467]">
                               <svg
-                                className="h-3.5 w-3.5 text-[#98A2B3]"
+                                className="h-4 w-4 text-[#98A2B3]"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -480,9 +470,9 @@ export function LearningHistoryView({
                             </span>
 
                             {alloc.completedAt ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                                 <svg
-                                  className="h-3.5 w-3.5 text-emerald-600"
+                                  className="h-4 w-4 text-emerald-600"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -507,11 +497,11 @@ export function LearningHistoryView({
 
                         {/* Progress Indicator & Collapse Button */}
                         <div className="flex flex-shrink-0 items-center gap-3">
-                          <div className="flex items-center gap-3.5 rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] px-4 py-2 shadow-2xs">
-                            <span className="text-[11px] font-bold tracking-wider text-[#667085] uppercase">
+                          <div className="flex items-center gap-3.5 rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] px-4 py-2.5 shadow-2xs">
+                            <span className="text-xs font-bold tracking-wider text-[#667085] uppercase">
                               Progress
                             </span>
-                            <div className="h-2.5 w-36 overflow-hidden rounded-full bg-[#E1E6EC] sm:w-52 md:w-64 lg:w-72">
+                            <div className="h-3 w-40 overflow-hidden rounded-full bg-[#E1E6EC] sm:w-56 md:w-64">
                               <div
                                 className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
                                 style={{
@@ -519,7 +509,7 @@ export function LearningHistoryView({
                                 }}
                               />
                             </div>
-                            <span className="min-w-9 text-right text-xs font-extrabold text-[#111827]">
+                            <span className="min-w-10 text-right text-sm font-extrabold text-[#111827]">
                               {alloc.progressPercent}%
                             </span>
                           </div>
@@ -536,7 +526,7 @@ export function LearningHistoryView({
                             title={
                               isCourseCollapsed ? 'Expand submissions' : 'Collapse submissions'
                             }
-                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] text-[#667085] shadow-2xs transition-all hover:border-slate-300 hover:bg-white hover:text-[#111827]"
+                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-[#E1E6EC] bg-[#F8FAFC] text-[#667085] shadow-2xs transition-all hover:border-slate-300 hover:bg-white hover:text-[#111827]"
                           >
                             <svg
                               className={`h-4 w-4 transition-transform duration-200 ${
@@ -560,15 +550,15 @@ export function LearningHistoryView({
                       {/* Submissions Table for this Allocation */}
                       {!isCourseCollapsed ? (
                         alloc.assignments.length > 0 ? (
-                          <div className="mt-4 overflow-hidden rounded-xl border border-[#E1E6EC] bg-[#F8FAFC]/40">
-                            <table className="w-full text-left text-xs text-[#111827]">
-                              <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC] text-[11px] font-semibold tracking-wider text-[#667085] uppercase">
+                          <div className="mt-5 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
+                            <table className="w-full text-left text-sm text-[#111827]">
+                              <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC] text-xs font-bold tracking-wider text-[#667085] uppercase">
                                 <tr>
-                                  <th className="px-4 py-3">Assignment</th>
-                                  <th className="px-4 py-3">Submitted</th>
-                                  <th className="px-4 py-3 text-center">Version</th>
-                                  <th className="px-4 py-3 text-center">Score</th>
-                                  <th className="px-4 py-3">Mentor Feedback</th>
+                                  <th className="px-5 py-3.5">Assignment</th>
+                                  <th className="px-5 py-3.5">Submitted</th>
+                                  <th className="px-5 py-3.5 text-center">Version</th>
+                                  <th className="px-5 py-3.5 text-center">Score</th>
+                                  <th className="px-5 py-3.5">Mentor Feedback</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-[#E1E6EC]/60">
@@ -577,42 +567,44 @@ export function LearningHistoryView({
                                     key={`${assign.assignmentId}-v${assign.version}-${assignIdx}`}
                                     className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
                                   >
-                                    <td className="px-4 py-3">
+                                    <td className="px-5 py-4">
                                       <Span className="font-semibold text-[#111827]">
                                         {assign.assignmentTitle}
                                       </Span>
                                     </td>
-                                    <td className="px-4 py-3 text-xs text-[#667085]">
+                                    <td className="px-5 py-4 text-sm text-[#475467]">
                                       <div className="flex flex-col">
-                                        <Span>{formatDateIST(assign.submittedAt)}</Span>
+                                        <Span className="font-medium">
+                                          {formatDateIST(assign.submittedAt)}
+                                        </Span>
                                         {assign.isLate ? (
-                                          <Span className="text-[10px] font-semibold text-rose-600">
+                                          <Span className="text-xs font-bold text-rose-600">
                                             (Late Submission)
                                           </Span>
                                         ) : null}
                                       </div>
                                     </td>
-                                    <td className="px-4 py-3 text-center text-xs font-medium text-[#667085]">
+                                    <td className="px-5 py-4 text-center text-sm font-semibold text-[#667085]">
                                       v{assign.version}
                                     </td>
-                                    <td className="px-4 py-3 text-center text-xs font-bold text-[#111827]">
+                                    <td className="px-5 py-4 text-center text-sm font-bold text-[#111827]">
                                       {assign.marks !== null ? (
-                                        <Span>
+                                        <Span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-sm font-bold text-[#0044D3]">
                                           {assign.marks} / {assign.maxMarks}
                                         </Span>
                                       ) : (
-                                        <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                        <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
                                           Pending Review
                                         </Span>
                                       )}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-5 py-4">
                                       {assign.feedback ? (
-                                        <P className="text-xs whitespace-pre-wrap text-[#111827] italic">
+                                        <P className="text-sm leading-relaxed whitespace-pre-wrap text-[#111827] italic">
                                           &ldquo;{assign.feedback}&rdquo;
                                         </P>
                                       ) : (
-                                        <Span className="text-xs text-[#667085]">
+                                        <Span className="text-sm text-[#667085]">
                                           No feedback provided
                                         </Span>
                                       )}
@@ -623,8 +615,8 @@ export function LearningHistoryView({
                             </table>
                           </div>
                         ) : (
-                          <div className="mt-3 rounded-xl border border-dashed border-[#E1E6EC] bg-[#F8FAFC] p-4 text-center">
-                            <P className="text-xs text-[#667085]">
+                          <div className="mt-4 rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-6 text-center">
+                            <P className="text-sm text-[#667085]">
                               No assignments submitted for this course allocation yet.
                             </P>
                           </div>
