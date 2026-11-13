@@ -679,7 +679,7 @@ export function CourseOutlineTree({
   const [saveOrderSuccess, setSaveOrderSuccess] = useState(false);
   const [saveOrderError, setSaveOrderError] = useState<string | null>(null);
 
-  // Sync from props when course changes and order is clean (render-phase adjustment per React docs)
+  // Sync from props when course changes (reconciling added/deleted items even if order is dirty)
   const [prevCourse, setPrevCourse] = useState(course);
   if (prevCourse !== course) {
     setPrevCourse(course);
@@ -707,6 +707,89 @@ export function CourseOutlineTree({
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map((a, idx) => ({ ...a, displayOrder: idx })),
       );
+    } else {
+      // Reconcile when order is dirty: retain custom user order, but seamlessly integrate added/deleted items
+      const serverTopics = course.topics || [];
+      const serverTopicIds = new Set(serverTopics.map((t) => t.id));
+      const serverTopicMap = new Map(serverTopics.map((t) => [t.id, t]));
+
+      // 1. Keep existing topics in their custom order if they still exist on server, updating their subtopics/assignments
+      const reconciledTopics = topics
+        .filter((t) => serverTopicIds.has(t.id))
+        .map((localTopic) => {
+          const sTopic = serverTopicMap.get(localTopic.id)!;
+          const sSubtopics = sTopic.subtopics || [];
+          const sSubtopicIds = new Set(sSubtopics.map((s) => s.id));
+          const sSubtopicMap = new Map(sSubtopics.map((s) => [s.id, s]));
+
+          // Retain local subtopic order, remove deleted, append newly added
+          const existingSubtopics = (localTopic.subtopics || []).filter((s) =>
+            sSubtopicIds.has(s.id),
+          );
+          const existingSubIds = new Set(existingSubtopics.map((s) => s.id));
+          const addedSubtopics = sSubtopics.filter((s) => !existingSubIds.has(s.id));
+          const mergedSubtopics = [...existingSubtopics, ...addedSubtopics].map((s, idx) => ({
+            ...(sSubtopicMap.get(s.id) || s),
+            displayOrder: idx,
+          }));
+
+          // Retain local topic assignment order, remove deleted, append newly added
+          const sAssigns = sTopic.assignments || [];
+          const sAssignIds = new Set(sAssigns.map((a) => a.id));
+          const sAssignMap = new Map(sAssigns.map((a) => [a.id, a]));
+
+          const existingAssigns = (localTopic.assignments || []).filter((a) =>
+            sAssignIds.has(a.id),
+          );
+          const existingAssignIds = new Set(existingAssigns.map((a) => a.id));
+          const addedAssigns = sAssigns.filter((a) => !existingAssignIds.has(a.id));
+          const mergedAssigns = [...existingAssigns, ...addedAssigns].map((a, idx) => ({
+            ...(sAssignMap.get(a.id) || a),
+            displayOrder: idx,
+          }));
+
+          return {
+            ...sTopic,
+            displayOrder: localTopic.displayOrder,
+            subtopics: mergedSubtopics,
+            assignments: mergedAssigns,
+          };
+        });
+
+      // 2. Append any brand new topics that aren't in local state yet
+      const localTopicIds = new Set(topics.map((t) => t.id));
+      const newlyAddedTopics = serverTopics
+        .filter((t) => !localTopicIds.has(t.id))
+        .map((t, idx) => ({
+          ...t,
+          displayOrder: reconciledTopics.length + idx,
+          subtopics: t.subtopics || [],
+          assignments: t.assignments || [],
+        }));
+
+      setTopics([...reconciledTopics, ...newlyAddedTopics]);
+
+      // 3. Reconcile course-level assignments
+      const serverCourseAssigns = course.courseAssignments || course.assignments || [];
+      const serverCourseAssignIds = new Set(serverCourseAssigns.map((a) => a.id));
+      const serverCourseAssignMap = new Map(serverCourseAssigns.map((a) => [a.id, a]));
+
+      const existingCourseAssigns = courseAssignments.filter((a) =>
+        serverCourseAssignIds.has(a.id),
+      );
+      const existingCourseIds = new Set(existingCourseAssigns.map((a) => a.id));
+      const newlyAddedCourseAssigns = serverCourseAssigns.filter(
+        (a) => !existingCourseIds.has(a.id),
+      );
+
+      const mergedCourseAssigns = [...existingCourseAssigns, ...newlyAddedCourseAssigns].map(
+        (a, idx) => ({
+          ...(serverCourseAssignMap.get(a.id) || a),
+          displayOrder: idx,
+        }),
+      );
+
+      setCourseAssignments(mergedCourseAssigns);
     }
   }
 

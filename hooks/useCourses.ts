@@ -190,7 +190,19 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
 
   const createTopic = async (payload: CreateTopicInput): Promise<Topic> => {
     const created = await coursesService.createTopic(courseId, payload);
-    await reloadCourseOnly();
+    const newTopic: Topic = {
+      ...created,
+      subtopics: created.subtopics ?? [],
+      assignments: created.assignments ?? [],
+    };
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        topics: [...(prev.topics || []), newTopic],
+      };
+    });
+    void reloadCourseOnly();
     return created;
   };
 
@@ -208,7 +220,14 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
 
   const deleteTopic = async (id: string): Promise<void> => {
     await coursesService.deleteTopic(id);
-    await reloadCourseOnly();
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        topics: prev.topics?.filter((t) => t.id !== id),
+      };
+    });
+    void reloadCourseOnly();
   };
 
   const reorderTopics = async (items: ReorderItemInput[]): Promise<void> => {
@@ -237,7 +256,20 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
     payload: CreateSubtopicInput,
   ): Promise<Subtopic> => {
     const created = await coursesService.createSubtopic(topicId, payload);
-    await reloadCourseOnly();
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        topics: prev.topics?.map((t) => {
+          if (t.id !== topicId) return t;
+          return {
+            ...t,
+            subtopics: [...(t.subtopics || []), created],
+          };
+        }),
+      };
+    });
+    void reloadCourseOnly();
     return created;
   };
 
@@ -258,7 +290,17 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
 
   const deleteSubtopic = async (id: string): Promise<void> => {
     await coursesService.deleteSubtopic(id);
-    await reloadCourseOnly();
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        topics: prev.topics?.map((t) => ({
+          ...t,
+          subtopics: t.subtopics?.filter((s) => s.id !== id),
+        })),
+      };
+    });
+    void reloadCourseOnly();
   };
 
   const reorderSubtopics = async (topicId: string, items: ReorderItemInput[]): Promise<void> => {
@@ -288,7 +330,29 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
 
   const createAssignment = async (payload: CreateAssignmentInput): Promise<Assignment> => {
     const created = await coursesService.createAssignment(courseId, payload);
-    await reloadCourseOnly();
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      if (payload.topicId) {
+        return {
+          ...prev,
+          topics: prev.topics?.map((t) => {
+            if (t.id !== payload.topicId) return t;
+            return {
+              ...t,
+              assignments: [...(t.assignments || []), created],
+            };
+          }),
+        };
+      }
+      const currentCourseAssignments = prev.courseAssignments || prev.assignments || [];
+      const updated = [...currentCourseAssignments, created];
+      return {
+        ...prev,
+        assignments: updated,
+        courseAssignments: updated,
+      };
+    });
+    void reloadCourseOnly();
     return created;
   };
 
@@ -318,7 +382,23 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
 
   const deleteAssignment = async (id: string): Promise<void> => {
     await coursesService.deleteAssignment(id);
-    await reloadCourseOnly();
+    queryClient.setQueryData<Course | null>(['course', courseId], (prev) => {
+      if (!prev) return prev;
+      const updatedCourseAssignments = (prev.courseAssignments || prev.assignments)?.filter(
+        (a) => a.id !== id,
+      );
+      const updatedTopics = prev.topics?.map((t) => ({
+        ...t,
+        assignments: t.assignments?.filter((a) => a.id !== id),
+      }));
+      return {
+        ...prev,
+        assignments: updatedCourseAssignments,
+        courseAssignments: updatedCourseAssignments,
+        topics: updatedTopics,
+      };
+    });
+    void reloadCourseOnly();
   };
 
   const reorderAssignments = async (items: ReorderItemInput[], topicId?: string): Promise<void> => {

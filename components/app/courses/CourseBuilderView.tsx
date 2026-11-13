@@ -114,7 +114,16 @@ function CourseActiveEditor({
 
   if (selectedNode.type === 'TOPIC') {
     const topic = course.topics?.find((t) => t.id === selectedNode.id);
-    if (!topic) return null;
+    if (!topic) {
+      return (
+        <div className="flex h-full items-center justify-center bg-slate-50/50 p-8">
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <Span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            <Span>Loading topic details...</Span>
+          </div>
+        </div>
+      );
+    }
 
     const otherTopicsMinutes =
       course.topics
@@ -137,7 +146,16 @@ function CourseActiveEditor({
 
   if (selectedNode.type === 'SUBTOPIC') {
     const { subtopic, parentTopic } = findSubtopicAndParent(course.topics, selectedNode.id);
-    if (!subtopic) return null;
+    if (!subtopic) {
+      return (
+        <div className="flex h-full items-center justify-center bg-slate-50/50 p-8">
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <Span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            <Span>Loading subtopic details...</Span>
+          </div>
+        </div>
+      );
+    }
 
     const otherSubtopicsMinutes =
       parentTopic?.subtopics
@@ -162,7 +180,16 @@ function CourseActiveEditor({
 
   if (selectedNode.type === 'ASSIGNMENT') {
     const assignment = findAssignment(course, selectedNode.id);
-    if (!assignment) return null;
+    if (!assignment) {
+      return (
+        <div className="flex h-full items-center justify-center bg-slate-50/50 p-8">
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <Span className="h-4 w-4 animate-spin rounded-full border-2 border-purple-600 border-t-transparent" />
+            <Span>Loading assignment details...</Span>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <AssignmentEditor
