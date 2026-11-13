@@ -17,6 +17,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
@@ -173,14 +174,11 @@ export function BatchesTable() {
   const filterStatus = selectedStatuses.length > 0 ? selectedStatuses : undefined;
 
   // Sorting state across all entries in the whole table
-  type BatchSortField = 'name' | 'startDate' | 'status' | 'mentors' | 'mentees';
+  type BatchSortField = 'name' | 'startDate' | 'mentors' | 'mentees';
   const [sortField, setSortField] = useState<BatchSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const backendSortBy =
-    sortField === 'name' || sortField === 'startDate' || sortField === 'status'
-      ? sortField
-      : undefined;
+  const backendSortBy = sortField === 'name' || sortField === 'startDate' ? sortField : undefined;
 
   const {
     data: batchesResponse,
@@ -360,15 +358,7 @@ export function BatchesTable() {
                 tooltip="Sort all batches by Batch Name"
                 className="w-[44%] font-semibold text-slate-700"
               />
-              <SortableColumnHeader<BatchSortField>
-                field="status"
-                label="Status"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                tooltip="Sort all batches by Status"
-                className="w-[14%] font-semibold text-slate-700"
-              />
+              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
               <SortableColumnHeader<BatchSortField>
                 field="startDate"
                 label="Timeline"
