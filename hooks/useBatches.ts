@@ -68,10 +68,19 @@ export function useInfiniteBatches(
   pageSize: number = 10,
   search?: string,
   portalType?: 'mentor' | 'admin',
+  options?: { status?: string | string[] },
 ) {
   const trimmedSearch = search?.trim() || undefined;
+  const status = options?.status;
   return useInfiniteQuery({
-    queryKey: ['batches', 'infinite-dropdown', portalType ?? 'admin', pageSize, trimmedSearch],
+    queryKey: [
+      'batches',
+      'infinite-dropdown',
+      portalType ?? 'admin',
+      pageSize,
+      trimmedSearch,
+      status,
+    ],
     queryFn: async ({ pageParam = 1, signal }) => {
       if (portalType === 'mentor') {
         const items = await batchesService.listMentorBatches({
@@ -79,9 +88,16 @@ export function useInfiniteBatches(
           limit: pageSize,
           search: trimmedSearch,
         });
+        const filtered = status
+          ? items.filter((b) =>
+              Array.isArray(status)
+                ? status.includes(b.status)
+                : b.status === status || status.includes(b.status),
+            )
+          : items;
         const hasMore = items.length >= pageSize;
         return {
-          items,
+          items: filtered,
           pagination: {
             page: pageParam,
             limit: pageSize,
@@ -95,6 +111,7 @@ export function useInfiniteBatches(
           page: pageParam,
           limit: pageSize,
           search: trimmedSearch,
+          status,
         },
         { signal },
       );

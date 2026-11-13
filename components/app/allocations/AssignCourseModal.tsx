@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
@@ -10,20 +10,15 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { FieldError } from '@/components/ui/FieldError';
 import { CheckIcon } from '@/components/ui/Icons';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
 import {
   type AllocationTargetType,
   type CreateAllocationsResponse,
   useCreateAllocationsMutation,
 } from '@/hooks/useAllocations';
-import {
-  type ApiBatchSummary,
-  useBatchDetail,
-  useBatchesList,
-  useMentorBatches,
-} from '@/hooks/useBatches';
-import { useCourses } from '@/hooks/useCourses';
+import { type ApiBatchSummary, useBatchDetail, useInfiniteBatches } from '@/hooks/useBatches';
+import { useCourseDetail, useInfiniteCourses } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/useToast';
 import { useUsers } from '@/hooks/useUsers';
 import { toISTDateInputValue } from '@/lib/date';
@@ -32,6 +27,7 @@ export interface AssignCourseModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly initialCourseId?: string | undefined;
+  readonly initialBatchId?: string | undefined;
   readonly userRole?: 'SUPER_ADMIN' | 'MENTOR' | undefined;
   readonly onSuccess?: (() => void) | undefined;
 }
@@ -45,6 +41,7 @@ function AssignCourseModalDialog({
   isOpen,
   onClose,
   initialCourseId,
+  initialBatchId,
   userRole = 'MENTOR',
   onSuccess,
 }: AssignCourseModalProps) {
@@ -52,7 +49,7 @@ function AssignCourseModalDialog({
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(initialCourseId ? 2 : 1);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId ?? '');
   const [targetType, setTargetType] = useState<AllocationTargetType>('BATCH');
-  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
+  const [selectedBatchId, setSelectedBatchId] = useState<string>(initialBatchId ?? '');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
@@ -62,6 +59,12 @@ function AssignCourseModalDialog({
 
   const today = toISTDateInputValue(new Date());
 
+  const [prevBatchId, setPrevBatchId] = useState(initialBatchId);
+  if (prevBatchId !== initialBatchId) {
+    setPrevBatchId(initialBatchId);
+    setSelectedBatchId(initialBatchId ?? '');
+  }
+
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
       setStartDate((prev) => prev || today);
@@ -70,17 +73,27 @@ function AssignCourseModalDialog({
   }, [today]);
 
   // Queries
-  const { courses, isLoading: isLoadingCourses } = useCourses();
+  const [courseSearch, setCourseSearch] = useState('');
+  const {
+    data: coursesInfiniteData,
+    fetchNextPage: fetchNextCourses,
+    hasNextPage: hasNextCourses,
+    isFetching: isFetchingCourses,
+    isFetchingNextPage: isFetchingNextCourses,
+  } = useInfiniteCourses(10, courseSearch, { isActive: true });
+  const { data: courseDetail } = useCourseDetail(selectedCourseId);
+
   const isMentor = userRole === 'MENTOR';
-  const { data: adminBatchesData, isLoading: isLoadingAdminBatches } = useBatchesList(
-    { limit: 100 },
-    { enabled: !isMentor },
-  );
-  const { data: mentorBatchesData, isLoading: isLoadingMentorBatches } = useMentorBatches(
-    { limit: 100 },
-    { enabled: isMentor },
-  );
-  const isLoadingBatches = isMentor ? isLoadingMentorBatches : isLoadingAdminBatches;
+  const [batchSearch, setBatchSearch] = useState('');
+  const {
+    data: batchesInfiniteData,
+    fetchNextPage: fetchNextBatches,
+    hasNextPage: hasNextBatches,
+    isFetching: isFetchingBatches,
+    isFetchingNextPage: isFetchingNextBatches,
+  } = useInfiniteBatches(10, batchSearch, isMentor ? 'mentor' : 'admin', {
+    status: 'LIVE,DRAFT',
+  });
   const { data: batchDetailData } = useBatchDetail(selectedBatchId);
   const canTargetIndividualMentees = userRole === 'SUPER_ADMIN';
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
@@ -91,28 +104,100 @@ function AssignCourseModalDialog({
   const createMutation = useCreateAllocationsMutation();
   const { toastSuccess, toastError } = useToast();
 
-  const activeCourses = useMemo(() => {
-    return courses.filter((c) => c.isActive);
-  }, [courses]);
+  const infiniteCourses = useMemo(
+    () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
+    [coursesInfiniteData],
+  );
 
-  const batchesList = useMemo<ApiBatchSummary[]>(() => {
-    if (isMentor) {
-      return mentorBatchesData ?? [];
-    }
-    return adminBatchesData?.items ?? [];
-  }, [isMentor, mentorBatchesData, adminBatchesData]);
+  const infiniteBatches = useMemo<ApiBatchSummary[]>(() => {
+    return batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [];
+  }, [batchesInfiniteData]);
 
   const activeBatches = useMemo(() => {
-    return batchesList.filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
-  }, [batchesList]);
+    const list = infiniteBatches.filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
+    if (batchDetailData && !list.some((b) => b.id === batchDetailData.id)) {
+      list.unshift({
+        id: batchDetailData.id,
+        name: batchDetailData.name,
+        code: batchDetailData.code,
+        status: batchDetailData.status,
+      } as ApiBatchSummary);
+    }
+    return list;
+  }, [infiniteBatches, batchDetailData]);
 
   const selectedCourse = useMemo(() => {
-    return activeCourses.find((c) => c.id === selectedCourseId);
-  }, [activeCourses, selectedCourseId]);
+    if (!selectedCourseId) return null;
+    return infiniteCourses.find((c) => c.id === selectedCourseId) ?? courseDetail ?? null;
+  }, [infiniteCourses, selectedCourseId, courseDetail]);
+
+  const courseOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const c of infiniteCourses) {
+      optionsMap.set(c.id, {
+        value: c.id,
+        label: `${c.title} ${
+          c.estimatedMinutes
+            ? `(${Math.floor(c.estimatedMinutes / 60)}h ${c.estimatedMinutes % 60}m)`
+            : '(No duration estimate)'
+        }`,
+      });
+    }
+    if (selectedCourse && !optionsMap.has(selectedCourse.id)) {
+      optionsMap.set(selectedCourse.id, {
+        value: selectedCourse.id,
+        label: `${selectedCourse.title} ${
+          selectedCourse.estimatedMinutes
+            ? `(${Math.floor(selectedCourse.estimatedMinutes / 60)}h ${selectedCourse.estimatedMinutes % 60}m)`
+            : '(No duration estimate)'
+        }`,
+      });
+    }
+    return Array.from(optionsMap.values());
+  }, [infiniteCourses, selectedCourse]);
+
+  const handleCourseScrollEnd = useCallback(() => {
+    if (hasNextCourses && !isFetchingNextCourses) {
+      void fetchNextCourses();
+    }
+  }, [hasNextCourses, isFetchingNextCourses, fetchNextCourses]);
 
   const selectedBatch = useMemo(() => {
-    return batchesList.find((b) => b.id === selectedBatchId);
-  }, [batchesList, selectedBatchId]);
+    const found = infiniteBatches.find((b) => b.id === selectedBatchId);
+    if (found) return found;
+    if (batchDetailData && batchDetailData.id === selectedBatchId) {
+      return {
+        id: batchDetailData.id,
+        name: batchDetailData.name,
+        code: batchDetailData.code,
+        status: batchDetailData.status,
+      } as ApiBatchSummary;
+    }
+    return undefined;
+  }, [infiniteBatches, selectedBatchId, batchDetailData]);
+
+  const batchOptions: readonly MultiSelectOption[] = useMemo(() => {
+    const optionsMap = new Map<string, MultiSelectOption>();
+    for (const b of activeBatches) {
+      optionsMap.set(b.id, {
+        value: b.id,
+        label: `${b.name} (${b.code}) — ${b.status}`,
+      });
+    }
+    if (selectedBatch && !optionsMap.has(selectedBatch.id)) {
+      optionsMap.set(selectedBatch.id, {
+        value: selectedBatch.id,
+        label: `${selectedBatch.name} (${selectedBatch.code}) — ${selectedBatch.status}`,
+      });
+    }
+    return Array.from(optionsMap.values());
+  }, [activeBatches, selectedBatch]);
+
+  const handleBatchScrollEnd = useCallback(() => {
+    if (hasNextBatches && !isFetchingNextBatches) {
+      void fetchNextBatches();
+    }
+  }, [hasNextBatches, isFetchingNextBatches, fetchNextBatches]);
 
   // Update calculated due date preview if course has estimated minutes
   const estimatedDueDateText = useMemo(() => {
@@ -165,11 +250,13 @@ function AssignCourseModalDialog({
     setCurrentStep(initialCourseId ? 2 : 1);
     setSelectedCourseId(initialCourseId ?? '');
     setTargetType('BATCH');
-    setSelectedBatchId('');
+    setSelectedBatchId(initialBatchId ?? '');
     setSelectedMenteeIds([]);
     setDueDate('');
     setErrorMsg(null);
     setResult(null);
+    setCourseSearch('');
+    setBatchSearch('');
   };
 
   const handleNext = () => {
@@ -461,28 +548,30 @@ function AssignCourseModalDialog({
 
         {/* STEP 1: Select Course */}
         {currentStep === 1 ? (
-          <div className="space-y-4">
+          <div className="min-h-[280px] space-y-4">
             <div>
               <Label htmlFor="assign-course-select" required>
                 Select Active Course
               </Label>
-              <Select
+              <MultiSelectDropdown
                 id="assign-course-select"
-                value={selectedCourseId}
-                onChange={(e) => setSelectedCourseId(e.target.value)}
-                disabled={Boolean(initialCourseId) || isLoadingCourses}
-                className="w-full text-sm"
-              >
-                <option value="">-- Choose active curriculum --</option>
-                {activeCourses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title}{' '}
-                    {c.estimatedMinutes
-                      ? `(${Math.floor(c.estimatedMinutes / 60)}h ${c.estimatedMinutes % 60}m)`
-                      : '(No duration estimate)'}
-                  </option>
-                ))}
-              </Select>
+                label="Select active curriculum"
+                placeholder="-- Choose active curriculum --"
+                options={courseOptions}
+                selectedValues={selectedCourseId ? [selectedCourseId] : []}
+                onChange={(vals) => setSelectedCourseId(vals[0] ?? '')}
+                singleSelect={true}
+                align="left"
+                className="w-full"
+                onScrollEnd={handleCourseScrollEnd}
+                onSearch={setCourseSearch}
+                isSearching={
+                  isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
+                }
+                isLoadingMore={isFetchingNextCourses}
+                disabled={Boolean(initialCourseId)}
+                usePortal={true}
+              />
             </div>
 
             {selectedCourse ? (
@@ -517,6 +606,9 @@ function AssignCourseModalDialog({
                   variant="outline"
                   onClick={() => {
                     setTargetType('BATCH');
+                    if (initialBatchId) {
+                      setSelectedBatchId(initialBatchId);
+                    }
                     setSelectedMenteeIds([]);
                   }}
                   className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
@@ -536,6 +628,9 @@ function AssignCourseModalDialog({
                   variant="outline"
                   onClick={() => {
                     setTargetType('SELECTED_MENTEES');
+                    if (initialBatchId) {
+                      setSelectedBatchId(initialBatchId);
+                    }
                     setSelectedMenteeIds([]);
                   }}
                   className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
@@ -580,23 +675,35 @@ function AssignCourseModalDialog({
                 <Label htmlFor="assign-batch-select" required>
                   Select Target Batch
                 </Label>
-                <Select
+                <MultiSelectDropdown
                   id="assign-batch-select"
-                  value={selectedBatchId}
-                  onChange={(e) => {
-                    setSelectedBatchId(e.target.value);
-                    setSelectedMenteeIds([]);
+                  label="Select target batch"
+                  placeholder="-- Choose active or draft batch --"
+                  options={batchOptions}
+                  selectedValues={selectedBatchId ? [selectedBatchId] : []}
+                  onChange={(vals) => {
+                    if (!initialBatchId) {
+                      setSelectedBatchId(vals[0] ?? '');
+                      setSelectedMenteeIds([]);
+                    }
                   }}
-                  disabled={isLoadingBatches}
-                  className="w-full text-sm"
-                >
-                  <option value="">-- Choose active or draft batch --</option>
-                  {activeBatches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.code}) — {b.status}
-                    </option>
-                  ))}
-                </Select>
+                  singleSelect={true}
+                  align="left"
+                  className="w-full"
+                  onScrollEnd={handleBatchScrollEnd}
+                  onSearch={setBatchSearch}
+                  isSearching={
+                    isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())
+                  }
+                  isLoadingMore={isFetchingNextBatches}
+                  disabled={Boolean(initialBatchId)}
+                  usePortal={true}
+                />
+                {initialBatchId ? (
+                  <Span className="mt-1 block text-xs text-slate-500">
+                    Target batch is locked to the current batch.
+                  </Span>
+                ) : null}
               </div>
             ) : null}
 
