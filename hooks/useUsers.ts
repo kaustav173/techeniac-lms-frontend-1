@@ -1,6 +1,12 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { ChangeRoleFormData, CreateUserFormData, EditUserFormData } from '@/lib/validation';
@@ -221,4 +227,43 @@ export function useUsers(
     toggleStatus,
     resendInvite,
   };
+}
+
+export function useInfiniteUsers(
+  filters: {
+    role: 'MENTEE' | 'MENTOR';
+    search?: string | undefined;
+    status?: string | undefined;
+    limit?: number | undefined;
+  },
+  options?: { enabled?: boolean },
+) {
+  const trimmedSearch = filters.search?.trim() || undefined;
+  const limit = filters.limit ?? 10;
+
+  return useInfiniteQuery({
+    queryKey: ['users', 'infinite', filters.role, filters.status, limit, trimmedSearch],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await usersService.listUsers({
+        page: pageParam,
+        limit,
+        role: filters.role,
+        status: filters.status,
+        search: trimmedSearch,
+      });
+      const totalPages = Math.ceil(res.total / limit);
+      return {
+        users: res.users,
+        total: res.total,
+        page: pageParam,
+        totalPages,
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined;
+    },
+    staleTime: 2 * 60 * 1000,
+    ...options,
+  });
 }

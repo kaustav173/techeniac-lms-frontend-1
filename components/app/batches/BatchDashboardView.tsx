@@ -249,7 +249,9 @@ export function BatchDashboardView({
     refetch: refetchBatch,
   } = useBatchDetail(activeId);
   const { data: batchAllocationsData, refetch: refetchAllocations } = useBatchAllocations(activeId);
-  const { data: availableBatchesList } = useAvailableBatches();
+  const { data: availableBatchesList } = useAvailableBatches({
+    enabled: Boolean(menteeToTransfer),
+  });
   const removeMemberMutation = useRemoveBatchMemberMutation();
 
   const [memberToRemove, setMemberToRemove] = useState<{

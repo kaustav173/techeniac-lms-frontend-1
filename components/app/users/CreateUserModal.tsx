@@ -99,7 +99,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
             size="sm"
             onClick={handleResetAndClose}
             disabled={isSubmitting}
-            className="rounded-xl px-4 py-2 text-xs font-semibold"
+            className="rounded-full px-5 py-2 text-xs font-semibold"
           >
             Cancel
           </Button>
@@ -109,7 +109,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
             variant="primary"
             size="sm"
             isLoading={isSubmitting}
-            className="rounded-xl bg-[#0044D3] px-5 py-2 text-xs font-semibold text-white hover:bg-[#0039B3]"
+            className="rounded-full bg-[#0044D3] px-5 py-2 text-xs font-semibold text-white hover:bg-[#0039B3]"
           >
             Create User
           </Button>
