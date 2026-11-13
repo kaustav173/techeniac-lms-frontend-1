@@ -38,13 +38,14 @@ export function ImpactNoticeModal({
 }: Readonly<ImpactNoticeModalProps>) {
   const affectedCount = impact?.affectedMenteesCount ?? 0;
   const hasAllocations = (impact?.openAllocationsCount ?? 0) > 0;
+  const isDeleteAction = isDestructive && actionTitle.toLowerCase().includes('delete');
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onCancel}
       title={
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
               isDestructive
@@ -84,9 +85,11 @@ export function ImpactNoticeModal({
               </svg>
             )}
           </div>
-          <span className="block text-base leading-snug font-bold text-slate-900">
-            {actionTitle}
-          </span>
+          <div className="min-w-0 flex-1">
+            <span className="block text-base leading-snug font-bold [overflow-wrap:anywhere] break-words text-slate-900">
+              {actionTitle}
+            </span>
+          </div>
         </div>
       }
       size="sm"
@@ -111,7 +114,7 @@ export function ImpactNoticeModal({
       }
     >
       <div className="space-y-3">
-        {/* Soft Deletion Policy Card */}
+        {/* Soft Deletion / Policy Notice Card */}
         {!isBlocked && (
           <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-xs text-slate-600">
             <div className="flex items-start gap-2.5">
@@ -129,12 +132,12 @@ export function ImpactNoticeModal({
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <div className="leading-relaxed">
+              <div className="min-w-0 flex-1 leading-relaxed [overflow-wrap:anywhere] break-words">
                 <span className="font-semibold text-slate-800">
-                  {isDestructive ? 'Soft Deletion Policy: ' : 'Status Update: '}
+                  {isDeleteAction ? 'Soft Deletion Policy: ' : 'Policy Notice: '}
                 </span>
                 {actionMessage ||
-                  (isDestructive
+                  (isDeleteAction
                     ? 'This item will be soft-deleted. Historical learner submissions, activity logs, and grading records are permanently retained.'
                     : 'Updating this course status takes effect immediately across all linked catalogs.')}
               </div>
