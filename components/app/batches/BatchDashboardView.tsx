@@ -322,7 +322,7 @@ export function BatchDashboardView({
       let allocationType: AllocationScopeType = 'WHOLE_BATCH';
       if (val.count === 1 && totalBatchMentees !== 1) {
         allocationType = 'SINGLE_MENTEE';
-      } else if (totalBatchMentees > 0 && val.count >= totalBatchMentees) {
+      } else if (totalBatchMentees > 0 && val.count === totalBatchMentees) {
         allocationType = 'WHOLE_BATCH';
       } else if (val.count > 1 && totalBatchMentees > 0 && val.count < totalBatchMentees) {
         allocationType = 'SELECTED_MENTEES';
@@ -923,7 +923,7 @@ export function BatchDashboardView({
                               Whole Batch
                             </Span>
                             <Span className="block text-[11px] font-normal text-slate-500">
-                              All {c.allocatedCount} mentees
+                              All {c.allocatedCount} {c.allocatedCount === 1 ? 'mentee' : 'mentees'}
                             </Span>
                           </div>
                         ) : c.allocationType === 'SELECTED_MENTEES' ? (
@@ -946,7 +946,9 @@ export function BatchDashboardView({
                               Selected Mentees
                             </Span>
                             <Span className="block text-[11px] font-normal text-slate-500">
-                              {c.allocatedCount} of {c.totalBatchMentees} mentees
+                              {c.totalBatchMentees > 0 && c.allocatedCount <= c.totalBatchMentees
+                                ? `${c.allocatedCount} of ${c.totalBatchMentees} mentees`
+                                : `${c.allocatedCount} ${c.allocatedCount === 1 ? 'mentee' : 'mentees'}`}
                             </Span>
                           </div>
                         ) : (
