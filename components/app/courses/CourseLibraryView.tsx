@@ -46,6 +46,9 @@ const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'inactive', label: 'Inactive' },
 ];
 
+const MAX_COURSE_TITLE_LENGTH = 100;
+const MIN_COURSE_TITLE_LENGTH = 3;
+
 export function CourseTableSkeletonRows({ count = 10 }: { count?: number }) {
   const widths = ['w-56', 'w-72', 'w-48', 'w-64', 'w-60', 'w-52', 'w-80', 'w-44', 'w-68', 'w-50'];
   return (
@@ -282,12 +285,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       setCreateError('Course title cannot be empty.');
       return;
     }
-    if (trimmedTitle.length < 3) {
-      setCreateError('Course title must be at least 3 characters.');
+    if (trimmedTitle.length < MIN_COURSE_TITLE_LENGTH) {
+      setCreateError(`Course title must be at least ${MIN_COURSE_TITLE_LENGTH} characters.`);
       return;
     }
-    if (trimmedTitle.length > 150) {
-      setCreateError('Course title cannot exceed 150 characters.');
+    if (trimmedTitle.length > MAX_COURSE_TITLE_LENGTH) {
+      setCreateError(`Course title cannot exceed ${MAX_COURSE_TITLE_LENGTH} characters.`);
+      return;
+    }
+    if (newDescription.trim().length > 100) {
+      setCreateError('Description cannot exceed 100 characters.');
       return;
     }
 
@@ -581,7 +588,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                                   href={`/${portal}/courses/${c.id}/builder`}
                                   prefetch={true}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="truncate text-sm font-bold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                  className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
                                   title={c.title}
                                 >
                                   {c.title}
@@ -590,13 +597,13 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                             </TableCell>
 
                             <TableCell className="text-center">
-                              <Span className="text-sm font-semibold text-slate-900">
+                              <Span className="text-base font-semibold text-slate-900">
                                 {topicCount}
                               </Span>
                             </TableCell>
 
                             <TableCell className="text-center">
-                              <Span className="text-sm font-semibold text-slate-900">
+                              <Span className="text-base font-semibold text-slate-900">
                                 {assignmentCount}
                               </Span>
                             </TableCell>
@@ -835,7 +842,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create New Course"
-        description="Initialize a new course. You will be redirected to the Course Builder to add topics and assignments."
         size="md"
         footer={
           <>
@@ -854,7 +860,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               disabled={isSubmittingCreate}
               isLoading={isSubmittingCreate}
             >
-              Create & Open Builder
+              Create
             </Button>
           </>
         }
@@ -875,33 +881,45 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
           className="space-y-4"
         >
           <div>
-            <Label
-              required={true}
-              className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
-            >
-              Course Title
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label
+                required={true}
+                className="block text-xs font-bold tracking-wide text-slate-700 uppercase"
+              >
+                Title
+              </Label>
+              <Span className="text-[10px] font-medium text-slate-400">
+                {newTitle.length}/{MAX_COURSE_TITLE_LENGTH}
+              </Span>
+            </div>
             <Input
               type="text"
+              maxLength={MAX_COURSE_TITLE_LENGTH}
               value={newTitle}
               hasError={Boolean(createError)}
               onChange={(e) => {
-                setNewTitle(e.target.value);
+                setNewTitle(e.target.value.slice(0, MAX_COURSE_TITLE_LENGTH));
                 if (createError) setCreateError(null);
               }}
-              placeholder="e.g. Git & GitHub Mastery"
+              placeholder="e.g. Distributed Systems Engineering"
               className="mt-1.5 h-10 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
           </div>
 
           <div>
-            <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
-              Description
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-xs font-bold tracking-wide text-slate-700 uppercase">
+                Description
+              </Label>
+              <Span className="text-[10px] font-medium text-slate-400">
+                {newDescription.length}/100
+              </Span>
+            </div>
             <textarea
               rows={3}
+              maxLength={100}
               value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
+              onChange={(e) => setNewDescription(e.target.value.slice(0, 100))}
               placeholder="Core objectives and competency goals..."
               className="mt-1.5 w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
             />
@@ -957,20 +975,21 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               role="switch"
               aria-checked={newIsActive}
               aria-label="Course active status"
               onClick={() => setNewIsActive(!newIsActive)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out hover:opacity-90 focus:outline-hidden ${
-                newIsActive
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'bg-slate-300 hover:bg-slate-400'
-              }`}
+              className={cn(
+                'relative !inline-flex !h-6 !w-11 shrink-0 cursor-pointer items-center !rounded-full !border-2 !border-transparent !p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500',
+                newIsActive ? '!bg-emerald-600' : '!bg-slate-300',
+              )}
             >
               <Span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                  newIsActive ? 'translate-x-5' : 'translate-x-0'
-                }`}
+                className={cn(
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
+                  newIsActive ? 'translate-x-5' : 'translate-x-0',
+                )}
               />
             </Button>
           </div>

@@ -285,8 +285,9 @@ export function SubtopicEditor({
             Impact Notice
           </div>
           <P className="mt-1 text-xs leading-relaxed text-amber-800">
-            This subtopic lesson is active for <strong>{affectedMentees} mentees</strong>. Content
-            saves update live immediately.
+            This subtopic lesson is active for{' '}
+            <Span className="font-bold">{affectedMentees} mentees</Span>. Content saves update live
+            immediately.
           </P>
         </div>
       )}
@@ -457,9 +458,9 @@ export function SubtopicEditor({
               </svg>
               <Span>
                 Available topic budget:{' '}
-                <strong>
+                <Span className="font-bold">
                   {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
-                </strong>{' '}
+                </Span>{' '}
                 (Topic &quot;{parentTopicTitle || 'Topic'}&quot; total:{' '}
                 {Math.floor(parentTopicEstimatedMinutes! / 60)}h {parentTopicEstimatedMinutes! % 60}
                 m, other subtopics: {Math.floor((otherSubtopicsMinutes || 0) / 60)}h{' '}
@@ -483,9 +484,9 @@ export function SubtopicEditor({
               </svg>
               <Span>
                 Course duration limit:{' '}
-                <strong>
+                <Span className="font-bold">
                   {Math.floor(courseEstimatedMinutes / 60)}h {courseEstimatedMinutes % 60}m total
-                </strong>
+                </Span>
               </Span>
             </div>
           ) : null}

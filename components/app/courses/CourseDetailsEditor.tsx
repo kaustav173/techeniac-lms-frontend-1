@@ -65,6 +65,10 @@ export function CourseDetailsEditor({
       setErrorMsg('Course title cannot be empty.');
       return;
     }
+    if (title.trim().length > 100) {
+      setErrorMsg('Course title cannot exceed 100 characters.');
+      return;
+    }
 
     const parsedHours = durationHours !== '' ? Number.parseInt(durationHours, 10) : 0;
     const parsedMins = durationMinutes !== '' ? Number.parseInt(durationMinutes, 10) : 0;
@@ -166,9 +170,9 @@ export function CourseDetailsEditor({
             <Span>Live Impact Notice</Span>
           </div>
           <P className="mt-1 leading-relaxed text-amber-800">
-            This course is allocated to <strong>{affectedMentees} active mentees</strong>. Changes
-            saved here take effect live immediately across all enrolled dashboards with an audit log
-            record.
+            This course is allocated to{' '}
+            <Span className="font-bold">{affectedMentees} active mentees</Span>. Changes saved here
+            take effect live immediately across all enrolled dashboards with an audit log record.
           </P>
         </div>
       )}
@@ -228,9 +232,10 @@ export function CourseDetailsEditor({
             </Label>
             <Input
               type="text"
+              maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
+              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Distributed Systems Engineering"
               className="mt-1 h-9.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 focus:border-[#0044D3] focus:outline-hidden"
             />

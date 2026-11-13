@@ -24,7 +24,7 @@ import React, { useEffect, useState } from 'react';
 import { ActiveNodeSelection } from '@/components/app/courses/types';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { H2, Span } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Assignment, Course, Subtopic, Topic } from '@/types/courses';
 
@@ -937,9 +937,9 @@ export function CourseOutlineTree({
                 >
                   <div className="space-y-2">
                     {topics.length === 0 ? (
-                      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
+                      <P className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center text-xs text-slate-500">
                         No topics created yet. Click + Topic above to add your first topic.
-                      </div>
+                      </P>
                     ) : (
                       topics.map((topic) => {
                         const isCollapsed = collapsedTopics[topic.id] ?? false;
@@ -1158,12 +1158,10 @@ export function CourseOutlineTree({
           </div>
 
           {/* 4. Course-Level Assignments Section (At bottom) */}
-          <div className="mt-3.5 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="mt-4">
+            <div className="flex items-center justify-between pb-2">
               <div className="flex items-center gap-2">
-                <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
-                  Course-Level Assignments
-                </Span>
+                <Span className="text-sm font-bold tracking-tight text-slate-900">Assignments</Span>
                 <Span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-bold text-purple-700">
                   {courseAssignments.length}
                 </Span>
@@ -1201,9 +1199,9 @@ export function CourseOutlineTree({
               >
                 <div className="space-y-1.5">
                   {courseAssignments.length === 0 ? (
-                    <div className="py-2 text-center text-xs text-slate-400">
+                    <P className="py-2 text-center text-xs text-slate-400">
                       No course assignments created yet
-                    </div>
+                    </P>
                   ) : (
                     courseAssignments.map((assignment) => {
                       const isSelected =

@@ -23,6 +23,7 @@ import {
 } from '@/components/app/dashboard/MenteeDashboardGraphics';
 import { MENTEE_PORTAL_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
+import { LearningHistoryView } from '@/components/app/performance';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
@@ -35,6 +36,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useMenteeBatch } from '@/hooks/useBatches';
 import { useMenteeDashboard } from '@/hooks/useDashboard';
+import { useLearningHistoryQuery } from '@/hooks/usePerformance';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import { formatDateIST, formatDateTime, formatTimeIST, toISTDateInputValue } from '@/lib/date';
@@ -75,6 +77,7 @@ export default function MenteePage() {
   } = useMenteeDashboard({
     enabled: isAuthorized,
   });
+  const { data: learningHistory, isLoading: isLoadingLearningHistory } = useLearningHistoryQuery();
   const { assignments } = useMyAssignments({ limit: 5 });
 
   const allocations = useMemo<readonly CourseAllocation[]>(
@@ -311,6 +314,13 @@ export default function MenteePage() {
             </div>
           </div>
         </div>
+
+        {/* Overall Curriculum & Performance Summary Cards */}
+        <LearningHistoryView
+          history={learningHistory}
+          isLoading={isLoadingLearningHistory}
+          summaryOnly={true}
+        />
 
         {/* ================================================================ */}
         {/* ROW 2: Your Learning Progress (7 cols) + Upcoming (5 cols)        */}

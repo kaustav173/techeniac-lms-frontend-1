@@ -111,7 +111,9 @@ export interface AllocationFilters {
   readonly page?: number | undefined;
   readonly limit?: number | undefined;
   readonly courseId?: string | undefined;
+  readonly courseIds?: readonly string[] | undefined;
   readonly batchId?: string | undefined;
+  readonly batchIds?: readonly string[] | undefined;
   readonly menteeId?: string | undefined;
   readonly status?: CourseAllocationStatus | 'OVERDUE' | undefined;
   readonly statuses?: readonly (CourseAllocationStatus | 'OVERDUE')[] | undefined;
@@ -126,6 +128,7 @@ export interface AllocationFilters {
     | 'started'
     | 'due'
     | 'progress'
+    | 'duration'
     | 'status'
     | 'createdAt'
     | undefined;
@@ -209,7 +212,13 @@ export const allocationsService = {
     if (filters.page !== undefined) params.page = filters.page;
     if (filters.limit !== undefined) params.limit = filters.limit;
     if (filters.courseId) params.courseId = filters.courseId;
+    if (filters.courseIds && filters.courseIds.length > 0) {
+      params.courseIds = filters.courseIds.join(',');
+    }
     if (filters.batchId) params.batchId = filters.batchId;
+    if (filters.batchIds && filters.batchIds.length > 0) {
+      params.batchIds = filters.batchIds.join(',');
+    }
     if (filters.menteeId) params.menteeId = filters.menteeId;
     if (filters.status) params.status = filters.status;
     if (filters.statuses && filters.statuses.length > 0) {

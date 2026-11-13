@@ -1,33 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import React from 'react';
-
-import { MENTOR_MY_PERFORMANCE_NAV } from '@/components/app/navigation/portal-nav.config';
-import { LearningHistoryView } from '@/components/app/performance';
-import { DashboardContent } from '@/components/layout/DashboardContent';
-import { Header } from '@/components/layout/Header';
-import { useLearningHistoryQuery } from '@/hooks/usePerformance';
-import { useRoleGuard } from '@/hooks/useRoleGuard';
-
-export default function MentorMyPerformancePage() {
-  useRoleGuard('MENTOR');
-
-  const { data: history, isLoading, isError, error, refetch } = useLearningHistoryQuery();
-
-  return (
-    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
-      <Header {...MENTOR_MY_PERFORMANCE_NAV} title="My Performance" />
-      <DashboardContent>
-        <LearningHistoryView
-          history={history}
-          isLoading={isLoading}
-          isMentorPastView={true}
-          hideSummary={true}
-          isError={isError}
-          error={error}
-          onRetry={() => void refetch()}
-        />
-      </DashboardContent>
-    </div>
-  );
+export default function MentorMyPerformanceRedirectPage() {
+  redirect('/mentor/history');
 }

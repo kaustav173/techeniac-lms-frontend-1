@@ -288,8 +288,8 @@ export function TopicEditor({
           </div>
           <P className="mt-1 text-xs leading-relaxed text-amber-800">
             Editing or deactivating this topic affects{' '}
-            <strong>{affectedMentees} active mentees</strong>. Adding, deactivating, or reactivating
-            triggers an automatic progress recalculation event.
+            <Span className="font-bold">{affectedMentees} active mentees</Span>. Adding,
+            deactivating, or reactivating triggers an automatic progress recalculation event.
           </P>
         </div>
       )}
@@ -418,9 +418,9 @@ export function TopicEditor({
               </svg>
               <Span>
                 Available course budget:{' '}
-                <strong>
+                <Span className="font-bold">
                   {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
-                </strong>{' '}
+                </Span>{' '}
                 (Course total: {Math.floor(courseEstimatedMinutes! / 60)}h{' '}
                 {courseEstimatedMinutes! % 60}m, other topics:{' '}
                 {Math.floor((otherTopicsMinutes || 0) / 60)}h {(otherTopicsMinutes || 0) % 60}m)
@@ -445,9 +445,9 @@ export function TopicEditor({
               </svg>
               <Span>
                 Currently allocated across subtopics:{' '}
-                <strong>
+                <Span className="font-bold">
                   {Math.floor(subtopicsTotalMinutes / 60)}h {subtopicsTotalMinutes % 60}m
-                </strong>
+                </Span>
                 . Topic duration cannot be lower than this total.
               </Span>
             </div>

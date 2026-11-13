@@ -402,7 +402,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-1 flex-wrap items-center gap-3">
               {/* 1. Search mentee, course, batch */}
-              <div className="min-w-[240px] flex-1">
+              <div className="w-full sm:w-[375px]">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
@@ -446,8 +446,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 />
               </div>
 
-              {/* 4. Course Status Filter (Multi-select dropdown) */}
-              <div className="w-full sm:w-[165px]">
+              {/* 4. Course Status Filter (Multi-select dropdown: button 173px, listbox 172px) */}
+              <div className="w-full sm:w-[173px]">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -456,6 +456,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   singleSelect={false}
                   align="right"
                   className="w-full"
+                  menuClassName="sm:min-w-[172px] sm:w-[172px]"
                 />
               </div>
             </div>
