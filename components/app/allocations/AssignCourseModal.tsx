@@ -81,7 +81,15 @@ function AssignCourseModalDialog({
     isFetching: isFetchingCourses,
     isFetchingNextPage: isFetchingNextCourses,
   } = useInfiniteCourses(10, courseSearch, { isActive: true });
-  const { data: courseDetail } = useCourseDetail(selectedCourseId);
+
+  const infiniteCourses = useMemo(
+    () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
+    [coursesInfiniteData],
+  );
+
+  const { data: courseDetail } = useCourseDetail(selectedCourseId, {
+    enabled: Boolean(selectedCourseId) && !infiniteCourses.some((c) => c.id === selectedCourseId),
+  });
 
   const isMentor = userRole === 'MENTOR';
   const [batchSearch, setBatchSearch] = useState('');
@@ -94,7 +102,16 @@ function AssignCourseModalDialog({
   } = useInfiniteBatches(10, batchSearch, isMentor ? 'mentor' : 'admin', {
     status: 'LIVE,DRAFT',
   });
-  const { data: batchDetailData } = useBatchDetail(selectedBatchId);
+
+  const infiniteBatches = useMemo<ApiBatchSummary[]>(() => {
+    return batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [];
+  }, [batchesInfiniteData]);
+
+  const { data: batchDetailData } = useBatchDetail(selectedBatchId, undefined, {
+    enabled:
+      Boolean(selectedBatchId) &&
+      (targetType === 'SELECTED_MENTEES' || !infiniteBatches.some((b) => b.id === selectedBatchId)),
+  });
   const canTargetIndividualMentees = userRole === 'SUPER_ADMIN';
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
     targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
@@ -103,15 +120,6 @@ function AssignCourseModalDialog({
 
   const createMutation = useCreateAllocationsMutation();
   const { toastSuccess, toastError } = useToast();
-
-  const infiniteCourses = useMemo(
-    () => coursesInfiniteData?.pages.flatMap((p) => p.courses) ?? [],
-    [coursesInfiniteData],
-  );
-
-  const infiniteBatches = useMemo<ApiBatchSummary[]>(() => {
-    return batchesInfiniteData?.pages.flatMap((p) => p.items) ?? [];
-  }, [batchesInfiniteData]);
 
   const activeBatches = useMemo(() => {
     const list = infiniteBatches.filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
@@ -565,9 +573,7 @@ function AssignCourseModalDialog({
                 className="w-full"
                 onScrollEnd={handleCourseScrollEnd}
                 onSearch={setCourseSearch}
-                isSearching={
-                  isFetchingCourses && !isFetchingNextCourses && Boolean(courseSearch.trim())
-                }
+                isSearching={isFetchingCourses && !isFetchingNextCourses}
                 isLoadingMore={isFetchingNextCourses}
                 disabled={Boolean(initialCourseId)}
                 usePortal={true}
@@ -692,9 +698,7 @@ function AssignCourseModalDialog({
                   className="w-full"
                   onScrollEnd={handleBatchScrollEnd}
                   onSearch={setBatchSearch}
-                  isSearching={
-                    isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())
-                  }
+                  isSearching={isFetchingBatches && !isFetchingNextBatches}
                   isLoadingMore={isFetchingNextBatches}
                   disabled={Boolean(initialBatchId)}
                   usePortal={true}

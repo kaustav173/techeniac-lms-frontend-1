@@ -108,11 +108,11 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   };
 }
 
-export function useCourseDetail(courseId: string) {
+export function useCourseDetail(courseId: string, options?: { enabled?: boolean }) {
   return useQuery<Course | null>({
     queryKey: ['course', courseId],
     queryFn: () => coursesService.getCourseById(courseId, true),
-    enabled: Boolean(courseId),
+    enabled: Boolean(courseId) && (options?.enabled ?? true),
     staleTime: 5 * 60 * 1000,
   });
 }

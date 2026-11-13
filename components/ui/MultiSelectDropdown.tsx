@@ -1,19 +1,13 @@
 'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { useFloatingMenuPosition } from '@/lib/useFloatingMenuPosition';
 
 export interface MultiSelectOption<T extends string = string> {
   readonly value: T;
@@ -71,50 +65,14 @@ export function MultiSelectDropdown<T extends string = string>({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const lastScrollTopRef = useRef<number>(0);
 
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-
-  const [menuCoords, setMenuCoords] = useState<{
-    top: number;
-    left: number;
-    width: number;
-    openUpwards: boolean;
-  } | null>(null);
-
-  const updateMenuPosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const openUpwards = direction === 'up' || (spaceBelow < 260 && spaceAbove > spaceBelow);
-
-    setMenuCoords({
-      top: openUpwards ? rect.top - 6 : rect.bottom + 6,
-      left: align === 'right' ? rect.right : rect.left,
-      width: rect.width,
-      openUpwards,
-    });
-  }, [align, direction]);
-
-  useEffect(() => {
-    if (!isOpen || !usePortal) return;
-    updateMenuPosition();
-
-    const handleScrollOrResize = () => {
-      updateMenuPosition();
-    };
-
-    window.addEventListener('resize', handleScrollOrResize);
-    window.addEventListener('scroll', handleScrollOrResize, true);
-
-    return () => {
-      window.removeEventListener('resize', handleScrollOrResize);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-    };
-  }, [isOpen, usePortal, updateMenuPosition]);
+  const { mounted, menuCoords, updateMenuPosition } = useFloatingMenuPosition({
+    isOpen,
+    triggerRef,
+    align,
+    direction,
+    minSpaceBelow: 260,
+    enabled: usePortal,
+  });
 
   useEffect(() => {
     if (!isOpen) {

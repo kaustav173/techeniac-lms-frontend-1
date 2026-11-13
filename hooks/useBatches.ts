@@ -43,13 +43,17 @@ export function useBatchesList(filters: BatchQueryFilters = {}, options?: { enab
   });
 }
 
-export function useBatchDetail(id: string, initialData?: ApiBatchDetailData) {
+export function useBatchDetail(
+  id: string,
+  initialData?: ApiBatchDetailData,
+  options?: { enabled?: boolean },
+) {
   const isValidUuid = Boolean(id && UUID_REGEX.test(id));
   return useQuery<ApiBatchDetailData>({
     queryKey: batchKeys.detail(id),
     queryFn: () => batchesService.getBatchById(id),
     ...(initialData ? { initialData } : {}),
-    enabled: isValidUuid,
+    enabled: isValidUuid && (options?.enabled ?? true),
   });
 }
 
@@ -87,17 +91,11 @@ export function useInfiniteBatches(
           page: pageParam,
           limit: pageSize,
           search: trimmedSearch,
+          status,
         });
-        const filtered = status
-          ? items.filter((b) =>
-              Array.isArray(status)
-                ? status.includes(b.status)
-                : b.status === status || status.includes(b.status),
-            )
-          : items;
         const hasMore = items.length >= pageSize;
         return {
-          items: filtered,
+          items,
           pagination: {
             page: pageParam,
             limit: pageSize,
