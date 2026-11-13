@@ -22,14 +22,23 @@ import {
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
-import { useBatchesList, useMentorBatches } from '@/hooks/useBatches';
-import { useCourses } from '@/hooks/useCourses';
+import { useInfiniteBatches } from '@/hooks/useBatches';
+import { useInfiniteCourses } from '@/hooks/useCourses';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
 
 const EM_DASH = '—';
 
-type SortField = 'course' | 'mentee' | 'batch' | 'started' | 'due' | 'progress';
+function formatDuration(mins: number | null | undefined): string {
+  if (!mins || mins <= 0) return EM_DASH;
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+  if (hours === 0) return `${remainingMins}m`;
+  if (remainingMins === 0) return `${hours}h`;
+  return `${hours}h ${remainingMins}m`;
+}
+
+type SortField = 'course' | 'mentee' | 'batch' | 'started' | 'due' | 'duration';
 type SortOrder = 'asc' | 'desc';
 
 const ALLOCATION_STATUS_OPTIONS: readonly MultiSelectOption<string>[] = [
@@ -47,7 +56,10 @@ export interface AllocationsTableProps {
 export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const [filters, setFilters] = useState<AllocationFilters>({ page: 1, limit: 10 });
   const [searchInput, setSearchInput] = useState<string>('');
-  const [expandedAllocId, setExpandedAllocId] = useState<string | null>(null);
+  const [batchSearch, setBatchSearch] = useState<string>('');
+  const [courseSearch, setCourseSearch] = useState<string>('');
+  const [selectedBatchOptions, setSelectedBatchOptions] = useState<Record<string, string>>({});
+  const [selectedCourseOptions, setSelectedCourseOptions] = useState<Record<string, string>>({});
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder | null>(null);
 
@@ -112,25 +124,51 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList(filters);
 
   const isMentor = userRole === 'MENTOR';
-  const { data: adminBatchesData } = useBatchesList({ limit: 100 }, { enabled: !isMentor });
-  const { data: mentorBatchesData } = useMentorBatches({ limit: 100 }, { enabled: isMentor });
+  const portalType = isMentor ? 'mentor' : 'admin';
 
-  const batchesList = useMemo(() => {
-    if (isMentor) {
-      return mentorBatchesData ?? [];
-    }
-    return adminBatchesData?.items ?? [];
-  }, [isMentor, mentorBatchesData, adminBatchesData]);
+  const {
+    data: batchesData,
+    fetchNextPage: fetchNextBatches,
+    hasNextPage: hasNextBatches,
+    isFetchingNextPage: isFetchingNextBatches,
+  } = useInfiniteBatches(10, batchSearch, portalType);
 
-  const { courses } = useCourses();
+  const {
+    data: coursesData,
+    fetchNextPage: fetchNextCourses,
+    hasNextPage: hasNextCourses,
+    isFetchingNextPage: isFetchingNextCourses,
+  } = useInfiniteCourses(10, courseSearch);
+
+  const loadedBatches = useMemo(() => {
+    return batchesData?.pages.flatMap((page) => page.items) ?? [];
+  }, [batchesData]);
+
+  const loadedCourses = useMemo(() => {
+    return coursesData?.pages.flatMap((page) => page.courses) ?? [];
+  }, [coursesData]);
 
   const courseOptions: readonly MultiSelectOption<string>[] = useMemo(() => {
-    return courses.map((c) => ({ value: c.id, label: c.title }));
-  }, [courses]);
+    const optionsMap = new Map<string, string>();
+    Object.entries(selectedCourseOptions).forEach(([val, label]) => {
+      optionsMap.set(val, label);
+    });
+    loadedCourses.forEach((c) => {
+      optionsMap.set(c.id, c.title);
+    });
+    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
+  }, [loadedCourses, selectedCourseOptions]);
 
   const batchOptions: readonly MultiSelectOption<string>[] = useMemo(() => {
-    return batchesList.map((b) => ({ value: b.id, label: b.name }));
-  }, [batchesList]);
+    const optionsMap = new Map<string, string>();
+    Object.entries(selectedBatchOptions).forEach(([val, label]) => {
+      optionsMap.set(val, label);
+    });
+    loadedBatches.forEach((b) => {
+      optionsMap.set(b.id, b.name);
+    });
+    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
+  }, [loadedBatches, selectedBatchOptions]);
 
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
@@ -229,6 +267,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   };
 
   const handleBatchFilter = (selectedBatchIds: string[]) => {
+    setSelectedBatchOptions((prev) => {
+      const updated = { ...prev };
+      selectedBatchIds.forEach((id) => {
+        const match = loadedBatches.find((b) => b.id === id);
+        if (match) updated[id] = match.name;
+      });
+      Object.keys(updated).forEach((id) => {
+        if (!selectedBatchIds.includes(id)) {
+          delete updated[id];
+        }
+      });
+      return updated;
+    });
     setFilters((prev) => ({
       ...prev,
       batchIds: selectedBatchIds.length > 0 ? selectedBatchIds : undefined,
@@ -238,6 +289,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   };
 
   const handleCourseFilter = (selectedCourseIds: string[]) => {
+    setSelectedCourseOptions((prev) => {
+      const updated = { ...prev };
+      selectedCourseIds.forEach((id) => {
+        const match = loadedCourses.find((c) => c.id === id);
+        if (match) updated[id] = match.title;
+      });
+      Object.keys(updated).forEach((id) => {
+        if (!selectedCourseIds.includes(id)) {
+          delete updated[id];
+        }
+      });
+      return updated;
+    });
     setFilters((prev) => ({
       ...prev,
       courseIds: selectedCourseIds.length > 0 ? selectedCourseIds : undefined,
@@ -259,13 +323,13 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
   const handleClearFilters = () => {
     setSearchInput('');
+    setBatchSearch('');
+    setCourseSearch('');
+    setSelectedBatchOptions({});
+    setSelectedCourseOptions({});
     setSortField(null);
     setSortOrder(null);
     setFilters({ page: 1, limit: 10 });
-  };
-
-  const toggleExpand = (id: string) => {
-    setExpandedAllocId((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -308,6 +372,13 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             options={courseOptions}
             selectedValues={filters.courseIds ?? []}
             onChange={handleCourseFilter}
+            onSearch={setCourseSearch}
+            onScrollEnd={() => {
+              if (hasNextCourses && !isFetchingNextCourses) {
+                void fetchNextCourses();
+              }
+            }}
+            isLoadingMore={isFetchingNextCourses}
             className="w-full shrink-0 sm:w-44"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
           />
@@ -318,6 +389,13 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             options={batchOptions}
             selectedValues={filters.batchIds ?? []}
             onChange={handleBatchFilter}
+            onSearch={setBatchSearch}
+            onScrollEnd={() => {
+              if (hasNextBatches && !isFetchingNextBatches) {
+                void fetchNextBatches();
+              }
+            }}
+            isLoadingMore={isFetchingNextBatches}
             className="w-full shrink-0 sm:w-44"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
           />
@@ -362,7 +440,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               variant="primary"
               size="sm"
               onClick={() => setIsAssignModalOpen(true)}
-              className="h-[47px] gap-2 rounded-2xl bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+              className="h-[47px] gap-2 rounded-full bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
             >
               <Span className="text-base font-bold">+</Span>
               <Span>Assign Course</Span>
@@ -377,10 +455,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           <table className="w-full border-collapse text-left text-sm text-slate-700">
             <thead className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
               <tr>
-                <th scope="col" className="w-10 py-3.5 pr-2 pl-6" />
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  className="py-3.5 pr-4 pl-6 text-sm font-semibold text-[#667085]"
                   aria-sort={
                     sortField === 'course'
                       ? sortOrder === 'asc'
@@ -515,9 +592,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </th>
                 <th
                   scope="col"
-                  className="w-44 px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
                   aria-sort={
-                    sortField === 'progress'
+                    sortField === 'duration'
                       ? sortOrder === 'asc'
                         ? 'ascending'
                         : 'descending'
@@ -526,18 +603,18 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 >
                   <button
                     type="button"
-                    onClick={() => handleSort('progress')}
+                    onClick={() => handleSort('duration')}
                     className="group inline-flex cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] transition-colors hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
                     title={
-                      sortField === 'progress' && sortOrder
-                        ? `Sorted by progress (${sortOrder === 'asc' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by progress'
+                      sortField === 'duration' && sortOrder
+                        ? `Sorted by duration (${sortOrder === 'asc' ? 'shortest first' : 'longest first'})`
+                        : 'Sort by duration'
                     }
                   >
                     <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
-                      Progress
+                      Duration
                     </Span>
-                    {renderSortIcon(sortField === 'progress', sortOrder)}
+                    {renderSortIcon(sortField === 'duration', sortOrder)}
                   </button>
                 </th>
                 <th
@@ -558,10 +635,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               {isLoading || isFetching ? (
                 Array.from({ length: 10 }).map((_, idx) => (
                   <tr key={`alloc-skel-${idx}`} className="h-16">
-                    <td className="py-3.5 pr-2 pl-6">
-                      <Skeleton className="h-5 w-5 rounded-md" />
-                    </td>
-                    <td className="px-4 py-3.5">
+                    <td className="py-3.5 pr-4 pl-6">
                       <div className="space-y-1.5">
                         <Skeleton className="h-4 w-36 rounded-md" />
                         <Skeleton className="h-3 w-48 rounded-md" />
@@ -585,11 +659,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     <td className="px-4 py-3.5">
                       <Skeleton className="h-4 w-20 rounded-md" />
                     </td>
-                    <td className="w-44 px-4 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-2 flex-1 rounded-full" />
-                        <Skeleton className="h-3 w-8 rounded-md" />
-                      </div>
+                    <td className="px-4 py-3.5">
+                      <Skeleton className="h-4 w-16 rounded-md" />
                     </td>
                     <td className="px-4 py-3.5">
                       <Skeleton className="h-6 w-20 rounded-full" />
@@ -601,7 +672,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 ))
               ) : isError ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center">
+                  <td colSpan={8} className="px-6 py-8 text-center">
                     <ErrorMessage
                       error={error}
                       title="Failed to load allocations"
@@ -611,7 +682,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </tr>
               ) : allocations.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <P className="text-sm font-medium text-slate-600">
                       No course allocations found.
                     </P>
@@ -619,433 +690,235 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </tr>
               ) : (
                 allocations.map((alloc) => {
-                  const isExpanded = expandedAllocId === alloc.id;
                   const isActionMenuOpen = openActionMenuId === alloc.id;
                   return (
-                    <React.Fragment key={alloc.id}>
-                      <tr
-                        onClick={() => toggleExpand(alloc.id)}
-                        className={cn(
-                          'cursor-pointer transition-colors hover:bg-[#F9FAFB]/90',
-                          isExpanded && 'bg-slate-50/70',
-                          isActionMenuOpen && 'relative z-30',
+                    <tr
+                      key={alloc.id}
+                      className={cn(
+                        'transition-colors hover:bg-[#F9FAFB]/90',
+                        isActionMenuOpen && 'relative z-30',
+                      )}
+                    >
+                      <td className="py-3.5 pr-4 pl-6 align-middle">
+                        <P
+                          className="max-w-[200px] truncate font-semibold text-[#111827] transition-all hover:overflow-visible hover:whitespace-normal"
+                          title={alloc.course?.title ?? 'Untitled Course'}
+                        >
+                          {alloc.course?.title ?? 'Untitled Course'}
+                        </P>
+                      </td>
+                      <td className="px-4 py-3.5 align-middle">
+                        <P className="font-semibold text-[#111827]">
+                          {alloc.user?.name ?? 'Individual Mentee'}
+                        </P>
+                      </td>
+                      <td className="px-4 py-3.5 align-middle">
+                        {alloc.batch ? (
+                          <P className="font-medium text-[#111827]">{alloc.batch.name}</P>
+                        ) : (
+                          <Span className="text-[#667085]">{EM_DASH}</Span>
                         )}
+                      </td>
+                      <td className="px-4 py-3.5 align-middle font-medium text-[#475467]">
+                        {formatDateIST(alloc.startDate)}
+                      </td>
+                      <td className="px-4 py-3.5 align-middle font-medium text-[#475467]">
+                        {formatDateIST(alloc.dueDate)}
+                      </td>
+                      <td className="px-4 py-3.5 align-middle font-medium text-[#475467]">
+                        {formatDuration(alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes)}
+                      </td>
+                      <td className="px-4 py-3.5 align-middle whitespace-nowrap">
+                        <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
+                      </td>
+                      <td
+                        className="py-3.5 pr-6 pl-4 text-right align-middle"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <td className="py-3.5 pr-2 pl-6 align-middle">
+                        <div className="flex items-center justify-end">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleExpand(alloc.id);
-                            }}
-                            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md p-0 text-[#667085] transition-colors hover:bg-slate-100 hover:text-slate-900"
-                            title={isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'}
-                            aria-label={
-                              isExpanded ? 'Collapse breakdown' : 'Expand mentee breakdown'
-                            }
+                            onClick={(e) => toggleActionMenu(e, alloc.id)}
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                            title="Allocation actions"
+                            aria-label="Allocation actions"
+                            aria-haspopup="menu"
+                            aria-expanded={isActionMenuOpen}
                           >
-                            <svg
-                              className={cn(
-                                'h-4 w-4 transition-transform duration-150',
-                                isExpanded && 'rotate-90',
-                              )}
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                             </svg>
                           </button>
-                        </td>
-                        <td className="px-4 py-3.5 align-middle">
-                          <P
-                            className="max-w-[200px] truncate font-semibold text-[#111827] transition-all hover:overflow-visible hover:whitespace-normal"
-                            title={alloc.course?.title ?? 'Untitled Course'}
-                          >
-                            {alloc.course?.title ?? 'Untitled Course'}
-                          </P>
-                        </td>
-                        <td className="px-4 py-3.5 align-middle">
-                          <P className="font-semibold text-[#111827]">
-                            {alloc.user?.name ?? 'Individual Mentee'}
-                          </P>
-                        </td>
-                        <td className="px-4 py-3.5 align-middle">
-                          {alloc.batch ? (
-                            <P className="font-medium text-[#111827]">{alloc.batch.name}</P>
-                          ) : (
-                            <Span className="text-[#667085]">{EM_DASH}</Span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3.5 align-middle font-medium text-[#475467]">
-                          {formatDateIST(alloc.startDate)}
-                        </td>
-                        <td className="px-4 py-3.5 align-middle font-medium text-[#475467]">
-                          {formatDateIST(alloc.dueDate)}
-                        </td>
-                        <td className="px-4 py-3.5 align-middle">
-                          <div className="flex items-center gap-3">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-[#0044D3] transition-all"
-                                style={{
-                                  width: `${Math.min(100, Math.max(0, alloc.progressPercent))}%`,
-                                }}
-                              />
-                            </div>
-                            <Span className="w-9 text-right text-xs font-bold text-[#475467]">
-                              {alloc.progressPercent}%
-                            </Span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 align-middle whitespace-nowrap">
-                          <AllocationStatusBadge
-                            status={alloc.status}
-                            isOverdue={alloc.isOverdue}
-                          />
-                        </td>
-                        <td
-                          className="py-3.5 pr-6 pl-4 text-right align-middle"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-end">
-                            <button
-                              type="button"
-                              onClick={(e) => toggleActionMenu(e, alloc.id)}
-                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-0 text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
-                              title="Allocation actions"
+
+                          {isActionMenuOpen && menuPosition && (
+                            <div
+                              ref={actionMenuRef}
+                              role="menu"
                               aria-label="Allocation actions"
-                              aria-haspopup="menu"
-                              aria-expanded={isActionMenuOpen}
+                              style={{
+                                top: `${menuPosition.top}px`,
+                                right: `${menuPosition.right}px`,
+                              }}
+                              className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
                             >
-                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                              </svg>
-                            </button>
-
-                            {isActionMenuOpen && menuPosition && (
-                              <div
-                                ref={actionMenuRef}
-                                role="menu"
-                                aria-label="Allocation actions"
-                                style={{
-                                  top: `${menuPosition.top}px`,
-                                  right: `${menuPosition.right}px`,
-                                }}
-                                className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
-                              >
-                                {userRole === 'SUPER_ADMIN' ? (
-                                  <>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      role="menuitem"
-                                      disabled={isTerminalAllocationStatus(alloc.status)}
-                                      onClick={() => {
-                                        setOpenActionMenuId(null);
-                                        setMenuPosition(null);
-                                        setEditingAllocation(alloc);
-                                      }}
-                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                      <svg
-                                        className="h-3.5 w-3.5 text-slate-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth="2"
-                                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                        />
-                                      </svg>
-                                      <Span>Edit Dates</Span>
-                                    </Button>
-
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      role="menuitem"
-                                      disabled={isTerminalAllocationStatus(alloc.status)}
-                                      onClick={() => {
-                                        setOpenActionMenuId(null);
-                                        setMenuPosition(null);
-                                        setOverridingAllocation(alloc);
-                                      }}
-                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                      <svg
-                                        className="h-3.5 w-3.5 text-slate-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth="2"
-                                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                      </svg>
-                                      <Span>Overrides</Span>
-                                    </Button>
-
-                                    <div className="my-1 border-t border-[#E1E6EC]" />
-
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      role="menuitem"
-                                      disabled={isTerminalAllocationStatus(alloc.status)}
-                                      onClick={() => {
-                                        setOpenActionMenuId(null);
-                                        setMenuPosition(null);
-                                        setRevokingAllocation(alloc);
-                                      }}
-                                      className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                      <svg
-                                        className="h-3.5 w-3.5 text-red-500"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth="2"
-                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                        />
-                                      </svg>
-                                      <Span>Revoke</Span>
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Link
-                                      href={
-                                        alloc.user?.name
-                                          ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
-                                          : '/mentor/progress'
-                                      }
-                                      role="menuitem"
-                                      onClick={() => {
-                                        setOpenActionMenuId(null);
-                                        setMenuPosition(null);
-                                      }}
-                                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
-                                    >
-                                      <svg
-                                        className="h-4 w-4 text-[#0044D3]"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="2"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                        />
-                                      </svg>
-                                      <Span>Progress</Span>
-                                    </Link>
-                                    <Link
-                                      href={
-                                        alloc.user?.id
-                                          ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
-                                          : alloc.user?.name
-                                            ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                            : '/mentor/reviews'
-                                      }
-                                      role="menuitem"
-                                      onClick={() => {
-                                        setOpenActionMenuId(null);
-                                        setMenuPosition(null);
-                                      }}
-                                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
-                                    >
-                                      <svg
-                                        className="h-4 w-4 text-purple-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="2"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                        />
-                                      </svg>
-                                      <Span>Submissions</Span>
-                                    </Link>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Expandable Breakdown Drawer */}
-                      {isExpanded ? (
-                        <tr className="bg-[#F8FAFC]/90">
-                          <td colSpan={9} className="border-b border-[#E1E6EC] px-6 py-3 sm:px-8">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                              {/* Metadata stats */}
-                              <div className="flex flex-wrap items-center gap-6 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <svg
-                                    className="h-4 w-4 text-[#667085]"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                    aria-hidden="true"
+                              {userRole === 'SUPER_ADMIN' ? (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setEditingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                  <Span className="text-[#475467]">
-                                    Duration:{' '}
-                                    <Span className="font-semibold text-[#111827]">
-                                      {alloc.estimatedMinutes
-                                        ? `${Math.floor(alloc.estimatedMinutes / 60)}h ${alloc.estimatedMinutes % 60}m`
-                                        : 'Standard'}
-                                    </Span>
-                                  </Span>
-                                </div>
+                                    <svg
+                                      className="h-3.5 w-3.5 text-slate-600"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                    <Span>Edit Dates</Span>
+                                  </Button>
 
-                                <div className="flex items-center gap-2">
-                                  <svg
-                                    className="h-4 w-4 text-[#667085]"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                    aria-hidden="true"
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setOverridingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                                    />
-                                  </svg>
-                                  <Span className="text-[#475467]">
-                                    Schedule:{' '}
-                                    <Span className="font-semibold text-[#111827]">
-                                      {alloc.completedAt
-                                        ? `Completed ${formatDateIST(alloc.completedAt)}`
-                                        : alloc.isOverdue
-                                          ? 'Overdue Target Date'
-                                          : 'On Target'}
-                                    </Span>
-                                    {alloc.assignmentOverrides &&
-                                    alloc.assignmentOverrides.length > 0 ? (
-                                      <Span className="ml-1 text-[11px] text-[#667085]">
-                                        ({alloc.assignmentOverrides.length} override
-                                        {alloc.assignmentOverrides.length > 1 ? 's' : ''})
-                                      </Span>
-                                    ) : null}
-                                  </Span>
-                                </div>
-                              </div>
+                                    <svg
+                                      className="h-3.5 w-3.5 text-slate-600"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                    <Span>Overrides</Span>
+                                  </Button>
 
-                              {/* Quick Actions Button Group */}
-                              <div className="flex shrink-0 items-center gap-2">
-                                {userRole === 'SUPER_ADMIN' ? (
-                                  <>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setEditingAllocation(alloc)}
-                                      disabled={isTerminalAllocationStatus(alloc.status)}
-                                      className="h-8 rounded-full border-[#D0D5DD] bg-white px-3 text-xs font-semibold text-[#344054] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#111827]"
+                                  <div className="my-1 border-t border-[#E1E6EC]" />
+
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setRevokingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    <svg
+                                      className="h-3.5 w-3.5 text-red-500"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
                                     >
-                                      Edit Dates
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setOverridingAllocation(alloc)}
-                                      disabled={isTerminalAllocationStatus(alloc.status)}
-                                      className="h-8 rounded-full border-[#D0D5DD] bg-white px-3 text-xs font-semibold text-[#344054] shadow-2xs hover:bg-[#F9FAFB] hover:text-[#111827]"
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      />
+                                    </svg>
+                                    <Span>Revoke</Span>
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Link
+                                    href={
+                                      alloc.user?.name
+                                        ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                        : '/mentor/progress'
+                                    }
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                    }}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
+                                  >
+                                    <svg
+                                      className="h-4 w-4 text-[#0044D3]"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                      strokeWidth="2"
                                     >
-                                      Manage Overrides
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Link
-                                      href={
-                                        alloc.user?.id
-                                          ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
-                                          : alloc.user?.name
-                                            ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                            : '/mentor/reviews'
-                                      }
-                                      className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#D0D5DD] bg-white px-3 text-xs font-semibold text-[#344054] shadow-2xs transition-colors hover:bg-slate-50 hover:text-[#111827]"
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                      />
+                                    </svg>
+                                    <Span>Progress</Span>
+                                  </Link>
+                                  <Link
+                                    href={
+                                      alloc.user?.id
+                                        ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
+                                        : alloc.user?.name
+                                          ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                          : '/mentor/reviews'
+                                    }
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                    }}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
+                                  >
+                                    <svg
+                                      className="h-4 w-4 text-purple-600"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                      strokeWidth="2"
                                     >
-                                      <svg
-                                        className="h-3.5 w-3.5 text-[#667085]"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={2}
-                                        aria-hidden="true"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                        />
-                                      </svg>
-                                      <Span>Submissions</Span>
-                                    </Link>
-                                    <Link
-                                      href={
-                                        alloc.user?.name
-                                          ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
-                                          : '/mentor/progress'
-                                      }
-                                      className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#0044D3] px-3.5 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#0039B3]"
-                                    >
-                                      <Span>Progress Tracker</Span>
-                                      <svg
-                                        className="h-3 w-3"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={2.5}
-                                        aria-hidden="true"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                                        />
-                                      </svg>
-                                    </Link>
-                                  </>
-                                )}
-                              </div>
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                      />
+                                    </svg>
+                                    <Span>Submissions</Span>
+                                  </Link>
+                                </>
+                              )}
                             </div>
-                          </td>
-                        </tr>
-                      ) : null}
-                    </React.Fragment>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}

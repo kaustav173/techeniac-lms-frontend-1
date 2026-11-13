@@ -128,6 +128,7 @@ export interface AllocationFilters {
     | 'started'
     | 'due'
     | 'progress'
+    | 'duration'
     | 'status'
     | 'createdAt'
     | undefined;
