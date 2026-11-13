@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/Label';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
+import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
@@ -93,13 +94,13 @@ export interface ProfileViewProps {
 
 export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const { changePassword, updateProfile, refreshUser } = useAuth();
+  const { toastSuccess, toastError } = useToast();
 
   const [isEditingName, setIsEditingName] = useState(false);
 
   const [profileName, setProfileName] = useState(user.name);
   const [prevUserName, setPrevUserName] = useState(user.name);
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
-  const [profileSuccessMessage, setProfileSuccessMessage] = useState<string | null>(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Adjust state during render when prop changes (React recommended pattern for state mirroring)
@@ -121,7 +122,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const criteria = usePasswordCriteria(newPassword);
@@ -148,9 +148,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const handleFieldChange =
     (setter: React.Dispatch<React.SetStateAction<string>>, fieldKey: string) => (val: string) => {
       setter(val);
-      if (successMessage) {
-        setSuccessMessage(null);
-      }
       if (errors[fieldKey]) {
         setErrors((prev) => ({ ...prev, [fieldKey]: '' }));
       }
@@ -161,7 +158,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     if (isUpdatingProfile) return;
 
     setProfileErrors({});
-    setProfileSuccessMessage(null);
 
     const result = updateProfileSchema.safeParse({
       name: profileName,
@@ -180,12 +176,13 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     setIsUpdatingProfile(true);
     try {
       await updateProfile(result.data.name);
-      setProfileSuccessMessage('Profile name updated successfully.');
+      toastSuccess('Profile name updated successfully.', 'Profile Updated');
       setIsEditingName(false);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to update profile. Please try again.';
       setProfileErrors({ general: message });
+      toastError(message, 'Update Failed');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -196,7 +193,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     if (isSubmitting) return;
 
     setErrors({});
-    setSuccessMessage(null);
 
     const result = changePasswordSchema.safeParse({
       currentPassword,
@@ -213,7 +209,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
     try {
       const msg = await changePassword(currentPassword, newPassword);
       await refreshUser();
-      setSuccessMessage(msg || 'Password updated successfully.');
+      toastSuccess(msg || 'Password updated successfully.', 'Password Changed');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -231,6 +227,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
       } else {
         setErrors({ general: message });
       }
+      toastError(message, 'Password Update Failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -238,14 +235,6 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      {/* Success Notifications */}
-      {profileSuccessMessage ? (
-        <Alert variant="success" title="Profile Updated" message={profileSuccessMessage} />
-      ) : null}
-      {successMessage ? (
-        <Alert variant="success" title="Password Updated" message={successMessage} />
-      ) : null}
-
       {/* Main Single Column Profile Card */}
       <div className="overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs">
         {/* Gradient Banner Accent */}

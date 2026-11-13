@@ -28,6 +28,7 @@ import {
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
+import { useToast } from '@/hooks/useToast';
 import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/cn';
 import {
@@ -209,28 +210,8 @@ export function UsersTable() {
   // In-flight row actions tracking
   const [inFlightAction, setInFlightAction] = useState<Record<string, 'resend' | 'status'>>({});
 
-  // Toast notification state with unmount cleanup
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-    setToast({ message, type });
-    toastTimerRef.current = setTimeout(() => {
-      setToast(null);
-      toastTimerRef.current = null;
-    }, 4000);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-    };
-  }, []);
+  // Global toast hook
+  const { toastSuccess, toastError } = useToast();
 
   const activeAdminsCount = useMemo(
     () => apiUsers.filter((u) => u.role === 'SUPER_ADMIN' && u.isActive).length,
@@ -287,10 +268,10 @@ export function UsersTable() {
   const handleCreateUser = async (data: CreateUserFormData) => {
     try {
       const newUser = await createUser(data);
-      showToast(`User ${newUser.name} created successfully.`, 'success');
+      toastSuccess(`User ${newUser.name} created successfully.`, 'User Created');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create user';
-      showToast(msg, 'error');
+      toastError(msg, 'Creation Failed');
       throw err;
     }
   };
@@ -298,10 +279,10 @@ export function UsersTable() {
   const handleRoleChangeSuccess = async (userId: string, data: ChangeRoleFormData) => {
     try {
       await changeRole(userId, data);
-      showToast(`Role updated to ${data.newRole}.`, 'success');
+      toastSuccess(`Role updated to ${data.newRole}.`, 'Role Updated');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update role';
-      showToast(msg, 'error');
+      toastError(msg, 'Update Failed');
       throw err;
     }
   };
@@ -309,10 +290,10 @@ export function UsersTable() {
   const handleEditUserSuccess = async (userId: string, data: { name: string; email: string }) => {
     try {
       await updateUser(userId, data);
-      showToast(`User ${data.name} updated successfully.`, 'success');
+      toastSuccess(`User ${data.name} updated successfully.`, 'User Updated');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update user';
-      showToast(msg, 'error');
+      toastError(msg, 'Update Failed');
       throw err;
     }
   };
@@ -322,10 +303,10 @@ export function UsersTable() {
     setInFlightAction((prev) => ({ ...prev, [userId]: 'resend' }));
     try {
       const res = await resendInvite(userId);
-      showToast(res.message, 'success');
+      toastSuccess(res.message, 'Invite Sent');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : `Failed to resend invite to ${userName}`;
-      showToast(msg, 'error');
+      toastError(msg, 'Invite Failed');
     } finally {
       setInFlightAction((prev) => {
         const next = { ...prev };
@@ -341,11 +322,14 @@ export function UsersTable() {
   ) => {
     const result = await createUsersBulk(rows, onProgress);
     if (result.failures.length === 0) {
-      showToast(`Bulk import complete: ${result.successCount} user(s) created.`, 'success');
+      toastSuccess(
+        `Bulk import complete: ${result.successCount} user(s) created.`,
+        'Import Completed',
+      );
     } else {
-      showToast(
+      toastError(
         `Bulk import finished: ${result.successCount} created, ${result.failures.length} failed.`,
-        'error',
+        'Import Failed',
       );
     }
     return result;
@@ -355,24 +339,27 @@ export function UsersTable() {
     const nextActivate = user.status !== 'ACTIVE';
     if (!nextActivate) {
       if (currentUser && user.id === currentUser.id) {
-        showToast('You cannot deactivate your own administrative account.', 'error');
+        toastError('You cannot deactivate your own administrative account.', 'Action Not Allowed');
         return;
       }
       if (user.isLastSuperAdmin) {
-        showToast('Cannot deactivate the last active Super Admin on the platform.', 'error');
+        toastError(
+          'Cannot deactivate the last active Super Admin on the platform.',
+          'Action Not Allowed',
+        );
         return;
       }
     }
     setInFlightAction((prev) => ({ ...prev, [user.id]: 'status' }));
     try {
       await toggleStatus(user.id, nextActivate);
-      showToast(
+      toastSuccess(
         `User ${user.name} ${nextActivate ? 'activated' : 'deactivated'} successfully.`,
-        'success',
+        'Status Updated',
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to toggle status';
-      showToast(msg, 'error');
+      toastError(msg, 'Status Update Failed');
     } finally {
       setInFlightAction((prev) => {
         const next = { ...prev };
@@ -982,45 +969,6 @@ export function UsersTable() {
             document.body,
           )
         : null}
-
-      {toast ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className={`animate-in fade-in fixed right-6 bottom-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium shadow-lg ${
-            toast.type === 'error'
-              ? 'border border-red-300 bg-red-900 text-white'
-              : 'bg-slate-900 text-white'
-          }`}
-        >
-          {toast.type === 'error' ? (
-            <svg
-              className="h-4 w-4 shrink-0 text-red-200"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="h-4 w-4 shrink-0 text-emerald-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          )}
-          <Span>{toast.message}</Span>
-        </div>
-      ) : null}
     </div>
   );
 }

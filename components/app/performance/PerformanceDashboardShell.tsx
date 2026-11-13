@@ -9,6 +9,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { useExportPerformanceMutation, usePerformanceQuery } from '@/hooks/usePerformance';
 import { useRoleGuard } from '@/hooks/useRoleGuard';
+import { useToast } from '@/hooks/useToast';
 import type { PerformanceFilterParams } from '@/services/performance.service';
 
 interface PerformanceDashboardShellProps {
@@ -35,6 +36,7 @@ export function PerformanceDashboardShell({
 
   const { data, isLoading, isFetching, isError, error, refetch } = usePerformanceQuery(filters);
   const exportMutation = useExportPerformanceMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const handleFilterChange = useCallback((updated: Partial<PerformanceFilterParams>) => {
     setFilters((prev) => ({ ...prev, ...updated }));
@@ -50,7 +52,14 @@ export function PerformanceDashboardShell({
   };
 
   const handleExportCsv = () => {
-    exportMutation.mutate(filters);
+    exportMutation.mutate(filters, {
+      onSuccess: () => {
+        toastSuccess('Performance data exported to CSV successfully.', 'Export Complete');
+      },
+      onError: (err) => {
+        toastError(err.message || 'Failed to export performance CSV.', 'Export Failed');
+      },
+    });
   };
 
   const handleRetry = () => {

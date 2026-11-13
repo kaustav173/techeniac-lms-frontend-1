@@ -9,8 +9,9 @@ import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { P, Span } from '@/components/ui/Typography';
+import { Span } from '@/components/ui/Typography';
 import { useTransferMenteeMutation } from '@/hooks/useBatches';
+import { useToast } from '@/hooks/useToast';
 import { transferMenteeSchema } from '@/lib/validation';
 
 export interface BatchOption {
@@ -43,10 +44,14 @@ export function TransferMenteeModal({
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const { toastSuccess, toastError } = useToast();
+
   const targetBatchId =
     selectedBatchId && eligibleBatches.some((b) => b.id === selectedBatchId)
       ? selectedBatchId
       : eligibleBatches[0]?.id || '';
+
+  const targetBatch = eligibleBatches.find((b) => b.id === targetBatchId);
 
   const { mutateAsync: transferMentee, isPending: isSubmitting } = useTransferMenteeMutation();
 
@@ -74,27 +79,28 @@ export function TransferMenteeModal({
         targetBatchId: result.data.targetBatchId,
         reason: result.data.reason,
       });
+      toastSuccess(
+        `Transferred ${mentee.name} to ${targetBatch?.name ?? 'destination batch'}.`,
+        'Mentee Transferred',
+      );
       onSuccess(mentee.id, result.data.targetBatchId, result.data.reason);
       onClose();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to transfer mentee.';
       setError(message);
+      toastError(message, 'Transfer Failed');
     }
   };
+
+  const hasEligibleBatches = eligibleBatches.length > 0;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       isSubmitting={isSubmitting}
-      title="Transfer Mentee"
-      description={
-        <Span>
-          Move <strong className="font-semibold text-slate-800">{mentee.name}</strong> to a new
-          cohort.
-        </Span>
-      }
-      size="md"
+      title={`Transfer Mentee (${mentee.name})`}
+      size="lg"
       footer={
         <>
           <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
@@ -106,7 +112,7 @@ export function TransferMenteeModal({
             variant="primary"
             size="sm"
             isLoading={isSubmitting}
-            disabled={!targetBatchId || isSubmitting}
+            disabled={!targetBatchId || !hasEligibleBatches || isSubmitting}
           >
             Execute Transfer
           </Button>
@@ -118,67 +124,86 @@ export function TransferMenteeModal({
         onSubmit={(e) => {
           void handleSubmit(e);
         }}
-        className="space-y-4"
+        className="space-y-3.5"
       >
         {error ? <Alert variant="error" title="Transfer Blocked" message={error} /> : null}
 
-        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs">
-          <div>
-            <Span className="block text-[10px] font-bold text-slate-500 uppercase">
-              Current Batch
-            </Span>
-            <Span className="font-bold text-slate-900">{mentee.currentBatchName}</Span>
+        {/* Pathway Card: Origin to Destination */}
+        <div className="rounded-xl border border-slate-200/90 bg-slate-50/60 p-3.5 shadow-2xs">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+            {/* Origin Batch */}
+            <div className="rounded-lg border border-slate-200/70 bg-white p-2.5">
+              <Span className="block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                Current Batch
+              </Span>
+              <Span
+                className="mt-0.5 block truncate text-xs font-bold text-slate-900"
+                title={mentee.currentBatchName}
+              >
+                {mentee.currentBatchName}
+              </Span>
+            </div>
+
+            {/* Transfer Direction Arrow */}
+            <div className="flex items-center justify-center text-slate-400" aria-hidden="true">
+              <svg
+                className="h-4 w-4 rotate-90 text-blue-600 sm:rotate-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </div>
+
+            {/* Destination Batch Selector */}
+            <div className="space-y-1">
+              <Label
+                htmlFor="target-batch"
+                required
+                className="text-[10px] font-bold tracking-wider text-slate-500 uppercase"
+              >
+                Destination Batch
+              </Label>
+              {hasEligibleBatches ? (
+                <Select
+                  id="target-batch"
+                  value={targetBatchId}
+                  onChange={(e) => setSelectedBatchId(e.target.value)}
+                  className="h-9 cursor-pointer text-xs font-medium text-slate-900"
+                >
+                  {eligibleBatches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.status})
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <Span className="block text-xs text-amber-700 italic">
+                  No other active batches available
+                </Span>
+              )}
+            </div>
           </div>
-          <Span className="rounded-full border border-blue-200 bg-blue-100 px-2.5 py-0.5 font-mono text-[10px] font-bold text-blue-800">
-            ONE-BATCH RULE
+        </div>
+
+        {/* Compact Policy & Impact Notice */}
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-[11px] text-amber-900">
+          <Span className="shrink-0 font-semibold text-amber-700">Transfer Impact:</Span>
+          <Span className="leading-snug text-amber-900/90">
+            Closes current batch membership & mentor mappings, marks active allocations as
+            read-only, and assigns destination batch courses.
           </Span>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="target-batch" required>
-            Select Destination Batch
-          </Label>
-          <Select
-            id="target-batch"
-            value={targetBatchId}
-            onChange={(e) => setSelectedBatchId(e.target.value)}
-            className="cursor-pointer"
-          >
-            {eligibleBatches.map((b) => (
-              <option key={b.id} value={b.id} className="text-slate-900">
-                {b.name} ({b.code}) — {b.status}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {/* Transfer Policy Box (BAT-10) */}
-        <div className="space-y-1.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed shadow-xs">
-          <P className="font-bold text-amber-900">⚠️ Transfer Impact (PRD Section 5.4 / BAT-10):</P>
-          <ul className="list-disc space-y-1 pl-4 text-slate-800">
-            <li>
-              <Span>Membership in {mentee.currentBatchName} ends (status: BATCH_TRANSFER).</Span>
-            </li>
-            <li>
-              <Span>Active mentor mapping in the old batch ends.</Span>
-            </li>
-            <li>
-              <Span>
-                Open allocations in the previous batch close as CLOSED_BATCH_CHANGE (read-only).
-              </Span>
-            </li>
-            <li>
-              <Span>New batch open courses are allocated with fresh 0% progress.</Span>
-            </li>
-          </ul>
-        </div>
-
+        {/* Transfer Reason */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label htmlFor="transfer-reason">
-              Transfer Reason <Span className="text-xs font-normal text-slate-500">(optional)</Span>
+            <Label htmlFor="transfer-reason" className="text-xs font-medium text-slate-700">
+              Transfer Reason <Span className="font-normal text-slate-400">(optional)</Span>
             </Label>
-            <Span className="font-mono text-[11px] text-slate-400">{reason.length}/500</Span>
+            <Span className="font-mono text-[10px] text-slate-400">{reason.length}/500</Span>
           </div>
           <Textarea
             id="transfer-reason"
@@ -187,6 +212,7 @@ export function TransferMenteeModal({
             onChange={(e) => setReason(e.target.value)}
             maxLength={500}
             placeholder="e.g. Schedule realignment or course track adjustment..."
+            className="resize-none text-xs"
           />
         </div>
       </Form>

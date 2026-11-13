@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { extractZodErrors, forgotPasswordSchema } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get('email') || '';
   const { forgotPassword } = useAuth();
+  const { toastInfo } = useToast();
   const [email, setEmail] = useState(initialEmail);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +47,10 @@ export function ForgotPasswordForm() {
     } finally {
       setIsSubmitting(false);
       setIsDispatched(true);
+      toastInfo(
+        'If your email is registered, a password reset link has been sent.',
+        'Reset Link Sent',
+      );
     }
   };
 
@@ -59,6 +65,10 @@ export function ForgotPasswordForm() {
     } finally {
       setIsResending(false);
       setResendStatus('A new reset link has been sent if this email is registered.');
+      toastInfo(
+        'A new reset link has been dispatched if this email is registered.',
+        'Reset Link Dispatched',
+      );
     }
   };
 

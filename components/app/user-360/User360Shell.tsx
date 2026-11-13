@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/Table';
 import { H1, H2, P, Small, Span } from '@/components/ui/Typography';
+import { useToast } from '@/hooks/useToast';
 import { useUser360 } from '@/hooks/useUser360';
 import { cn } from '@/lib/cn';
 import { formatDateIST, formatDateTimeIST } from '@/lib/date';
@@ -141,13 +142,15 @@ export function User360Shell({ userId }: User360ShellProps) {
     userId,
     filters,
   );
+  const { toastSuccess, toastError } = useToast();
 
   const handleExportCsv = async () => {
     try {
       setIsExporting(true);
       await downloadCsv();
-    } catch {
-      alert('Failed to download CSV');
+      toastSuccess('User 360 report downloaded successfully.', 'Export Complete');
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : 'Failed to download CSV', 'Export Failed');
     } finally {
       setIsExporting(false);
     }

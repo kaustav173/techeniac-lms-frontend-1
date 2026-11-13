@@ -32,6 +32,7 @@ import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
+import { useToast } from '@/hooks/useToast';
 import { formatErrorMessage } from '@/lib/errors';
 import {
   Assignment,
@@ -819,6 +820,7 @@ function CourseBuilderContent({
     deleteAssignment,
     reorderAssignments,
   } = useCourseBuilder(courseId, { enabled: isAuthorized });
+  const { toastSuccess, toastError } = useToast();
 
   // Active selection in outline tree
   const [selectedNode, setSelectedNode] = useState<ActiveNodeSelection>({
@@ -957,7 +959,7 @@ function CourseBuilderContent({
     try {
       await reorderTopics(items);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to reorder topics');
+      toastError(err instanceof Error ? err.message : 'Failed to reorder topics', 'Reorder Failed');
     } finally {
       setIsReorderingTopics(false);
       setReorderingIds((prev) => prev.filter((id) => id !== targetId));
@@ -975,7 +977,10 @@ function CourseBuilderContent({
     try {
       await reorderSubtopics(topicId, items);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to reorder subtopics');
+      toastError(
+        err instanceof Error ? err.message : 'Failed to reorder subtopics',
+        'Reorder Failed',
+      );
     } finally {
       setReorderingSubtopicTopicIds((prev) => prev.filter((id) => id !== topicId));
       setReorderingIds((prev) => prev.filter((id) => id !== targetId));
@@ -999,7 +1004,10 @@ function CourseBuilderContent({
     try {
       await reorderAssignments(items, topicId);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to reorder assignments');
+      toastError(
+        err instanceof Error ? err.message : 'Failed to reorder assignments',
+        'Reorder Failed',
+      );
     } finally {
       if (topicId) {
         setReorderingTopicAssignmentTopicIds((prev) => prev.filter((id) => id !== topicId));
@@ -1013,32 +1021,56 @@ function CourseBuilderContent({
   // Add Item Actions
   const handleCreateTopic = async (title: string) => {
     if (!course) return;
-    const created = await createTopic({
-      title,
-      displayOrder: (course.topics?.length ?? 0) + 1,
-    });
-    setSelectedNode({ type: 'TOPIC', id: created.id });
-    setMobileTab('editor');
+    try {
+      const created = await createTopic({
+        title,
+        displayOrder: (course.topics?.length ?? 0) + 1,
+      });
+      toastSuccess(`Topic "${created.title}" created.`, 'Topic Created');
+      setSelectedNode({ type: 'TOPIC', id: created.id });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(err instanceof Error ? err.message : 'Failed to create topic', 'Creation Failed');
+      throw err;
+    }
   };
 
   const handleCreateSubtopic = async (topicId: string, title: string) => {
-    const created = await createSubtopic(topicId, { title });
-    setSelectedNode({
-      type: 'SUBTOPIC',
-      id: created.id,
-      parentTopicId: topicId,
-    });
-    setMobileTab('editor');
+    try {
+      const created = await createSubtopic(topicId, { title });
+      toastSuccess(`Subtopic "${created.title}" created.`, 'Subtopic Created');
+      setSelectedNode({
+        type: 'SUBTOPIC',
+        id: created.id,
+        parentTopicId: topicId,
+      });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(
+        err instanceof Error ? err.message : 'Failed to create subtopic',
+        'Creation Failed',
+      );
+      throw err;
+    }
   };
 
   const handleCreateAssignment = async (payload: CreateAssignmentInput) => {
-    const created = await createAssignment(payload);
-    setSelectedNode({
-      type: 'ASSIGNMENT',
-      id: created.id,
-      parentTopicId: payload.topicId ?? undefined,
-    });
-    setMobileTab('editor');
+    try {
+      const created = await createAssignment(payload);
+      toastSuccess(`Assignment "${created.title}" created.`, 'Assignment Created');
+      setSelectedNode({
+        type: 'ASSIGNMENT',
+        id: created.id,
+        parentTopicId: payload.topicId ?? undefined,
+      });
+      setMobileTab('editor');
+    } catch (err: unknown) {
+      toastError(
+        err instanceof Error ? err.message : 'Failed to create assignment',
+        'Creation Failed',
+      );
+      throw err;
+    }
   };
 
   // Delete Action Confirmation (FR-6.10, CRS-14)
@@ -1053,11 +1085,12 @@ function CourseBuilderContent({
       } else if (deleteTarget.type === 'ASSIGNMENT') {
         await deleteAssignment(deleteTarget.id);
       }
+      toastSuccess(`Item "${deleteTarget.title}" deleted.`, 'Item Deleted');
       setDeleteTarget(null);
       setSelectedNode({ type: 'COURSE', id: courseId });
       setMobileTab('outline');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Failed to delete item');
+      toastError(err instanceof Error ? err.message : 'Failed to delete item', 'Delete Failed');
     } finally {
       setIsDeletingNode(false);
     }

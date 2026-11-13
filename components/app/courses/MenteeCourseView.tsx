@@ -29,6 +29,7 @@ import {
   useAllocationProgress,
   useUpdateTopicStatusMutation,
 } from '@/hooks/useProgress';
+import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { type Subtopic, type Topic } from '@/types/courses';
@@ -187,6 +188,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
   } = useCourseDetail(courseId ?? '');
 
   const updateStatusMutation = useUpdateTopicStatusMutation();
+  const { toastSuccess, toastError } = useToast();
 
   // Active topics
   const activeTopics = useMemo(() => {
@@ -232,12 +234,13 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
           note: studyNote.trim() ? studyNote.trim() : undefined,
         },
       });
-      setActionSuccessMessage(
-        `Topic status successfully updated to ${newStatus.replace('_', ' ')}.`,
-      );
+      const formattedStatus = newStatus.replace('_', ' ');
+      setActionSuccessMessage(`Topic status successfully updated to ${formattedStatus}.`);
+      toastSuccess(`Topic marked as ${formattedStatus}.`, 'Progress Updated');
       setStudyNote('');
-    } catch {
-      // Error handled by mutation state
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update topic status.';
+      toastError(msg, 'Update Failed');
     }
   };
 

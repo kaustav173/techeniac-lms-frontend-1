@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { useAuth } from '@/hooks/useAuth';
 import { redirectUserByRole, useRoleRedirect } from '@/hooks/useRoleRedirect';
+import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { extractZodErrors, loginSchema } from '@/lib/validation';
 
@@ -23,6 +24,7 @@ export interface LoginFormProps {
 export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const router = useRouter();
   const { login } = useAuth();
+  const { toastSuccess, toastError } = useToast();
   useRoleRedirect({ redirectAuthenticatedToPortal: true, requireAuth: false });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,6 +49,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email: trimmedEmail, password });
+      toastSuccess(`Welcome back, ${loggedInUser.name}!`, 'Signed In');
       if (onSubmitSuccess) {
         onSubmitSuccess({ email: trimmedEmail });
       } else {
@@ -56,6 +59,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
       const message =
         err instanceof ApiError ? err.message : 'Invalid email or password. Please try again.';
       setErrors({ general: message });
+      toastError(message, 'Authentication Failed');
     } finally {
       setIsSubmitting(false);
     }

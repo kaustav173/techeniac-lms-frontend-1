@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useUpdateBatchStatusMutation } from '@/hooks/useBatches';
+import { useToast } from '@/hooks/useToast';
 import {
   ALLOWED_STATUS_TRANSITIONS,
   type BatchStatus,
@@ -45,6 +46,7 @@ export function BatchStatusModal({
       : (allowedNextStatuses[0] ?? currentStatus);
 
   const { mutateAsync: updateStatus, isPending: isSubmitting } = useUpdateBatchStatusMutation();
+  const { toastSuccess, toastError } = useToast();
 
   if (!isOpen) return null;
 
@@ -69,11 +71,13 @@ export function BatchStatusModal({
         newStatus: result.data.newStatus,
         reason: result.data.reason,
       });
+      toastSuccess(`Batch "${batchName}" is now ${result.data.newStatus}.`, 'Status Updated');
       onSuccess(batchId, result.data);
       onClose();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to update batch status.';
       setError(message);
+      toastError(message, 'Status Update Failed');
     }
   };
 

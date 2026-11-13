@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
+import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/cn';
 import { formatErrorMessage } from '@/lib/errors';
 import type { Course, CourseImpact } from '@/types/courses';
@@ -145,6 +146,7 @@ interface CourseLibraryViewProps {
 export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { toastSuccess, toastError } = useToast();
 
   const [search, setSearch] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -303,13 +305,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
         isActive: newIsActive,
       });
 
+      toastSuccess(`Course "${created.title}" created successfully.`, 'Course Created');
       setIsCreateModalOpen(false);
       setNewTitle('');
       setNewDescription('');
       resetDuration(2400);
       router.push(`/${portal}/courses/${created.id}/builder`);
     } catch (err: unknown) {
-      setCreateError(formatErrorMessage(err, 'Failed to create course'));
+      const msg = formatErrorMessage(err, 'Failed to create course');
+      setCreateError(msg);
+      toastError(msg, 'Creation Failed');
     } finally {
       setIsSubmittingCreate(false);
     }
@@ -350,11 +355,16 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
     try {
       if (modalActionType === 'DELETE') {
         await deleteCourse(activeActionCourse.id);
+        toastSuccess(`Course "${activeActionCourse.title}" deleted.`, 'Course Deleted');
       } else if (modalActionType === 'TOGGLE_STATUS') {
         await toggleCourseStatus(
           activeActionCourse.id,
           !activeActionCourse.isActive,
           activeActionCourse.updatedAt,
+        );
+        toastSuccess(
+          `Course "${activeActionCourse.title}" is now ${!activeActionCourse.isActive ? 'active' : 'inactive'}.`,
+          'Status Updated',
         );
       }
       setActiveActionCourse(null);
@@ -362,7 +372,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       setCourseImpact(null);
       setImpactStatus('idle');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Action failed');
+      const msg = err instanceof Error ? err.message : 'Action failed';
+      toastError(msg, 'Action Failed');
     } finally {
       setIsActionSubmitting(false);
     }
