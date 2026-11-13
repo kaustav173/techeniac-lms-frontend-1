@@ -6,11 +6,12 @@ import {
   type DragEndEvent,
   KeyboardSensor,
   MouseSensor,
+  pointerWithin,
   TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -572,12 +573,27 @@ export function CourseOutlineTree({
 
   // Local reorder buffering state
   const [topics, setTopics] = useState<Topic[]>(() =>
-    [...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder),
+    [...(course.topics || [])]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((t, idx) => ({
+        ...t,
+        displayOrder: idx,
+        subtopics: t.subtopics
+          ? [...t.subtopics]
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((s, sIdx) => ({ ...s, displayOrder: sIdx }))
+          : [],
+        assignments: t.assignments
+          ? [...t.assignments]
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((a, aIdx) => ({ ...a, displayOrder: aIdx }))
+          : [],
+      })),
   );
   const [courseAssignments, setCourseAssignments] = useState<Assignment[]>(() =>
-    [...(course.courseAssignments || course.assignments || [])].sort(
-      (a, b) => a.displayOrder - b.displayOrder,
-    ),
+    [...(course.courseAssignments || course.assignments || [])]
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .map((a, idx) => ({ ...a, displayOrder: idx })),
   );
   const [isOrderDirty, setIsOrderDirty] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
@@ -589,11 +605,28 @@ export function CourseOutlineTree({
   if (prevCourse !== course) {
     setPrevCourse(course);
     if (!isOrderDirty) {
-      setTopics([...(course.topics || [])].sort((a, b) => a.displayOrder - b.displayOrder));
+      setTopics(
+        [...(course.topics || [])]
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map((t, idx) => ({
+            ...t,
+            displayOrder: idx,
+            subtopics: t.subtopics
+              ? [...t.subtopics]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map((s, sIdx) => ({ ...s, displayOrder: sIdx }))
+              : [],
+            assignments: t.assignments
+              ? [...t.assignments]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map((a, aIdx) => ({ ...a, displayOrder: aIdx }))
+              : [],
+          })),
+      );
       setCourseAssignments(
-        [...(course.courseAssignments || course.assignments || [])].sort(
-          (a, b) => a.displayOrder - b.displayOrder,
-        ),
+        [...(course.courseAssignments || course.assignments || [])]
+          .sort((a, b) => a.displayOrder - b.displayOrder)
+          .map((a, idx) => ({ ...a, displayOrder: idx })),
       );
     }
   }
@@ -690,6 +723,14 @@ export function CourseOutlineTree({
     };
   }, [activeMenuId]);
 
+  const collisionDetectionStrategy = (args: Parameters<typeof closestCenter>[0]) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    return closestCenter(args);
+  };
+
   const toggleCollapse = (topicId: string) => {
     setCollapsedTopics((prev) => ({ ...prev, [topicId]: !prev[topicId] }));
   };
@@ -708,7 +749,10 @@ export function CourseOutlineTree({
       const oldIndex = topics.findIndex((t) => t.id === active.id);
       const newIndex = topics.findIndex((t) => t.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reordered = arrayMove(topics, oldIndex, newIndex);
+        const reordered = arrayMove(topics, oldIndex, newIndex).map((t, idx) => ({
+          ...t,
+          displayOrder: idx,
+        }));
         setTopics(reordered);
         if (onOutlineReorder) {
           setIsOrderDirty(true);
@@ -740,7 +784,10 @@ export function CourseOutlineTree({
         const oldIndex = currentSubtopics.findIndex((s) => s.id === active.id);
         const newIndex = currentSubtopics.findIndex((s) => s.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex);
+          const reordered = arrayMove(currentSubtopics, oldIndex, newIndex).map((s, idx) => ({
+            ...s,
+            displayOrder: idx,
+          }));
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, subtopics: reordered } : t)),
           );
@@ -776,7 +823,10 @@ export function CourseOutlineTree({
         const oldIndex = currentAssignments.findIndex((a) => a.id === active.id);
         const newIndex = currentAssignments.findIndex((a) => a.id === over.id);
         if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(currentAssignments, oldIndex, newIndex);
+          const reordered = arrayMove(currentAssignments, oldIndex, newIndex).map((a, idx) => ({
+            ...a,
+            displayOrder: idx,
+          }));
           setTopics((prev) =>
             prev.map((t) => (t.id === targetTopicId ? { ...t, assignments: reordered } : t)),
           );
@@ -801,7 +851,10 @@ export function CourseOutlineTree({
       const oldIndex = courseAssignments.findIndex((a) => a.id === active.id);
       const newIndex = courseAssignments.findIndex((a) => a.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reordered = arrayMove(courseAssignments, oldIndex, newIndex);
+        const reordered = arrayMove(courseAssignments, oldIndex, newIndex).map((a, idx) => ({
+          ...a,
+          displayOrder: idx,
+        }));
         setCourseAssignments(reordered);
         if (onOutlineReorder) {
           setIsOrderDirty(true);
@@ -821,8 +874,8 @@ export function CourseOutlineTree({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
-      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      collisionDetection={collisionDetectionStrategy}
+      modifiers={[restrictToVerticalAxis]}
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full flex-col border-b border-slate-200 bg-slate-50/60 lg:border-r lg:border-b-0">
@@ -945,12 +998,8 @@ export function CourseOutlineTree({
                         const isCollapsed = collapsedTopics[topic.id] ?? false;
                         const isSelected =
                           selectedNode.type === 'TOPIC' && selectedNode.id === topic.id;
-                        const subtopics = [...(topic.subtopics || [])].sort(
-                          (a, b) => a.displayOrder - b.displayOrder,
-                        );
-                        const topicAssignments = [...(topic.assignments || [])].sort(
-                          (a, b) => a.displayOrder - b.displayOrder,
-                        );
+                        const subtopics = topic.subtopics || [];
+                        const topicAssignments = topic.assignments || [];
 
                         const isReorderingSubtopicsThisTopic = Boolean(
                           reorderingSubtopicTopicIds?.includes(topic.id),

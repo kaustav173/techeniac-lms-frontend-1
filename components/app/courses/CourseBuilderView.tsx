@@ -1191,11 +1191,11 @@ function CourseBuilderContent({
           </div>
         </div>
 
-        {/* Dual Pane Layout: 330px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
+        {/* Dual Pane Layout: 420px/460px Left Tree + Fluid Right Editor on lg+; Switched tabs on <lg */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Pane: Outline Tree */}
           <div
-            className={`w-full lg:flex lg:w-[330px] lg:flex-none lg:flex-col ${
+            className={`w-full lg:flex lg:w-[420px] lg:flex-none lg:flex-col xl:w-[460px] ${
               mobileTab === 'outline' ? 'flex flex-1 flex-col overflow-hidden' : 'hidden'
             }`}
           >
