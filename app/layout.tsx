@@ -4,9 +4,11 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
 import { AgentationToolbar } from '@/components/layout/AgentationToolbar';
+import { ToastContainer } from '@/components/patterns/ToastContainer';
 import { AuthProvider } from '@/context/AuthContext';
 import { QueryProvider } from '@/context/QueryProvider';
 import { SidebarProvider } from '@/context/SidebarContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 const plusJakartaSans = localFont({
   src: [
@@ -46,10 +48,13 @@ export default function RootLayout({
         className={`${plusJakartaSans.className} flex min-h-full flex-col bg-white font-sans text-slate-900`}
       >
         <QueryProvider>
-          <AuthProvider>
-            <SidebarProvider>{children}</SidebarProvider>
-            <AgentationToolbar />
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <SidebarProvider>{children}</SidebarProvider>
+              <AgentationToolbar />
+            </AuthProvider>
+            <ToastContainer />
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

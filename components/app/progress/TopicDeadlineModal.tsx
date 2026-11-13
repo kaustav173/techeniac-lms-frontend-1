@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Span } from '@/components/ui/Typography';
 import { useUpdateTopicDeadlineMutation } from '@/hooks/useProgress';
+import { useToast } from '@/hooks/useToast';
 import { toISTDateInputValue } from '@/lib/date';
 
 export interface TopicDeadlineModalProps {
@@ -51,6 +52,7 @@ function TopicDeadlineModalDialog({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const deadlineMutation = useUpdateTopicDeadlineMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const minDate = toISTDateInputValue(allocationStartDate);
   const maxDate = toISTDateInputValue(allocationDueDate);
@@ -91,10 +93,15 @@ function TopicDeadlineModalDialog({
         topicId,
         payload: { deadline: isoDeadline },
       });
+      toastSuccess(`Target deadline for "${topicTitle}" updated.`, 'Deadline Updated');
       onSuccess?.();
       onClose();
     } catch (err) {
       setErrorMsg(err);
+      toastError(
+        err instanceof Error ? err.message : 'Failed to update topic deadline.',
+        'Update Failed',
+      );
     }
   };
 

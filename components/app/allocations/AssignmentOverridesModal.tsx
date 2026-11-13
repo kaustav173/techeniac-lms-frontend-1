@@ -17,6 +17,7 @@ import {
   useSetAssignmentOverrideMutation,
 } from '@/hooks/useAllocations';
 import { useCourseDetail } from '@/hooks/useCourses';
+import { useToast } from '@/hooks/useToast';
 
 export interface AssignmentOverridesModalProps {
   readonly allocation: CourseAllocation | null;
@@ -42,6 +43,7 @@ export function AssignmentOverridesModal({
   const { data: courseDetail } = useCourseDetail(allocation?.courseId ?? '');
 
   const setOverrideMutation = useSetAssignmentOverrideMutation();
+  const { toastSuccess, toastError } = useToast();
 
   // Flatten course-level and topic-level assignments
   const allAssignments = useMemo(
@@ -99,11 +101,16 @@ export function AssignmentOverridesModal({
           dueDate: new Date(overrideDueDate).toISOString(),
         },
       });
+      toastSuccess('Assignment due date override saved.', 'Override Saved');
       setSelectedAssignmentId('');
       setOverrideDueDate('');
       onSuccess?.();
     } catch (err: unknown) {
       setErrorMsg(err);
+      toastError(
+        err instanceof Error ? err.message : 'Failed to save override.',
+        'Override Failed',
+      );
     }
   };
 

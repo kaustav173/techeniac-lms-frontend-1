@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 
+import { NotificationDropdown } from '@/components/layout/NotificationDropdown';
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -333,6 +334,9 @@ function HeaderInner({
               </Button>
             </div>
           ) : null}
+
+          {/* Notification Center Bell Dropdown */}
+          <NotificationDropdown />
 
           <div className="relative" ref={profileDropdownRef}>
             {isLoading || !user ? (
@@ -770,8 +774,9 @@ export function HeaderSkeleton({ title = 'Dashboard' }: { title?: string }) {
           </Span>
         </div>
 
-        {/* Right side: Loading User Profile Pill */}
+        {/* Right side: Notification Button Skeleton & Loading User Profile Pill */}
         <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
           <div
             className="flex items-center gap-2.5 rounded-full border border-[#E1E6EC] bg-white py-1.5 pr-3.5 pl-1.5 shadow-2xs"
             aria-label="Loading profile"

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { P, Span } from '@/components/ui/Typography';
 import { useAddBatchMembersMutation } from '@/hooks/useBatches';
+import { useToast } from '@/hooks/useToast';
 import { userKeys, useUsers } from '@/hooks/useUsers';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
@@ -132,6 +133,7 @@ export function AddMemberModal({
   );
 
   const { mutateAsync: addMembers, isPending: isSubmitting } = useAddBatchMembersMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const handleRoleChange = (newRole: 'MENTEE' | 'MENTOR') => {
     if (isArchived) return;
@@ -180,6 +182,10 @@ export function AddMemberModal({
         userIds: selectedUserIds,
         memberRole: role,
       });
+      toastSuccess(
+        `Enrolled ${selectedUserIds.length} ${role.toLowerCase()}${selectedUserIds.length === 1 ? '' : 's'} into ${batchName}.`,
+        'Members Enrolled',
+      );
       void queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       setSelectedUserIds([]);
       setSearch('');
@@ -188,6 +194,10 @@ export function AddMemberModal({
       onClose();
     } catch (err: unknown) {
       setSubmitError(err);
+      toastError(
+        err instanceof Error ? err.message : 'Failed to add members to batch.',
+        'Enrollment Failed',
+      );
     }
   };
 

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useSubmitAssignment } from '@/hooks/useSubmissions';
+import { useToast } from '@/hooks/useToast';
 import { formatDateTimeIST, isDatePast } from '@/lib/date';
 import { isSafeHttpUrl } from '@/lib/url';
 import type { BatchStatus } from '@/lib/validation/batch.schemas';
@@ -82,6 +83,7 @@ export function AssignmentSubmissionForm({
   const [clientErrorMsg, setClientErrorMsg] = useState<string | null>(null);
 
   const submitMutation = useSubmitAssignment();
+  const { toastSuccess, toastError } = useToast();
 
   // Auto-dismiss success notification after 5 seconds
   useEffect(() => {
@@ -175,9 +177,14 @@ export function AssignmentSubmissionForm({
       setClientErrors({});
       setClientErrorMsg(null);
 
+      toastSuccess(
+        `Assignment "${assignment.title}" submitted successfully.`,
+        'Submission Received',
+      );
       onSuccess?.(result);
-    } catch {
-      // Handled by TanStack mutation state
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit assignment.';
+      toastError(msg, 'Submission Failed');
     }
   };
 

@@ -4,11 +4,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AuthContextValue } from '@/context/AuthContext';
+import { useToastContext } from '@/context/ToastContext';
 import { ApiError } from '@/lib/errors';
 import { authService, type AuthUser } from '@/services/auth.service';
 
 export function useAuthProvider(): AuthContextValue {
   const queryClient = useQueryClient();
+  const { clearAllNotifications } = useToastContext();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
@@ -61,6 +63,7 @@ export function useAuthProvider(): AuthContextValue {
       try {
         // Reset in-memory query cache for current tab session upon login
         queryClient.clear();
+        clearAllNotifications();
         const data = await authService.login(credentials);
         setUser(data.user);
         setSessionError(null);
@@ -69,7 +72,7 @@ export function useAuthProvider(): AuthContextValue {
         setIsLoading(false);
       }
     },
-    [queryClient],
+    [queryClient, clearAllNotifications],
   );
 
   const logout = useCallback(async () => {
@@ -77,9 +80,10 @@ export function useAuthProvider(): AuthContextValue {
     await authService.logout();
     // Reset in-memory query cache for current tab session upon logout
     queryClient.clear();
+    clearAllNotifications();
     setUser(null);
     setSessionError(null);
-  }, [queryClient]);
+  }, [queryClient, clearAllNotifications]);
 
   const updateProfile = useCallback(async (name: string): Promise<AuthUser> => {
     const updatedUser = await authService.updateProfile(name);

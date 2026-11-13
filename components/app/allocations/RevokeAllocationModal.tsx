@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { P, Span } from '@/components/ui/Typography';
 import { type CourseAllocation, useRevokeAllocationMutation } from '@/hooks/useAllocations';
+import { useToast } from '@/hooks/useToast';
 
 export interface RevokeAllocationModalProps {
   readonly allocation: CourseAllocation | null;
@@ -23,6 +24,7 @@ export function RevokeAllocationModal({
 }: RevokeAllocationModalProps) {
   const [errorMsg, setErrorMsg] = useState<unknown>(null);
   const revokeMutation = useRevokeAllocationMutation();
+  const { toastSuccess, toastError } = useToast();
 
   if (!allocation) return null;
 
@@ -30,10 +32,13 @@ export function RevokeAllocationModal({
     setErrorMsg(null);
     try {
       await revokeMutation.mutateAsync(allocation.id);
+      toastSuccess(`Allocation for "${allocation.course?.title}" revoked.`, 'Allocation Revoked');
       onSuccess?.();
       onClose();
     } catch (err: unknown) {
       setErrorMsg(err);
+      const msg = err instanceof Error ? err.message : 'Failed to revoke allocation.';
+      toastError(msg, 'Revocation Failed');
     }
   };
 

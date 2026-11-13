@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Span } from '@/components/ui/Typography';
 import { useCreateBatchMutation } from '@/hooks/useBatches';
+import { useToast } from '@/hooks/useToast';
 import { toISTDateInputValue } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
 import { type CreateBatchFormData, createBatchSchema } from '@/lib/validation';
@@ -199,6 +200,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
+  const { toastSuccess, toastError } = useToast();
 
   if (!isOpen) return null;
 
@@ -242,10 +244,15 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
 
     try {
       await createBatch(result.data);
+      toastSuccess(`Batch "${result.data.name}" created successfully.`, 'Batch Created');
       onSuccess(result.data);
       onClose();
     } catch (err: unknown) {
-      setErrors(parseApiErrors(err));
+      const apiErrors = parseApiErrors(err);
+      setErrors(apiErrors);
+      if (apiErrors.general) {
+        toastError(apiErrors.general, 'Batch Creation Failed');
+      }
     }
   };
 

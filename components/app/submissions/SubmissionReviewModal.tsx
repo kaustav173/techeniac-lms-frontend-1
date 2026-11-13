@@ -15,6 +15,7 @@ import {
   useRequestResubmissionMutation,
   useReviewDetails,
 } from '@/hooks/useGrading';
+import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
 import { ApiError } from '@/lib/errors';
@@ -47,6 +48,7 @@ function SubmissionReviewContent({
 
   const gradeMutation = useGradeSubmissionMutation();
   const resubmitMutation = useRequestResubmissionMutation();
+  const { toastSuccess, toastError } = useToast();
 
   const [activeTab, setActiveTab] = useState<'grade' | 'resubmit'>('grade');
   const [marks, setMarks] = useState<string>(
@@ -80,9 +82,11 @@ function SubmissionReviewContent({
         },
       });
       setActionSuccess('Marks saved successfully');
+      toastSuccess('Marks saved successfully.', 'Marks Updated');
       setIsEditingExisting(false);
-    } catch {
-      // Handled by mutation error state
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save marks.';
+      toastError(msg, 'Marks Update Failed');
     } finally {
       isSubmittingGradeRef.current = false;
     }
@@ -102,8 +106,10 @@ function SubmissionReviewContent({
         },
       });
       setActionSuccess('Resubmission requested successfully');
-    } catch {
-      // Handled by mutation error state
+      toastSuccess('Resubmission requested successfully.', 'Resubmission Requested');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to request resubmission.';
+      toastError(msg, 'Request Failed');
     } finally {
       isSubmittingResubmitRef.current = false;
     }
