@@ -640,14 +640,25 @@ export function SubtopicEditor({
                   triggerClassName="h-10 rounded-xl border-slate-300 px-3 text-sm"
                 />
               </div>
-              <div className="sm:col-span-1">
+              <div className="flex sm:col-span-1 sm:justify-center">
                 <Button
                   type="button"
                   onClick={handleAddResource}
-                  className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
+                  aria-label="Add resource"
+                  title="Add resource"
+                  className="flex h-10 w-full shrink-0 items-center justify-center rounded-full bg-[#0044D3] p-0 text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] sm:w-10"
                 >
-                  <Span className="sm:hidden">+ Add</Span>
-                  <Span className="hidden sm:inline">+</Span>
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <Span className="ml-1.5 text-sm font-semibold sm:hidden">Add Resource</Span>
                 </Button>
               </div>
             </div>
