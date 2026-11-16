@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { FieldError } from '@/components/ui/FieldError';
-import { CheckIcon } from '@/components/ui/Icons';
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from '@/components/ui/Icons';
 import { Label } from '@/components/ui/Label';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
@@ -437,7 +437,8 @@ function AssignCourseModalDialog({
                 onClick={handleBack}
                 disabled={createMutation.isPending}
               >
-                ← Back
+                <ArrowLeftIcon className="h-4 w-4" />
+                <Span>Back</Span>
               </Button>
             ) : null}
           </div>
@@ -455,7 +456,8 @@ function AssignCourseModalDialog({
 
             {currentStep < 3 ? (
               <Button type="button" variant="primary" size="sm" onClick={handleNext}>
-                Next Step →
+                <Span>Next Step</Span>
+                <ArrowRightIcon className="h-4 w-4" />
               </Button>
             ) : (
               <Button

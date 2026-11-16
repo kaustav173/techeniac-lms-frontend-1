@@ -10,7 +10,7 @@ export default function AdminPerformancePage() {
     <PerformanceDashboardShell
       navConfig={ADMIN_PERFORMANCE_NAV}
       role="SUPER_ADMIN"
-      title="Performance Analytics & Mentee Metrics"
+      title="Performance"
       description="System-wide course performance, marks distribution, on-time delivery rates, and overdue monitoring (FR-11.1, FR-11.2, FR-11.6)."
     />
   );

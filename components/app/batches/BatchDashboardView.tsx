@@ -725,7 +725,7 @@ export function BatchDashboardView({
               <H3 className="mt-3 text-base font-bold text-slate-800">No Members Enrolled Yet</H3>
             </div>
           ) : (
-            <TableContainer>
+            <TableContainer className="rounded-none border-0 shadow-none">
               <Table>
                 <TableHeader>
                   <TableRow>
