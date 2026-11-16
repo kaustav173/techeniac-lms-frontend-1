@@ -886,6 +886,86 @@ export function CourseOutlineTree({
   }, [activeMenuId]);
 
   const collisionDetectionStrategy = (args: Parameters<typeof closestCenter>[0]) => {
+    const { active, droppableContainers } = args;
+    const activeData = active.data.current as
+      | { type?: 'TOPIC' | 'SUBTOPIC' | 'TOPIC_ASSIGNMENT' | 'COURSE_ASSIGNMENT'; topicId?: string }
+      | undefined;
+    const activeType = activeData?.type;
+
+    if (activeType === 'SUBTOPIC') {
+      const activeTopicId = activeData?.topicId;
+      const filteredContainers = droppableContainers.filter((c) => {
+        const cData = c.data.current as { type?: string; topicId?: string } | undefined;
+        return cData?.type === 'SUBTOPIC' && cData?.topicId === activeTopicId;
+      });
+      const pointerCollisions = pointerWithin({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+      if (pointerCollisions.length > 0) {
+        return pointerCollisions;
+      }
+      return closestCenter({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+    }
+
+    if (activeType === 'TOPIC_ASSIGNMENT') {
+      const activeTopicId = activeData?.topicId;
+      const filteredContainers = droppableContainers.filter((c) => {
+        const cData = c.data.current as { type?: string; topicId?: string } | undefined;
+        return cData?.type === 'TOPIC_ASSIGNMENT' && cData?.topicId === activeTopicId;
+      });
+      const pointerCollisions = pointerWithin({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+      if (pointerCollisions.length > 0) {
+        return pointerCollisions;
+      }
+      return closestCenter({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+    }
+
+    if (activeType === 'COURSE_ASSIGNMENT') {
+      const filteredContainers = droppableContainers.filter((c) => {
+        const cData = c.data.current as { type?: string; topicId?: string } | undefined;
+        return cData?.type === 'COURSE_ASSIGNMENT';
+      });
+      const pointerCollisions = pointerWithin({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+      if (pointerCollisions.length > 0) {
+        return pointerCollisions;
+      }
+      return closestCenter({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+    }
+
+    if (activeType === 'TOPIC') {
+      const filteredContainers = droppableContainers.filter((c) => {
+        const cData = c.data.current as { type?: string; topicId?: string } | undefined;
+        return cData?.type === 'TOPIC';
+      });
+      const pointerCollisions = pointerWithin({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+      if (pointerCollisions.length > 0) {
+        return pointerCollisions;
+      }
+      return closestCenter({
+        ...args,
+        droppableContainers: filteredContainers,
+      });
+    }
+
     const pointerCollisions = pointerWithin(args);
     if (pointerCollisions.length > 0) {
       return pointerCollisions;
@@ -1038,6 +1118,10 @@ export function CourseOutlineTree({
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
       modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      autoScroll={{
+        threshold: { x: 0, y: 0.15 },
+        acceleration: 10,
+      }}
       onDragEnd={handleDragEnd}
     >
       <div className="flex h-full flex-col border-b border-slate-200 bg-slate-50/60 lg:border-r lg:border-b-0">
@@ -1088,7 +1172,7 @@ export function CourseOutlineTree({
         )}
 
         {/* Tree Content with comfortable scroll area */}
-        <div className="flex-1 [scrollbar-gutter:stable] space-y-3.5 overflow-y-auto p-3.5 pb-24">
+        <div className="flex-1 [scrollbar-gutter:stable] space-y-3.5 overflow-y-auto scroll-smooth p-3.5 pb-24">
           {/* 1. Topics Card Section */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
