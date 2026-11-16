@@ -132,14 +132,11 @@ export function MapMenteeModal({
       return mentors;
     }
     return mentors.filter((m) => {
-      if (targetMentee.currentMentorId && m.id === targetMentee.currentMentorId) {
-        return false;
+      if (targetMentee.currentMentorId) {
+        return m.id !== targetMentee.currentMentorId;
       }
-      if (
-        targetMentee.currentMentorName &&
-        m.name.trim().toLowerCase() === targetMentee.currentMentorName.trim().toLowerCase()
-      ) {
-        return false;
+      if (targetMentee.currentMentorName) {
+        return m.name.trim().toLowerCase() !== targetMentee.currentMentorName.trim().toLowerCase();
       }
       return true;
     });
@@ -292,9 +289,8 @@ export function MapMenteeModal({
 
         {/* Mentor Selection */}
         <div className="space-y-1.5">
-          <Label htmlFor="target-mentor">
-            {isReassign ? 'Select New Mentor' : 'Select Active Mentor'}{' '}
-            <Span className="text-red-500">*</Span>
+          <Label htmlFor="target-mentor" required>
+            {isReassign ? 'Select New Mentor' : 'Select Active Mentor'}
           </Label>
           {eligibleMentors.length === 0 ? (
             <Alert
