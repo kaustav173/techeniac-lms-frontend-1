@@ -214,7 +214,7 @@ function SortableTopicItem({
               />
             </svg>
             <Span
-              className={`truncate text-sm font-bold sm:text-base ${
+              className={`truncate text-sm font-bold ${
                 isSelected ? 'text-blue-950' : 'text-slate-900'
               }`}
             >
