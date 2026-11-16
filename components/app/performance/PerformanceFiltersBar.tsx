@@ -257,6 +257,7 @@ export function PerformanceFiltersBar({
             isSearching={isFetchingBatches && !isFetchingNextBatches && Boolean(batchSearch.trim())}
             isLoadingMore={isFetchingNextBatches}
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[165px] sm:w-[165px]"
           />
         </div>
 
@@ -277,6 +278,7 @@ export function PerformanceFiltersBar({
             }
             isLoadingMore={isFetchingNextCourses}
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[165px] sm:w-[165px]"
           />
         </div>
 
@@ -291,6 +293,7 @@ export function PerformanceFiltersBar({
             align="right"
             className="w-full"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[165px] sm:w-[165px]"
           />
         </div>
 

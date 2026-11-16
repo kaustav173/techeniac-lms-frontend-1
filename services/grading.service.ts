@@ -30,7 +30,9 @@ export const gradingService = {
     signal?: AbortSignal,
   ): Promise<PaginatedSubmissionQueueResponse> {
     const params: Record<string, string | number | boolean | undefined> = {};
-    if (query?.status) params.status = query.status;
+    if (query?.status) {
+      params.status = Array.isArray(query.status) ? query.status.join(',') : query.status;
+    }
     if (query?.batchId) params.batchId = query.batchId;
     if (query?.menteeId) params.menteeId = query.menteeId;
     if (query?.courseId) params.courseId = query.courseId;

@@ -354,6 +354,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             isLoadingMore={isFetchingNextCourses}
             className="w-full shrink-0 sm:w-44"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[140px] sm:w-[140px]"
           />
 
           {/* Batch Filter Dropdown */}
@@ -371,6 +372,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             isLoadingMore={isFetchingNextBatches}
             className="w-full shrink-0 sm:w-44"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[140px] sm:w-[140px]"
           />
 
           {/* Status Filter Dropdown */}
@@ -381,6 +383,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             onChange={handleStatusFilter}
             className="w-full shrink-0 sm:w-[167px]"
             buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="sm:min-w-[140px] sm:w-[140px]"
           />
 
           {/* Circular Red Cross Clear Button */}
@@ -559,7 +562,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   >
                     <TableCell className="py-3.5 pr-4 pl-6 align-middle">
                       <P
-                        className="max-w-[200px] truncate font-semibold text-[#111827] transition-all hover:overflow-visible hover:whitespace-normal"
+                        className="max-w-[160px] truncate font-semibold text-[#111827]"
                         title={alloc.course?.title ?? 'Untitled Course'}
                       >
                         {alloc.course?.title ?? 'Untitled Course'}

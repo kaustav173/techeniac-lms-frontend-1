@@ -385,8 +385,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     selectedBatchOptions.length > 0 ||
     selectedCourseOptions.length > 0 ||
     selectedStatusOptions.length > 0 ||
-    sortField !== 'createdAt' ||
-    sortOrder !== 'desc' ||
     batchSearch.trim() ||
     courseSearch.trim() ||
     search.trim(),
@@ -459,31 +457,31 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   menuClassName="sm:min-w-[172px] sm:w-[172px]"
                 />
               </div>
-            </div>
 
-            {/* Clear Filters (Cross Icon Button - appears only when any filter is active) */}
-            {hasActiveFilters && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetFilters}
-                title="Clear all filters"
-                aria-label="Clear all filters"
-                className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
+              {/* Clear Filters (Cross Icon Button - appears immediately adjacent to filters) */}
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetFilters}
+                  title="Clear all filters"
+                  aria-label="Clear all filters"
+                  className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            )}
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Error Banner */}

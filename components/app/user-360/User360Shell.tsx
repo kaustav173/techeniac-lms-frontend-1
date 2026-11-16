@@ -43,6 +43,8 @@ const AUDIT_TYPE_OPTIONS: readonly SingleSelectOption<string>[] = [
 
 interface User360ShellProps {
   userId: string;
+  backHref?: string;
+  backLabel?: string;
 }
 
 type TabKey =
@@ -133,7 +135,11 @@ export function User360Skeleton() {
   );
 }
 
-export function User360Shell({ userId }: User360ShellProps) {
+export function User360Shell({
+  userId,
+  backHref = '/admin/users',
+  backLabel = 'Back to Users',
+}: User360ShellProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [filters, setFilters] = useState<User360FilterState>({});
   const [isExporting, setIsExporting] = useState(false);
@@ -237,7 +243,7 @@ export function User360Shell({ userId }: User360ShellProps) {
           <div className="min-w-0 flex-1">
             <div className="mb-3">
               <Link
-                href="/admin/users"
+                href={backHref}
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
                 <svg
@@ -253,7 +259,7 @@ export function User360Shell({ userId }: User360ShellProps) {
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                <Span>Back to Users</Span>
+                <Span>{backLabel}</Span>
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-3">

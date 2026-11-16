@@ -421,6 +421,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 setPage(1);
               }}
               align="left"
+              className="w-full sm:w-[137px]"
+              buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs sm:w-[137px]"
+              menuClassName="sm:min-w-[137px] sm:w-[137px]"
             />
 
             {/* Circular Red Cross Clear Button */}
@@ -972,26 +975,25 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
 
           <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
             <Span className="text-xs font-bold text-slate-800">Initial Active State</Span>
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               role="switch"
               aria-checked={newIsActive}
               aria-label="Course active status"
               onClick={() => setNewIsActive(!newIsActive)}
               className={cn(
-                'relative !inline-flex !h-6 !w-11 shrink-0 cursor-pointer items-center !rounded-full !border-2 !border-transparent !p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500',
-                newIsActive ? '!bg-emerald-600' : '!bg-slate-300',
+                'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2',
+                newIsActive ? 'bg-emerald-600 shadow-xs' : 'bg-slate-300',
               )}
             >
-              <Span
+              <span
+                aria-hidden="true"
                 className={cn(
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out',
                   newIsActive ? 'translate-x-5' : 'translate-x-0',
                 )}
               />
-            </Button>
+            </button>
           </div>
         </form>
       </Modal>
