@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Form } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { P, Span } from '@/components/ui/Typography';
 import { useMapMenteesMutation, useReassignMenteeMutation } from '@/hooks/useBatches';
 import { useToast } from '@/hooks/useToast';
@@ -37,7 +37,14 @@ export interface MapMenteeModalProps {
   batchStatus?: BatchStatus | undefined;
   mentors: MentorOption[];
   targetMentee?:
-    { id: string; name: string; currentMentorName?: string | undefined } | null | undefined;
+    | {
+        id: string;
+        name: string;
+        currentMentorName?: string | undefined;
+        currentMentorId?: string | undefined;
+      }
+    | null
+    | undefined;
   unmappedMentees?: MenteeOption[] | undefined;
 }
 
@@ -119,7 +126,35 @@ export function MapMenteeModal({
 }: Readonly<MapMenteeModalProps>) {
   const isArchived = Boolean(batchStatus && isBatchLocked(batchStatus));
   const isReassign = Boolean(targetMentee?.currentMentorName);
-  const [selectedMentorId, setSelectedMentorId] = useState<string>(mentors[0]?.id || '');
+
+  const eligibleMentors = useMemo(() => {
+    if (!targetMentee?.currentMentorName && !targetMentee?.currentMentorId) {
+      return mentors;
+    }
+    return mentors.filter((m) => {
+      if (targetMentee.currentMentorId && m.id === targetMentee.currentMentorId) {
+        return false;
+      }
+      if (
+        targetMentee.currentMentorName &&
+        m.name.trim().toLowerCase() === targetMentee.currentMentorName.trim().toLowerCase()
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [mentors, targetMentee]);
+
+  const mentorOptions: readonly MultiSelectOption[] = useMemo(
+    () =>
+      eligibleMentors.map((m) => ({
+        value: m.id,
+        label: m.email ? `${m.name} (${m.email})` : m.name,
+      })),
+    [eligibleMentors],
+  );
+
+  const [selectedMentorId, setSelectedMentorId] = useState<string>('');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>(() =>
     targetMentee ? [targetMentee.id] : [],
   );
@@ -257,25 +292,37 @@ export function MapMenteeModal({
 
         {/* Mentor Selection */}
         <div className="space-y-1.5">
-          <Label htmlFor="target-mentor">Select Active Mentor</Label>
-          {mentors.length === 0 ? (
+          <Label htmlFor="target-mentor">
+            {isReassign ? 'Select New Mentor' : 'Select Active Mentor'}{' '}
+            <Span className="text-red-500">*</Span>
+          </Label>
+          {eligibleMentors.length === 0 ? (
             <Alert
               variant="warning"
-              message="No active mentors assigned to this batch. Please enroll a mentor first."
+              message={
+                isReassign
+                  ? 'No other active mentors assigned to this batch to reassign to. Please enroll another mentor first.'
+                  : 'No active mentors assigned to this batch. Please enroll a mentor first.'
+              }
             />
           ) : (
-            <Select
+            <MultiSelectDropdown
               id="target-mentor"
-              value={selectedMentorId}
+              label={isReassign ? 'Select New Mentor' : 'Select Active Mentor'}
+              placeholder="-- Choose active mentor --"
+              options={mentorOptions}
+              selectedValues={selectedMentorId ? [selectedMentorId] : []}
+              onChange={(vals) => {
+                setSelectedMentorId(vals[0] ?? '');
+                setError(null);
+              }}
+              singleSelect={true}
+              align="left"
+              className="w-full min-w-0"
+              buttonClassName="h-10 text-xs"
+              usePortal={true}
               disabled={isSubmitting || isArchived}
-              onChange={(e) => setSelectedMentorId(e.target.value)}
-            >
-              {mentors.map((mentor) => (
-                <option key={mentor.id} value={mentor.id}>
-                  {mentor.name} ({mentor.email})
-                </option>
-              ))}
-            </Select>
+            />
           )}
         </div>
 

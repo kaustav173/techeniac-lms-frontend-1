@@ -27,6 +27,7 @@ export interface ApiBatchMemberItem {
   email: string;
   memberRole: 'MENTOR' | 'MENTEE';
   mappedToName?: string | undefined;
+  mappedToUserId?: string | undefined;
   joinedAt: string;
 }
 
@@ -247,6 +248,7 @@ export const batchesService = {
         email: m.user?.email ?? '',
         memberRole: 'MENTEE' as const,
         mappedToName: m.mappedToUser?.name,
+        mappedToUserId: m.mappedToUser?.id,
         joinedAt: toDateOnly(m.createdAt),
       })),
     ];
