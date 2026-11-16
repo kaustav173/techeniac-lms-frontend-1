@@ -224,6 +224,8 @@ export function AuditLogTable() {
               value={filters.startDate}
               onChange={(val) => handleFilterChange('startDate', val || undefined)}
               maxDate={filters.endDate}
+              rangeStart={filters.startDate}
+              rangeEnd={filters.endDate}
               placeholder="From date"
               className="h-11 text-sm"
             />
@@ -236,6 +238,8 @@ export function AuditLogTable() {
               value={filters.endDate}
               onChange={(val) => handleFilterChange('endDate', val || undefined)}
               minDate={filters.startDate}
+              rangeStart={filters.startDate}
+              rangeEnd={filters.endDate}
               placeholder="To date"
               className="h-11 text-sm"
             />
@@ -490,7 +494,7 @@ export function AuditLogTable() {
           totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
-          itemLabel="Audit Logs"
+          itemLabel="logs"
           isLoading={isLoading || isFetching}
         />
       </TableContainer>

@@ -2,29 +2,32 @@
 
 import React, { useState } from 'react';
 
+import { EditorFormShell } from '@/components/app/courses/EditorFormShell';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
-import { H2, H3, P, Span } from '@/components/ui/Typography';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
+import { H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
+import {
+  findDuplicateTitle,
+  isValidWebUrl,
+  RESOURCE_TYPE_OPTIONS,
+} from '@/lib/courses/courseUtils';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
-import type { CourseImpact, ResourceItem, Subtopic, UpdateSubtopicInput } from '@/types/courses';
-
-function isValidWebUrl(urlString: string): boolean {
-  try {
-    const trimmed = urlString.trim();
-    if (!trimmed) return false;
-    const url = new URL(trimmed);
-    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.length > 0;
-  } catch {
-    return false;
-  }
-}
+import type {
+  CourseImpact,
+  ResourceItem,
+  Subtopic,
+  Topic,
+  UpdateSubtopicInput,
+} from '@/types/courses';
 
 interface SubtopicEditorProps {
   subtopic: Subtopic;
+  existingTopics?: Topic[] | undefined;
   impact?: CourseImpact | null | undefined;
   courseEstimatedMinutes?: number | null | undefined;
   parentTopicTitle?: string | undefined;
@@ -37,6 +40,7 @@ interface SubtopicEditorProps {
 
 export function SubtopicEditor({
   subtopic,
+  existingTopics,
   impact,
   courseEstimatedMinutes = null,
   parentTopicTitle,
@@ -120,8 +124,24 @@ export function SubtopicEditor({
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       setErrorMsg('Subtopic title cannot be empty.');
+      return;
+    }
+
+    const parentTopic = existingTopics?.find((t) => t.subtopics?.some((s) => s.id === subtopic.id));
+    const duplicateSibling = findDuplicateTitle(parentTopic?.subtopics, trimmedTitle, subtopic.id);
+    if (duplicateSibling) {
+      setErrorMsg(`A subtopic with the title "${trimmedTitle}" already exists in this topic.`);
+      return;
+    }
+
+    const duplicateTopic = findDuplicateTitle(existingTopics, trimmedTitle);
+    if (duplicateTopic) {
+      setErrorMsg(
+        `A subtopic cannot share the same title "${trimmedTitle}" with a topic in this course.`,
+      );
       return;
     }
 
@@ -244,71 +264,43 @@ export function SubtopicEditor({
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
 
   return (
-    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
-      {/* Top Header Command Bar */}
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Subtopic Lesson Editor
-          </Span>
-          <H2 className="mt-1 text-2xl font-bold tracking-tight break-words text-slate-900 sm:text-3xl">
-            {subtopic.title}
-          </H2>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {saveSuccess && (
-            <Span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <Span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Saved Live
-            </Span>
-          )}
-
-          <Button
-            type="button"
-            disabled={isSaving}
-            isLoading={isSaving}
-            onClick={() => {
-              void handleSave();
-            }}
-            className="inline-flex items-center gap-2 rounded-full bg-[#0044D3] px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] disabled:opacity-50"
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      </div>
-
-      {affectedMentees > 0 && (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
-          <div className="flex items-center gap-2 text-sm font-bold">
-            <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
-            Impact Notice
-          </div>
-          <P className="mt-1 text-xs leading-relaxed text-amber-800">
-            This subtopic lesson is active for{' '}
-            <Span className="font-bold">{affectedMentees} mentees</Span>. Content saves update live
-            immediately.
-          </P>
-        </div>
-      )}
-
-      {errorMsg && (
-        <FieldError
-          error={errorMsg}
-          className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
-        />
-      )}
-
-      {/* Main Form Area */}
-      <form
-        noValidate
-        onSubmit={(e) => {
-          void handleSave(e);
+    <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto scroll-smooth bg-slate-50/50 p-4 sm:p-8">
+      <EditorFormShell
+        category={
+          parentTopicTitle
+            ? `Topic: ${parentTopicTitle} • Subtopic Lesson`
+            : 'Subtopic Lesson • Content'
+        }
+        title={title || subtopic.title}
+        isDirty={true}
+        isSaving={isSaving}
+        saveSuccess={saveSuccess}
+        onSave={() => {
+          void handleSave();
         }}
-        className="mt-6 w-full max-w-4xl space-y-6"
+        errorMsg={errorMsg}
+        notice={
+          affectedMentees > 0 ? (
+            <div className="mx-auto mt-5 w-full max-w-5xl rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+                Impact Notice
+              </div>
+              <P className="mt-1 text-xs leading-relaxed text-amber-800">
+                This subtopic lesson is active for{' '}
+                <Span className="font-bold">{affectedMentees} mentees</Span>. Content saves update
+                live immediately.
+              </P>
+            </div>
+          ) : null
+        }
       >
-        {/* Card 1: Core Lesson Information & Markdown */}
-        <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        {/* Section 1: Core Lesson Information & Markdown */}
+        <div className="space-y-5">
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Lesson Information</H3>
+          </div>
+
           <div>
             <Label
               required={true}
@@ -322,7 +314,7 @@ export function SubtopicEditor({
               hasError={Boolean(errorMsg && !title.trim())}
               onChange={(e) => handleChange(() => setTitle(e.target.value))}
               placeholder="e.g. Interactive Rebase and Squash Commits"
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
@@ -342,7 +334,7 @@ export function SubtopicEditor({
                       : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                   }`}
                 >
-                  Markdown Editor
+                  Editor
                 </Button>
                 <Button
                   type="button"
@@ -354,7 +346,7 @@ export function SubtopicEditor({
                       : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                   }`}
                 >
-                  Cadet Preview
+                  Preview
                 </Button>
               </div>
             </div>
@@ -364,12 +356,12 @@ export function SubtopicEditor({
                 rows={12}
                 value={content}
                 onChange={(e) => handleChange(() => setContent(e.target.value))}
-                placeholder="Enter markdown lesson content, instructions, command code blocks, diagrams..."
-                className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                placeholder="Enter markdown lesson content"
+                className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
               />
             ) : (
-              <div className="mt-2.5 min-h-[300px] rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-                {content ? (
+              <div className="mt-2.5 min-h-[300px] rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
+                {content.trim() ? (
                   <MarkdownViewer content={content} />
                 ) : (
                   <div className="flex h-36 items-center justify-center text-sm text-slate-400 italic">
@@ -382,15 +374,10 @@ export function SubtopicEditor({
           </div>
         </div>
 
-        {/* Card 2: Estimated Duration & Caps */}
-        <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Estimated Duration
-            </Label>
-            <P className="mt-0.5 text-xs text-slate-500">
-              Planned completion time for this subtopic lesson.
-            </P>
+        {/* Section 2: Estimated Duration & Caps */}
+        <div className="space-y-4 border-t border-slate-100 pt-7">
+          <div className="border-b border-slate-100 pb-3.5">
+            <H3 className="text-base font-bold text-slate-900">Estimated Duration</H3>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -492,14 +479,11 @@ export function SubtopicEditor({
           ) : null}
         </div>
 
-        {/* Card 3: Resources & Attachments Manager */}
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="flex items-center justify-between">
+        {/* Section 3: Resources & Attachments Manager */}
+        <div className="space-y-4 border-t border-slate-100 pt-7">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
               <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
-              <P className="mt-0.5 text-xs text-slate-500">
-                Supplementary links, documentation references, and download files.
-              </P>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
@@ -594,35 +578,42 @@ export function SubtopicEditor({
               />
             </div>
             <div className="sm:col-span-2">
-              <select
+              <SingleSelectDropdown<'LINK' | 'ATTACHMENT'>
                 value={newResourceType}
-                onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
-                className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-              >
-                <option value="LINK">LINK</option>
-                <option value="ATTACHMENT">FILE</option>
-              </select>
+                onChange={(val) => setNewResourceType(val)}
+                options={RESOURCE_TYPE_OPTIONS}
+                aria-label="Resource type"
+                triggerClassName="h-10 rounded-xl border-slate-300 px-3 text-sm"
+              />
             </div>
-            <div className="sm:col-span-1">
+            <div className="flex sm:col-span-1 sm:justify-center">
               <Button
                 type="button"
                 onClick={handleAddResource}
-                className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
+                aria-label="Add resource"
+                title="Add resource"
+                className="flex h-10 w-full shrink-0 items-center justify-center rounded-full bg-[#0044D3] p-0 text-white shadow-xs transition-colors hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199] sm:w-10"
               >
-                <Span className="sm:hidden">+ Add</Span>
-                <Span className="hidden sm:inline">+</Span>
+                <svg
+                  className="h-5 w-5 shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <Span className="ml-1.5 text-sm font-semibold sm:hidden">Add Resource</Span>
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Card 4: Visibility & Active Toggle */}
-        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+        {/* Section 4: Visibility & Active Toggle */}
+        <div className="flex items-center justify-between border-t border-slate-100 pt-7">
           <div>
             <Span className="block text-base font-bold text-slate-900">Subtopic Active Status</Span>
-            <Span className="mt-0.5 block text-xs text-slate-500">
-              When inactive, hidden from mentees and excluded from progress calculations.
-            </Span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -644,7 +635,7 @@ export function SubtopicEditor({
               aria-label="Subtopic active status"
               onClick={() => handleChange(() => setIsActive(!isActive))}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-                isActive ? 'bg-[#0044D3]' : 'bg-slate-300'
+                isActive ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
               }`}
             >
               <Span
@@ -656,7 +647,7 @@ export function SubtopicEditor({
             </Button>
           </div>
         </div>
-      </form>
+      </EditorFormShell>
     </div>
   );
 }
