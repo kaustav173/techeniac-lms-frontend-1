@@ -3,6 +3,15 @@
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { Span } from '@/components/ui/Typography';
 
 interface MarkdownViewerProps {
@@ -232,32 +241,32 @@ function BlockRenderer({ block }: { block: Block }) {
       );
     case 'table':
       return (
-        <div className="my-3.5 overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
-          <table className="w-full min-w-full divide-y divide-slate-200 text-left text-sm">
+        <TableContainer className="my-3 rounded-2xl border-slate-200">
+          <Table className="text-left text-xs sm:text-sm">
             {block.tableHeader && block.tableHeader.length > 0 && (
-              <thead className="bg-slate-50 text-xs font-bold text-slate-700 uppercase">
-                <tr>
+              <TableHeader className="border-b border-slate-200 bg-slate-50">
+                <TableRow>
                   {block.tableHeader.map((th, idx) => (
-                    <th key={idx} className="px-4 py-2.5 font-semibold text-slate-900">
+                    <TableHead key={idx} className="px-4 py-2.5 font-semibold text-slate-900">
                       {renderInline(th)}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
+                </TableRow>
+              </TableHeader>
             )}
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <TableBody className="divide-y divide-slate-100 bg-white">
               {(block.tableRows || []).map((row, rIdx) => (
-                <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                <TableRow key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                   {row.map((cell, cIdx) => (
-                    <td key={cIdx} className="px-4 py-2.5 text-xs text-slate-700">
+                    <TableCell key={cIdx} className="px-4 py-2.5 text-xs text-slate-700">
                       {renderInline(cell)}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       );
     case 'ul':
       return (
@@ -272,7 +281,8 @@ function BlockRenderer({ block }: { block: Block }) {
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    readOnly
+                    disabled
+                    aria-label={isChecked ? 'Completed task' : 'Incomplete task'}
                     className="h-4 w-4 rounded border-slate-300 text-[#0044D3]"
                   />
                   <span className={isChecked ? 'text-slate-400 line-through' : ''}>
@@ -366,20 +376,24 @@ export function MarkdownViewer({ content, className = '' }: MarkdownViewerProps)
           .map((c) => c.trim());
 
       const tableHeader = parseRow(line);
-      i += 2; // skip header and separator
-      const tableRows: string[][] = [];
+      const separatorRow = parseRow(lines[i + 1] ?? '');
 
-      while (i < lines.length) {
-        const nextLine = lines[i];
-        if (nextLine === undefined || !nextLine.trim() || !nextLine.includes('|')) {
-          break;
+      if (separatorRow.length === tableHeader.length && tableHeader.length > 0) {
+        i += 2; // skip header and separator
+        const tableRows: string[][] = [];
+
+        while (i < lines.length) {
+          const nextLine = lines[i];
+          if (nextLine === undefined || !nextLine.trim() || !nextLine.includes('|')) {
+            break;
+          }
+          tableRows.push(parseRow(nextLine));
+          i++;
         }
-        tableRows.push(parseRow(nextLine));
-        i++;
-      }
 
-      blocks.push({ type: 'table', tableHeader, tableRows });
-      continue;
+        blocks.push({ type: 'table', tableHeader, tableRows });
+        continue;
+      }
     }
 
     // Horizontal Rule (---, ***, ___)

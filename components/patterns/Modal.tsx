@@ -38,7 +38,7 @@ export function Modal({
   ariaLabelledBy,
   isSubmitting = false,
   preventClose = false,
-  showCloseButton = false,
+  showCloseButton = true,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const isLocked = Boolean(isSubmitting || preventClose);

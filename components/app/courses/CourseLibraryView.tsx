@@ -295,13 +295,6 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       return;
     }
 
-    const normalizedTitle = trimmedTitle.toLowerCase();
-    const duplicate = courses.find((c) => c.title.trim().toLowerCase() === normalizedTitle);
-    if (duplicate) {
-      setCreateError(`A course with the title "${trimmedTitle}" already exists.`);
-      return;
-    }
-
     const totalEstimatedMins =
       estimatedMinutes !== null && estimatedMinutes > 0 ? estimatedMinutes : undefined;
 
@@ -982,8 +975,10 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               >
                 {newIsActive ? 'Active' : 'Inactive'}
               </Span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 role="switch"
                 aria-checked={newIsActive}
                 aria-label="Course active status"
@@ -1000,7 +995,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                     newIsActive ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </form>

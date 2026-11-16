@@ -9,6 +9,8 @@ import {
 } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
+import { useToast } from '@/hooks/useToast';
+import { formatErrorMessage } from '@/lib/errors';
 import { coursesService } from '@/services/courses.service';
 import type {
   Assignment,
@@ -143,6 +145,7 @@ export function usePrefetchCourse() {
 
 export function useCourseBuilder(courseId: string, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient();
+  const { toastError } = useToast();
   const isEnabled = Boolean(courseId) && (options?.enabled ?? true);
 
   const {
@@ -202,7 +205,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         topics: [...(prev.topics || []), newTopic],
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
     return created;
   };
 
@@ -227,7 +232,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         topics: prev.topics?.filter((t) => t.id !== id),
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
   };
 
   const reorderTopics = async (items: ReorderItemInput[]): Promise<void> => {
@@ -269,7 +276,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         }),
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
     return created;
   };
 
@@ -300,7 +309,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         })),
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
   };
 
   const reorderSubtopics = async (topicId: string, items: ReorderItemInput[]): Promise<void> => {
@@ -352,7 +363,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         courseAssignments: updated,
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
     return created;
   };
 
@@ -398,7 +411,9 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
         topics: updatedTopics,
       };
     });
-    void reloadCourseOnly();
+    reloadCourseOnly().catch((err: unknown) => {
+      toastError(formatErrorMessage(err, 'Failed to refresh course data'));
+    });
   };
 
   const reorderAssignments = async (items: ReorderItemInput[], topicId?: string): Promise<void> => {

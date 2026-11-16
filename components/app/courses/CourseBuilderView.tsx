@@ -33,6 +33,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCourseBuilder } from '@/hooks/useCourses';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
 import { useToast } from '@/hooks/useToast';
+import { findDuplicateTitle } from '@/lib/courses/courseUtils';
 import { formatErrorMessage } from '@/lib/errors';
 import {
   Assignment,
@@ -240,16 +241,14 @@ function AddTopicModal({
       return;
     }
 
-    const normalized = trimmed.toLowerCase();
-    const duplicateTopic = existingTopics?.find((t) => t.title.trim().toLowerCase() === normalized);
+    const duplicateTopic = findDuplicateTitle(existingTopics, trimmed);
     if (duplicateTopic) {
       setError(`A topic with the title "${trimmed}" already exists in this course.`);
       return;
     }
 
-    const collidingSubtopic = existingTopics
-      ?.flatMap((t) => t.subtopics || [])
-      .find((s) => s.title.trim().toLowerCase() === normalized);
+    const allSubtopics = existingTopics?.flatMap((t) => t.subtopics || []);
+    const collidingSubtopic = findDuplicateTitle(allSubtopics, trimmed);
     if (collidingSubtopic) {
       setError(
         `A topic cannot share the same title "${trimmed}" with an existing subtopic in this course.`,
@@ -376,17 +375,14 @@ function AddSubtopicModal({
       return;
     }
 
-    const normalized = trimmed.toLowerCase();
     const currentTopic = existingTopics?.find((t) => t.id === topicId);
-    const duplicateSibling = currentTopic?.subtopics?.find(
-      (s) => s.title.trim().toLowerCase() === normalized,
-    );
+    const duplicateSibling = findDuplicateTitle(currentTopic?.subtopics, trimmed);
     if (duplicateSibling) {
       setError(`A subtopic with the title "${trimmed}" already exists in this topic.`);
       return;
     }
 
-    const duplicateTopic = existingTopics?.find((t) => t.title.trim().toLowerCase() === normalized);
+    const duplicateTopic = findDuplicateTitle(existingTopics, trimmed);
     if (duplicateTopic) {
       setError(`A subtopic cannot share the same title "${trimmed}" with a topic in this course.`);
       return;
@@ -555,11 +551,8 @@ function AddAssignmentModal({
       return;
     }
 
-    const normalized = trimmedTitle.toLowerCase();
     if (scope === AssignmentScope.COURSE) {
-      const duplicateCourseAssign = existingCourseAssignments?.find(
-        (a) => a.title.trim().toLowerCase() === normalized,
-      );
+      const duplicateCourseAssign = findDuplicateTitle(existingCourseAssignments, trimmedTitle);
       if (duplicateCourseAssign) {
         setError(
           `A course assignment with the title "${trimmedTitle}" already exists in this course.`,
@@ -568,9 +561,7 @@ function AddAssignmentModal({
       }
     } else if (scope === AssignmentScope.TOPIC && topicId) {
       const currentTopic = existingTopics?.find((t) => t.id === topicId);
-      const duplicateTopicAssign = currentTopic?.assignments?.find(
-        (a) => a.title.trim().toLowerCase() === normalized,
-      );
+      const duplicateTopicAssign = findDuplicateTitle(currentTopic?.assignments, trimmedTitle);
       if (duplicateTopicAssign) {
         setError(`A task with the title "${trimmedTitle}" already exists in this topic.`);
         return;
