@@ -561,7 +561,7 @@ function AssignCourseModalDialog({
         {currentStep === 1 ? (
           <div className="min-h-[280px] space-y-4">
             <div>
-              <Label htmlFor="assign-course-select" required>
+              <Label htmlFor="assign-course-select" required className="mb-2">
                 Select Active Course
               </Label>
               <MultiSelectDropdown
@@ -608,7 +608,9 @@ function AssignCourseModalDialog({
         {currentStep === 2 ? (
           <div className="space-y-4">
             <div>
-              <Label required>Target Scope</Label>
+              <Label required className="mb-2">
+                Target Scope
+              </Label>
               <div
                 className={cn(
                   'grid grid-cols-1 gap-2.5',
@@ -686,7 +688,7 @@ function AssignCourseModalDialog({
             {/* Target Batch Select */}
             {targetType !== 'INDIVIDUAL_MENTEES' ? (
               <div>
-                <Label htmlFor="assign-batch-select" required>
+                <Label htmlFor="assign-batch-select" required className="mb-2">
                   Select Target Batch
                 </Label>
                 <MultiSelectDropdown
