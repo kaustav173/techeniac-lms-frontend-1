@@ -229,11 +229,11 @@ export function MenteeProgressView() {
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     tooltip="Sort by Course Name"
-                    className="w-[28%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                    buttonClassName="text-xs font-semibold text-[#667085]"
-                    labelClassName="text-xs font-semibold text-[#667085]"
+                    className="w-[28%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm"
+                    buttonClassName="text-sm sm:text-sm font-semibold text-[#667085]"
+                    labelClassName="text-sm sm:text-sm font-semibold text-[#667085]"
                   />
-                  <TableHead className="w-[20%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[20%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
                     Batch
                   </TableHead>
                   <SortableColumnHeader<AllocationSortField>
@@ -243,17 +243,17 @@ export function MenteeProgressView() {
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     tooltip="Sort by Due Date"
-                    className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
-                    buttonClassName="text-xs font-semibold text-[#667085]"
-                    labelClassName="text-xs font-semibold text-[#667085]"
+                    className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm"
+                    buttonClassName="text-sm sm:text-sm font-semibold text-[#667085]"
+                    labelClassName="text-sm sm:text-sm font-semibold text-[#667085]"
                   />
-                  <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
                     Progress
                   </TableHead>
-                  <TableHead className="w-[14%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
                     Status
                   </TableHead>
-                  <TableHead className="w-[6%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[6%] pr-6 pl-2 text-left text-sm font-semibold text-[#667085] sm:text-sm">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -288,9 +288,9 @@ export function MenteeProgressView() {
                       <TableCell className="w-[14%] px-4 py-3.5">
                         <Skeleton className="h-6 w-20 rounded-full" />
                       </TableCell>
-                      <TableCell className="w-[6%] px-4 py-3.5 text-center">
-                        <div className="flex items-center justify-center">
-                          <Skeleton className="h-5 w-5 rounded" />
+                      <TableCell className="w-[6%] pr-6 pl-2 text-left">
+                        <div className="flex items-center justify-start">
+                          <Skeleton className="h-8 w-8 rounded-full" />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -347,11 +347,11 @@ export function MenteeProgressView() {
                         }}
                         className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-100/80 focus-visible:outline-none"
                       >
-                        {/* 1. Course Name (truncated with full name on hover, smaller text) */}
+                        {/* 1. Course Name (truncated with full name on hover, increased font size) */}
                         <TableCell className="w-[28%] px-4 py-3.5 align-middle">
                           <P
                             title={alloc.course?.title ?? 'Untitled Course'}
-                            className="truncate text-xs font-semibold text-[#111827]"
+                            className="truncate text-sm font-semibold text-[#111827]"
                           >
                             {alloc.course?.title ?? 'Untitled Course'}
                           </P>
@@ -418,9 +418,9 @@ export function MenteeProgressView() {
                           <AllocationStatusBadge status={alloc.status} isOverdue={isOverdue} />
                         </TableCell>
 
-                        {/* 6. Action: Three Dots Link */}
-                        <TableCell className="w-[6%] px-4 py-3.5 text-center align-middle">
-                          <div className="flex items-center justify-center">
+                        {/* 6. Action: Three Dots Link (shifted a bit to the left side) */}
+                        <TableCell className="w-[6%] pr-6 pl-2 text-left align-middle">
+                          <div className="flex items-center justify-start">
                             <Link
                               href={`/mentee/courses/${alloc.id}`}
                               onClick={(e) => e.stopPropagation()}
