@@ -427,392 +427,397 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         ) : null}
       </div>
 
-      {/* Data Table */}
-      <TableContainer>
-        <Table className="w-full">
-          <TableHeader>
-            <TableRow>
-              <SortableColumnHeader<SortField>
-                field="course"
-                label="Course"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by course"
-                className="py-3.5 pr-4 pl-6 text-xs font-semibold text-[#667085]"
-              />
-              <SortableColumnHeader<SortField>
-                field="mentee"
-                label="Mentee"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by mentee"
-                className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
-              />
-              <SortableColumnHeader<SortField>
-                field="batch"
-                label="Batch"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by batch"
-                className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
-              />
-              <SortableColumnHeader<SortField>
-                field="started"
-                label="Started"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by start date"
-                className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
-              />
-              <SortableColumnHeader<SortField>
-                field="due"
-                label="Due"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by due date"
-                className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
-              />
-              <SortableColumnHeader<SortField>
-                field="duration"
-                label="Duration"
-                sortField={sortField}
-                sortOrder={sortOrder ?? 'desc'}
-                onSort={handleSort}
-                tooltip="Sort by duration"
-                className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
-              />
-              <TableHead className="px-4 py-3.5 text-xs font-semibold whitespace-nowrap text-[#667085]">
-                Status
-              </TableHead>
-              <TableHead className="py-3.5 pr-6 pl-4 text-right text-xs font-semibold text-[#667085]">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading || isFetching ? (
-              Array.from({ length: 10 }).map((_, idx) => (
-                <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                  <TableCell className="py-3.5 pr-4 pl-6">
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-36 rounded-md" />
-                      <Skeleton className="h-3 w-48 rounded-md" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-28 rounded-md" />
-                      <Skeleton className="h-3 w-20 rounded-md" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-4 w-24 rounded-md" />
-                      <Skeleton className="h-3 w-16 rounded-md" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <Skeleton className="h-4 w-20 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <Skeleton className="h-4 w-20 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <Skeleton className="h-4 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-3.5">
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                  </TableCell>
-                  <TableCell className="py-3.5 pr-6 pl-4 text-right">
-                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : isError ? (
+      {/* Data Table & Attached Pagination in Single Card */}
+      <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+        <TableContainer className="rounded-none border-0 shadow-none">
+          <Table className="w-full text-left text-xs sm:text-xs">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={8} className="px-6 py-8 text-center">
-                  <ErrorMessage
-                    error={error}
-                    title="Failed to load allocations"
-                    onRetry={() => void refetch()}
-                  />
-                </TableCell>
+                <SortableColumnHeader<SortField>
+                  field="course"
+                  label="Course"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by course"
+                  className="py-3.5 pr-4 pl-6 text-xs font-semibold text-[#667085]"
+                />
+                <SortableColumnHeader<SortField>
+                  field="mentee"
+                  label="Mentee"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by mentee"
+                  className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                />
+                <SortableColumnHeader<SortField>
+                  field="batch"
+                  label="Batch"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by batch"
+                  className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                />
+                <SortableColumnHeader<SortField>
+                  field="started"
+                  label="Started"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by start date"
+                  className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                />
+                <SortableColumnHeader<SortField>
+                  field="due"
+                  label="Due"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by due date"
+                  className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                />
+                <SortableColumnHeader<SortField>
+                  field="duration"
+                  label="Duration"
+                  sortField={sortField}
+                  sortOrder={sortOrder ?? 'desc'}
+                  onSort={handleSort}
+                  tooltip="Sort by duration"
+                  className="px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                />
+                <TableHead className="px-4 py-3.5 text-xs font-semibold whitespace-nowrap text-[#667085]">
+                  Status
+                </TableHead>
+                <TableHead className="py-3.5 pr-6 pl-4 text-right text-xs font-semibold text-[#667085]">
+                  Actions
+                </TableHead>
               </TableRow>
-            ) : allocations.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="px-6 py-12 text-center">
-                  <P className="text-sm font-medium text-slate-600">No course allocations found.</P>
-                </TableCell>
-              </TableRow>
-            ) : (
-              allocations.map((alloc) => {
-                const isActionMenuOpen = openActionMenuId === alloc.id;
-                return (
-                  <TableRow
-                    key={alloc.id}
-                    className={cn(
-                      'transition-colors hover:bg-[#F9FAFB]/90',
-                      isActionMenuOpen && 'relative z-30',
-                    )}
-                  >
-                    <TableCell className="py-3.5 pr-4 pl-6 align-middle">
-                      <P
-                        className="max-w-[160px] truncate text-xs font-semibold text-[#111827]"
-                        title={alloc.course?.title ?? 'Untitled Course'}
-                      >
-                        {alloc.course?.title ?? 'Untitled Course'}
-                      </P>
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle">
-                      <P
-                        className="max-w-[150px] truncate text-xs font-semibold text-[#111827]"
-                        title={alloc.user?.name ?? 'Individual Mentee'}
-                      >
-                        {alloc.user?.name ?? 'Individual Mentee'}
-                      </P>
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle">
-                      {alloc.batch ? (
-                        <P
-                          className="max-w-[180px] truncate text-xs font-medium text-[#111827]"
-                          title={alloc.batch.name}
-                        >
-                          {alloc.batch.name}
-                        </P>
-                      ) : (
-                        <Span className="text-xs text-[#667085]">{EM_DASH}</Span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
-                      {formatDateIST(alloc.startDate)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
-                      {formatDateIST(alloc.dueDate)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
-                      {formatDurationMinutes(
-                        alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 align-middle whitespace-nowrap">
-                      <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
-                    </TableCell>
-                    <TableCell
-                      className="py-3.5 pr-6 pl-4 text-right align-middle"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-center justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => toggleActionMenu(e, alloc.id)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
-                          title="Allocation actions"
-                          aria-label="Allocation actions"
-                          aria-haspopup="menu"
-                          aria-expanded={isActionMenuOpen}
-                        >
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </Button>
-
-                        {isActionMenuOpen && menuPosition && (
-                          <div
-                            ref={actionMenuRef}
-                            role="menu"
-                            aria-label="Allocation actions"
-                            style={{
-                              top: `${menuPosition.top}px`,
-                              right: `${menuPosition.right}px`,
-                            }}
-                            className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
-                          >
-                            {userRole === 'SUPER_ADMIN' ? (
-                              <>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  role="menuitem"
-                                  disabled={isTerminalAllocationStatus(alloc.status)}
-                                  onClick={() => {
-                                    setOpenActionMenuId(null);
-                                    setMenuPosition(null);
-                                    setEditingAllocation(alloc);
-                                  }}
-                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                  <svg
-                                    className="h-3.5 w-3.5 text-slate-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                  </svg>
-                                  <Span>Edit Dates</Span>
-                                </Button>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  role="menuitem"
-                                  disabled={isTerminalAllocationStatus(alloc.status)}
-                                  onClick={() => {
-                                    setOpenActionMenuId(null);
-                                    setMenuPosition(null);
-                                    setOverridingAllocation(alloc);
-                                  }}
-                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                  <svg
-                                    className="h-3.5 w-3.5 text-slate-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                  <Span>Overrides</Span>
-                                </Button>
-
-                                <div className="my-1 border-t border-[#E1E6EC]" />
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  role="menuitem"
-                                  disabled={isTerminalAllocationStatus(alloc.status)}
-                                  onClick={() => {
-                                    setOpenActionMenuId(null);
-                                    setMenuPosition(null);
-                                    setRevokingAllocation(alloc);
-                                  }}
-                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                >
-                                  <svg
-                                    className="h-3.5 w-3.5 text-red-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                  <Span>Revoke</Span>
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <Link
-                                  href={
-                                    alloc.user?.name
-                                      ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
-                                      : '/mentor/progress'
-                                  }
-                                  role="menuitem"
-                                  onClick={() => {
-                                    setOpenActionMenuId(null);
-                                    setMenuPosition(null);
-                                  }}
-                                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
-                                >
-                                  <svg
-                                    className="h-4 w-4 text-[#0044D3]"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="2"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                                    />
-                                  </svg>
-                                  <Span>Progress</Span>
-                                </Link>
-                                <Link
-                                  href={
-                                    alloc.user?.id
-                                      ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
-                                      : alloc.user?.name
-                                        ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                        : '/mentor/reviews'
-                                  }
-                                  role="menuitem"
-                                  onClick={() => {
-                                    setOpenActionMenuId(null);
-                                    setMenuPosition(null);
-                                  }}
-                                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
-                                >
-                                  <svg
-                                    className="h-4 w-4 text-purple-600"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="2"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                  </svg>
-                                  <Span>Submissions</Span>
-                                </Link>
-                              </>
-                            )}
-                          </div>
-                        )}
+            </TableHeader>
+            <TableBody>
+              {isLoading || isFetching ? (
+                Array.from({ length: 10 }).map((_, idx) => (
+                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                    <TableCell className="py-3.5 pr-4 pl-6">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-36 rounded-md" />
+                        <Skeleton className="h-3 w-48 rounded-md" />
                       </div>
                     </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-28 rounded-md" />
+                        <Skeleton className="h-3 w-20 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-24 rounded-md" />
+                        <Skeleton className="h-3 w-16 rounded-md" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <Skeleton className="h-4 w-20 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <Skeleton className="h-4 w-20 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="py-3.5 pr-6 pl-4 text-right">
+                      <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                    </TableCell>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                ))
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="px-6 py-8 text-center">
+                    <ErrorMessage
+                      error={error}
+                      title="Failed to load allocations"
+                      onRetry={() => void refetch()}
+                    />
+                  </TableCell>
+                </TableRow>
+              ) : allocations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="px-6 py-12 text-center">
+                    <P className="text-xs font-medium text-slate-600">
+                      No course allocations found.
+                    </P>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                allocations.map((alloc) => {
+                  const isActionMenuOpen = openActionMenuId === alloc.id;
+                  return (
+                    <TableRow
+                      key={alloc.id}
+                      className={cn(
+                        'transition-colors hover:bg-[#F9FAFB]/90',
+                        isActionMenuOpen && 'relative z-30',
+                      )}
+                    >
+                      <TableCell className="py-3.5 pr-4 pl-6 align-middle text-xs">
+                        <P
+                          className="max-w-[160px] truncate text-xs font-medium text-[#111827]"
+                          title={alloc.course?.title ?? 'Untitled Course'}
+                        >
+                          {alloc.course?.title ?? 'Untitled Course'}
+                        </P>
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs">
+                        <P
+                          className="max-w-[150px] truncate text-xs font-medium text-[#111827]"
+                          title={alloc.user?.name ?? 'Individual Mentee'}
+                        >
+                          {alloc.user?.name ?? 'Individual Mentee'}
+                        </P>
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs">
+                        {alloc.batch ? (
+                          <P
+                            className="max-w-[180px] truncate text-xs font-medium text-[#111827]"
+                            title={alloc.batch.name}
+                          >
+                            {alloc.batch.name}
+                          </P>
+                        ) : (
+                          <Span className="text-xs text-[#667085]">{EM_DASH}</Span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
+                        {formatDateIST(alloc.startDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
+                        {formatDateIST(alloc.dueDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs font-medium whitespace-nowrap text-[#475467]">
+                        {formatDurationMinutes(
+                          alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 align-middle text-xs whitespace-nowrap">
+                        <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
+                      </TableCell>
+                      <TableCell
+                        className="py-3.5 pr-6 pl-4 text-right align-middle text-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => toggleActionMenu(e, alloc.id)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+                            title="Allocation actions"
+                            aria-label="Allocation actions"
+                            aria-haspopup="menu"
+                            aria-expanded={isActionMenuOpen}
+                          >
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </Button>
 
-      {/* Attached Pagination Controls */}
-      {pagination && pagination.total > 0 && (
-        <PaginationControls
-          page={pagination.page}
-          limit={pagination.limit}
-          total={pagination.total}
-          totalPages={pagination.totalPages}
-          onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
-          onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
-          isLoading={isLoading || isFetching}
-          itemLabel="allocations"
-          pageSizeOptions={[10, 20, 50]}
-        />
-      )}
+                          {isActionMenuOpen && menuPosition && (
+                            <div
+                              ref={actionMenuRef}
+                              role="menu"
+                              aria-label="Allocation actions"
+                              style={{
+                                top: `${menuPosition.top}px`,
+                                right: `${menuPosition.right}px`,
+                              }}
+                              className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
+                            >
+                              {userRole === 'SUPER_ADMIN' ? (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setEditingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    <svg
+                                      className="h-3.5 w-3.5 text-slate-600"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                    <Span>Edit Dates</Span>
+                                  </Button>
+
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setOverridingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    <svg
+                                      className="h-3.5 w-3.5 text-slate-600"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                    <Span>Overrides</Span>
+                                  </Button>
+
+                                  <div className="my-1 border-t border-[#E1E6EC]" />
+
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    disabled={isTerminalAllocationStatus(alloc.status)}
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                      setRevokingAllocation(alloc);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    <svg
+                                      className="h-3.5 w-3.5 text-red-500"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      />
+                                    </svg>
+                                    <Span>Revoke</Span>
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Link
+                                    href={
+                                      alloc.user?.name
+                                        ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                        : '/mentor/progress'
+                                    }
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                    }}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-blue-50/80 hover:text-[#0044D3]"
+                                  >
+                                    <svg
+                                      className="h-4 w-4 text-[#0044D3]"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                      strokeWidth="2"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                                      />
+                                    </svg>
+                                    <Span>Progress</Span>
+                                  </Link>
+                                  <Link
+                                    href={
+                                      alloc.user?.id
+                                        ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
+                                        : alloc.user?.name
+                                          ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
+                                          : '/mentor/reviews'
+                                    }
+                                    role="menuitem"
+                                    onClick={() => {
+                                      setOpenActionMenuId(null);
+                                      setMenuPosition(null);
+                                    }}
+                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-purple-50/80 hover:text-purple-700"
+                                  >
+                                    <svg
+                                      className="h-4 w-4 text-purple-600"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                      strokeWidth="2"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                      />
+                                    </svg>
+                                    <Span>Submissions</Span>
+                                  </Link>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Attached Pagination Controls */}
+        {pagination && pagination.total > 0 && (
+          <PaginationControls
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
+            onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
+            isLoading={isLoading || isFetching}
+            itemLabel="allocations"
+            pageSizeOptions={[10, 20, 50]}
+            className="border-t border-[#E1E6EC]"
+          />
+        )}
+      </div>
 
       {/* Modals */}
       <AssignCourseModal

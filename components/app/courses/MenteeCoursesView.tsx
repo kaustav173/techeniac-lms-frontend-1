@@ -267,7 +267,7 @@ export function MenteeCoursesView() {
 
               {/* Attached Pagination Controls */}
               {total > 0 ? (
-                <div className="relative z-30 mt-8 rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+                <div className="relative z-30 mt-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
                   <PaginationControls
                     page={page}
                     limit={limit}
@@ -281,6 +281,7 @@ export function MenteeCoursesView() {
                     pageSizeOptions={[10, 20, 50]}
                     itemLabel="courses"
                     isLoading={isLoading || isFetching}
+                    className="border-t-0"
                   />
                 </div>
               ) : null}
@@ -319,7 +320,7 @@ function MenteeAllocationCard({
 
   return (
     <div
-      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl border border-blue-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md ${
+      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl border border-[#0044D3]/40 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md ${
         isOverdue ? 'ring-1 ring-rose-200' : isCompleted ? 'ring-1 ring-emerald-200' : ''
       }`}
     >

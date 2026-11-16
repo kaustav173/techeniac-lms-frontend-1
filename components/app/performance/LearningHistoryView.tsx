@@ -523,79 +523,81 @@ export function LearningHistoryView({
                           {/* Submissions Table for this Allocation */}
                           {!isCourseCollapsed ? (
                             alloc.assignments.length > 0 ? (
-                              <div className="mt-2.5 overflow-x-auto">
-                                <Table className="w-full text-left text-xs text-[#111827]">
-                                  <TableHeader className="border-b border-[#E1E6EC]">
-                                    <TableRow>
-                                      <TableHead className="px-3 py-2 text-[11px] font-semibold text-[#667085]">
-                                        Assignment
-                                      </TableHead>
-                                      <TableHead className="px-3 py-2 text-[11px] font-semibold text-[#667085]">
-                                        Submitted
-                                      </TableHead>
-                                      <TableHead className="px-3 py-2 text-center text-[11px] font-semibold text-[#667085]">
-                                        Version
-                                      </TableHead>
-                                      <TableHead className="px-3 py-2 text-center text-[11px] font-semibold text-[#667085]">
-                                        Score
-                                      </TableHead>
-                                      <TableHead className="px-3 py-2 text-[11px] font-semibold text-[#667085]">
-                                        Mentor Feedback
-                                      </TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody className="divide-y divide-[#E1E6EC]/60">
-                                    {alloc.assignments.map((assign, assignIdx) => (
-                                      <TableRow
-                                        key={`${assign.assignmentId}-v${assign.version}-${assignIdx}`}
-                                        className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
-                                      >
-                                        <TableCell className="px-3 py-2.5">
-                                          <Span className="text-xs font-semibold text-[#111827]">
-                                            {assign.assignmentTitle}
-                                          </Span>
-                                        </TableCell>
-                                        <TableCell className="px-3 py-2.5 text-xs text-[#475467]">
-                                          <div className="flex flex-col">
-                                            <Span className="font-medium">
-                                              {formatDateIST(assign.submittedAt)}
-                                            </Span>
-                                            {assign.isLate ? (
-                                              <Span className="text-[11px] font-semibold text-rose-600">
-                                                (Late Submission)
-                                              </Span>
-                                            ) : null}
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="px-3 py-2.5 text-center text-xs font-medium text-[#667085]">
-                                          v{assign.version}
-                                        </TableCell>
-                                        <TableCell className="px-3 py-2.5 text-center text-xs font-bold text-[#111827]">
-                                          {assign.marks !== null ? (
-                                            <Span className="inline-flex items-center rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
-                                              {assign.marks} / {assign.maxMarks}
-                                            </Span>
-                                          ) : (
-                                            <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                                              Pending Review
-                                            </Span>
-                                          )}
-                                        </TableCell>
-                                        <TableCell className="px-3 py-2.5">
-                                          {assign.feedback ? (
-                                            <P className="text-xs leading-relaxed whitespace-pre-wrap text-[#111827] italic">
-                                              &ldquo;{assign.feedback}&rdquo;
-                                            </P>
-                                          ) : (
-                                            <Span className="text-xs text-[#667085]">
-                                              No feedback provided
-                                            </Span>
-                                          )}
-                                        </TableCell>
+                              <div className="mt-3 overflow-hidden rounded-xl border border-[#E1E6EC] bg-white shadow-2xs">
+                                <div className="overflow-x-auto">
+                                  <Table className="w-full min-w-[640px] border-collapse text-left text-xs text-[#111827]">
+                                    <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
+                                      <TableRow>
+                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                          Assignment
+                                        </TableHead>
+                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                          Submitted
+                                        </TableHead>
+                                        <TableHead className="px-4 py-2.5 text-center text-xs font-semibold text-[#667085]">
+                                          Version
+                                        </TableHead>
+                                        <TableHead className="px-4 py-2.5 text-center text-xs font-semibold text-[#667085]">
+                                          Score
+                                        </TableHead>
+                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                          Mentor Feedback
+                                        </TableHead>
                                       </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
+                                    </TableHeader>
+                                    <TableBody className="divide-y divide-[#F2F4F7]">
+                                      {alloc.assignments.map((assign, assignIdx) => (
+                                        <TableRow
+                                          key={`${assign.assignmentId}-v${assign.version}-${assignIdx}`}
+                                          className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
+                                        >
+                                          <TableCell className="px-4 py-3 align-middle">
+                                            <P className="text-xs font-semibold text-[#111827]">
+                                              {assign.assignmentTitle}
+                                            </P>
+                                          </TableCell>
+                                          <TableCell className="px-4 py-3 align-middle text-xs text-[#475467]">
+                                            <div className="flex flex-col">
+                                              <Span className="font-medium">
+                                                {formatDateIST(assign.submittedAt)}
+                                              </Span>
+                                              {assign.isLate ? (
+                                                <Span className="text-[11px] font-semibold text-rose-600">
+                                                  (Late Submission)
+                                                </Span>
+                                              ) : null}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="px-4 py-3 text-center align-middle text-xs font-medium text-[#667085]">
+                                            v{assign.version}
+                                          </TableCell>
+                                          <TableCell className="px-4 py-3 text-center align-middle text-xs font-bold text-[#111827]">
+                                            {assign.marks !== null ? (
+                                              <Span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#0044D3]">
+                                                {assign.marks} / {assign.maxMarks}
+                                              </Span>
+                                            ) : (
+                                              <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                                                Pending Review
+                                              </Span>
+                                            )}
+                                          </TableCell>
+                                          <TableCell className="px-4 py-3 align-middle">
+                                            {assign.feedback ? (
+                                              <P className="text-xs leading-relaxed whitespace-pre-wrap text-[#475467] italic">
+                                                &ldquo;{assign.feedback}&rdquo;
+                                              </P>
+                                            ) : (
+                                              <Span className="text-xs text-[#667085]">
+                                                No feedback provided
+                                              </Span>
+                                            )}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
                               </div>
                             ) : (
                               <div className="mt-2 py-3 text-center text-xs text-[#667085]">
