@@ -43,13 +43,17 @@ export function useBatchesList(filters: BatchQueryFilters = {}, options?: { enab
   });
 }
 
-export function useBatchDetail(id: string, initialData?: ApiBatchDetailData) {
+export function useBatchDetail(
+  id: string,
+  initialData?: ApiBatchDetailData,
+  options?: { enabled?: boolean },
+) {
   const isValidUuid = Boolean(id && UUID_REGEX.test(id));
   return useQuery<ApiBatchDetailData>({
     queryKey: batchKeys.detail(id),
     queryFn: () => batchesService.getBatchById(id),
     ...(initialData ? { initialData } : {}),
-    enabled: isValidUuid,
+    enabled: isValidUuid && (options?.enabled ?? true),
   });
 }
 
@@ -69,16 +73,26 @@ export function useInfiniteBatches(
   pageSize: number = 10,
   search?: string,
   portalType?: 'mentor' | 'admin',
+  options?: { status?: string | string[] },
 ) {
   const trimmedSearch = search?.trim() || undefined;
+  const status = options?.status;
   return useInfiniteQuery({
-    queryKey: ['batches', 'infinite-dropdown', portalType ?? 'admin', pageSize, trimmedSearch],
+    queryKey: [
+      'batches',
+      'infinite-dropdown',
+      portalType ?? 'admin',
+      pageSize,
+      trimmedSearch,
+      status,
+    ],
     queryFn: async ({ pageParam = 1, signal }) => {
       if (portalType === 'mentor') {
         const items = await batchesService.listMentorBatches({
           page: pageParam,
           limit: pageSize,
           search: trimmedSearch,
+          status,
         });
         const hasMore = items.length >= pageSize;
         return {
@@ -96,6 +110,7 @@ export function useInfiniteBatches(
           page: pageParam,
           limit: pageSize,
           search: trimmedSearch,
+          status,
         },
         { signal },
       );

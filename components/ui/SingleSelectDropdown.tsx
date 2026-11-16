@@ -1,19 +1,12 @@
 'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { useClickOutside } from '@/lib/useClickOutside';
+import { useFloatingMenuPosition } from '@/lib/useFloatingMenuPosition';
 
 export interface SingleSelectOption<T extends string | number = string> {
   readonly value: T;
@@ -56,55 +49,20 @@ export function SingleSelectDropdown<T extends string | number = string>({
   align = 'left',
 }: Readonly<SingleSelectDropdownProps<T>>) {
   const [isOpen, setIsOpen] = useState(false);
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [menuCoords, setMenuCoords] = useState<{
-    top: number;
-    left: number;
-    width: number;
-    openUpwards: boolean;
-  } | null>(null);
 
   const generatedId = useId();
   const selectId = id ?? generatedId;
 
-  const updateMenuPosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const openUpwards = direction === 'up' || (spaceBelow < 220 && spaceAbove > spaceBelow);
-
-    setMenuCoords({
-      top: openUpwards ? rect.top - 6 : rect.bottom + 6,
-      left: align === 'right' ? rect.right : rect.left,
-      width: rect.width,
-      openUpwards,
-    });
-  }, [align, direction]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    updateMenuPosition();
-
-    const handleScrollOrResize = () => {
-      updateMenuPosition();
-    };
-
-    window.addEventListener('resize', handleScrollOrResize);
-    window.addEventListener('scroll', handleScrollOrResize, true);
-
-    return () => {
-      window.removeEventListener('resize', handleScrollOrResize);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-    };
-  }, [isOpen, updateMenuPosition]);
+  const { mounted, menuCoords } = useFloatingMenuPosition({
+    isOpen,
+    triggerRef,
+    align,
+    direction,
+    minSpaceBelow: 220,
+  });
 
   // Close when clicking outside both container and floating menu
   useClickOutside([containerRef, menuRef], () => setIsOpen(false), isOpen);
