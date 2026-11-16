@@ -236,6 +236,14 @@ export function BatchesTable() {
     setPage(1);
   };
 
+  const handleBatchCreated = () => {
+    setPage(1);
+    setSearch('');
+    setSelectedStatuses([]);
+    setSortField(null);
+    setSortOrder('asc');
+  };
+
   const pagination = useMemo(
     () =>
       batchesResponse?.pagination ?? {
@@ -418,11 +426,13 @@ export function BatchesTable() {
       </TableContainer>
 
       {/* Create Batch Modal */}
-      <CreateBatchModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSuccess={() => {}}
-      />
+      {isCreateOpen ? (
+        <CreateBatchModal
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          onSuccess={handleBatchCreated}
+        />
+      ) : null}
     </div>
   );
 }
