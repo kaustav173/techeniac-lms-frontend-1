@@ -226,6 +226,7 @@ export const batchesService = {
           reason?: string;
           createdAt: string;
           changedByUser?: { name: string };
+          changer?: { id?: string; name?: string; email?: string };
         }>;
       }>
     >(`/batches/${id}`, {
@@ -255,7 +256,7 @@ export const batchesService = {
       id: h.id,
       fromStatus: h.fromStatus,
       toStatus: h.toStatus,
-      changedBy: h.changedByUser?.name ?? 'Super Admin',
+      changedBy: h.changer?.name ?? h.changedByUser?.name ?? 'Super Admin',
       changedAt: toDateOnly(h.createdAt),
       reason: h.reason,
     }));

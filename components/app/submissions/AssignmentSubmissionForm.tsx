@@ -222,15 +222,6 @@ export function AssignmentSubmissionForm({
         </P>
       </div>
 
-      {/* Due date and Late submission warnings */}
-      {isPastDue && assignment.allowLate ? (
-        <Alert
-          variant="warning"
-          title="Late Submission Warning"
-          message={`The due date was ${formatDateTimeIST(dueDate)}. Because late submissions are permitted, you can still submit, but your work will be flagged as Late.`}
-        />
-      ) : null}
-
       {/* Consistent design-system error banner (matching Photo 2) */}
       {clientErrorMsg && (
         <FieldError

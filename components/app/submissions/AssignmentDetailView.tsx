@@ -5,6 +5,7 @@ import React from 'react';
 import { AssignmentSubmissionForm } from '@/components/app/submissions/AssignmentSubmissionForm';
 import { SubmissionVersionHistory } from '@/components/app/submissions/SubmissionVersionHistory';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import { AssignmentScope } from '@/types/courses';
@@ -13,6 +14,53 @@ import {
   isAllocationBatchReadOnly,
   type SubmissionVersion,
 } from '@/types/submissions';
+
+export function AssignmentDetailSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      {/* 1. Overview Skeleton */}
+      <div className="flex flex-col justify-between gap-6 rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs lg:flex-row lg:items-center">
+        <div className="flex items-start gap-4">
+          <Skeleton className="h-16 w-16 rounded-2xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-7 w-64 rounded-md" />
+            <Skeleton className="h-4 w-40 rounded-md" />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Skeleton className="h-16 w-28 rounded-2xl" />
+          <Skeleton className="h-16 w-28 rounded-2xl" />
+          <Skeleton className="h-16 w-28 rounded-2xl" />
+        </div>
+      </div>
+
+      {/* 2. Instructions Skeleton */}
+      <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-5 rounded-md" />
+          <Skeleton className="h-5 w-28 rounded-md" />
+        </div>
+        <div className="mt-4 space-y-2">
+          <Skeleton className="h-4 w-full rounded-md" />
+          <Skeleton className="h-4 w-3/4 rounded-md" />
+          <Skeleton className="h-4 w-1/2 rounded-md" />
+        </div>
+      </div>
+
+      {/* 3. Submission Form Skeleton */}
+      <div className="rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
+        <Skeleton className="h-6 w-44 rounded-md" />
+        <Skeleton className="mt-2 h-4 w-32 rounded-md" />
+        <div className="mt-6 space-y-4">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-36 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export interface AssignmentDetailViewProps {
   readonly assignment: AssignmentSubmissionDetails['assignment'] | null;
@@ -38,14 +86,7 @@ export function AssignmentDetailView({
   }
 
   if (isLoading || !assignment || !allocation) {
-    return (
-      <div className="rounded-3xl border border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#0044D3] border-r-transparent" />
-        <P className="mt-3 text-xs text-[#667085]">
-          Loading assignment details and submission history...
-        </P>
-      </div>
-    );
+    return <AssignmentDetailSkeleton />;
   }
 
   const latestVersion =
@@ -72,9 +113,20 @@ export function AssignmentDetailView({
             </svg>
           </div>
           <div className="space-y-1.5">
-            <Span className="inline-block rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-[#0044D3]">
-              {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
-            </Span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Span className="inline-block rounded-full bg-blue-50 px-3 py-0.5 text-xs font-semibold text-[#0044D3]">
+                {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
+              </Span>
+              {isBatchReadOnly && (
+                <Span
+                  title={`This assignment is part of a batch with status "${allocation.batchStatus}". Submissions are closed.`}
+                  className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-amber-200 bg-[#FEF9EE] px-3 py-0.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  Submissions Closed
+                </Span>
+              )}
+            </div>
             <H1 className="text-2xl font-bold tracking-tight text-[#111827]">{assignment.title}</H1>
             <div className="flex items-center gap-2 text-xs font-medium text-[#667085]">
               <svg
@@ -97,6 +149,14 @@ export function AssignmentDetailView({
 
         {/* Quick Assignment Metrics */}
         <div className="flex flex-wrap items-center gap-3">
+          {latestVersion?.marks !== null && latestVersion?.marks !== undefined && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-center">
+              <P className="text-[11px] font-semibold text-emerald-700 uppercase">Your Grade</P>
+              <P className="mt-0.5 text-base font-bold text-emerald-800">
+                {latestVersion.marks} / {assignment.maxMarks}
+              </P>
+            </div>
+          )}
           <div className="rounded-2xl border border-[#E1E6EC] bg-[#F6F8FC] px-4 py-3 text-center">
             <P className="text-[11px] font-semibold text-[#667085] uppercase">Passing Marks</P>
             <P className="mt-0.5 text-base font-bold text-[#111827]">
@@ -173,28 +233,6 @@ export function AssignmentDetailView({
           </div>
         ) : null}
       </div>
-
-      {/* 3. Submissions Closed Alert */}
-      {isBatchReadOnly && (
-        <div className="flex items-center gap-3.5 rounded-2xl border border-amber-200 bg-[#FEF9EE] p-5 shadow-xs">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <H3 className="text-sm font-bold text-[#111827]">Submissions Closed</H3>
-            <P className="text-xs text-[#667085]">
-              This assignment is part of a batch with status &quot;{allocation.batchStatus}
-              &quot;. Submissions are closed.
-            </P>
-          </div>
-        </div>
-      )}
 
       {/* Submission Form Component */}
       <AssignmentSubmissionForm

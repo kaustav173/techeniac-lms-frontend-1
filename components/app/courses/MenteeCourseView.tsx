@@ -256,6 +256,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
       setActionSuccessMessage(`Topic status successfully updated to ${formattedStatus}.`);
       toastSuccess(`Topic marked as ${formattedStatus}.`, 'Progress Updated');
       setStudyNote('');
+      setSelectedTopic(null);
+      setSelectedSubtopic(null);
+      setActionSuccessMessage(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to update topic status.';
       toastError(msg, 'Update Failed');
@@ -695,30 +698,11 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
           }}
           size="xl"
           title={
-            <div>
-              <Span className="text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                {selectedSubtopic ? 'Lesson' : 'Topic'}
-              </Span>
-              <H2 className="text-lg font-bold text-slate-900">
-                {selectedSubtopic?.title ?? selectedTopic?.title}
-              </H2>
-            </div>
+            <H2 className="text-lg font-bold text-slate-900">
+              {selectedSubtopic?.title ?? selectedTopic?.title}
+            </H2>
           }
-          footer={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedTopic(null);
-                setSelectedSubtopic(null);
-                setActionSuccessMessage(null);
-              }}
-              className="cursor-pointer rounded-full"
-            >
-              Done
-            </Button>
-          }
+          footer={undefined}
         >
           {selectedTopic && (
             <div className="space-y-4">
@@ -731,11 +715,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
               {/* Content */}
               <div className="prose prose-sm max-w-none text-slate-700">
                 <MarkdownViewer
-                  content={
-                    selectedSubtopic?.content ??
-                    selectedTopic.description ??
-                    'No content available for this lesson yet.'
-                  }
+                  content={selectedSubtopic?.content ?? selectedTopic.description ?? ''}
                 />
               </div>
 

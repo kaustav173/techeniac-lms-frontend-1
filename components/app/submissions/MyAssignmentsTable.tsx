@@ -358,7 +358,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[26%] px-5 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
+                    className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
                   />
                   <SortableColumnHeader<SortField>
                     field="courseTitle"
@@ -366,7 +366,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
+                    className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
                   />
                   <SortableColumnHeader<SortField>
                     field="dueDate"
@@ -374,7 +374,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
+                    className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
                   />
                   <SortableColumnHeader<SortField>
                     field="estimatedMinutes"
@@ -382,7 +382,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
+                    className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
                   />
                   <SortableColumnHeader<SortField>
                     field="maxMarks"
@@ -390,12 +390,12 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[12%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
+                    className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
                   />
-                  <TableHead className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
                     Status
                   </TableHead>
-                  <TableHead className="w-16 px-4 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
+                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                     Actions
                   </TableHead>
                 </TableRow>
