@@ -329,309 +329,311 @@ export function TopicEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 w-full max-w-4xl space-y-6"
+        className="mt-6 w-full max-w-4xl"
       >
-        {/* Card 1: Core Topic Information */}
-        <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Topic Information</H3>
-          </div>
+        <div className="space-y-7 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+          {/* Section 1: Core Topic Information */}
+          <div className="space-y-5">
+            <div className="border-b border-slate-100 pb-3.5">
+              <H3 className="text-base font-bold text-slate-900">Topic Information</H3>
+            </div>
 
-          <div>
-            <Label
-              required={true}
-              className="block text-sm font-semibold tracking-wide text-slate-800"
-            >
-              Topic Title
-            </Label>
-            <Input
-              type="text"
-              value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
-              placeholder="e.g. Branching & Trunk Strategies"
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
-            />
-          </div>
-
-          <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Description
-            </Label>
-            <textarea
-              rows={4}
-              value={description}
-              onChange={(e) => handleChange(() => setDescription(e.target.value))}
-              placeholder="Brief scope, prerequisites, and learning objectives for this topic..."
-              className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
-            />
-          </div>
-        </div>
-
-        {/* Card 2: Estimated Duration & Planning */}
-        <div className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
-          </div>
-
-          <div className="grid max-w-sm grid-cols-2 gap-4">
             <div>
-              <Label className="block text-xs font-semibold tracking-wider text-slate-600 uppercase">
-                Hours
+              <Label
+                required={true}
+                className="block text-sm font-semibold tracking-wide text-slate-800"
+              >
+                Topic Title
               </Label>
-              <div className="relative mt-1.5">
-                <Input
-                  type="number"
-                  min={0}
-                  value={durationHours}
-                  onChange={(e) => handleChange(() => handleHoursChange(e.target.value))}
-                  placeholder="0"
-                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-11 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
-                />
-                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
-                  hrs
-                </Span>
-              </div>
+              <Input
+                type="text"
+                value={title}
+                hasError={Boolean(errorMsg && !title.trim())}
+                onChange={(e) => handleChange(() => setTitle(e.target.value))}
+                placeholder="e.g. Branching & Trunk Strategies"
+                className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
+              />
             </div>
+
             <div>
-              <Label className="block text-xs font-semibold tracking-wider text-slate-600 uppercase">
-                Minutes
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Description
               </Label>
-              <div className="relative mt-1.5">
-                <Input
-                  type="number"
-                  min={0}
-                  max={59}
-                  value={durationMinutes}
-                  onChange={(e) => handleChange(() => handleMinutesChange(e.target.value))}
-                  placeholder="0"
-                  className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-12 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
-                />
-                <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
-                  mins
-                </Span>
-              </div>
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => handleChange(() => setDescription(e.target.value))}
+                placeholder="Brief scope, prerequisites, and learning objectives for this topic..."
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
+              />
             </div>
           </div>
 
-          <div className="pt-1">
-            <Span className="block text-sm font-medium text-slate-600">
-              {totalEstimatedMins !== null && totalEstimatedMins > 0
-                ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
-                : 'Optional'}
-            </Span>
-          </div>
-
-          {remainingBudget !== null && (
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs font-medium text-blue-800">
-              <svg
-                className="h-4 w-4 shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <Span>
-                Available course budget:{' '}
-                <Span className="font-bold">
-                  {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
-                </Span>{' '}
-                (Course total: {Math.floor(courseEstimatedMinutes! / 60)}h{' '}
-                {courseEstimatedMinutes! % 60}m, other topics:{' '}
-                {Math.floor((otherTopicsMinutes || 0) / 60)}h {(otherTopicsMinutes || 0) % 60}m)
-              </Span>
+          {/* Section 2: Estimated Duration & Planning */}
+          <div className="space-y-4 border-t border-slate-100 pt-7">
+            <div className="border-b border-slate-100 pb-3.5">
+              <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
             </div>
-          )}
 
-          {subtopicsTotalMinutes > 0 && (
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs font-medium text-slate-700">
-              <svg
-                className="h-4 w-4 shrink-0 text-slate-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <Span>
-                Currently allocated across subtopics:{' '}
-                <Span className="font-bold">
-                  {Math.floor(subtopicsTotalMinutes / 60)}h {subtopicsTotalMinutes % 60}m
-                </Span>
-                . Topic duration cannot be lower than this total.
-              </Span>
-            </div>
-          )}
-        </div>
-
-        {/* Card 3: Resources & Attachments Manager */}
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
-            <div>
-              <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
-            </div>
-            <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-              {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
-            </Span>
-          </div>
-
-          <div className="mt-5 space-y-2.5">
-            {resources.map((resItem, idx) => (
-              <div
-                key={resItem.id || idx}
-                className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
-              >
-                <div className="flex items-center gap-3 truncate">
-                  <Span
-                    className={`rounded-lg px-2 py-0.5 text-xs font-bold tracking-wide uppercase ${
-                      resItem.type === 'LINK'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-purple-100 text-purple-700'
-                    }`}
-                  >
-                    {resItem.type}
+            <div className="grid max-w-sm grid-cols-2 gap-4">
+              <div>
+                <Label className="block text-xs font-semibold tracking-wider text-slate-600 uppercase">
+                  Hours
+                </Label>
+                <div className="relative mt-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={durationHours}
+                    onChange={(e) => handleChange(() => handleHoursChange(e.target.value))}
+                    placeholder="0"
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-11 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                  />
+                  <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                    hrs
                   </Span>
-                  <Span className="truncate font-semibold text-slate-900">{resItem.title}</Span>
-                  {isValidWebUrl(resItem.url) ? (
-                    <a
-                      href={resItem.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
-                    >
-                      {resItem.url}
-                    </a>
-                  ) : (
-                    <Span
-                      className="truncate text-xs text-slate-400 italic"
-                      title="Invalid or unverified URL"
-                    >
-                      {resItem.url}
-                    </Span>
-                  )}
                 </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => handleRemoveResource(idx)}
-                  className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-200/70 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-200"
-                  title="Remove resource"
-                >
-                  &times;
-                </Button>
               </div>
-            ))}
+              <div>
+                <Label className="block text-xs font-semibold tracking-wider text-slate-600 uppercase">
+                  Minutes
+                </Label>
+                <div className="relative mt-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={durationMinutes}
+                    onChange={(e) => handleChange(() => handleMinutesChange(e.target.value))}
+                    placeholder="0"
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 pr-12 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                  />
+                  <Span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-xs font-medium text-slate-400">
+                    mins
+                  </Span>
+                </div>
+              </div>
+            </div>
 
-            {resources.length === 0 && (
-              <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 italic">
-                No external resources attached yet. Add one below.
+            <div className="pt-1">
+              <Span className="block text-sm font-medium text-slate-600">
+                {totalEstimatedMins !== null && totalEstimatedMins > 0
+                  ? `${totalEstimatedMins} minutes total (${Math.floor(totalEstimatedMins / 60)}h ${totalEstimatedMins % 60}m)`
+                  : 'Optional'}
+              </Span>
+            </div>
+
+            {remainingBudget !== null && (
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs font-medium text-blue-800">
+                <svg
+                  className="h-4 w-4 shrink-0 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <Span>
+                  Available course budget:{' '}
+                  <Span className="font-bold">
+                    {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
+                  </Span>{' '}
+                  (Course total: {Math.floor(courseEstimatedMinutes! / 60)}h{' '}
+                  {courseEstimatedMinutes! % 60}m, other topics:{' '}
+                  {Math.floor((otherTopicsMinutes || 0) / 60)}h {(otherTopicsMinutes || 0) % 60}m)
+                </Span>
+              </div>
+            )}
+
+            {subtopicsTotalMinutes > 0 && (
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs font-medium text-slate-700">
+                <svg
+                  className="h-4 w-4 shrink-0 text-slate-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <Span>
+                  Currently allocated across subtopics:{' '}
+                  <Span className="font-bold">
+                    {Math.floor(subtopicsTotalMinutes / 60)}h {subtopicsTotalMinutes % 60}m
+                  </Span>
+                  . Topic duration cannot be lower than this total.
+                </Span>
               </div>
             )}
           </div>
 
-          {errorMsg && (
-            <FieldError
-              error={errorMsg}
-              className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
-            />
-          )}
+          {/* Section 3: Resources & Attachments Manager */}
+          <div className="space-y-4 border-t border-slate-100 pt-7">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+              <div>
+                <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
+              </div>
+              <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
+              </Span>
+            </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-12">
-            <div className="sm:col-span-4">
-              <Input
-                type="text"
-                placeholder="Resource title (e.g. Git Spec)"
-                value={newResourceTitle}
-                onChange={(e) => {
-                  setNewResourceTitle(e.target.value);
-                  if (errorMsg) setErrorMsg(null);
-                }}
-                className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+            <div className="mt-5 space-y-2.5">
+              {resources.map((resItem, idx) => (
+                <div
+                  key={resItem.id || idx}
+                  className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-sm transition-all hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <Span
+                      className={`rounded-lg px-2 py-0.5 text-xs font-bold tracking-wide uppercase ${
+                        resItem.type === 'LINK'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-purple-100 text-purple-700'
+                      }`}
+                    >
+                      {resItem.type}
+                    </Span>
+                    <Span className="truncate font-semibold text-slate-900">{resItem.title}</Span>
+                    {isValidWebUrl(resItem.url) ? (
+                      <a
+                        href={resItem.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-xs text-slate-400 hover:text-blue-600 hover:underline"
+                      >
+                        {resItem.url}
+                      </a>
+                    ) : (
+                      <Span
+                        className="truncate text-xs text-slate-400 italic"
+                        title="Invalid or unverified URL"
+                      >
+                        {resItem.url}
+                      </Span>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleRemoveResource(idx)}
+                    className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-200/70 hover:text-rose-600 focus-visible:ring-slate-400 active:bg-slate-200"
+                    title="Remove resource"
+                  >
+                    &times;
+                  </Button>
+                </div>
+              ))}
+
+              {resources.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400 italic">
+                  No external resources attached yet. Add one below.
+                </div>
+              )}
+            </div>
+
+            {errorMsg && (
+              <FieldError
+                error={errorMsg}
+                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
               />
-            </div>
-            <div className="sm:col-span-5">
-              <Input
-                type="url"
-                placeholder="https://example.com/spec.pdf"
-                value={newResourceUrl}
-                onChange={(e) => {
-                  setNewResourceUrl(e.target.value);
-                  if (errorMsg) setErrorMsg(null);
-                }}
-                className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <select
-                value={newResourceType}
-                onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
-                className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-              >
-                <option value="LINK">LINK</option>
-                <option value="ATTACHMENT">FILE</option>
-              </select>
-            </div>
-            <div className="sm:col-span-1">
-              <Button
-                type="button"
-                onClick={handleAddResource}
-                className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
-              >
-                <Span className="sm:hidden">+ Add</Span>
-                <Span className="hidden sm:inline">+</Span>
-              </Button>
+            )}
+
+            <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-12">
+              <div className="sm:col-span-4">
+                <Input
+                  type="text"
+                  placeholder="Resource title (e.g. Git Spec)"
+                  value={newResourceTitle}
+                  onChange={(e) => {
+                    setNewResourceTitle(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                />
+              </div>
+              <div className="sm:col-span-5">
+                <Input
+                  type="url"
+                  placeholder="https://example.com/spec.pdf"
+                  value={newResourceUrl}
+                  onChange={(e) => {
+                    setNewResourceUrl(e.target.value);
+                    if (errorMsg) setErrorMsg(null);
+                  }}
+                  className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <select
+                  value={newResourceType}
+                  onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
+                >
+                  <option value="LINK">LINK</option>
+                  <option value="ATTACHMENT">FILE</option>
+                </select>
+              </div>
+              <div className="sm:col-span-1">
+                <Button
+                  type="button"
+                  onClick={handleAddResource}
+                  className="h-10 w-full rounded-full bg-[#0044D3] px-3 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3] focus-visible:ring-[#0044D3] active:bg-[#003199]"
+                >
+                  <Span className="sm:hidden">+ Add</Span>
+                  <Span className="hidden sm:inline">+</Span>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Card 4: Visibility & Active Toggle */}
-        <div className="flex items-center justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-          <div>
-            <Span className="block text-base font-bold text-slate-900">Topic Active Status</Span>
-            <Span className="mt-0.5 block text-xs text-slate-500">
-              When inactive, hidden from mentees and excluded from progress calculations.
-            </Span>
-          </div>
+          {/* Section 4: Visibility & Active Toggle */}
+          <div className="flex items-center justify-between border-t border-slate-100 pt-7">
+            <div>
+              <Span className="block text-base font-bold text-slate-900">Topic Active Status</Span>
+              <Span className="mt-0.5 block text-xs text-slate-500">
+                When inactive, hidden from mentees and excluded from progress calculations.
+              </Span>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <Span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                isActive
-                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border border-slate-200 bg-slate-100 text-slate-600'
-              }`}
-            >
-              {isActive ? 'Active' : 'Inactive'}
-            </Span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isActive}
-              aria-label="Topic active status"
-              onClick={() => handleChange(() => setIsActive(!isActive))}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
-                isActive ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
-              }`}
-            >
+            <div className="flex items-center gap-3">
               <Span
-                aria-hidden="true"
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  isActive ? 'translate-x-5' : 'translate-x-0'
+                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  isActive
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border border-slate-200 bg-slate-100 text-slate-600'
                 }`}
-              />
-            </button>
+              >
+                {isActive ? 'Active' : 'Inactive'}
+              </Span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isActive}
+                aria-label="Topic active status"
+                onClick={() => handleChange(() => setIsActive(!isActive))}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent p-0 transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:ring-offset-2 ${
+                  isActive ? 'bg-[#0044D3] hover:bg-[#0039B3]' : 'bg-slate-300 hover:bg-slate-400'
+                }`}
+              >
+                <Span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    isActive ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </form>

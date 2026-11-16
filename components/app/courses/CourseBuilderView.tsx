@@ -836,47 +836,50 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
               <Skeleton className="h-10 w-32 rounded-full" />
             </div>
 
-            {/* Card 1: Title & Instructions */}
-            <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-              <div className="space-y-1.5">
-                <Skeleton className="h-3.5 w-28 rounded-md" />
-                <Skeleton className="h-11 w-full rounded-xl" />
+            {/* Unified Form Card Skeleton */}
+            <div className="space-y-7 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
+              {/* Section 1: Title & Description */}
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-28 rounded-md" />
+                  <Skeleton className="h-11 w-full rounded-xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-52 rounded-md" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Skeleton className="h-3.5 w-52 rounded-md" />
-                <Skeleton className="h-32 w-full rounded-xl" />
-              </div>
-            </div>
 
-            {/* Card 2: Grading & Duration Calibration */}
-            <div className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-              <div>
-                <Skeleton className="h-5 w-48 rounded-md" />
-                <Skeleton className="mt-1 h-3 w-64 rounded-md" />
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-20 rounded-md" />
-                  <Skeleton className="h-11 w-full rounded-xl" />
+              {/* Section 2: Duration / Parameters */}
+              <div className="space-y-5 border-t border-slate-100 pt-7">
+                <div>
+                  <Skeleton className="h-5 w-48 rounded-md" />
+                  <Skeleton className="mt-1 h-3 w-64 rounded-md" />
                 </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-20 rounded-md" />
-                  <Skeleton className="h-11 w-full rounded-xl" />
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 rounded-md" />
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 rounded-md" />
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 rounded-md" />
+                    <Skeleton className="h-11 w-full rounded-xl" />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-20 rounded-md" />
-                  <Skeleton className="h-11 w-full rounded-xl" />
-                </div>
-              </div>
-              {/* Late Submissions Toggle Row */}
-              <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-40 rounded-md" />
-                  <Skeleton className="h-3 w-60 rounded-md" />
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                  <Skeleton className="h-6 w-11 rounded-full" />
+                {/* Toggle Row */}
+                <div className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-4">
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-40 rounded-md" />
+                    <Skeleton className="h-3 w-60 rounded-md" />
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-5 w-14 rounded-full" />
+                    <Skeleton className="h-6 w-11 rounded-full" />
+                  </div>
                 </div>
               </div>
             </div>

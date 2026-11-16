@@ -1172,7 +1172,11 @@ export function CourseOutlineTree({
         )}
 
         {/* Tree Content with comfortable scroll area */}
-        <div className="flex-1 [scrollbar-gutter:stable] space-y-3.5 overflow-y-auto scroll-smooth p-3.5 pb-24">
+        <div
+          className={`flex-1 [scrollbar-gutter:stable] space-y-3.5 overflow-y-auto scroll-smooth p-3.5 pb-24 transition-all duration-200 ${
+            isSavingOrder ? 'pointer-events-none opacity-60 blur-[0.6px] select-none' : ''
+          }`}
+        >
           {/* 1. Topics Card Section */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -1205,7 +1209,7 @@ export function CourseOutlineTree({
               <Button
                 type="button"
                 variant="ghost"
-                disabled={Boolean(isReorderingTopics)}
+                disabled={Boolean(isReorderingTopics || isSavingOrder)}
                 onClick={onAddTopic}
                 className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 shadow-2xs transition-colors hover:bg-blue-50 disabled:opacity-40"
                 title="Add a new topic"
@@ -1262,9 +1266,11 @@ export function CourseOutlineTree({
                             topic={topic}
                             isSelected={isSelected}
                             isCollapsed={isCollapsed}
-                            isDisabledDrag={isReorderingTopics}
+                            isDisabledDrag={isReorderingTopics || isSavingOrder}
                             isBeingSaved={
-                              isReorderingTopics || activeReorderingIds.includes(topic.id)
+                              isSavingOrder ||
+                              isReorderingTopics ||
+                              activeReorderingIds.includes(topic.id)
                             }
                             reorderingId={reorderingId}
                             onSelectNode={onSelectNode}
@@ -1287,7 +1293,9 @@ export function CourseOutlineTree({
                                   <Button
                                     type="button"
                                     variant="ghost"
-                                    disabled={Boolean(isReorderingSubtopicsThisTopic)}
+                                    disabled={Boolean(
+                                      isReorderingSubtopicsThisTopic || isSavingOrder,
+                                    )}
                                     onClick={() => onAddSubtopic(topic.id)}
                                     className="inline-flex h-auto items-center gap-1 rounded-full border border-blue-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-blue-700 shadow-2xs transition-colors hover:bg-blue-50 disabled:opacity-40"
                                     title="Add Subtopic"
@@ -1336,8 +1344,11 @@ export function CourseOutlineTree({
                                               subtopic={subtopic}
                                               parentTopicId={topic.id}
                                               isSelected={isSubSelected}
-                                              isDisabledDrag={isReorderingSubtopicsThisTopic}
+                                              isDisabledDrag={
+                                                isReorderingSubtopicsThisTopic || isSavingOrder
+                                              }
                                               isBeingSaved={
+                                                isSavingOrder ||
                                                 isReorderingSubtopicsThisTopic ||
                                                 activeReorderingIds.includes(subtopic.id)
                                               }
@@ -1373,7 +1384,9 @@ export function CourseOutlineTree({
                                   <Button
                                     type="button"
                                     variant="ghost"
-                                    disabled={Boolean(isReorderingTopicTasksThisTopic)}
+                                    disabled={Boolean(
+                                      isReorderingTopicTasksThisTopic || isSavingOrder,
+                                    )}
                                     onClick={() => onAddTopicAssignment(topic.id)}
                                     className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 shadow-2xs transition-colors hover:bg-purple-50 disabled:opacity-40"
                                     title="Add Task"
@@ -1423,8 +1436,11 @@ export function CourseOutlineTree({
                                               parentTopicId={topic.id}
                                               scope="TOPIC"
                                               isSelected={isAssignSelected}
-                                              isDisabledDrag={isReorderingTopicTasksThisTopic}
+                                              isDisabledDrag={
+                                                isReorderingTopicTasksThisTopic || isSavingOrder
+                                              }
                                               isBeingSaved={
+                                                isSavingOrder ||
                                                 isReorderingTopicTasksThisTopic ||
                                                 activeReorderingIds.includes(tAssign.id)
                                               }
@@ -1468,7 +1484,7 @@ export function CourseOutlineTree({
               <Button
                 type="button"
                 variant="ghost"
-                disabled={Boolean(isReorderingCourseAssignments)}
+                disabled={Boolean(isReorderingCourseAssignments || isSavingOrder)}
                 onClick={onAddCourseAssignment}
                 className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 shadow-2xs transition-colors hover:bg-purple-50 disabled:opacity-40"
               >
@@ -1511,8 +1527,9 @@ export function CourseOutlineTree({
                           assignment={assignment}
                           scope="COURSE"
                           isSelected={isSelected}
-                          isDisabledDrag={isReorderingCourseAssignments}
+                          isDisabledDrag={isReorderingCourseAssignments || isSavingOrder}
                           isBeingSaved={
+                            isSavingOrder ||
                             isReorderingCourseAssignments ||
                             activeReorderingIds.includes(assignment.id)
                           }
