@@ -19,7 +19,12 @@ export default async function MentorMentee360Page({ params }: { params: Promise<
       <Header {...MENTOR_MENTEES_NAV} />
       <DashboardContent>
         <Suspense fallback={<User360Skeleton />}>
-          <User360Shell userId={id} backHref="/mentor/mentees" backLabel="Back to Mentees" />
+          <User360Shell
+            userId={id}
+            backHref="/mentor/mentees"
+            backLabel="Back to Mentees"
+            viewerRole="MENTOR"
+          />
         </Suspense>
       </DashboardContent>
     </div>

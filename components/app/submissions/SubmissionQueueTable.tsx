@@ -44,7 +44,7 @@ function truncateText(text: string, maxWords = 6, maxChars = 36): string {
   return truncated !== text ? `${truncated}...` : text;
 }
 
-const STATUS_OPTIONS: MultiSelectOption[] = [
+const STATUS_OPTIONS: MultiSelectOption<SubmissionStatus>[] = [
   { value: SubmissionStatus.SUBMITTED, label: 'Pending Review' },
   { value: SubmissionStatus.RESUBMIT_REQUESTED, label: 'Resubmit Requested' },
   { value: SubmissionStatus.GRADED, label: 'Graded' },
@@ -185,7 +185,7 @@ export function SubmissionQueueTable() {
   const [search, setSearch] = useState<string>(urlSearch);
   const [debouncedSearch, setDebouncedSearch] = useState<string>(urlSearch);
   const [menteeIdFilter, setMenteeIdFilter] = useState<string | undefined>(urlMenteeId);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<SubmissionStatus[]>([]);
   const [submittedSort, setSubmittedSort] = useState<'asc' | 'desc' | null>(null);
   const [nameSort, setNameSort] = useState<'asc' | 'desc' | null>(null);
   const [page, setPage] = useState<number>(1);

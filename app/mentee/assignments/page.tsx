@@ -25,13 +25,10 @@ function MenteeAssignmentsContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<AssignmentDerivedStatus[]>([]);
 
-  const singleStatus = selectedStatuses.length === 1 ? selectedStatuses[0] : undefined;
-
   const { assignments, total, totalPages, isLoading, isFetching, error, refetch } =
     useMyAssignments({
       page,
       limit,
-      status: singleStatus,
       statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
       search: searchQuery.trim() || undefined,
       courseId: activeCourseId,

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
@@ -45,6 +45,7 @@ interface User360ShellProps {
   userId: string;
   backHref?: string;
   backLabel?: string;
+  viewerRole?: 'ADMIN' | 'MENTOR';
 }
 
 type TabKey =
@@ -139,10 +140,18 @@ export function User360Shell({
   userId,
   backHref = '/admin/users',
   backLabel = 'Back to Users',
-}: User360ShellProps) {
+  viewerRole = 'ADMIN',
+}: Readonly<User360ShellProps>) {
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [filters, setFilters] = useState<User360FilterState>({});
   const [isExporting, setIsExporting] = useState(false);
+
+  const availableTabs = useMemo(() => {
+    if (viewerRole === 'MENTOR') {
+      return TABS.filter((t) => t.key !== 'role-history' && t.key !== 'audit');
+    }
+    return TABS;
+  }, [viewerRole]);
 
   const { profile, isLoading, isFetching, isError, error, downloadCsv } = useUser360(
     userId,
@@ -183,18 +192,18 @@ export function User360Shell({
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     let targetIndex = -1;
     if (e.key === 'ArrowRight') {
-      targetIndex = (currentIndex + 1) % TABS.length;
+      targetIndex = (currentIndex + 1) % availableTabs.length;
     } else if (e.key === 'ArrowLeft') {
-      targetIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      targetIndex = (currentIndex - 1 + availableTabs.length) % availableTabs.length;
     } else if (e.key === 'Home') {
       targetIndex = 0;
     } else if (e.key === 'End') {
-      targetIndex = TABS.length - 1;
+      targetIndex = availableTabs.length - 1;
     }
 
     if (targetIndex >= 0) {
       e.preventDefault();
-      const nextTab = TABS[targetIndex];
+      const nextTab = availableTabs[targetIndex];
       if (nextTab) {
         handleTabChange(nextTab.key);
         const nextBtn = document.getElementById(`tab-${nextTab.key}`);
@@ -214,7 +223,7 @@ export function User360Shell({
         <P className="mt-1 text-sm text-red-700">{error ?? 'User not found or access denied.'}</P>
         <div className="mt-4">
           <Link
-            href="/admin/users"
+            href={backHref}
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
           >
             <svg
@@ -226,7 +235,7 @@ export function User360Shell({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            <Span>Back to Users</Span>
+            <Span>{backLabel}</Span>
           </Link>
         </div>
       </div>
@@ -402,7 +411,7 @@ export function User360Shell({
           aria-label="User 360 Sections"
           className="flex items-center gap-1 overflow-x-auto"
         >
-          {TABS.map((tab, index) => {
+          {availableTabs.map((tab, index) => {
             const isActive = activeTab === tab.key;
             return (
               <Button
@@ -608,7 +617,9 @@ export function User360Shell({
                         <TableCell className="text-slate-700">{m.mappedRole}</TableCell>
                         <TableCell className="break-words text-slate-800">
                           {m.peerName}{' '}
-                          <Span className="break-all text-slate-500">({m.peerEmail})</Span>
+                          {viewerRole !== 'MENTOR' && m.peerEmail ? (
+                            <Span className="break-all text-slate-500">({m.peerEmail})</Span>
+                          ) : null}
                         </TableCell>
                         <TableCell className="text-slate-600">
                           {formatDateIST(m.startDate)} &ndash;{' '}

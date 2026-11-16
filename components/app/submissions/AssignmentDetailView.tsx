@@ -122,7 +122,7 @@ export function AssignmentDetailView({
                   title={`This assignment is part of a batch with status "${allocation.batchStatus}". Submissions are closed.`}
                   className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-amber-200 bg-[#FEF9EE] px-3 py-0.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                   Submissions Closed
                 </Span>
               )}

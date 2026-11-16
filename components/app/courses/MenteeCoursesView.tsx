@@ -135,12 +135,15 @@ export function MenteeCoursesView() {
     return list.length > 0 ? list : undefined;
   }, [selectedStatuses]);
 
+  const isOverdueSelected = selectedStatuses.includes('overdue');
+
   const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList({
     menteeId: user?.id,
     page,
     limit,
     search: search.trim() || undefined,
     statuses: backendStatuses,
+    isOverdue: isOverdueSelected ? true : undefined,
   });
 
   const rawAllocations = data?.items;

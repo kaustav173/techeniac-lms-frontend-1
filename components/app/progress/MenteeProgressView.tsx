@@ -420,8 +420,10 @@ export function MenteeProgressView() {
                         {/* 6. Action: Three Dots Button */}
                         <TableCell className="w-[6%] pr-6 pl-2 text-left align-middle">
                           <div className="flex items-center justify-start">
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(`/mentee/courses/${alloc.id}`);
@@ -434,7 +436,7 @@ export function MenteeProgressView() {
                                     : 'Continue Learning'
                               }
                               aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
-                              className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
+                              className="h-11 min-h-[44px] w-11 min-w-[44px] rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
                             >
                               <svg
                                 className="h-4 w-4"
@@ -444,7 +446,7 @@ export function MenteeProgressView() {
                               >
                                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                               </svg>
-                            </button>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>

@@ -113,33 +113,20 @@ export default function MenteePage() {
         : 0;
 
     // Determine the most accurate overall progress:
-    // If calculated from allocations > 0, use it.
-    // Else if learningHistory has summary.overallProgress > 0, use that.
-    // Else if menteeDashboard has overallProgressPercent > 0, use that.
-    // If all are 0, use calculatedPace (or learningHistory/dashboard if available).
+    // If active or completed allocations exist, trust calculated pace (even if 0%).
+    // Otherwise fallback to historical or dashboard progress if available.
     let progressVal = 0;
-    if (calculatedPace > 0) {
-      progressVal = calculatedPace;
-    } else if (
-      learningHistory?.summary?.overallProgress !== undefined &&
-      learningHistory.summary.overallProgress !== null &&
-      Number(learningHistory.summary.overallProgress) > 0
-    ) {
-      progressVal = Number(learningHistory.summary.overallProgress);
-    } else if (
-      menteeDashboard?.overallProgressPercent !== undefined &&
-      menteeDashboard.overallProgressPercent !== null &&
-      Number(menteeDashboard.overallProgressPercent) > 0
-    ) {
-      progressVal = Number(menteeDashboard.overallProgressPercent);
-    } else if (activeOrCompleted.length > 0) {
+    if (activeOrCompleted.length > 0) {
       progressVal = calculatedPace;
     } else if (
       learningHistory?.summary?.overallProgress !== undefined &&
       learningHistory.summary.overallProgress !== null
     ) {
       progressVal = Number(learningHistory.summary.overallProgress);
-    } else if (menteeDashboard?.overallProgressPercent !== undefined) {
+    } else if (
+      menteeDashboard?.overallProgressPercent !== undefined &&
+      menteeDashboard.overallProgressPercent !== null
+    ) {
       progressVal = Number(menteeDashboard.overallProgressPercent);
     }
 

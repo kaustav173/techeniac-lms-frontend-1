@@ -45,8 +45,6 @@ export interface MyAssignmentsTableProps {
   isFetching?: boolean;
   error: string | null;
   onRetry?: (() => void) | undefined;
-  selectedStatus?: AssignmentDerivedStatus | undefined;
-  onStatusChange?: ((status?: AssignmentDerivedStatus) => void) | undefined;
   selectedStatuses?: AssignmentDerivedStatus[] | undefined;
   onStatusesChange?: ((statuses: AssignmentDerivedStatus[]) => void) | undefined;
   searchQuery?: string | undefined;
@@ -71,8 +69,6 @@ export function MyAssignmentsTable({
   isFetching = false,
   error,
   onRetry,
-  selectedStatus,
-  onStatusChange,
   selectedStatuses,
   onStatusesChange,
   searchQuery: externalSearchQuery,
@@ -91,9 +87,8 @@ export function MyAssignmentsTable({
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const activeStatuses = useMemo<AssignmentDerivedStatus[]>(() => {
-    if (selectedStatuses !== undefined) return selectedStatuses;
-    return selectedStatus ? [selectedStatus] : [];
-  }, [selectedStatuses, selectedStatus]);
+    return selectedStatuses ?? [];
+  }, [selectedStatuses]);
 
   useClickOutside(
     actionMenuRef,
@@ -169,7 +164,7 @@ export function MyAssignmentsTable({
   }, [assignments, searchQuery, activeStatuses, isServerPaginated]);
 
   const sortedAssignments = useMemo(() => {
-    if (!sortField) return filteredAssignments;
+    if (isServerPaginated || !sortField) return filteredAssignments;
     return [...filteredAssignments].sort((a, b) => {
       let cmp = 0;
       if (sortField === 'title') {
@@ -185,7 +180,7 @@ export function MyAssignmentsTable({
       }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
-  }, [filteredAssignments, sortField, sortOrder]);
+  }, [filteredAssignments, sortField, sortOrder, isServerPaginated]);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || activeStatuses.length > 0);
 
@@ -223,7 +218,6 @@ export function MyAssignmentsTable({
     } else {
       setInternalSearchQuery('');
     }
-    onStatusChange?.(undefined);
     onStatusesChange?.([]);
     pagination?.onPageChange(1);
   };
@@ -247,7 +241,6 @@ export function MyAssignmentsTable({
             selectedValues={activeStatuses}
             onChange={(vals) => {
               onStatusesChange?.(vals);
-              onStatusChange?.(vals[0]);
               pagination?.onPageChange(1);
             }}
             singleSelect={false}
@@ -362,7 +355,7 @@ export function MyAssignmentsTable({
         <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
           <P className="text-sm font-semibold text-[#111827]">No assignments found</P>
           <P className="mt-1 text-xs text-[#667085]">
-            {selectedStatus || searchQuery
+            {activeStatuses.length > 0 || searchQuery
               ? 'Try adjusting your filters or search keywords.'
               : 'You have no assignments allocated in your current courses.'}
           </P>
@@ -375,46 +368,68 @@ export function MyAssignmentsTable({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <SortableColumnHeader<SortField>
-                    field="title"
-                    label="Assignment"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="courseTitle"
-                    label="Course"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="dueDate"
-                    label="Due Date"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="estimatedMinutes"
-                    label="Est. Time"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="maxMarks"
-                    label="Max Marks"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
-                  />
+                  {isServerPaginated ? (
+                    <>
+                      <TableHead className="w-[26%] px-5 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Assignment
+                      </TableHead>
+                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Course
+                      </TableHead>
+                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Due Date
+                      </TableHead>
+                      <TableHead className="w-[10%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Est. Time
+                      </TableHead>
+                      <TableHead className="w-[12%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Max Marks
+                      </TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <SortableColumnHeader<SortField>
+                        field="title"
+                        label="Assignment"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="courseTitle"
+                        label="Course"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="dueDate"
+                        label="Due Date"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="estimatedMinutes"
+                        label="Est. Time"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="maxMarks"
+                        label="Max Marks"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                    </>
+                  )}
                   <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
                     Status
                   </TableHead>

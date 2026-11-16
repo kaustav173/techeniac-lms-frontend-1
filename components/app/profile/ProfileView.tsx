@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 
+import { PasswordCriteriaChecklist } from '@/components/app/auth/PasswordCriteriaChecklist';
 import { PasswordVisibilityToggle } from '@/components/app/auth/PasswordVisibilityToggle';
 import { Modal } from '@/components/patterns/Modal';
 import { Alert } from '@/components/ui/Alert';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
+import { usePasswordCriteria } from '@/hooks/usePasswordCriteria';
 import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
@@ -130,6 +132,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const criteria = usePasswordCriteria(newPassword);
   const userInitials = getUserInitials(user.name);
   const roleBadgeStyle = getRoleBadgeColor(user.role);
 
@@ -482,6 +485,12 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             disabled={isSubmitting}
             autoComplete="new-password"
           />
+
+          {newPassword ? (
+            <div className="mt-2">
+              <PasswordCriteriaChecklist criteria={criteria} />
+            </div>
+          ) : null}
 
           {/* Confirm Password Field */}
           <ProfilePasswordField

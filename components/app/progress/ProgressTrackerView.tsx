@@ -409,7 +409,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[195px] lg:w-[220px]">
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
@@ -417,7 +417,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleBatchChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
                   menuClassName="min-w-[200px]"
                   onScrollEnd={handleBatchScrollEnd}
                   onSearch={setBatchSearch}
@@ -428,7 +429,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[195px] lg:w-[220px]">
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
@@ -436,7 +437,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleCourseChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
                   menuClassName="min-w-[200px]"
                   onScrollEnd={handleCourseScrollEnd}
                   onSearch={setCourseSearch}
@@ -447,7 +449,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 4. Course Status Filter */}
-              <div className="w-full sm:w-[173px]">
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -455,7 +457,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleStatusChange}
                   singleSelect={false}
                   align="right"
-                  className="w-full"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
                   menuClassName="min-w-[180px]"
                 />
               </div>

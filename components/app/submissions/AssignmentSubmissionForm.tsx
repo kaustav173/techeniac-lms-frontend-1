@@ -290,6 +290,9 @@ export function AssignmentSubmissionForm({
                 hasError={Boolean(fieldError)}
                 disabled={submitMutation.isPending}
               />
+              {fieldError ? (
+                <FieldError error={fieldError} className="mt-1.5 text-xs text-rose-600" />
+              ) : null}
             </div>
           );
         })}

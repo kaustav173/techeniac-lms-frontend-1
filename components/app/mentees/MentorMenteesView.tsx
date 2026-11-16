@@ -159,8 +159,8 @@ function MenteeActionMenu({
           </Link>
           <Link
             href={
-              menteeName
-                ? `/mentor/progress?search=${encodeURIComponent(menteeName)}`
+              menteeId
+                ? `/mentor/progress?menteeId=${encodeURIComponent(menteeId)}`
                 : '/mentor/progress'
             }
             role="menuitem"
@@ -184,8 +184,8 @@ function MenteeActionMenu({
           </Link>
           <Link
             href={
-              menteeName
-                ? `/mentor/reviews?search=${encodeURIComponent(menteeName)}${menteeId ? `&menteeId=${encodeURIComponent(menteeId)}` : ''}`
+              menteeId
+                ? `/mentor/reviews?menteeId=${encodeURIComponent(menteeId)}`
                 : '/mentor/reviews'
             }
             role="menuitem"

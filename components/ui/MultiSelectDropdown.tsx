@@ -29,7 +29,6 @@ export interface MultiSelectDropdownProps<T extends string = string> {
   readonly onScrollEnd?: (() => void) | undefined;
   readonly onSearch?: ((query: string) => void) | undefined;
   readonly isSearching?: boolean | undefined;
-  readonly isLoadingMore?: boolean | undefined;
   readonly buttonClassName?: string | undefined;
   readonly menuClassName?: string | undefined;
   readonly usePortal?: boolean | undefined;

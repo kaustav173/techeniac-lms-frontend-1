@@ -351,9 +351,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 void fetchNextCourses();
               }
             }}
-            isLoadingMore={isFetchingNextCourses}
             className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
             menuClassName="min-w-[200px]"
           />
 
@@ -369,9 +368,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 void fetchNextBatches();
               }
             }}
-            isLoadingMore={isFetchingNextBatches}
             className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
             menuClassName="min-w-[200px]"
           />
 
@@ -382,7 +380,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             selectedValues={filters.statuses?.map((s) => String(s)) ?? []}
             onChange={handleStatusFilter}
             className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
             menuClassName="min-w-[180px]"
           />
 
@@ -438,7 +436,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by course"
-                  className="py-4 pr-4 pl-6 text-sm font-bold text-[#667085] sm:text-base"
+                  className="py-4 pr-4 pl-6 text-base font-bold text-[#667085] sm:text-lg"
                 />
                 <SortableColumnHeader<SortField>
                   field="mentee"
@@ -447,7 +445,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by mentee"
-                  className="px-4 py-4 text-sm font-bold text-[#667085] sm:text-base"
+                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
                 />
                 <SortableColumnHeader<SortField>
                   field="batch"
@@ -456,7 +454,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by batch"
-                  className="px-4 py-4 text-sm font-bold text-[#667085] sm:text-base"
+                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
                 />
                 <SortableColumnHeader<SortField>
                   field="started"
@@ -465,7 +463,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by start date"
-                  className="px-4 py-4 text-sm font-bold text-[#667085] sm:text-base"
+                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
                 />
                 <SortableColumnHeader<SortField>
                   field="due"
@@ -474,7 +472,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by due date"
-                  className="px-4 py-4 text-sm font-bold text-[#667085] sm:text-base"
+                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
                 />
                 <SortableColumnHeader<SortField>
                   field="duration"
@@ -483,12 +481,12 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by duration"
-                  className="px-4 py-4 text-sm font-bold text-[#667085] sm:text-base"
+                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
                 />
-                <TableHead className="px-4 py-4 text-sm font-bold whitespace-nowrap text-[#667085] sm:text-base">
+                <TableHead className="px-4 py-4 text-base font-bold whitespace-nowrap text-[#667085] sm:text-lg">
                   Status
                 </TableHead>
-                <TableHead className="py-4 pr-6 pl-4 text-right text-sm font-bold text-[#667085] sm:text-base">
+                <TableHead className="py-4 pr-6 pl-4 text-right text-base font-bold text-[#667085] sm:text-lg">
                   Actions
                 </TableHead>
               </TableRow>
@@ -552,48 +550,48 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                         isActionMenuOpen && 'relative z-30',
                       )}
                     >
-                      <TableCell className="py-4 pr-4 pl-6 align-middle text-sm sm:text-base">
+                      <TableCell className="py-4 pr-4 pl-6 align-middle text-base sm:text-lg">
                         <P
-                          className="max-w-[200px] truncate text-sm font-semibold text-[#111827] sm:text-base"
+                          className="max-w-[200px] truncate text-base font-semibold text-[#111827] sm:text-lg"
                           title={alloc.course?.title ?? 'Untitled Course'}
                         >
                           {alloc.course?.title ?? 'Untitled Course'}
                         </P>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base sm:text-lg">
                         <P
-                          className="max-w-[180px] truncate text-sm font-semibold text-[#111827] sm:text-base"
+                          className="max-w-[180px] truncate text-base font-semibold text-[#111827] sm:text-lg"
                           title={alloc.user?.name ?? 'Individual Mentee'}
                         >
                           {alloc.user?.name ?? 'Individual Mentee'}
                         </P>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base sm:text-lg">
                         {alloc.batch ? (
                           <P
-                            className="max-w-[200px] truncate text-sm font-semibold text-[#111827] sm:text-base"
+                            className="max-w-[200px] truncate text-base font-semibold text-[#111827] sm:text-lg"
                             title={alloc.batch.name}
                           >
                             {alloc.batch.name}
                           </P>
                         ) : (
-                          <Span className="text-sm font-semibold text-[#667085] sm:text-base">
+                          <Span className="text-base font-semibold text-[#667085] sm:text-lg">
                             {EM_DASH}
                           </Span>
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm font-semibold whitespace-nowrap text-[#344054] sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
                         {formatDateIST(alloc.startDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm font-semibold whitespace-nowrap text-[#344054] sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
                         {formatDateIST(alloc.dueDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm font-semibold whitespace-nowrap text-[#344054] sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
                         {formatDurationMinutes(
                           alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-sm whitespace-nowrap sm:text-base">
+                      <TableCell className="px-4 py-4 align-middle text-base whitespace-nowrap sm:text-lg">
                         <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
                       </TableCell>
                       <TableCell
@@ -723,8 +721,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 <>
                                   <Link
                                     href={
-                                      alloc.user?.name
-                                        ? `/mentor/progress?search=${encodeURIComponent(alloc.user.name)}`
+                                      alloc.user?.id
+                                        ? `/mentor/progress?menteeId=${alloc.user.id}`
                                         : '/mentor/progress'
                                     }
                                     role="menuitem"
@@ -752,10 +750,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                   <Link
                                     href={
                                       alloc.user?.id
-                                        ? `/mentor/reviews?menteeId=${alloc.user.id}${alloc.user?.name ? `&search=${encodeURIComponent(alloc.user.name)}` : ''}`
-                                        : alloc.user?.name
-                                          ? `/mentor/reviews?search=${encodeURIComponent(alloc.user.name)}`
-                                          : '/mentor/reviews'
+                                        ? `/mentor/reviews?menteeId=${alloc.user.id}`
+                                        : '/mentor/reviews'
                                     }
                                     role="menuitem"
                                     onClick={() => {
