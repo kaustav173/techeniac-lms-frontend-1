@@ -222,15 +222,6 @@ export function AssignmentSubmissionForm({
         </P>
       </div>
 
-      {/* Due date and Late submission warnings */}
-      {isPastDue && assignment.allowLate ? (
-        <Alert
-          variant="warning"
-          title="Late Submission Warning"
-          message={`The due date was ${formatDateTimeIST(dueDate)}. Because late submissions are permitted, you can still submit, but your work will be flagged as Late.`}
-        />
-      ) : null}
-
       {/* Consistent design-system error banner (matching Photo 2) */}
       {clientErrorMsg && (
         <FieldError
@@ -273,7 +264,6 @@ export function AssignmentSubmissionForm({
           const mode = field.getMode(assignment);
           if (mode === SubmissionMode.OFF) return null;
 
-          const isRequired = mode === SubmissionMode.REQUIRED;
           const val = fieldValues[field.key];
           const fieldError = clientErrors[field.key];
 
@@ -289,15 +279,6 @@ export function AssignmentSubmissionForm({
             <div key={field.id}>
               <div className="mb-1.5 flex items-center justify-between">
                 <Label htmlFor={field.id}>{field.label}</Label>
-                <Span
-                  className={
-                    isRequired
-                      ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
-                      : 'text-xs text-slate-500 dark:text-slate-400'
-                  }
-                >
-                  {isRequired ? 'Required' : 'Optional'}
-                </Span>
               </div>
               <Input
                 id={field.id}

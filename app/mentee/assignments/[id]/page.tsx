@@ -5,7 +5,10 @@ import React, { Suspense, use } from 'react';
 
 import { MENTEE_ASSIGNMENTS_NAV } from '@/components/app/navigation/portal-nav.config';
 import { PortalSessionState } from '@/components/app/navigation/PortalSessionState';
-import { AssignmentDetailView } from '@/components/app/submissions/AssignmentDetailView';
+import {
+  AssignmentDetailSkeleton,
+  AssignmentDetailView,
+} from '@/components/app/submissions/AssignmentDetailView';
 import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -40,7 +43,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
         <div>
           <Link
             href="/mentee/assignments"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#111827] transition-colors hover:text-[#0044D3]"
+            className="inline-flex items-center gap-2 rounded-full border border-[#E1E6EC] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111827] shadow-2xs transition-colors hover:border-[#0044D3]/30 hover:bg-slate-50 hover:text-[#0044D3]"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -76,11 +79,15 @@ export default function MenteeAssignmentDetailPage({ params }: Readonly<PageProp
   return (
     <Suspense
       fallback={
-        <PortalSessionState
-          sessionError={null}
-          loadingMessage="Loading assignment workspace..."
-          variant="mentee"
-        />
+        <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
+          <Header {...MENTEE_ASSIGNMENTS_NAV} />
+          <DashboardContent className="space-y-6">
+            <div>
+              <div className="inline-flex h-7 w-36 animate-pulse rounded-full bg-slate-200" />
+            </div>
+            <AssignmentDetailSkeleton />
+          </DashboardContent>
+        </div>
       }
     >
       <MenteeAssignmentDetailContent params={params} />

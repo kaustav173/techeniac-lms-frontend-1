@@ -45,10 +45,10 @@ export interface MyAssignmentsTableProps {
   isFetching?: boolean;
   error: string | null;
   onRetry?: (() => void) | undefined;
-  selectedStatus?: AssignmentDerivedStatus | undefined;
-  onStatusChange?: ((status?: AssignmentDerivedStatus) => void) | undefined;
   selectedStatuses?: AssignmentDerivedStatus[] | undefined;
   onStatusesChange?: ((statuses: AssignmentDerivedStatus[]) => void) | undefined;
+  searchQuery?: string | undefined;
+  onSearchQueryChange?: ((search: string) => void) | undefined;
   pagination?: MyAssignmentsPaginationConfig | undefined;
 }
 
@@ -58,10 +58,10 @@ const STATUS_OPTIONS: MultiSelectOption<AssignmentDerivedStatus>[] = [
   { value: AssignmentDerivedStatus.RESUBMIT_REQUESTED, label: 'Resubmit Requested' },
   { value: AssignmentDerivedStatus.GRADED, label: 'Graded' },
   { value: AssignmentDerivedStatus.OVERDUE, label: 'Overdue' },
-  { value: AssignmentDerivedStatus.CLOSED, label: 'Submissions Closed' },
+  { value: AssignmentDerivedStatus.CLOSED, label: 'Closed' },
 ];
 
-type SortField = 'title' | 'courseTitle' | 'dueDate' | 'estimatedMinutes' | 'maxMarks' | 'status';
+type SortField = 'title' | 'courseTitle' | 'dueDate' | 'estimatedMinutes' | 'maxMarks';
 
 export function MyAssignmentsTable({
   assignments,
@@ -69,32 +69,31 @@ export function MyAssignmentsTable({
   isFetching = false,
   error,
   onRetry,
-  selectedStatus,
-  onStatusChange,
   selectedStatuses,
   onStatusesChange,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
   pagination,
 }: Readonly<MyAssignmentsTableProps>) {
   const router = useRouter();
   const prefetchAssignment = usePrefetchAssignmentDetails();
   const { getHoverHandlers } = useHoverPrefetch();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
+  const isServerPaginated = pagination?.total !== undefined;
   const [sortField, setSortField] = useState<SortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const activeStatuses = useMemo<AssignmentDerivedStatus[]>(() => {
-    if (selectedStatuses !== undefined) return selectedStatuses;
-    return selectedStatus ? [selectedStatus] : [];
-  }, [selectedStatuses, selectedStatus]);
+    return selectedStatuses ?? [];
+  }, [selectedStatuses]);
 
   useClickOutside(
     actionMenuRef,
     () => {
       setOpenActionMenuId(null);
-      setMenuPosition(null);
     },
     openActionMenuId !== null,
   );
@@ -104,12 +103,10 @@ export function MyAssignmentsTable({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpenActionMenuId(null);
-        setMenuPosition(null);
       }
     };
     const handleScrollOrResize = () => {
       setOpenActionMenuId(null);
-      setMenuPosition(null);
     };
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleScrollOrResize, true);
@@ -123,21 +120,7 @@ export function MyAssignmentsTable({
 
   const toggleActionMenu = (e: React.MouseEvent<HTMLButtonElement>, assignmentId: string) => {
     e.stopPropagation();
-    if (openActionMenuId === assignmentId) {
-      setOpenActionMenuId(null);
-      setMenuPosition(null);
-      return;
-    }
-    const rect = e.currentTarget.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const menuHeight = 90;
-    const openUpward = spaceBelow < menuHeight + 20;
-
-    setMenuPosition({
-      top: openUpward ? Math.max(10, rect.top - menuHeight) : rect.bottom + 6,
-      right: Math.max(10, window.innerWidth - rect.right),
-    });
-    setOpenActionMenuId(assignmentId);
+    setOpenActionMenuId((prev) => (prev === assignmentId ? null : assignmentId));
   };
 
   const handleSort = (field: SortField) => {
@@ -164,6 +147,10 @@ export function MyAssignmentsTable({
       }
     }
 
+    if (isServerPaginated) {
+      return unique;
+    }
+
     const q = searchQuery.toLowerCase().trim();
     return unique.filter((item) => {
       const matchesSearch =
@@ -174,10 +161,10 @@ export function MyAssignmentsTable({
       const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(item.status);
       return matchesSearch && matchesStatus;
     });
-  }, [assignments, searchQuery, activeStatuses]);
+  }, [assignments, searchQuery, activeStatuses, isServerPaginated]);
 
   const sortedAssignments = useMemo(() => {
-    if (!sortField) return filteredAssignments;
+    if (isServerPaginated || !sortField) return filteredAssignments;
     return [...filteredAssignments].sort((a, b) => {
       let cmp = 0;
       if (sortField === 'title') {
@@ -190,35 +177,47 @@ export function MyAssignmentsTable({
         cmp = (a.estimatedMinutes || 0) - (b.estimatedMinutes || 0);
       } else if (sortField === 'maxMarks') {
         cmp = (a.maxMarks || 0) - (b.maxMarks || 0);
-      } else if (sortField === 'status') {
-        cmp = (a.status || '').localeCompare(b.status || '');
       }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
-  }, [filteredAssignments, sortField, sortOrder]);
+  }, [filteredAssignments, sortField, sortOrder, isServerPaginated]);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || activeStatuses.length > 0);
 
-  const effectiveTotal = sortedAssignments.length;
-  const effectiveTotalPages = pagination
-    ? Math.max(1, Math.ceil(effectiveTotal / pagination.limit))
-    : 1;
+  const effectiveTotal =
+    isServerPaginated && pagination.total !== undefined
+      ? pagination.total
+      : sortedAssignments.length;
+  const effectiveTotalPages =
+    isServerPaginated && pagination.totalPages !== undefined
+      ? pagination.totalPages
+      : pagination
+        ? Math.max(1, Math.ceil(effectiveTotal / pagination.limit))
+        : 1;
   const effectivePage = pagination ? Math.min(pagination.page, effectiveTotalPages) : 1;
 
   const paginatedAssignments = useMemo(() => {
+    if (isServerPaginated) return sortedAssignments;
     if (!pagination) return sortedAssignments;
     const start = (effectivePage - 1) * pagination.limit;
     return sortedAssignments.slice(start, start + pagination.limit);
-  }, [sortedAssignments, pagination, effectivePage]);
+  }, [sortedAssignments, pagination, effectivePage, isServerPaginated]);
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
+    if (onSearchQueryChange) {
+      onSearchQueryChange(value);
+    } else {
+      setInternalSearchQuery(value);
+    }
     pagination?.onPageChange(1);
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
-    onStatusChange?.(undefined);
+    if (onSearchQueryChange) {
+      onSearchQueryChange('');
+    } else {
+      setInternalSearchQuery('');
+    }
     onStatusesChange?.([]);
     pagination?.onPageChange(1);
   };
@@ -242,7 +241,6 @@ export function MyAssignmentsTable({
             selectedValues={activeStatuses}
             onChange={(vals) => {
               onStatusesChange?.(vals);
-              onStatusChange?.(vals[0]);
               pagination?.onPageChange(1);
             }}
             singleSelect={false}
@@ -285,56 +283,79 @@ export function MyAssignmentsTable({
         <ErrorMessage error={error} title="Failed to load assignments" onRetry={onRetry} />
       ) : null}
 
-      {isLoading ? (
-        <TableContainer className="w-full">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[24%] px-5 py-3.5">Assignment</TableHead>
-                <TableHead className="w-[18%] px-4 py-3.5">Course</TableHead>
-                <TableHead className="w-[16%] px-4 py-3.5">Due Date</TableHead>
-                <TableHead className="w-[12%] px-4 py-3.5">Est. Time</TableHead>
-                <TableHead className="w-[10%] px-4 py-3.5">Marks</TableHead>
-                <TableHead className="w-[12%] px-4 py-3.5">Status</TableHead>
-                <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 10 }).map((_, idx) => (
-                <TableRow key={`assign-skel-${idx}`} className="h-16">
-                  <TableCell className="px-5 py-4">
-                    <Skeleton className="h-4 w-44 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-36 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-28 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-6 w-24 rounded-full" />
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-right">
-                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
-                  </TableCell>
+      {isLoading || isFetching ? (
+        <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <TableContainer className="w-full rounded-none border-0 shadow-none">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Assignment
+                  </TableHead>
+                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Course
+                  </TableHead>
+                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Due Date
+                  </TableHead>
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Est. Time
+                  </TableHead>
+                  <TableHead className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Max Marks
+                  </TableHead>
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <TableRow key={`assign-skel-${idx}`} className="h-16">
+                    <TableCell className="px-5 py-4">
+                      <Skeleton className="h-4 w-44 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-36 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <Skeleton className="mx-auto h-8 w-8 rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-20 rounded-lg" />
+            </div>
+          </div>
+        </div>
       ) : sortedAssignments.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
           <P className="text-sm font-semibold text-[#111827]">No assignments found</P>
           <P className="mt-1 text-xs text-[#667085]">
-            {selectedStatus || searchQuery
+            {activeStatuses.length > 0 || searchQuery
               ? 'Try adjusting your filters or search keywords.'
               : 'You have no assignments allocated in your current courses.'}
           </P>
@@ -347,55 +368,72 @@ export function MyAssignmentsTable({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <SortableColumnHeader<SortField>
-                    field="title"
-                    label="Assignment"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[26%] px-5 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="courseTitle"
-                    label="Course"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="dueDate"
-                    label="Due Date"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="estimatedMinutes"
-                    label="Est. Time"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="maxMarks"
-                    label="Max Marks"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[12%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="status"
-                    label="Status"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <TableHead className="w-16 px-4 py-3.5 text-center font-semibold text-[#667085]">
+                  {isServerPaginated ? (
+                    <>
+                      <TableHead className="w-[26%] px-5 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Assignment
+                      </TableHead>
+                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Course
+                      </TableHead>
+                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Due Date
+                      </TableHead>
+                      <TableHead className="w-[10%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Est. Time
+                      </TableHead>
+                      <TableHead className="w-[12%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                        Max Marks
+                      </TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <SortableColumnHeader<SortField>
+                        field="title"
+                        label="Assignment"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="courseTitle"
+                        label="Course"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="dueDate"
+                        label="Due Date"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="estimatedMinutes"
+                        label="Est. Time"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="maxMarks"
+                        label="Max Marks"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                      />
+                    </>
+                  )}
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -467,10 +505,10 @@ export function MyAssignmentsTable({
                       </TableCell>
 
                       {/* Marks Column */}
-                      <TableCell className="px-4 py-4 whitespace-nowrap">
-                        <div className="space-y-0.5 text-xs">
+                      <TableCell className="px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
+                        <div className="space-y-0.5">
                           <Span className="font-semibold text-[#111827]">
-                            {assignment.maxMarks} pts
+                            {assignment.maxMarks} marks
                           </Span>
                           {assignment.passMarks ? (
                             <Span className="block text-[11px] text-[#667085]">
@@ -481,7 +519,7 @@ export function MyAssignmentsTable({
                       </TableCell>
 
                       {/* Status Column */}
-                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <TableCell className="px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
                         <SubmissionStatusBadge
                           status={assignment.status}
                           isLate={assignment.latestSubmission?.isLate}
@@ -524,16 +562,12 @@ export function MyAssignmentsTable({
                             </svg>
                           </Button>
 
-                          {isActionMenuOpen && menuPosition && (
+                          {isActionMenuOpen && (
                             <div
                               ref={actionMenuRef}
                               role="menu"
                               aria-label={`Actions for ${assignment.title}`}
-                              style={{
-                                top: `${menuPosition.top}px`,
-                                right: `${menuPosition.right}px`,
-                              }}
-                              className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
+                              className="animate-in fade-in zoom-in-95 absolute top-1/2 right-full z-50 mr-2 w-44 -translate-y-1/2 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
                             >
                               <Link
                                 role="menuitem"
@@ -541,7 +575,6 @@ export function MyAssignmentsTable({
                                 {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                                 onClick={() => {
                                   setOpenActionMenuId(null);
-                                  setMenuPosition(null);
                                 }}
                                 className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                               >
@@ -560,7 +593,6 @@ export function MyAssignmentsTable({
                                   href={`/mentee/courses/${assignment.courseId}`}
                                   onClick={() => {
                                     setOpenActionMenuId(null);
-                                    setMenuPosition(null);
                                   }}
                                   className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                 >

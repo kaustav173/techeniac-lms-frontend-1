@@ -418,6 +418,9 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                 setPage(1);
               }}
               align="left"
+              className="w-full sm:w-[137px]"
+              buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs sm:w-[137px]"
+              menuClassName="sm:min-w-[137px] sm:w-[137px]"
             />
 
             {/* Circular Red Cross Clear Button */}

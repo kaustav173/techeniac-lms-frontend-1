@@ -66,10 +66,13 @@ function formatDateRange(startDate?: string | null, endDate?: string | null): st
 export default function MenteePage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
   const { data: menteeBatchView, isLoading: isLoadingBatch, error: batchError } = useMenteeBatch();
-  const { data: allocationsData, isLoading: isLoadingAllocations } = useAllocationsList({
-    menteeId: user?.id,
-    limit: 100,
-  });
+  const { data: allocationsData, isLoading: isLoadingAllocations } = useAllocationsList(
+    {
+      menteeId: user?.id,
+      limit: 100,
+    },
+    { enabled: Boolean(user?.id) && isAuthorized },
+  );
   const {
     data: menteeDashboard,
     isLoading: isLoadingDashboard,
@@ -87,44 +90,60 @@ export default function MenteePage() {
 
   /* Compute overall progress statistics */
   const { completedCount, inProgressCount, overdueCount, overallProgress } = useMemo(() => {
-    if (allocations.length > 0) {
-      const completed = allocations.filter((a) => a.status === 'COMPLETED').length;
-      const inProgress = allocations.filter(
-        (a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS',
-      ).length;
-      const overdue = allocations.filter((a) => {
-        const isClosed = isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED';
-        return Boolean(a.isOverdue) && a.status !== 'COMPLETED' && !isClosed;
-      }).length;
+    // 1. Calculate from allocations if available
+    const activeOrCompleted = allocations.filter(
+      (a) => !isTerminalAllocationStatus(a.status) || a.status === 'COMPLETED',
+    );
+    const completed = activeOrCompleted.filter((a) => a.status === 'COMPLETED').length;
+    const inProgress = activeOrCompleted.filter(
+      (a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS',
+    ).length;
+    const overdue = activeOrCompleted.filter((a) => {
+      const isClosed = isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED';
+      return Boolean(a.isOverdue) && a.status !== 'COMPLETED' && !isClosed;
+    }).length;
 
-      const totalProgress = allocations.reduce((sum, a) => sum + Number(a.progressPercent || 0), 0);
-      const calculatedPace = Math.round((totalProgress / allocations.length) * 10) / 10;
-      const progressVal = menteeDashboard?.overallProgressPercent ?? calculatedPace;
+    const totalProgress = activeOrCompleted.reduce(
+      (sum, a) => sum + Number(a.progressPercent || 0),
+      0,
+    );
+    const calculatedPace =
+      activeOrCompleted.length > 0
+        ? Math.round((totalProgress / activeOrCompleted.length) * 10) / 10
+        : 0;
 
-      return {
-        completedCount: menteeDashboard?.completedCoursesCount ?? completed,
-        inProgressCount: menteeDashboard?.activeCoursesCount ?? inProgress,
-        overdueCount: overdue,
-        overallProgress: progressVal,
-      };
+    // Determine the most accurate overall progress:
+    // If active or completed allocations exist, trust calculated pace (even if 0%).
+    // Otherwise fallback to historical or dashboard progress if available.
+    let progressVal = 0;
+    if (activeOrCompleted.length > 0) {
+      progressVal = calculatedPace;
+    } else if (
+      learningHistory?.summary?.overallProgress !== undefined &&
+      learningHistory.summary.overallProgress !== null
+    ) {
+      progressVal = Number(learningHistory.summary.overallProgress);
+    } else if (
+      menteeDashboard?.overallProgressPercent !== undefined &&
+      menteeDashboard.overallProgressPercent !== null
+    ) {
+      progressVal = Number(menteeDashboard.overallProgressPercent);
     }
 
-    if (menteeDashboard) {
-      return {
-        completedCount: menteeDashboard.completedCoursesCount ?? 0,
-        inProgressCount: menteeDashboard.activeCoursesCount ?? 0,
-        overdueCount: 0,
-        overallProgress: menteeDashboard.overallProgressPercent ?? 0,
-      };
-    }
+    const resolvedCompleted =
+      completed ||
+      menteeDashboard?.completedCoursesCount ||
+      learningHistory?.summary?.completedAllocations ||
+      0;
+    const resolvedInProgress = inProgress || menteeDashboard?.activeCoursesCount || 0;
 
     return {
-      completedCount: 0,
-      inProgressCount: 0,
-      overdueCount: 0,
-      overallProgress: 0,
+      completedCount: resolvedCompleted,
+      inProgressCount: resolvedInProgress,
+      overdueCount: overdue,
+      overallProgress: progressVal,
     };
-  }, [allocations, menteeDashboard]);
+  }, [allocations, menteeDashboard, learningHistory]);
 
   /* Next upcoming assignment */
   const upcomingItem = useMemo(() => {
@@ -187,8 +206,25 @@ export default function MenteePage() {
       });
     }
 
+    if (learningHistory?.batches && learningHistory.batches.length > 0) {
+      const allHistoryAllocs = learningHistory.batches.flatMap((b) => b.courseAllocations);
+      if (allHistoryAllocs.length > 0) {
+        return allHistoryAllocs.slice(0, 3).map((a, idx) => {
+          const graphics: Array<'code' | 'data' | 'react'> = ['code', 'data', 'react'];
+          return {
+            id: a.allocationId,
+            title: a.courseTitle ?? `Course ${idx + 1}`,
+            subtitle: `${a.progressPercent}% complete`,
+            progress: Number(a.progressPercent || 0),
+            graphicType: graphics[idx % graphics.length] ?? 'code',
+            href: `/mentee/courses/${a.allocationId}`,
+          };
+        });
+      }
+    }
+
     return [];
-  }, [allocations]);
+  }, [allocations, learningHistory]);
 
   /* Recent Activity list */
   const displayRecentActivities = useMemo(() => {
@@ -412,68 +448,63 @@ export default function MenteePage() {
             </div>
           </div>
 
-          {/* Upcoming Card */}
-          <div className="flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-7 lg:col-span-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <CalendarIcon className="h-5 w-5 text-[#0044D3]" />
-                <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">Upcoming</H2>
-              </div>
-              <Link
-                href="/mentee/assignments"
-                className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
-              >
-                <Span>View All</Span>
-                <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-
-            {upcomingItem ? (
-              <div className="mt-6 flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-4">
-                  <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50">
-                    <Span className="text-xl leading-none font-black text-[#0F172A] sm:text-2xl">
-                      {upcomingItem.day}
-                    </Span>
-                    <Span className="mt-0.5 text-[10px] font-bold tracking-wider text-[#64748B] uppercase">
-                      {upcomingItem.month}
-                    </Span>
-                  </div>
-                  <div className="min-w-0">
-                    <H3
-                      className="truncate text-sm font-bold text-[#0F172A] sm:text-base"
-                      title={upcomingItem.title}
-                    >
-                      {upcomingItem.title}
-                    </H3>
-                    <P className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
-                      <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
-                      <Span>{upcomingItem.subtitle}</Span>
-                    </P>
-                  </div>
+          {/* Quick Actions */}
+          <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[#0044D3] via-[#0039B3] to-[#4338CA] p-6 text-white shadow-md sm:p-7 lg:col-span-5">
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <LightningIcon className="h-5 w-5 text-amber-300" />
+                  <H2 className="text-base font-bold text-white sm:text-lg">Quick Actions</H2>
                 </div>
-
                 <Link
-                  href={upcomingItem.link}
-                  className="flex-shrink-0 rounded-full bg-blue-50 px-4 py-2 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-100"
+                  href="/mentee/courses"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white shadow-xs backdrop-blur-xs transition-all hover:scale-105 hover:bg-white/30"
+                  aria-label="View Courses"
                 >
-                  View Assignment
+                  <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
-            ) : (
-              <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-6 text-center">
-                <CalendarIcon className="h-8 w-8 text-slate-300" />
-                <Span className="mt-2 text-xs font-semibold text-slate-500">
-                  No upcoming assignments due
-                </Span>
-                <Span className="text-[11px] text-slate-400">You are all caught up!</Span>
-              </div>
-            )}
+              <P className="mt-1 text-xs text-blue-100/90">Get things done faster</P>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Link
+                href="/mentee/assignments"
+                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
+              >
+                <DocumentTextIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
+                <Span className="truncate text-xs font-bold">View Assignments</Span>
+              </Link>
+
+              <Link
+                href="/mentee/progress"
+                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
+              >
+                <BarChartIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
+                <Span className="truncate text-xs font-bold">Check Progress</Span>
+              </Link>
+
+              <Link
+                href="/mentee/courses"
+                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
+              >
+                <BookIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
+                <Span className="truncate text-xs font-bold">Browse Courses</Span>
+              </Link>
+
+              <Link
+                href="/mentee/performance"
+                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
+              >
+                <TrophyIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
+                <Span className="truncate text-xs font-bold">View Performance</Span>
+              </Link>
+            </div>
           </div>
         </div>
 
         {/* ================================================================ */}
-        {/* ROW 3: My Courses (7 cols) + Quick Actions (5 cols)                */}
+        {/* ROW 3: My Courses (7 cols) + Upcoming (5 cols)                    */}
         {/* ================================================================ */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* My Courses */}
@@ -537,58 +568,63 @@ export default function MenteePage() {
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[#0044D3] via-[#0039B3] to-[#4338CA] p-6 text-white shadow-md sm:p-7 lg:col-span-5">
-            <div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <LightningIcon className="h-5 w-5 text-amber-300" />
-                  <H2 className="text-base font-bold text-white sm:text-lg">Quick Actions</H2>
-                </div>
-                <Link
-                  href="/mentee/courses"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white shadow-xs backdrop-blur-xs transition-all hover:scale-105 hover:bg-white/30"
-                  aria-label="View Courses"
-                >
-                  <ArrowRightIcon className="h-4 w-4" />
-                </Link>
+          {/* Upcoming Card */}
+          <div className="flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-7 lg:col-span-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <CalendarIcon className="h-5 w-5 text-[#0044D3]" />
+                <H2 className="text-base font-bold text-[#0F172A] sm:text-lg">Upcoming</H2>
               </div>
-              <P className="mt-1 text-xs text-blue-100/90">Get things done faster</P>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
               <Link
                 href="/mentee/assignments"
-                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
+                className="group flex items-center gap-1.5 text-xs font-semibold text-[#0044D3] hover:underline sm:text-sm"
               >
-                <DocumentTextIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <Span className="truncate text-xs font-bold">View Assignments</Span>
-              </Link>
-
-              <Link
-                href="/mentee/progress"
-                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
-              >
-                <BarChartIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <Span className="truncate text-xs font-bold">Check Progress</Span>
-              </Link>
-
-              <Link
-                href="/mentee/courses"
-                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
-              >
-                <BookIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <Span className="truncate text-xs font-bold">Browse Courses</Span>
-              </Link>
-
-              <Link
-                href="/mentee/performance"
-                className="group flex items-center gap-2.5 rounded-2xl bg-white p-3 text-[#0F172A] shadow-xs transition-all hover:bg-blue-50/70 hover:shadow-md sm:p-3.5"
-              >
-                <TrophyIcon className="h-4 w-4 flex-shrink-0 text-[#0044D3]" />
-                <Span className="truncate text-xs font-bold">View Performance</Span>
+                <Span>View All</Span>
+                <ChevronRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
+
+            {upcomingItem ? (
+              <div className="mt-6 flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-4">
+                  <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50">
+                    <Span className="text-xl leading-none font-black text-[#0F172A] sm:text-2xl">
+                      {upcomingItem.day}
+                    </Span>
+                    <Span className="mt-0.5 text-[10px] font-bold tracking-wider text-[#64748B] uppercase">
+                      {upcomingItem.month}
+                    </Span>
+                  </div>
+                  <div className="min-w-0">
+                    <H3
+                      className="truncate text-sm font-bold text-[#0F172A] sm:text-base"
+                      title={upcomingItem.title}
+                    >
+                      {upcomingItem.title}
+                    </H3>
+                    <P className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
+                      <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
+                      <Span>{upcomingItem.subtitle}</Span>
+                    </P>
+                  </div>
+                </div>
+
+                <Link
+                  href={upcomingItem.link}
+                  className="flex-shrink-0 rounded-full bg-blue-50 px-4 py-2 text-xs font-semibold text-[#0044D3] transition-colors hover:bg-blue-100"
+                >
+                  View Assignment
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-6 text-center">
+                <CalendarIcon className="h-8 w-8 text-slate-300" />
+                <Span className="mt-2 text-xs font-semibold text-slate-500">
+                  No upcoming assignments due
+                </Span>
+                <Span className="text-[11px] text-slate-400">You are all caught up!</Span>
+              </div>
+            )}
           </div>
         </div>
 

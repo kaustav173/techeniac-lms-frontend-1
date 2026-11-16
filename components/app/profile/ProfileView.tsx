@@ -18,7 +18,12 @@ import { useToast } from '@/hooks/useToast';
 import { ApiError } from '@/lib/errors';
 import { formatRoleLabel } from '@/lib/roles';
 import { getUserInitials } from '@/lib/user';
-import { changePasswordSchema, extractZodErrors, updateProfileSchema } from '@/lib/validation';
+import {
+  changePasswordSchema,
+  extractZodErrors,
+  passwordSchema,
+  updateProfileSchema,
+} from '@/lib/validation';
 import type { AuthUser, UserRole } from '@/services/auth.service';
 
 function getRoleBadgeColor(role: UserRole): string {
@@ -45,6 +50,7 @@ interface ProfilePasswordFieldProps {
   readonly disabled?: boolean | undefined;
   readonly autoComplete?: string | undefined;
   readonly inputRef?: React.Ref<HTMLInputElement> | undefined;
+  readonly onBlur?: (() => void) | undefined;
 }
 
 function ProfilePasswordField({
@@ -60,6 +66,7 @@ function ProfilePasswordField({
   disabled,
   autoComplete,
   inputRef,
+  onBlur,
 }: Readonly<ProfilePasswordFieldProps>) {
   return (
     <div className="space-y-1.5">
@@ -74,6 +81,7 @@ function ProfilePasswordField({
           type={isVisible ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
           placeholder={placeholder}
           hasError={Boolean(error)}
           errorId={`${id}-error`}
@@ -127,6 +135,17 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
   const criteria = usePasswordCriteria(newPassword);
   const userInitials = getUserInitials(user.name);
   const roleBadgeStyle = getRoleBadgeColor(user.role);
+
+  const handleNewPasswordBlur = () => {
+    if (!newPassword) return;
+    const res = passwordSchema.safeParse(newPassword);
+    if (!res.success) {
+      setErrors((prev) => ({
+        ...prev,
+        newPassword: res.error.issues[0]?.message ?? 'Invalid password',
+      }));
+    }
+  };
 
   const handleOpenPasswordModal = () => {
     setCurrentPassword('');
@@ -458,6 +477,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             label="New"
             value={newPassword}
             onChange={handleFieldChange(setNewPassword, 'newPassword')}
+            onBlur={handleNewPasswordBlur}
             placeholder="••••••••"
             error={errors.newPassword}
             isVisible={showNewPassword}
@@ -466,8 +486,11 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
             autoComplete="new-password"
           />
 
-          {/* Password Requirements Checklist */}
-          {newPassword.length > 0 ? <PasswordCriteriaChecklist criteria={criteria} /> : null}
+          {newPassword ? (
+            <div className="mt-2">
+              <PasswordCriteriaChecklist criteria={criteria} />
+            </div>
+          ) : null}
 
           {/* Confirm Password Field */}
           <ProfilePasswordField
@@ -504,8 +527,7 @@ export function ProfileView({ user }: Readonly<ProfileViewProps>) {
                 isSubmitting ||
                 !currentPassword.trim() ||
                 !newPassword.trim() ||
-                !confirmPassword.trim() ||
-                !criteria.isValid
+                !confirmPassword.trim()
               }
               isLoading={isSubmitting}
               className="rounded-full bg-[#0044D3] px-6 text-xs font-semibold text-white shadow-xs hover:bg-[#0039B3] disabled:bg-blue-300 disabled:text-white disabled:opacity-100"

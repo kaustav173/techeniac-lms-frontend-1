@@ -29,7 +29,8 @@ export function MenteeTableRow({
   isActionMenuOpen,
 }: Readonly<MenteeTableRowProps>) {
   const router = useRouter();
-  const targetUrl = mentee.id ? `/mentor/progress?menteeId=${mentee.id}` : '/mentor/progress';
+  const menteeUserId = 'menteeId' in mentee && mentee.menteeId ? mentee.menteeId : mentee.id;
+  const targetUrl = menteeUserId ? `/mentor/mentees/${menteeUserId}` : '/mentor/mentees';
 
   return (
     <TableRow

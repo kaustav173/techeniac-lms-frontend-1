@@ -8,10 +8,7 @@ import { PaginationControls } from '@/components/patterns/PaginationControls';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import {
-  SingleSelectDropdown,
-  type SingleSelectOption,
-} from '@/components/ui/SingleSelectDropdown';
+import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Table,
@@ -140,9 +137,30 @@ function MenteeActionMenu({
           )}
         >
           <Link
+            href={menteeId ? `/mentor/mentees/${menteeId}` : '/mentor/mentees'}
+            role="menuitem"
+            onClick={handleItemClick}
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-[#111827] transition-colors hover:bg-emerald-50/80 hover:text-emerald-700"
+          >
+            <svg
+              className="h-4 w-4 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            <Span>360 Profile</Span>
+          </Link>
+          <Link
             href={
-              menteeName
-                ? `/mentor/progress?search=${encodeURIComponent(menteeName)}`
+              menteeId
+                ? `/mentor/progress?menteeId=${encodeURIComponent(menteeId)}`
                 : '/mentor/progress'
             }
             role="menuitem"
@@ -166,8 +184,8 @@ function MenteeActionMenu({
           </Link>
           <Link
             href={
-              menteeName
-                ? `/mentor/reviews?search=${encodeURIComponent(menteeName)}${menteeId ? `&menteeId=${encodeURIComponent(menteeId)}` : ''}`
+              menteeId
+                ? `/mentor/reviews?menteeId=${encodeURIComponent(menteeId)}`
                 : '/mentor/reviews'
             }
             role="menuitem"
@@ -196,7 +214,7 @@ function MenteeActionMenu({
 }
 
 export function MentorMenteesView() {
-  const [selectedBatchId, setSelectedBatchId] = useState<string>('');
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -214,22 +232,20 @@ export function MentorMenteesView() {
   } = useMentorMentees();
 
   // Pre-formatted dropdown options for course filter
-  const courseOptions = useMemo<SingleSelectOption[]>(
-    () => [
-      { value: '', label: 'All' },
-      ...batches.map((b) => ({
+  const courseOptions = useMemo<MultiSelectOption[]>(
+    () =>
+      batches.map((b) => ({
         value: b.id,
         label: `${b.name} (${b.code})`,
       })),
-    ],
     [batches],
   );
 
-  // Client-side filtering by batch ID, name, email, or batch details
+  // Client-side filtering by batch IDs, name, email, or batch details
   const filteredMentees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return mentees.filter((m) => {
-      if (selectedBatchId && m.batchId !== selectedBatchId) return false;
+      if (selectedBatchIds.length > 0 && !selectedBatchIds.includes(m.batchId)) return false;
       if (!q) return true;
 
       const name = m.name?.toLowerCase() ?? '';
@@ -240,7 +256,7 @@ export function MentorMenteesView() {
         name.includes(q) || email.includes(q) || batchName.includes(q) || batchCode.includes(q)
       );
     });
-  }, [mentees, searchQuery, selectedBatchId]);
+  }, [mentees, searchQuery, selectedBatchIds]);
 
   const handleMenteeSort = () => {
     setMappedSinceSort(null);
@@ -336,12 +352,10 @@ export function MentorMenteesView() {
     return sortedMentees.slice(start, start + pageSize);
   }, [sortedMentees, page, pageSize]);
 
-  const hasActiveFilters = Boolean(
-    selectedBatchId || searchQuery.trim() || menteeSort !== null || mappedSinceSort !== null,
-  );
+  const hasActiveFilters = Boolean(selectedBatchIds.length > 0 || searchQuery.trim());
 
   const handleClearFilters = () => {
-    setSelectedBatchId('');
+    setSelectedBatchIds([]);
     setSearchQuery('');
     setMenteeSort(null);
     setMappedSinceSort(null);
@@ -379,7 +393,7 @@ export function MentorMenteesView() {
       ) : null}
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#E1E6EC] bg-white p-4 shadow-xs sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Search Input with Search Icon and Curved Border */}
         <div className="relative w-full sm:max-w-md">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
@@ -413,22 +427,18 @@ export function MentorMenteesView() {
 
         {/* Course / Batch Filter & Clear Filters placed side by side */}
         <div className="flex items-center gap-3">
-          <SingleSelectDropdown
+          <MultiSelectDropdown
             label="Course"
-            value={selectedBatchId}
-            onChange={(val) => {
-              setSelectedBatchId(val);
+            options={courseOptions}
+            selectedValues={selectedBatchIds}
+            onChange={(vals) => {
+              setSelectedBatchIds(vals);
               setPage(1);
             }}
-            options={courseOptions}
             placeholder="Course"
-            aria-label="Filter by course"
             className="w-full shrink-0 sm:w-[219px]"
-            triggerClassName={cn(
-              'h-[47px] rounded-2xl border-[#E1E6EC] bg-white px-4 text-sm font-semibold shadow-2xs transition-all hover:border-slate-300 hover:bg-[#F9FAFB]',
-              selectedBatchId && 'border-blue-300 bg-blue-50/50 text-[#0044D3]',
-            )}
-            menuClassName="w-full sm:min-w-[260px] rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
+            buttonClassName="h-[47px] rounded-2xl border-[#E1E6EC] shadow-2xs"
+            menuClassName="w-full sm:min-w-[219px] sm:w-[219px]"
           />
 
           {hasActiveFilters ? (
@@ -459,55 +469,66 @@ export function MentorMenteesView() {
       {/* Main Content Area */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         {isLoadingMentees ? (
-          <TableContainer className="rounded-none border-0 shadow-none">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
-                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                    Mentee
-                  </TableHead>
-                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                    Course
-                  </TableHead>
-                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                    Course Code
-                  </TableHead>
-                  <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                    Mapped Since
-                  </TableHead>
-                  <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <TableRow key={i} className="h-16 border-b border-[#E1E6EC]/60">
-                    <TableCell className="w-[32%] py-3.5">
-                      <div className="space-y-1.5">
-                        <Skeleton className="h-4 w-36" />
-                        <Skeleton className="h-3 w-48" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <Skeleton className="h-6 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell className="py-3.5 text-right">
-                      <div className="flex justify-end">
-                        <Skeleton className="h-8 w-8 rounded-lg" />
-                      </div>
-                    </TableCell>
+          <>
+            <TableContainer className="rounded-none border-0 shadow-none">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                      Mentee
+                    </TableHead>
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                      Course
+                    </TableHead>
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                      Course Code
+                    </TableHead>
+                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                      Mapped Since
+                    </TableHead>
+                    <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i} className="h-16 border-b border-[#E1E6EC]/60">
+                      <TableCell className="w-[32%] py-3.5">
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-36" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-4 w-28" />
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="py-3.5 text-right">
+                        <div className="flex justify-end">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <div className="flex items-center justify-between border-t border-[#E1E6EC] px-6 py-3.5">
+              <Skeleton className="h-4 w-40 rounded-md" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-16 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-16 rounded-full" />
+              </div>
+            </div>
+          </>
         ) : menteesError ? null : mentees.length === 0 ? (
           /* Empty State: Mentor has no mentees mapped in total */
           <div className="p-12 text-center">

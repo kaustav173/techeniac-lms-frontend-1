@@ -385,8 +385,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     selectedBatchOptions.length > 0 ||
     selectedCourseOptions.length > 0 ||
     selectedStatusOptions.length > 0 ||
-    sortField !== 'createdAt' ||
-    sortOrder !== 'desc' ||
     batchSearch.trim() ||
     courseSearch.trim() ||
     search.trim(),
@@ -411,7 +409,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[195px] lg:w-[220px]">
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
@@ -419,7 +417,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleBatchChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
+                  menuClassName="min-w-[200px]"
                   onScrollEnd={handleBatchScrollEnd}
                   onSearch={setBatchSearch}
                   isSearching={
@@ -429,7 +429,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-[195px] lg:w-[220px]">
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
@@ -437,7 +437,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleCourseChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
+                  menuClassName="min-w-[200px]"
                   onScrollEnd={handleCourseScrollEnd}
                   onSearch={setCourseSearch}
                   isSearching={
@@ -446,8 +448,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 />
               </div>
 
-              {/* 4. Course Status Filter (Multi-select dropdown: button 173px, listbox 172px) */}
-              <div className="w-full sm:w-[173px]">
+              {/* 4. Course Status Filter */}
+              <div className="w-full sm:w-auto">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -455,35 +457,36 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleStatusChange}
                   singleSelect={false}
                   align="right"
-                  className="w-full"
-                  menuClassName="sm:min-w-[172px] sm:w-[172px]"
+                  className="w-full sm:w-auto"
+                  buttonClassName="w-full sm:w-auto px-4"
+                  menuClassName="min-w-[180px]"
                 />
               </div>
-            </div>
 
-            {/* Clear Filters (Cross Icon Button - appears only when any filter is active) */}
-            {hasActiveFilters && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetFilters}
-                title="Clear all filters"
-                aria-label="Clear all filters"
-                className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
+              {/* Clear Filters (Cross Icon Button - appears immediately adjacent to filters) */}
+              {hasActiveFilters && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetFilters}
+                  title="Clear all filters"
+                  aria-label="Clear all filters"
+                  className="h-11 w-11 shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            )}
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Error Banner */}

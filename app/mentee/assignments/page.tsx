@@ -22,16 +22,17 @@ function MenteeAssignmentsContent() {
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<AssignmentDerivedStatus[]>([]);
 
-  const singleStatus = selectedStatuses.length === 1 ? selectedStatuses[0] : undefined;
-
-  const { assignments, isLoading, isFetching, error, refetch } = useMyAssignments({
-    page: 1,
-    limit: 100,
-    status: singleStatus,
-    courseId: activeCourseId,
-  });
+  const { assignments, total, totalPages, isLoading, isFetching, error, refetch } =
+    useMyAssignments({
+      page,
+      limit,
+      statuses: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+      search: searchQuery.trim() || undefined,
+      courseId: activeCourseId,
+    });
 
   if (!isAuthorized || !user) {
     return (
@@ -78,6 +79,11 @@ function MenteeAssignmentsContent() {
           onRetry={() => {
             void refetch();
           }}
+          searchQuery={searchQuery}
+          onSearchQueryChange={(query) => {
+            setSearchQuery(query);
+            setPage(1);
+          }}
           selectedStatuses={selectedStatuses}
           onStatusesChange={(statuses) => {
             setSelectedStatuses(statuses);
@@ -86,6 +92,8 @@ function MenteeAssignmentsContent() {
           pagination={{
             page,
             limit,
+            total,
+            totalPages,
             onPageChange: setPage,
             onLimitChange: (newLimit) => {
               setLimit(newLimit);

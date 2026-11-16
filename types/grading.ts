@@ -64,7 +64,7 @@ export interface SubmissionReviewDetails {
 }
 
 export interface SubmissionQueueQuery {
-  readonly status?: SubmissionStatus | 'ALL' | undefined;
+  readonly status?: SubmissionStatus | readonly SubmissionStatus[] | 'ALL' | undefined;
   readonly batchId?: string | undefined;
   readonly menteeId?: string | undefined;
   readonly courseId?: string | undefined;

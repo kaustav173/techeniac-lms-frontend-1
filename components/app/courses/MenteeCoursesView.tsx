@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { H3, P, Span } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
+  CourseAllocationStatus,
   isTerminalAllocationStatus,
   useAllocationsList,
 } from '@/hooks/useAllocations';
@@ -92,6 +93,15 @@ export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
           </div>
         ))}
       </div>
+      <div className="relative z-30 mt-8 flex items-center justify-between rounded-2xl border border-[#E1E6EC] bg-white px-6 py-4 shadow-xs">
+        <Skeleton className="h-4 w-32 rounded-md" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-20 rounded-lg" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-8 w-20 rounded-lg" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -103,10 +113,39 @@ export function MenteeCoursesView() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  const { data, isLoading, isError, error, refetch } = useAllocationsList({
+  const backendStatuses = useMemo(() => {
+    if (selectedStatuses.length === 0) return undefined;
+    const list: (CourseAllocationStatus | 'OVERDUE')[] = [];
+    if (selectedStatuses.includes('active')) {
+      list.push(CourseAllocationStatus.ASSIGNED, CourseAllocationStatus.IN_PROGRESS);
+    }
+    if (selectedStatuses.includes('overdue')) {
+      list.push('OVERDUE');
+    }
+    if (selectedStatuses.includes('completed')) {
+      list.push(CourseAllocationStatus.COMPLETED);
+    }
+    if (selectedStatuses.includes('closed')) {
+      list.push(
+        CourseAllocationStatus.REVOKED,
+        CourseAllocationStatus.CLOSED_ROLE_CHANGE,
+        CourseAllocationStatus.CLOSED_BATCH_CHANGE,
+      );
+    }
+    return list.length > 0 ? list : undefined;
+  }, [selectedStatuses]);
+
+  const isOverdueSelected = selectedStatuses.includes('overdue');
+
+  const { data, isLoading, isFetching, isError, error, refetch } = useAllocationsList({
     menteeId: user?.id,
-    limit: 100,
+    page,
+    limit,
+    search: search.trim() || undefined,
+    statuses: backendStatuses,
+    isOverdue: isOverdueSelected ? true : undefined,
   });
+
   const rawAllocations = data?.items;
   const allocations = useMemo(() => {
     const items = rawAllocations ?? [];
@@ -125,44 +164,8 @@ export function MenteeCoursesView() {
     return unique;
   }, [rawAllocations]);
 
-  const filteredAllocations = useMemo(() => {
-    return allocations.filter((alloc) => {
-      // Search filter
-      const title = alloc.course?.title?.toLowerCase() ?? '';
-      const batchName = alloc.batch?.name?.toLowerCase() ?? '';
-      const term = search.toLowerCase().trim();
-      const matchesSearch = !term || title.includes(term) || batchName.includes(term);
-
-      if (!matchesSearch) return false;
-
-      // Status dropdown filter
-      if (selectedStatuses.length === 0) return true;
-      const matchesActive =
-        selectedStatuses.includes('active') &&
-        (alloc.status === 'ASSIGNED' || alloc.status === 'IN_PROGRESS') &&
-        !alloc.isOverdue;
-      const matchesOverdue =
-        selectedStatuses.includes('overdue') &&
-        Boolean(alloc.isOverdue) &&
-        alloc.status !== 'COMPLETED' &&
-        !isTerminalAllocationStatus(alloc.status);
-      const matchesCompleted =
-        selectedStatuses.includes('completed') && alloc.status === 'COMPLETED';
-      const matchesClosed =
-        selectedStatuses.includes('closed') &&
-        isTerminalAllocationStatus(alloc.status) &&
-        alloc.status !== 'COMPLETED';
-
-      return matchesActive || matchesOverdue || matchesCompleted || matchesClosed;
-    });
-  }, [allocations, search, selectedStatuses]);
-
-  const total = filteredAllocations.length;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const paginatedAllocations = useMemo(() => {
-    const startIndex = (page - 1) * limit;
-    return filteredAllocations.slice(startIndex, startIndex + limit);
-  }, [filteredAllocations, page, limit]);
+  const total = data?.pagination.total ?? allocations.length;
+  const totalPages = data?.pagination.totalPages ?? Math.max(1, Math.ceil(total / limit));
 
   const hasActiveFilters = search.trim() !== '' || selectedStatuses.length > 0;
 
@@ -248,7 +251,7 @@ export function MenteeCoursesView() {
                     }}
                   />
                 </div>
-              ) : filteredAllocations.length === 0 ? (
+              ) : allocations.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-8 text-center">
                   <H3 className="text-base font-bold text-[#111827]">No allocated courses found</H3>
                   <P className="mt-1 max-w-sm text-xs text-[#667085]">
@@ -259,7 +262,7 @@ export function MenteeCoursesView() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {paginatedAllocations.map((alloc, idx) => (
+                  {allocations.map((alloc, idx) => (
                     <MenteeAllocationCard key={alloc.id} allocation={alloc} index={idx} />
                   ))}
                 </div>
@@ -267,7 +270,7 @@ export function MenteeCoursesView() {
 
               {/* Attached Pagination Controls */}
               {total > 0 ? (
-                <div className="relative z-30 mt-8 rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+                <div className="relative z-30 mt-8 overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
                   <PaginationControls
                     page={page}
                     limit={limit}
@@ -280,7 +283,8 @@ export function MenteeCoursesView() {
                     }}
                     pageSizeOptions={[10, 20, 50]}
                     itemLabel="courses"
-                    isLoading={isLoading}
+                    isLoading={isLoading || isFetching}
+                    className="border-t-0"
                   />
                 </div>
               ) : null}
@@ -319,7 +323,7 @@ function MenteeAllocationCard({
 
   return (
     <div
-      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl border border-blue-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md ${
+      className={`group animate-slide-up ${staggerClass} relative flex flex-col justify-between rounded-2xl border border-[#0044D3]/40 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0044D3] hover:shadow-md ${
         isOverdue ? 'ring-1 ring-rose-200' : isCompleted ? 'ring-1 ring-emerald-200' : ''
       }`}
     >

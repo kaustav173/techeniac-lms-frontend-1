@@ -577,7 +577,6 @@ function AssignCourseModalDialog({
                 onScrollEnd={handleCourseScrollEnd}
                 onSearch={setCourseSearch}
                 isSearching={isFetchingCourses && !isFetchingNextCourses}
-                isLoadingMore={isFetchingNextCourses}
                 disabled={Boolean(initialCourseId)}
                 usePortal={true}
               />
@@ -707,7 +706,6 @@ function AssignCourseModalDialog({
                   onScrollEnd={handleBatchScrollEnd}
                   onSearch={setBatchSearch}
                   isSearching={isFetchingBatches && !isFetchingNextBatches}
-                  isLoadingMore={isFetchingNextBatches}
                   disabled={Boolean(initialBatchId)}
                   usePortal={true}
                 />
