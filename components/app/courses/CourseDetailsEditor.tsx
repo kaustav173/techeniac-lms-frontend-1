@@ -145,7 +145,7 @@ export function CourseDetailsEditor({
   return (
     <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Banner */}
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Course Settings
@@ -179,7 +179,7 @@ export function CourseDetailsEditor({
 
       {/* Live Impact Notice on Open Allocations */}
       {affectedMentees > 0 && (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
+        <div className="mx-auto mt-5 w-full max-w-5xl rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
           <div className="flex items-center gap-2 text-sm font-bold">
             <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Live Impact Notice
@@ -195,7 +195,7 @@ export function CourseDetailsEditor({
       {errorMsg && (
         <FieldError
           error={errorMsg}
-          className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
+          className="mx-auto mt-5 w-full max-w-5xl rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
         />
       )}
 
@@ -205,7 +205,7 @@ export function CourseDetailsEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 w-full max-w-4xl"
+        className="mx-auto mt-6 w-full max-w-5xl"
       >
         <div className="space-y-7 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           {/* Section 1: Core Course Information */}

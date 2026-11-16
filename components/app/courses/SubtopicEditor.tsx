@@ -7,6 +7,10 @@ import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import {
+  SingleSelectDropdown,
+  type SingleSelectOption,
+} from '@/components/ui/SingleSelectDropdown';
 import { H2, H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import { formatErrorMessage, isConflictError } from '@/lib/errors';
@@ -28,6 +32,11 @@ function isValidWebUrl(urlString: string): boolean {
     return false;
   }
 }
+
+const RESOURCE_TYPE_OPTIONS: readonly SingleSelectOption<'LINK' | 'ATTACHMENT'>[] = [
+  { value: 'LINK', label: 'LINK' },
+  { value: 'ATTACHMENT', label: 'FILE' },
+];
 
 interface SubtopicEditorProps {
   subtopic: Subtopic;
@@ -275,7 +284,7 @@ export function SubtopicEditor({
   return (
     <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto scroll-smooth bg-slate-50/50 p-4 sm:p-8">
       {/* Top Header Command Bar */}
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Span className="block text-xs font-semibold tracking-wider text-slate-400 uppercase">
             {parentTopicTitle
@@ -310,7 +319,7 @@ export function SubtopicEditor({
       </div>
 
       {affectedMentees > 0 && (
-        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
+        <div className="mx-auto mt-5 w-full max-w-5xl rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 shadow-xs">
           <div className="flex items-center gap-2 text-sm font-bold">
             <Span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
             Impact Notice
@@ -326,7 +335,7 @@ export function SubtopicEditor({
       {errorMsg && (
         <FieldError
           error={errorMsg}
-          className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
+          className="mx-auto mt-5 w-full max-w-5xl rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 shadow-xs"
         />
       )}
 
@@ -336,7 +345,7 @@ export function SubtopicEditor({
         onSubmit={(e) => {
           void handleSave(e);
         }}
-        className="mt-6 w-full max-w-4xl"
+        className="mx-auto mt-6 w-full max-w-5xl"
       >
         <div className="space-y-7 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
           {/* Section 1: Core Lesson Information & Markdown */}
@@ -623,14 +632,13 @@ export function SubtopicEditor({
                 />
               </div>
               <div className="sm:col-span-2">
-                <select
+                <SingleSelectDropdown<'LINK' | 'ATTACHMENT'>
                   value={newResourceType}
-                  onChange={(e) => setNewResourceType(e.target.value as 'LINK' | 'ATTACHMENT')}
-                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
-                >
-                  <option value="LINK">LINK</option>
-                  <option value="ATTACHMENT">FILE</option>
-                </select>
+                  onChange={(val) => setNewResourceType(val)}
+                  options={RESOURCE_TYPE_OPTIONS}
+                  aria-label="Resource type"
+                  triggerClassName="h-10 rounded-xl border-slate-300 px-3 text-sm"
+                />
               </div>
               <div className="sm:col-span-1">
                 <Button

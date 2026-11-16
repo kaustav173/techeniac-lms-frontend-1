@@ -826,9 +826,9 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
 
         {/* Right Pane: Form Field Editor Skeleton */}
         <div className="min-w-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto bg-slate-50/50 p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-4xl space-y-6">
-            {/* Top Banner Card */}
-            <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+          <div className="mx-auto w-full max-w-5xl space-y-6">
+            {/* Top Banner Skeleton */}
+            <div className="flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <Skeleton className="h-4 w-28 rounded-full" />
                 <Skeleton className="mt-2 h-7 w-72 rounded-md sm:h-8" />
