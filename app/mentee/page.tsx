@@ -66,10 +66,13 @@ function formatDateRange(startDate?: string | null, endDate?: string | null): st
 export default function MenteePage() {
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
   const { data: menteeBatchView, isLoading: isLoadingBatch, error: batchError } = useMenteeBatch();
-  const { data: allocationsData, isLoading: isLoadingAllocations } = useAllocationsList({
-    menteeId: user?.id,
-    limit: 100,
-  });
+  const { data: allocationsData, isLoading: isLoadingAllocations } = useAllocationsList(
+    {
+      menteeId: user?.id,
+      limit: 100,
+    },
+    { enabled: Boolean(user?.id) && isAuthorized },
+  );
   const {
     data: menteeDashboard,
     isLoading: isLoadingDashboard,
@@ -87,44 +90,73 @@ export default function MenteePage() {
 
   /* Compute overall progress statistics */
   const { completedCount, inProgressCount, overdueCount, overallProgress } = useMemo(() => {
-    if (allocations.length > 0) {
-      const completed = allocations.filter((a) => a.status === 'COMPLETED').length;
-      const inProgress = allocations.filter(
-        (a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS',
-      ).length;
-      const overdue = allocations.filter((a) => {
-        const isClosed = isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED';
-        return Boolean(a.isOverdue) && a.status !== 'COMPLETED' && !isClosed;
-      }).length;
+    // 1. Calculate from allocations if available
+    const activeOrCompleted = allocations.filter(
+      (a) => !isTerminalAllocationStatus(a.status) || a.status === 'COMPLETED',
+    );
+    const completed = activeOrCompleted.filter((a) => a.status === 'COMPLETED').length;
+    const inProgress = activeOrCompleted.filter(
+      (a) => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS',
+    ).length;
+    const overdue = activeOrCompleted.filter((a) => {
+      const isClosed = isTerminalAllocationStatus(a.status) && a.status !== 'COMPLETED';
+      return Boolean(a.isOverdue) && a.status !== 'COMPLETED' && !isClosed;
+    }).length;
 
-      const totalProgress = allocations.reduce((sum, a) => sum + Number(a.progressPercent || 0), 0);
-      const calculatedPace = Math.round((totalProgress / allocations.length) * 10) / 10;
-      const progressVal = menteeDashboard?.overallProgressPercent ?? calculatedPace;
+    const totalProgress = activeOrCompleted.reduce(
+      (sum, a) => sum + Number(a.progressPercent || 0),
+      0,
+    );
+    const calculatedPace =
+      activeOrCompleted.length > 0
+        ? Math.round((totalProgress / activeOrCompleted.length) * 10) / 10
+        : 0;
 
-      return {
-        completedCount: menteeDashboard?.completedCoursesCount ?? completed,
-        inProgressCount: menteeDashboard?.activeCoursesCount ?? inProgress,
-        overdueCount: overdue,
-        overallProgress: progressVal,
-      };
+    // Determine the most accurate overall progress:
+    // If calculated from allocations > 0, use it.
+    // Else if learningHistory has summary.overallProgress > 0, use that.
+    // Else if menteeDashboard has overallProgressPercent > 0, use that.
+    // If all are 0, use calculatedPace (or learningHistory/dashboard if available).
+    let progressVal = 0;
+    if (calculatedPace > 0) {
+      progressVal = calculatedPace;
+    } else if (
+      learningHistory?.summary?.overallProgress !== undefined &&
+      learningHistory.summary.overallProgress !== null &&
+      Number(learningHistory.summary.overallProgress) > 0
+    ) {
+      progressVal = Number(learningHistory.summary.overallProgress);
+    } else if (
+      menteeDashboard?.overallProgressPercent !== undefined &&
+      menteeDashboard.overallProgressPercent !== null &&
+      Number(menteeDashboard.overallProgressPercent) > 0
+    ) {
+      progressVal = Number(menteeDashboard.overallProgressPercent);
+    } else if (activeOrCompleted.length > 0) {
+      progressVal = calculatedPace;
+    } else if (
+      learningHistory?.summary?.overallProgress !== undefined &&
+      learningHistory.summary.overallProgress !== null
+    ) {
+      progressVal = Number(learningHistory.summary.overallProgress);
+    } else if (menteeDashboard?.overallProgressPercent !== undefined) {
+      progressVal = Number(menteeDashboard.overallProgressPercent);
     }
 
-    if (menteeDashboard) {
-      return {
-        completedCount: menteeDashboard.completedCoursesCount ?? 0,
-        inProgressCount: menteeDashboard.activeCoursesCount ?? 0,
-        overdueCount: 0,
-        overallProgress: menteeDashboard.overallProgressPercent ?? 0,
-      };
-    }
+    const resolvedCompleted =
+      completed ||
+      menteeDashboard?.completedCoursesCount ||
+      learningHistory?.summary?.completedAllocations ||
+      0;
+    const resolvedInProgress = inProgress || menteeDashboard?.activeCoursesCount || 0;
 
     return {
-      completedCount: 0,
-      inProgressCount: 0,
-      overdueCount: 0,
-      overallProgress: 0,
+      completedCount: resolvedCompleted,
+      inProgressCount: resolvedInProgress,
+      overdueCount: overdue,
+      overallProgress: progressVal,
     };
-  }, [allocations, menteeDashboard]);
+  }, [allocations, menteeDashboard, learningHistory]);
 
   /* Next upcoming assignment */
   const upcomingItem = useMemo(() => {
@@ -187,8 +219,25 @@ export default function MenteePage() {
       });
     }
 
+    if (learningHistory?.batches && learningHistory.batches.length > 0) {
+      const allHistoryAllocs = learningHistory.batches.flatMap((b) => b.courseAllocations);
+      if (allHistoryAllocs.length > 0) {
+        return allHistoryAllocs.slice(0, 3).map((a, idx) => {
+          const graphics: Array<'code' | 'data' | 'react'> = ['code', 'data', 'react'];
+          return {
+            id: a.allocationId,
+            title: a.courseTitle ?? `Course ${idx + 1}`,
+            subtitle: `${a.progressPercent}% complete`,
+            progress: Number(a.progressPercent || 0),
+            graphicType: graphics[idx % graphics.length] ?? 'code',
+            href: `/mentee/courses/${a.allocationId}`,
+          };
+        });
+      }
+    }
+
     return [];
-  }, [allocations]);
+  }, [allocations, learningHistory]);
 
   /* Recent Activity list */
   const displayRecentActivities = useMemo(() => {
