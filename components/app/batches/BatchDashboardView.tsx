@@ -754,7 +754,7 @@ export function BatchDashboardView({
                         className="animate-row-enter transition-colors hover:bg-slate-50/60"
                       >
                         <TableCell>
-                          <P className="font-semibold text-slate-900">{m.name}</P>
+                          <P className="text-base font-semibold text-slate-900">{m.name}</P>
                           <P className="text-xs text-slate-500">{m.email}</P>
                         </TableCell>
                         <TableCell>
@@ -899,8 +899,8 @@ export function BatchDashboardView({
                       style={{ animationDelay: `${Math.min(idx * 35, 350)}ms` }}
                       className="animate-row-enter transition-colors hover:bg-slate-50/60"
                     >
-                      <TableCell className="max-w-xs font-semibold break-words text-slate-900">
-                        <Span>{c.title}</Span>
+                      <TableCell className="max-w-xs break-words">
+                        <Span className="text-base font-semibold text-slate-900">{c.title}</Span>
                       </TableCell>
                       <TableCell className="text-xs">
                         {c.allocationType === 'WHOLE_BATCH' ? (

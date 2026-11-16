@@ -499,7 +499,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           {/* Main Telemetry Matrix Table using UI Primitives */}
           <TableContainer>
             <Table className="w-full table-fixed text-left">
-              <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
+              <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
                   <SortableColumnHeader<'menteeName'>
                     field="menteeName"
@@ -508,21 +508,21 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     sortOrder={sortOrder}
                     onSort={handleSortName}
                     tooltip="Sort by Mentee Name"
-                    className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                    className="w-[24%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[26%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[26%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Course & Batch
                   </TableHead>
-                  <TableHead className="w-[18%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Progress
                   </TableHead>
-                  <TableHead className="w-[12%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[12%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Topics Done
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[10%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
+                  <TableHead className="w-[10%] px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -596,7 +596,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                       >
                         {/* Mentee */}
                         <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap">
-                          <Span className="truncate font-semibold text-slate-900 hover:text-blue-600">
+                          <Span className="truncate text-base font-semibold text-slate-900 hover:text-blue-600">
                             {item.menteeName}
                           </Span>
                         </TableCell>
@@ -605,7 +605,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         <TableCell className="w-[26%] px-4 py-3.5 whitespace-nowrap">
                           <div className="flex min-w-0 flex-col">
                             <Span
-                              className="truncate font-semibold text-slate-800"
+                              className="truncate text-base font-semibold text-slate-900"
                               title={item.courseTitle}
                             >
                               {item.courseTitle}
@@ -640,8 +640,11 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         </TableCell>
 
                         {/* Clearance count */}
-                        <TableCell className="w-[12%] px-4 py-3.5 text-xs font-medium whitespace-nowrap text-slate-600">
-                          {item.completedTopicsCount} / {item.totalActiveTopics} Topics
+                        <TableCell className="w-[12%] px-4 py-3.5 whitespace-nowrap">
+                          <Span className="text-base font-semibold text-slate-900">
+                            {item.completedTopicsCount} / {item.totalActiveTopics}
+                          </Span>{' '}
+                          <Span className="text-sm text-slate-500">Topics</Span>
                         </TableCell>
 
                         {/* Status */}

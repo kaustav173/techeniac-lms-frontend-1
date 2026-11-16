@@ -65,7 +65,7 @@ function BatchesTableRow({
           href={`/admin/batches/${batch.id}`}
           onClick={(e) => e.stopPropagation()}
           title={batch.name}
-          className="block truncate transition-colors hover:text-[#0044D3]"
+          className="block truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
         >
           {batch.name}
         </Link>
@@ -79,16 +79,16 @@ function BatchesTableRow({
           {batch.status}
         </Span>
       </TableCell>
-      <TableCell className="w-[18%] text-xs text-slate-500">
+      <TableCell className="w-[18%] text-sm text-slate-600">
         <Span>
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
       </TableCell>
-      <TableCell className="w-[12%] text-center text-xs font-bold text-slate-700">
-        <Span>{batch.mentorsCount ?? 0}</Span>
+      <TableCell className="w-[12%] text-center">
+        <Span className="text-base font-semibold text-slate-900">{batch.mentorsCount ?? 0}</Span>
       </TableCell>
-      <TableCell className="w-[12%] text-center text-xs font-bold text-slate-700">
-        <Span>{batch.menteesCount ?? 0}</Span>
+      <TableCell className="w-[12%] text-center">
+        <Span className="text-base font-semibold text-slate-900">{batch.menteesCount ?? 0}</Span>
       </TableCell>
     </TableRow>
   );

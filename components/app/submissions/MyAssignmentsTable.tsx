@@ -289,25 +289,25 @@ export function MyAssignmentsTable({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[26%] px-5 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Assignment
                   </TableHead>
-                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[18%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Course
                   </TableHead>
-                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[18%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Due Date
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[10%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Est. Time
                   </TableHead>
-                  <TableHead className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[12%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Max Marks
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[10%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-16 px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -370,19 +370,19 @@ export function MyAssignmentsTable({
                 <TableRow>
                   {isServerPaginated ? (
                     <>
-                      <TableHead className="w-[26%] px-5 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                      <TableHead className="w-[26%] px-5 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                         Assignment
                       </TableHead>
-                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                      <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                         Course
                       </TableHead>
-                      <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                      <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                         Due Date
                       </TableHead>
-                      <TableHead className="w-[10%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                      <TableHead className="w-[10%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                         Est. Time
                       </TableHead>
-                      <TableHead className="w-[12%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                      <TableHead className="w-[12%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                         Max Marks
                       </TableHead>
                     </>
@@ -394,7 +394,7 @@ export function MyAssignmentsTable({
                         sortField={sortField}
                         sortOrder={sortOrder}
                         onSort={handleSort}
-                        className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                        className="w-[26%] px-5 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                       />
                       <SortableColumnHeader<SortField>
                         field="courseTitle"
@@ -402,7 +402,7 @@ export function MyAssignmentsTable({
                         sortField={sortField}
                         sortOrder={sortOrder}
                         onSort={handleSort}
-                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                        className="w-[18%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                       />
                       <SortableColumnHeader<SortField>
                         field="dueDate"
@@ -410,7 +410,7 @@ export function MyAssignmentsTable({
                         sortField={sortField}
                         sortOrder={sortOrder}
                         onSort={handleSort}
-                        className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                        className="w-[18%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                       />
                       <SortableColumnHeader<SortField>
                         field="estimatedMinutes"
@@ -418,7 +418,7 @@ export function MyAssignmentsTable({
                         sortField={sortField}
                         sortOrder={sortOrder}
                         onSort={handleSort}
-                        className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                        className="w-[10%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                       />
                       <SortableColumnHeader<SortField>
                         field="maxMarks"
@@ -426,14 +426,14 @@ export function MyAssignmentsTable({
                         sortField={sortField}
                         sortOrder={sortOrder}
                         onSort={handleSort}
-                        className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm"
+                        className="w-[12%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                       />
                     </>
                   )}
-                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[10%] px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-16 px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -474,7 +474,7 @@ export function MyAssignmentsTable({
                           href={`/mentee/assignments/${assignment.id}`}
                           {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                           title={assignment.title}
-                          className="block max-w-[200px] truncate font-semibold text-[#111827] hover:text-[#0044D3] sm:max-w-[240px]"
+                          className="block max-w-[200px] truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3] sm:max-w-[240px]"
                         >
                           {assignment.title}
                         </Link>
@@ -484,7 +484,7 @@ export function MyAssignmentsTable({
                       <TableCell className="px-4 py-4">
                         <Span
                           title={assignment.courseTitle}
-                          className="block max-w-[180px] truncate font-medium text-[#111827]"
+                          className="block max-w-[180px] truncate text-base font-semibold text-slate-900"
                         >
                           {assignment.courseTitle}
                         </Span>
@@ -492,22 +492,22 @@ export function MyAssignmentsTable({
 
                       {/* Due Date Column (Without IST) */}
                       <TableCell className="px-4 py-4 whitespace-nowrap">
-                        <Span className="font-medium text-[#111827]">
+                        <Span className="text-sm font-medium text-slate-600">
                           {formatDateTime(assignment.dueDate)}
                         </Span>
                       </TableCell>
 
                       {/* Est. Time Column */}
                       <TableCell className="px-4 py-4 whitespace-nowrap">
-                        <Span className="text-xs font-semibold text-[#111827]">
+                        <Span className="text-base font-semibold text-slate-900">
                           {assignment.estimatedMinutes} mins
                         </Span>
                       </TableCell>
 
                       {/* Marks Column */}
-                      <TableCell className="px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
+                      <TableCell className="px-4 py-4 whitespace-nowrap">
                         <div className="space-y-0.5">
-                          <Span className="font-semibold text-[#111827]">
+                          <Span className="text-base font-semibold text-slate-900">
                             {assignment.maxMarks} marks
                           </Span>
                           {assignment.passMarks ? (
