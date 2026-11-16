@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { getBatchStatusBadgeClass, isBatchStatus } from '@/components/app/batches/batchStatus';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { Input } from '@/components/ui/Input';
 import {
   SingleSelectDropdown,
   type SingleSelectOption,
@@ -164,6 +165,7 @@ export function LearningHistoryView({
   onRetry,
 }: LearningHistoryViewProps) {
   const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+  const [search, setSearch] = useState<string>('');
   const [collapsedBatches, setCollapsedBatches] = useState<Record<string, boolean>>({});
   const [collapsedCourses, setCollapsedCourses] = useState<Record<string, boolean>>({});
 
@@ -198,6 +200,35 @@ export function LearningHistoryView({
     [batches],
   );
 
+  // Filter by selected batch and search query
+  const displayedBatches = useMemo(() => {
+    const list =
+      selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
+    const query = search.trim().toLowerCase();
+    if (!query) return list;
+
+    return list
+      .map((batch) => {
+        const batchMatches = batch.batchName.toLowerCase().includes(query);
+        const matchingAllocations = batch.courseAllocations.filter((alloc) => {
+          const courseMatches = alloc.courseTitle.toLowerCase().includes(query);
+          const assignmentMatches = alloc.assignments.some((assign) =>
+            assign.assignmentTitle.toLowerCase().includes(query),
+          );
+          return batchMatches || courseMatches || assignmentMatches;
+        });
+
+        if (batchMatches || matchingAllocations.length > 0) {
+          return {
+            ...batch,
+            courseAllocations: batchMatches ? batch.courseAllocations : matchingAllocations,
+          };
+        }
+        return null;
+      })
+      .filter((b): b is NonNullable<typeof b> => b !== null);
+  }, [batches, selectedBatchId, search]);
+
   if (isError) {
     return (
       <div className="rounded-2xl border border-[#E1E6EC] bg-white p-8 shadow-xs">
@@ -225,7 +256,7 @@ export function LearningHistoryView({
     }
 
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {!hideSummary && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {[1, 2, 3].map((i) => (
@@ -240,9 +271,94 @@ export function LearningHistoryView({
             ))}
           </div>
         )}
-        <div className="h-64 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs">
-          <Skeleton className="h-6 w-48 rounded-md" />
-          <Skeleton className="mt-4 h-40 w-full rounded-xl" />
+
+        {/* Toolbar Skeleton (Search & Batch filter) */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Skeleton className="h-[49px] w-full rounded-2xl sm:w-[436px]" />
+          <Skeleton className="h-[49px] w-full rounded-2xl sm:w-[200px]" />
+        </div>
+
+        {/* Unified Card Skeleton matching the exact real data layout */}
+        <div className="divide-y divide-[#E1E6EC] overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          {/* Batch Skeleton */}
+          <div className="bg-white">
+            {/* Batch Header Bar */}
+            <div className="flex flex-col gap-2 border-b border-[#E1E6EC] bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Skeleton className="h-7 w-7 rounded-lg" />
+                <Skeleton className="h-4 w-44 rounded-md" />
+                <Skeleton className="h-3.5 w-36 rounded-md" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-7 w-7 rounded-full" />
+              </div>
+            </div>
+
+            {/* Course Allocations under Batch */}
+            <div className="divide-y divide-[#E1E6EC] bg-white">
+              {/* Allocation 1 */}
+              <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+                {/* Course Header */}
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Skeleton className="h-4 w-36 rounded-md" />
+                    <Skeleton className="h-3.5 w-40 rounded-md" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3.5 w-14 rounded-md" />
+                      <Skeleton className="h-2 w-28 rounded-full sm:w-36" />
+                      <Skeleton className="h-3.5 w-8 rounded-md" />
+                    </div>
+                    <Skeleton className="h-7 w-7 rounded-full" />
+                  </div>
+                </div>
+
+                {/* Submissions Table Skeleton */}
+                <div className="mt-3 overflow-hidden rounded-xl border border-[#E1E6EC] bg-white shadow-2xs">
+                  <div className="border-b border-[#E1E6EC] bg-[#F6F8FC] px-4 py-2.5">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-3.5 w-24 rounded-md" />
+                      <Skeleton className="h-3.5 w-20 rounded-md" />
+                      <Skeleton className="h-3.5 w-14 rounded-md" />
+                      <Skeleton className="h-3.5 w-14 rounded-md" />
+                      <Skeleton className="h-3.5 w-28 rounded-md" />
+                    </div>
+                  </div>
+                  <div className="divide-y divide-[#F2F4F7]">
+                    {[1, 2].map((rowIdx) => (
+                      <div key={rowIdx} className="flex items-center justify-between px-4 py-3">
+                        <Skeleton className="h-3.5 w-36 rounded-md" />
+                        <Skeleton className="h-3.5 w-24 rounded-md" />
+                        <Skeleton className="h-3.5 w-8 rounded-md" />
+                        <Skeleton className="h-5 w-14 rounded-lg" />
+                        <Skeleton className="h-3.5 w-48 rounded-md" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Allocation 2 */}
+              <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Skeleton className="h-4 w-40 rounded-md" />
+                    <Skeleton className="h-3.5 w-40 rounded-md" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3.5 w-14 rounded-md" />
+                      <Skeleton className="h-2 w-28 rounded-full sm:w-36" />
+                      <Skeleton className="h-3.5 w-8 rounded-md" />
+                    </div>
+                    <Skeleton className="h-7 w-7 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -280,18 +396,41 @@ export function LearningHistoryView({
     );
   }
 
-  // Filter by selected batch
-  const displayedBatches =
-    selectedBatchId === 'ALL' ? batches : batches.filter((b) => b.batchId === selectedBatchId);
-
   return (
     <div className="flex flex-col gap-4">
       {/* 1. Header Overview Summary Cards (Responsive 3-Card Grid) */}
       {!hideSummary && <LearningHistorySummaryCards summary={summary} />}
 
-      {/* 2. Batch Selector Filter Toolbar */}
+      {/* 2. Search & Batch Filter Toolbar */}
       {batches.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {/* Search Input (436px wide on desktop per design feedback) */}
+          <div className="relative w-full sm:w-[436px]">
+            <svg
+              className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <Input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by course, assignment, or batch..."
+              aria-label="Search learning history"
+              className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-xs font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3] sm:text-sm"
+            />
+          </div>
+
+          {/* Batch Selector Dropdown (200px wide next to Search) */}
           <div className="w-full sm:w-[200px]">
             <SingleSelectDropdown
               label="Batch"
@@ -300,23 +439,26 @@ export function LearningHistoryView({
               options={batchOptions}
               placeholder="Batch"
               aria-label="Filter learning history by batch"
-              triggerClassName="h-10 rounded-xl border-[#E1E6EC] bg-white px-3 text-xs sm:text-sm font-medium shadow-xs hover:border-slate-300"
+              triggerClassName="h-[49px] rounded-2xl border-[#E1E6EC] bg-white px-3.5 text-xs sm:text-sm font-semibold shadow-2xs hover:border-slate-300"
               menuClassName="w-full sm:min-w-[200px] rounded-xl border border-[#E1E6EC] bg-white p-1.5 shadow-xl"
             />
           </div>
 
-          {selectedBatchId !== 'ALL' && (
+          {(selectedBatchId !== 'ALL' || search.trim() !== '') && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setSelectedBatchId('ALL')}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
-              title="Clear filter"
-              aria-label="Clear filter"
+              onClick={() => {
+                setSelectedBatchId('ALL');
+                setSearch('');
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
+              title="Clear filters"
+              aria-label="Clear filters"
             >
               <svg
-                className="h-3.5 w-3.5"
+                className="h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -331,7 +473,7 @@ export function LearningHistoryView({
       ) : null}
 
       {/* 3. Batch Sections & Course Allocations - Unified in Single Card */}
-      {displayedBatches.length > 0 && (
+      {displayedBatches.length > 0 ? (
         <div className="divide-y divide-[#E1E6EC] overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
           {displayedBatches.map((batch) => {
             const isCollapsed = Boolean(collapsedBatches[batch.batchId]);
@@ -613,6 +755,12 @@ export function LearningHistoryView({
               </div>
             );
           })}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-8 text-center shadow-xs">
+          <P className="text-xs text-[#667085]">
+            No learning history records match your search or filter.
+          </P>
         </div>
       )}
     </div>
