@@ -351,7 +351,7 @@ export function SubtopicEditor({
           {/* Section 1: Core Lesson Information & Markdown */}
           <div className="space-y-5">
             <div className="border-b border-slate-100 pb-3.5">
-              <H3 className="text-base font-bold text-slate-900">Lesson Information & Content</H3>
+              <H3 className="text-base font-bold text-slate-900">Lesson Information</H3>
             </div>
 
             <div>
@@ -387,7 +387,7 @@ export function SubtopicEditor({
                         : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                     }`}
                   >
-                    Markdown Editor
+                    Editor
                   </Button>
                   <Button
                     type="button"
@@ -399,7 +399,7 @@ export function SubtopicEditor({
                         : 'border-transparent bg-transparent text-slate-600 shadow-none hover:bg-slate-200/60 hover:text-slate-900 active:bg-slate-200'
                     }`}
                   >
-                    Cadet Preview
+                    Preview
                   </Button>
                 </div>
               </div>
@@ -409,7 +409,7 @@ export function SubtopicEditor({
                   rows={12}
                   value={content}
                   onChange={(e) => handleChange(() => setContent(e.target.value))}
-                  placeholder="Enter markdown lesson content, instructions, command code blocks, diagrams..."
+                  placeholder="Enter markdown lesson content"
                   className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
                 />
               ) : (
@@ -430,7 +430,7 @@ export function SubtopicEditor({
           {/* Section 2: Estimated Duration & Caps */}
           <div className="space-y-4 border-t border-slate-100 pt-7">
             <div className="border-b border-slate-100 pb-3.5">
-              <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
+              <H3 className="text-base font-bold text-slate-900">Estimated Duration</H3>
             </div>
 
             <div className="grid max-w-sm grid-cols-2 gap-4">
