@@ -694,7 +694,7 @@ export function LearningHistoryView({
                                           className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
                                         >
                                           <TableCell className="px-4 py-3 align-middle">
-                                            <P className="text-xs font-semibold text-[#111827]">
+                                            <P className="text-sm font-semibold text-[#111827]">
                                               {assign.assignmentTitle}
                                             </P>
                                           </TableCell>
@@ -715,11 +715,11 @@ export function LearningHistoryView({
                                           </TableCell>
                                           <TableCell className="px-4 py-3 text-center align-middle text-xs font-bold text-[#111827]">
                                             {assign.marks !== null ? (
-                                              <Span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#0044D3]">
+                                              <Span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0044D3]">
                                                 {assign.marks} / {assign.maxMarks}
                                               </Span>
                                             ) : (
-                                              <Span className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                                              <Span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-0.5 text-xs font-semibold text-amber-700">
                                                 Pending Review
                                               </Span>
                                             )}

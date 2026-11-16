@@ -42,7 +42,6 @@ export function MultiSelectDropdown<T extends string = string>({
   onScrollEnd,
   onSearch,
   isSearching = false,
-  isLoadingMore = false,
   buttonClassName,
   menuClassName,
 }: Readonly<MultiSelectDropdownProps<T>>) {
@@ -154,10 +153,7 @@ export function MultiSelectDropdown<T extends string = string>({
 
   return (
     <div
-      className={cn(
-        'relative max-w-full min-w-0',
-        className || 'inline-block min-w-[130px] sm:min-w-[140px]',
-      )}
+      className={cn('relative max-w-full min-w-0', className || 'inline-block w-auto min-w-fit')}
       ref={containerRef}
     >
       {/* Trigger Button with Rounded Border & Hover Effect */}
@@ -209,7 +205,7 @@ export function MultiSelectDropdown<T extends string = string>({
         <div
           role="listbox"
           className={cn(
-            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 max-w-[calc(100vw-2rem)] min-w-full rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-xl duration-100 sm:max-w-md sm:min-w-[280px]',
+            'animate-in fade-in zoom-in-95 absolute z-50 mt-1.5 max-w-[calc(100vw-2rem)] min-w-full rounded-xl border border-[#E1E6EC] bg-white p-2 shadow-xl duration-100 sm:max-w-md sm:min-w-[200px]',
             align === 'left' ? 'left-0' : 'right-0',
             menuClassName,
           )}
@@ -340,12 +336,6 @@ export function MultiSelectDropdown<T extends string = string>({
                   </div>
                 );
               })
-            )}
-            {isLoadingMore && (
-              <div className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500">
-                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0044D3] border-t-transparent" />
-                <Span>Loading more...</Span>
-              </div>
             )}
           </div>
         </div>

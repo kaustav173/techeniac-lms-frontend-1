@@ -290,51 +290,74 @@ export function MyAssignmentsTable({
         <ErrorMessage error={error} title="Failed to load assignments" onRetry={onRetry} />
       ) : null}
 
-      {isLoading ? (
-        <TableContainer className="w-full">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[24%] px-5 py-3.5">Assignment</TableHead>
-                <TableHead className="w-[18%] px-4 py-3.5">Course</TableHead>
-                <TableHead className="w-[16%] px-4 py-3.5">Due Date</TableHead>
-                <TableHead className="w-[12%] px-4 py-3.5">Est. Time</TableHead>
-                <TableHead className="w-[10%] px-4 py-3.5">Marks</TableHead>
-                <TableHead className="w-[12%] px-4 py-3.5">Status</TableHead>
-                <TableHead className="w-16 px-5 py-3.5 text-right font-semibold text-[#667085]">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 10 }).map((_, idx) => (
-                <TableRow key={`assign-skel-${idx}`} className="h-16">
-                  <TableCell className="px-5 py-4">
-                    <Skeleton className="h-4 w-44 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-36 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-28 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-4 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="px-4 py-4">
-                    <Skeleton className="h-6 w-24 rounded-full" />
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-right">
-                    <Skeleton className="ml-auto h-8 w-8 rounded-full" />
-                  </TableCell>
+      {isLoading || isFetching ? (
+        <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
+          <TableContainer className="w-full rounded-none border-0 shadow-none">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[26%] px-5 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Assignment
+                  </TableHead>
+                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Course
+                  </TableHead>
+                  <TableHead className="w-[18%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Due Date
+                  </TableHead>
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Est. Time
+                  </TableHead>
+                  <TableHead className="w-[12%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Max Marks
+                  </TableHead>
+                  <TableHead className="w-[10%] px-4 py-3.5 text-sm font-semibold text-[#667085] sm:text-sm">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-16 px-4 py-3.5 text-center text-sm font-semibold text-[#667085] sm:text-sm">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <TableRow key={`assign-skel-${idx}`} className="h-16">
+                    <TableCell className="px-5 py-4">
+                      <Skeleton className="h-4 w-44 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-36 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-28 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-4 w-16 rounded-md" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <Skeleton className="mx-auto h-8 w-8 rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-8 w-20 rounded-lg" />
+            </div>
+          </div>
+        </div>
       ) : sortedAssignments.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
           <P className="text-sm font-semibold text-[#111827]">No assignments found</P>

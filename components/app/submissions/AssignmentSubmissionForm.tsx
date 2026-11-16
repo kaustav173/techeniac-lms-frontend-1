@@ -264,7 +264,6 @@ export function AssignmentSubmissionForm({
           const mode = field.getMode(assignment);
           if (mode === SubmissionMode.OFF) return null;
 
-          const isRequired = mode === SubmissionMode.REQUIRED;
           const val = fieldValues[field.key];
           const fieldError = clientErrors[field.key];
 
@@ -280,15 +279,6 @@ export function AssignmentSubmissionForm({
             <div key={field.id}>
               <div className="mb-1.5 flex items-center justify-between">
                 <Label htmlFor={field.id}>{field.label}</Label>
-                <Span
-                  className={
-                    isRequired
-                      ? 'text-xs font-semibold text-rose-600 dark:text-rose-400'
-                      : 'text-xs text-slate-500 dark:text-slate-400'
-                  }
-                >
-                  {isRequired ? 'Required' : 'Optional'}
-                </Span>
               </div>
               <Input
                 id={field.id}
@@ -300,9 +290,6 @@ export function AssignmentSubmissionForm({
                 hasError={Boolean(fieldError)}
                 disabled={submitMutation.isPending}
               />
-              {fieldError ? (
-                <FieldError error={fieldError} className="mt-1.5 text-xs text-rose-600" />
-              ) : null}
             </div>
           );
         })}

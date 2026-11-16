@@ -21,7 +21,7 @@ import {
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
+import { H1, H3, P, Span } from '@/components/ui/Typography';
 import { useCourseDetail } from '@/hooks/useCourses';
 import {
   type TopicProgressItem,
@@ -697,11 +697,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             setActionSuccessMessage(null);
           }}
           size="xl"
-          title={
-            <H2 className="text-lg font-bold text-slate-900">
-              {selectedSubtopic?.title ?? selectedTopic?.title}
-            </H2>
-          }
+          title={selectedSubtopic?.title ?? selectedTopic?.title ?? ''}
           footer={undefined}
         >
           {selectedTopic && (
