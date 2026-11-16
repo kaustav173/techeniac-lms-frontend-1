@@ -560,8 +560,8 @@ function AssignCourseModalDialog({
         {/* STEP 1: Select Course */}
         {currentStep === 1 ? (
           <div className="min-h-[280px] space-y-4">
-            <div>
-              <Label htmlFor="assign-course-select" required className="mb-2">
+            <div className="space-y-2">
+              <Label htmlFor="assign-course-select" required>
                 Select Active Course
               </Label>
               <MultiSelectDropdown
@@ -607,10 +607,8 @@ function AssignCourseModalDialog({
         {/* STEP 2: Targets Selection */}
         {currentStep === 2 ? (
           <div className="space-y-4">
-            <div>
-              <Label required className="mb-2">
-                Target Scope
-              </Label>
+            <div className="space-y-2">
+              <Label required>Target Scope</Label>
               <div
                 className={cn(
                   'grid grid-cols-1 gap-2.5',
@@ -687,8 +685,8 @@ function AssignCourseModalDialog({
 
             {/* Target Batch Select */}
             {targetType !== 'INDIVIDUAL_MENTEES' ? (
-              <div>
-                <Label htmlFor="assign-batch-select" required className="mb-2">
+              <div className="space-y-2">
+                <Label htmlFor="assign-batch-select" required>
                   Select Target Batch
                 </Label>
                 <MultiSelectDropdown
@@ -875,7 +873,7 @@ function AssignCourseModalDialog({
 
             {/* Date Inputs */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="assign-start-date" required>
                   Start Date
                 </Label>
@@ -897,7 +895,7 @@ function AssignCourseModalDialog({
                 <FieldError id="assign-start-date-error" error={startDateError} />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="assign-due-date">
                   Due Date {selectedCourse?.estimatedMinutes ? '(Auto-prefilled)' : '(Required)'}
                 </Label>
