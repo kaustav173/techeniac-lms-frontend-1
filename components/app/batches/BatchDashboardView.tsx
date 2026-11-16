@@ -47,6 +47,7 @@ export interface BatchMemberItem {
   email: string;
   memberRole: 'MENTOR' | 'MENTEE';
   mappedToName?: string | undefined;
+  mappedToUserId?: string | undefined;
   joinedAt: string;
 }
 
@@ -96,6 +97,7 @@ function MentorMappingCell({
     id: string;
     name: string;
     currentMentorName?: string | undefined;
+    currentMentorId?: string | undefined;
   }) => void;
   isArchived?: boolean | undefined;
 }>) {
@@ -117,6 +119,7 @@ function MentorMappingCell({
                 id: member.id,
                 name: member.name,
                 currentMentorName: member.mappedToName,
+                currentMentorId: member.mappedToUserId,
               })
             }
             className="h-6 px-1.5 text-[11px] font-semibold text-[#0044D3] hover:bg-blue-50"
@@ -242,7 +245,12 @@ export function BatchDashboardView({
   } | null>(null);
   const [mapMenteeTarget, setMapMenteeTarget] = useState<{
     isOpen: boolean;
-    targetMentee?: { id: string; name: string; currentMentorName?: string | undefined } | null;
+    targetMentee?: {
+      id: string;
+      name: string;
+      currentMentorName?: string | undefined;
+      currentMentorId?: string | undefined;
+    } | null;
   }>({ isOpen: false, targetMentee: null });
 
   const activeId = batchId ?? initialBatch?.id ?? '';
