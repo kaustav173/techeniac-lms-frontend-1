@@ -367,7 +367,7 @@ export function PerformanceTable({
 
                   {/* Batch Name */}
                   <TableCell className="px-4 py-4">
-                    {row.batchName && row.batchName !== 'Unbatched' ? (
+                    {row.batchName ? (
                       <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                         {row.batchName}
                       </Span>
