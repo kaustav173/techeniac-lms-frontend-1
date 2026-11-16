@@ -61,6 +61,10 @@ export const submissionsService = {
     if (query?.page) params.page = query.page;
     if (query?.limit) params.limit = query.limit;
     if (query?.status) params.status = query.status;
+    if (query?.statuses && query.statuses.length > 0) {
+      params.statuses = query.statuses.join(',');
+    }
+    if (query?.search) params.search = query.search;
     if (query?.courseId) params.courseId = query.courseId;
 
     const response = await apiClient<ListApiResponse>('/submissions/my-assignments', {

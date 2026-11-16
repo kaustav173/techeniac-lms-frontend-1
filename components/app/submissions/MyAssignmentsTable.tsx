@@ -49,6 +49,8 @@ export interface MyAssignmentsTableProps {
   onStatusChange?: ((status?: AssignmentDerivedStatus) => void) | undefined;
   selectedStatuses?: AssignmentDerivedStatus[] | undefined;
   onStatusesChange?: ((statuses: AssignmentDerivedStatus[]) => void) | undefined;
+  searchQuery?: string | undefined;
+  onSearchQueryChange?: ((search: string) => void) | undefined;
   pagination?: MyAssignmentsPaginationConfig | undefined;
 }
 
@@ -73,12 +75,16 @@ export function MyAssignmentsTable({
   onStatusChange,
   selectedStatuses,
   onStatusesChange,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
   pagination,
 }: Readonly<MyAssignmentsTableProps>) {
   const router = useRouter();
   const prefetchAssignment = usePrefetchAssignmentDetails();
   const { getHoverHandlers } = useHoverPrefetch();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
+  const isServerPaginated = pagination?.total !== undefined;
   const [sortField, setSortField] = useState<SortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
@@ -164,6 +170,10 @@ export function MyAssignmentsTable({
       }
     }
 
+    if (isServerPaginated) {
+      return unique;
+    }
+
     const q = searchQuery.toLowerCase().trim();
     return unique.filter((item) => {
       const matchesSearch =
@@ -174,7 +184,7 @@ export function MyAssignmentsTable({
       const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(item.status);
       return matchesSearch && matchesStatus;
     });
-  }, [assignments, searchQuery, activeStatuses]);
+  }, [assignments, searchQuery, activeStatuses, isServerPaginated]);
 
   const sortedAssignments = useMemo(() => {
     if (!sortField) return filteredAssignments;
@@ -199,25 +209,40 @@ export function MyAssignmentsTable({
 
   const hasActiveFilters = Boolean(searchQuery.trim() || activeStatuses.length > 0);
 
-  const effectiveTotal = sortedAssignments.length;
-  const effectiveTotalPages = pagination
-    ? Math.max(1, Math.ceil(effectiveTotal / pagination.limit))
-    : 1;
+  const effectiveTotal =
+    isServerPaginated && pagination.total !== undefined
+      ? pagination.total
+      : sortedAssignments.length;
+  const effectiveTotalPages =
+    isServerPaginated && pagination.totalPages !== undefined
+      ? pagination.totalPages
+      : pagination
+        ? Math.max(1, Math.ceil(effectiveTotal / pagination.limit))
+        : 1;
   const effectivePage = pagination ? Math.min(pagination.page, effectiveTotalPages) : 1;
 
   const paginatedAssignments = useMemo(() => {
+    if (isServerPaginated) return sortedAssignments;
     if (!pagination) return sortedAssignments;
     const start = (effectivePage - 1) * pagination.limit;
     return sortedAssignments.slice(start, start + pagination.limit);
-  }, [sortedAssignments, pagination, effectivePage]);
+  }, [sortedAssignments, pagination, effectivePage, isServerPaginated]);
 
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
+    if (onSearchQueryChange) {
+      onSearchQueryChange(value);
+    } else {
+      setInternalSearchQuery(value);
+    }
     pagination?.onPageChange(1);
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
+    if (onSearchQueryChange) {
+      onSearchQueryChange('');
+    } else {
+      setInternalSearchQuery('');
+    }
     onStatusChange?.(undefined);
     onStatusesChange?.([]);
     pagination?.onPageChange(1);

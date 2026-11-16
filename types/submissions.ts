@@ -80,6 +80,8 @@ export interface ListMyAssignmentsQuery {
   page?: number | undefined;
   limit?: number | undefined;
   status?: AssignmentDerivedStatus | undefined;
+  statuses?: readonly AssignmentDerivedStatus[] | undefined;
+  search?: string | undefined;
   courseId?: string | undefined;
 }
 
