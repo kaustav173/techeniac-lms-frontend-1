@@ -108,11 +108,11 @@ export function useCourses(initialQuery?: ListCoursesQuery) {
   };
 }
 
-export function useCourseDetail(courseId: string) {
+export function useCourseDetail(courseId: string, options?: { enabled?: boolean }) {
   return useQuery<Course | null>({
     queryKey: ['course', courseId],
     queryFn: () => coursesService.getCourseById(courseId, true),
-    enabled: Boolean(courseId),
+    enabled: Boolean(courseId) && (options?.enabled ?? true),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -379,13 +379,18 @@ export function useCourseBuilder(courseId: string, options?: { enabled?: boolean
   };
 }
 
-export function useInfiniteCourses(pageSize: number = 10, search?: string) {
+export function useInfiniteCourses(
+  pageSize: number = 10,
+  search?: string,
+  options?: { isActive?: boolean | 'all' },
+) {
   const trimmedSearch = search?.trim() || undefined;
+  const isActive = options?.isActive;
   return useInfiniteQuery({
-    queryKey: ['courses', 'infinite-dropdown', pageSize, trimmedSearch],
+    queryKey: ['courses', 'infinite-dropdown', pageSize, trimmedSearch, isActive],
     queryFn: ({ pageParam = 1, signal }) =>
       coursesService.listCourses(
-        { page: pageParam, limit: pageSize, search: trimmedSearch },
+        { page: pageParam, limit: pageSize, search: trimmedSearch, isActive },
         { signal },
       ),
     initialPageParam: 1,

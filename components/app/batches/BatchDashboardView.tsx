@@ -50,12 +50,18 @@ export interface BatchMemberItem {
   joinedAt: string;
 }
 
+export type AllocationScopeType = 'WHOLE_BATCH' | 'SELECTED_MENTEES' | 'SINGLE_MENTEE';
+
 export interface AllocatedCourseItem {
   id: string;
   title: string;
   dueDate: string;
   averageProgress: number;
   status: string;
+  allocationType: AllocationScopeType;
+  allocatedCount: number;
+  totalBatchMentees: number;
+  menteeNames: string[];
 }
 
 export interface StatusHistoryEntry {
@@ -274,37 +280,71 @@ export function BatchDashboardView({
     const allocs = batchAllocationsData?.items ?? [];
     if (allocs.length === 0) return [];
 
+    const totalBatchMentees =
+      serverBatchDetail?.members.filter((m) => m.memberRole === 'MENTEE').length ?? 0;
+
     const map = new Map<
       string,
-      { title: string; dueDate: string; totalProgress: number; count: number; status: string }
+      {
+        title: string;
+        dueDate: string;
+        totalProgress: number;
+        count: number;
+        status: string;
+        menteeNames: string[];
+      }
     >();
 
     for (const a of allocs) {
       const cId = a.courseId;
       const title = a.course?.title ?? 'Untitled Course';
+      const menteeName = a.user?.name ?? 'Unknown Mentee';
       const existing = map.get(cId);
       if (!existing) {
         map.set(cId, {
           title,
-          dueDate: new Date(a.dueDate).toLocaleDateString(),
+          dueDate: a.dueDate,
           totalProgress: a.progressPercent,
           count: 1,
           status: a.status,
+          menteeNames: [menteeName],
         });
       } else {
         existing.totalProgress += a.progressPercent;
         existing.count += 1;
+        if (!existing.menteeNames.includes(menteeName)) {
+          existing.menteeNames.push(menteeName);
+        }
       }
     }
 
-    return Array.from(map.entries()).map(([id, val]) => ({
-      id,
-      title: val.title,
-      dueDate: val.dueDate,
-      averageProgress: Math.round(val.totalProgress / val.count),
-      status: val.status,
-    }));
-  }, [batchAllocationsData]);
+    return Array.from(map.entries()).map(([id, val]) => {
+      let allocationType: AllocationScopeType = 'WHOLE_BATCH';
+      if (val.count === 1 && totalBatchMentees !== 1) {
+        allocationType = 'SINGLE_MENTEE';
+      } else if (totalBatchMentees > 0 && val.count === totalBatchMentees) {
+        allocationType = 'WHOLE_BATCH';
+      } else if (val.count > 1 && totalBatchMentees > 0 && val.count < totalBatchMentees) {
+        allocationType = 'SELECTED_MENTEES';
+      } else if (val.count === 1) {
+        allocationType = 'SINGLE_MENTEE';
+      } else {
+        allocationType = 'SELECTED_MENTEES';
+      }
+
+      return {
+        id,
+        title: val.title,
+        dueDate: val.dueDate,
+        averageProgress: Math.round(val.totalProgress / val.count),
+        status: val.status,
+        allocationType,
+        allocatedCount: val.count,
+        totalBatchMentees,
+        menteeNames: val.menteeNames,
+      };
+    });
+  }, [batchAllocationsData, serverBatchDetail]);
 
   const batch: BatchDetailData | null = useMemo(() => {
     if (serverBatchDetail) {
@@ -614,7 +654,7 @@ export function BatchDashboardView({
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 p-4">
             <div>
-              <H3 className="text-sm font-bold text-slate-800">Cohort Roster</H3>
+              <H3 className="text-sm font-bold text-slate-800">Course Roster</H3>
             </div>
             <div className="flex items-center gap-2">
               {mentors.length > 0 && unmappedMentees.length > 0 && !isArchived ? (
@@ -846,8 +886,9 @@ export function BatchDashboardView({
                       onSort={handleCourseSort}
                       tooltip="Sort allocated courses by Title"
                     />
+                    <TableHead>Allocation Type</TableHead>
                     <TableHead>Target Due Date</TableHead>
-                    <TableHead>Cohort Avg Progress</TableHead>
+                    <TableHead>Course Avg Progress</TableHead>
                     <TableHead className="text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -860,6 +901,80 @@ export function BatchDashboardView({
                     >
                       <TableCell className="max-w-xs font-semibold break-words text-slate-900">
                         <Span>{c.title}</Span>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {c.allocationType === 'WHOLE_BATCH' ? (
+                          <div className="space-y-0.5">
+                            <Span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                              <svg
+                                className="h-3 w-3 shrink-0 text-purple-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                                />
+                              </svg>
+                              Whole Batch
+                            </Span>
+                            <Span className="block text-[11px] font-normal text-slate-500">
+                              All {c.allocatedCount} {c.allocatedCount === 1 ? 'mentee' : 'mentees'}
+                            </Span>
+                          </div>
+                        ) : c.allocationType === 'SELECTED_MENTEES' ? (
+                          <div className="space-y-0.5" title={c.menteeNames.join(', ')}>
+                            <Span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                              <svg
+                                className="h-3 w-3 shrink-0 text-blue-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                                />
+                              </svg>
+                              Selected Mentees
+                            </Span>
+                            <Span className="block text-[11px] font-normal text-slate-500">
+                              {c.totalBatchMentees > 0 && c.allocatedCount <= c.totalBatchMentees
+                                ? `${c.allocatedCount} of ${c.totalBatchMentees} mentees`
+                                : `${c.allocatedCount} ${c.allocatedCount === 1 ? 'mentee' : 'mentees'}`}
+                            </Span>
+                          </div>
+                        ) : (
+                          <div className="space-y-0.5" title={c.menteeNames[0] || '1 mentee'}>
+                            <Span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                              <svg
+                                className="h-3 w-3 shrink-0 text-amber-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                              Single Mentee
+                            </Span>
+                            <Span className="block max-w-[150px] truncate text-[11px] font-medium text-slate-600">
+                              {c.menteeNames[0] || '1 mentee'}
+                            </Span>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-xs text-slate-600">
                         <Span>{formatDateDMY(c.dueDate)}</Span>
@@ -904,9 +1019,6 @@ export function BatchDashboardView({
                 />
               </svg>
               <H3 className="mt-3 text-base font-bold text-slate-900">No Courses Allocated Yet</H3>
-              <P className="mx-auto mt-1 max-w-md text-xs text-slate-500">
-                Allocate active courses from the Course Library to this batch.
-              </P>
               <div className="mt-4">
                 <Button
                   type="button"
@@ -938,9 +1050,9 @@ export function BatchDashboardView({
       {/* Tab 3: Timeline */}
       {activeTab === 'timeline' ? (
         <div className="space-y-6">
-          {/* Cohort Schedule Overview */}
+          {/* Course Schedule Overview */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-            <H3 className="text-base font-bold text-slate-900">Cohort Schedule</H3>
+            <H3 className="text-base font-bold text-slate-900">Course Schedule</H3>
             <P className="mt-1 text-sm text-slate-500">
               Active operating window and lifecycle span for this batch.
             </P>
@@ -1162,6 +1274,7 @@ export function BatchDashboardView({
       <AssignCourseModal
         isOpen={isAssignCourseModalOpen}
         onClose={() => setIsAssignCourseModalOpen(false)}
+        initialBatchId={activeId}
         userRole="SUPER_ADMIN"
         onSuccess={() => {
           void refetchAllocations();
