@@ -90,19 +90,17 @@ const variantStyles: Record<ToastVariant, { badge: string; icon: React.ReactElem
 };
 
 const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function NotificationDropdown() {
   const { notifications, unreadCount, clearAllNotifications, markAllAsRead } = useToastContext();
-  const isMounted = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
   const [isOpen, setIsOpen] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const displayUnreadCount = isMounted ? unreadCount : 0;
+  const effectiveUnreadCount = mounted ? unreadCount : 0;
 
   const closeDropdown = useCallback(() => {
     if (isOpen) {
@@ -167,7 +165,7 @@ export function NotificationDropdown() {
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        aria-label={`Notifications${displayUnreadCount > 0 ? `, ${displayUnreadCount} unread` : ''}`}
+        aria-label={`Notifications${effectiveUnreadCount > 0 ? `, ${effectiveUnreadCount} unread` : ''}`}
         className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E1E6EC] bg-white p-0 text-[#667085] shadow-2xs hover:border-slate-300 hover:bg-[#F6F8FC] hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
       >
         <svg
@@ -186,9 +184,9 @@ export function NotificationDropdown() {
         </svg>
 
         {/* Unread Badge Count */}
-        {displayUnreadCount > 0 ? (
+        {effectiveUnreadCount > 0 ? (
           <Span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0044D3] px-1 text-[10px] font-bold text-white shadow-xs">
-            {displayUnreadCount > 9 ? '9+' : displayUnreadCount}
+            {effectiveUnreadCount > 9 ? '9+' : effectiveUnreadCount}
           </Span>
         ) : null}
       </Button>
