@@ -119,10 +119,6 @@ export function MenteeProgressDetailView({
 
   const updateDeadlineMutation = useUpdateTopicDeadlineMutation();
 
-  const isAnyTopicEditing = Boolean(
-    editingTopicId && topics.some((t) => t.topicId === editingTopicId),
-  );
-
   const handleStartEditDeadline = (topic: TopicProgressItem) => {
     setEditingTopicId(topic.topicId);
     setInlineError(null);
@@ -237,11 +233,7 @@ export function MenteeProgressDetailView({
           ) : (
             <div className="space-y-6">
               {/* Mentee Header Hero Strip */}
-              <div
-                className={`flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs transition-all duration-200 sm:flex-row sm:items-center sm:justify-between ${
-                  isAnyTopicEditing ? 'pointer-events-none opacity-40 blur-[1px]' : ''
-                }`}
-              >
+              <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs transition-colors sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-[#0044D3]">
                     {allocation.menteeName ? allocation.menteeName.charAt(0).toUpperCase() : 'M'}
@@ -267,12 +259,8 @@ export function MenteeProgressDetailView({
                 </div>
               </div>
 
-              {/* Structured Metadata Grid (2x2): matches Modal styling exactly */}
-              <div
-                className={`grid grid-cols-1 gap-4 transition-all duration-200 sm:grid-cols-2 ${
-                  isAnyTopicEditing ? 'pointer-events-none opacity-40 blur-[1px]' : ''
-                }`}
-              >
+              {/* Structured Metadata Grid (2x2) */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {/* Card 1: Overall Completion */}
                 <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                   <div className="flex items-center gap-3">
@@ -457,17 +445,13 @@ export function MenteeProgressDetailView({
                     {topics.map((t, idx) => {
                       const isCompleted = t.status === 'COMPLETED';
                       const isInProgress = t.status === 'IN_PROGRESS';
-                      const isEditingThisTopic = isAnyTopicEditing && editingTopicId === t.topicId;
+                      const isEditingThisTopic = editingTopicId === t.topicId;
 
                       return (
                         <div
                           key={t.topicId}
-                          className={`p-4.5 transition-all duration-200 ${
-                            isEditingThisTopic
-                              ? 'relative z-10 rounded-xl bg-white shadow-xs ring-2 ring-[#0044D3]/20'
-                              : isAnyTopicEditing
-                                ? 'pointer-events-none opacity-35 blur-[1px] select-none'
-                                : 'hover:bg-slate-50/50'
+                          className={`p-4.5 transition-colors ${
+                            isEditingThisTopic ? 'bg-slate-50/40' : 'hover:bg-slate-50/50'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -531,8 +515,9 @@ export function MenteeProgressDetailView({
                                   variant="ghost"
                                   size="sm"
                                   type="button"
+                                  disabled={Boolean(editingTopicId && editingTopicId !== t.topicId)}
                                   onClick={() => handleStartEditDeadline(t)}
-                                  className="h-8 px-2 text-xs font-semibold text-[#0044D3] hover:underline"
+                                  className="h-8 px-2 text-xs font-semibold text-[#0044D3] hover:underline disabled:opacity-40"
                                 >
                                   {t.deadline ? 'Edit Target' : '+ Set Target'}
                                 </Button>
@@ -542,7 +527,7 @@ export function MenteeProgressDetailView({
 
                           {/* Direct Inline Target Date Setup */}
                           {isEditingThisTopic && (
-                            <div className="mt-3.5 rounded-xl border border-blue-100 bg-blue-50/40 p-3.5">
+                            <div className="mt-3.5 rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5 shadow-2xs">
                               <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-col">
                                   <Span className="text-xs font-bold text-slate-800">
