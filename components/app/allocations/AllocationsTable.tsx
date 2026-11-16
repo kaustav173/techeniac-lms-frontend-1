@@ -408,20 +408,18 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           ) : null}
         </div>
 
-        {userRole === 'SUPER_ADMIN' ? (
-          <div className="flex items-center gap-3 sm:ml-auto">
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => setIsAssignModalOpen(true)}
-              className="h-[47px] gap-2 rounded-full bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
-            >
-              <Span className="text-base font-bold">+</Span>
-              <Span>Assign Course</Span>
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-3 sm:ml-auto">
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => setIsAssignModalOpen(true)}
+            className="h-[47px] gap-2 rounded-full bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+          >
+            <Span className="text-base font-bold">+</Span>
+            <Span>Allocate Course</Span>
+          </Button>
+        </div>
       </div>
 
       {/* Data Table */}
@@ -808,6 +806,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         userRole={userRole}
+        onSuccess={() => {
+          void refetch();
+        }}
       />
 
       <EditAllocationModal
