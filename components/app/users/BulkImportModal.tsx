@@ -393,25 +393,18 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
       {!isImporting && !importResult ? (
         <div className="space-y-4">
           {/* Upper Section: Drag and Drop CSV Zone */}
-          <div
-            role="button"
-            tabIndex={0}
+          <Button
+            type="button"
+            variant="ghost"
             aria-label="Upload CSV file"
+            disabled={isProcessing}
             onClick={() => {
-              if (!isProcessing && !isImporting) {
-                fileInputRef.current?.click();
-              }
-            }}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && !isProcessing && !isImporting) {
-                e.preventDefault();
-                fileInputRef.current?.click();
-              }
+              fileInputRef.current?.click();
             }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-all ${
+            className={`group flex h-auto w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center font-normal transition-all ${
               isDragging
                 ? 'scale-[1.01] border-[#0044D3] bg-blue-50/70'
                 : 'border-slate-300 bg-slate-50/60 hover:border-[#0044D3] hover:bg-blue-50/30'
@@ -423,9 +416,9 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
               accept=".csv"
               onChange={handleFileChange}
               className="hidden"
-              disabled={isProcessing || isImporting}
+              disabled={isProcessing}
             />
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#0044D3] transition-colors group-hover:bg-blue-200/80">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-[#0044D3] transition-colors group-hover:bg-blue-200/80">
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -439,17 +432,17 @@ export function BulkImportModal({ isOpen, onClose, onImport }: BulkImportModalPr
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
               </svg>
-            </div>
-            <P className="mt-3 text-sm font-semibold text-slate-800">
+            </span>
+            <Span className="mt-3 block text-sm font-semibold text-slate-800">
               Drag and drop your CSV file here, or{' '}
               <Span className="font-bold text-[#0044D3] underline underline-offset-2 group-hover:text-[#0039B3]">
                 browse files
               </Span>
-            </P>
-            <P className="mt-1 text-xs text-slate-500">
+            </Span>
+            <Span className="mt-1 block text-xs text-slate-500">
               Supported format: UTF-8 CSV with header row (name, email, role)
-            </P>
-          </div>
+            </Span>
+          </Button>
 
           {/* Down Section: Download Sample Button (Primary) */}
           <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:flex-row">
