@@ -60,10 +60,10 @@ const STATUS_OPTIONS: MultiSelectOption<AssignmentDerivedStatus>[] = [
   { value: AssignmentDerivedStatus.RESUBMIT_REQUESTED, label: 'Resubmit Requested' },
   { value: AssignmentDerivedStatus.GRADED, label: 'Graded' },
   { value: AssignmentDerivedStatus.OVERDUE, label: 'Overdue' },
-  { value: AssignmentDerivedStatus.CLOSED, label: 'Submissions Closed' },
+  { value: AssignmentDerivedStatus.CLOSED, label: 'Closed' },
 ];
 
-type SortField = 'title' | 'courseTitle' | 'dueDate' | 'estimatedMinutes' | 'maxMarks' | 'status';
+type SortField = 'title' | 'courseTitle' | 'dueDate' | 'estimatedMinutes' | 'maxMarks';
 
 export function MyAssignmentsTable({
   assignments,
@@ -88,7 +88,6 @@ export function MyAssignmentsTable({
   const [sortField, setSortField] = useState<SortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const activeStatuses = useMemo<AssignmentDerivedStatus[]>(() => {
@@ -100,7 +99,6 @@ export function MyAssignmentsTable({
     actionMenuRef,
     () => {
       setOpenActionMenuId(null);
-      setMenuPosition(null);
     },
     openActionMenuId !== null,
   );
@@ -110,12 +108,10 @@ export function MyAssignmentsTable({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpenActionMenuId(null);
-        setMenuPosition(null);
       }
     };
     const handleScrollOrResize = () => {
       setOpenActionMenuId(null);
-      setMenuPosition(null);
     };
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleScrollOrResize, true);
@@ -129,21 +125,7 @@ export function MyAssignmentsTable({
 
   const toggleActionMenu = (e: React.MouseEvent<HTMLButtonElement>, assignmentId: string) => {
     e.stopPropagation();
-    if (openActionMenuId === assignmentId) {
-      setOpenActionMenuId(null);
-      setMenuPosition(null);
-      return;
-    }
-    const rect = e.currentTarget.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const menuHeight = 90;
-    const openUpward = spaceBelow < menuHeight + 20;
-
-    setMenuPosition({
-      top: openUpward ? Math.max(10, rect.top - menuHeight) : rect.bottom + 6,
-      right: Math.max(10, window.innerWidth - rect.right),
-    });
-    setOpenActionMenuId(assignmentId);
+    setOpenActionMenuId((prev) => (prev === assignmentId ? null : assignmentId));
   };
 
   const handleSort = (field: SortField) => {
@@ -200,8 +182,6 @@ export function MyAssignmentsTable({
         cmp = (a.estimatedMinutes || 0) - (b.estimatedMinutes || 0);
       } else if (sortField === 'maxMarks') {
         cmp = (a.maxMarks || 0) - (b.maxMarks || 0);
-      } else if (sortField === 'status') {
-        cmp = (a.status || '').localeCompare(b.status || '');
       }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
@@ -378,7 +358,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[26%] px-5 py-3.5 text-xs font-semibold text-[#667085]"
+                    className="w-[26%] px-5 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
                   />
                   <SortableColumnHeader<SortField>
                     field="courseTitle"
@@ -386,7 +366,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
                   />
                   <SortableColumnHeader<SortField>
                     field="dueDate"
@@ -394,7 +374,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                    className="w-[18%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
                   />
                   <SortableColumnHeader<SortField>
                     field="estimatedMinutes"
@@ -402,7 +382,7 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
                   />
                   <SortableColumnHeader<SortField>
                     field="maxMarks"
@@ -410,17 +390,12 @@ export function MyAssignmentsTable({
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
-                    className="w-[12%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
+                    className="w-[12%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs"
                   />
-                  <SortableColumnHeader<SortField>
-                    field="status"
-                    label="Status"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085]"
-                  />
-                  <TableHead className="w-16 px-4 py-3.5 text-center font-semibold text-[#667085]">
+                  <TableHead className="w-[10%] px-4 py-3.5 text-xs font-semibold text-[#667085] sm:text-xs">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-16 px-4 py-3.5 text-center text-xs font-semibold text-[#667085] sm:text-xs">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -492,10 +467,10 @@ export function MyAssignmentsTable({
                       </TableCell>
 
                       {/* Marks Column */}
-                      <TableCell className="px-4 py-4 whitespace-nowrap">
-                        <div className="space-y-0.5 text-xs">
+                      <TableCell className="px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
+                        <div className="space-y-0.5">
                           <Span className="font-semibold text-[#111827]">
-                            {assignment.maxMarks} pts
+                            {assignment.maxMarks} marks
                           </Span>
                           {assignment.passMarks ? (
                             <Span className="block text-[11px] text-[#667085]">
@@ -506,7 +481,7 @@ export function MyAssignmentsTable({
                       </TableCell>
 
                       {/* Status Column */}
-                      <TableCell className="px-4 py-4 whitespace-nowrap">
+                      <TableCell className="px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
                         <SubmissionStatusBadge
                           status={assignment.status}
                           isLate={assignment.latestSubmission?.isLate}
@@ -549,16 +524,12 @@ export function MyAssignmentsTable({
                             </svg>
                           </Button>
 
-                          {isActionMenuOpen && menuPosition && (
+                          {isActionMenuOpen && (
                             <div
                               ref={actionMenuRef}
                               role="menu"
                               aria-label={`Actions for ${assignment.title}`}
-                              style={{
-                                top: `${menuPosition.top}px`,
-                                right: `${menuPosition.right}px`,
-                              }}
-                              className="animate-in fade-in zoom-in-95 fixed z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 text-left shadow-xl"
+                              className="animate-in fade-in zoom-in-95 absolute top-1/2 right-full z-50 mr-2 w-44 -translate-y-1/2 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 text-left shadow-xl"
                             >
                               <Link
                                 role="menuitem"
@@ -566,7 +537,6 @@ export function MyAssignmentsTable({
                                 {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
                                 onClick={() => {
                                   setOpenActionMenuId(null);
-                                  setMenuPosition(null);
                                 }}
                                 className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                               >
@@ -585,7 +555,6 @@ export function MyAssignmentsTable({
                                   href={`/mentee/courses/${assignment.courseId}`}
                                   onClick={() => {
                                     setOpenActionMenuId(null);
-                                    setMenuPosition(null);
                                   }}
                                   className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                 >

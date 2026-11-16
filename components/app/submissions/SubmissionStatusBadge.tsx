@@ -46,7 +46,7 @@ const STATUS_CONFIG: Record<
     border: 'border-red-200',
   },
   [AssignmentDerivedStatus.CLOSED]: {
-    label: 'Submissions Closed',
+    label: 'Closed',
     bg: 'bg-zinc-100',
     text: 'text-zinc-600',
     border: 'border-zinc-200',
@@ -58,10 +58,20 @@ export function SubmissionStatusBadge({
   isLate,
   className,
 }: Readonly<SubmissionStatusBadgeProps>) {
+  if (isLate) {
+    return (
+      <div className={cn('inline-flex items-center', className)}>
+        <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+          Late
+        </Span>
+      </div>
+    );
+  }
+
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG[AssignmentDerivedStatus.PENDING];
 
   return (
-    <div className={cn('inline-flex items-center gap-1.5', className)}>
+    <div className={cn('inline-flex items-center', className)}>
       <Span
         className={cn(
           'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
@@ -72,11 +82,6 @@ export function SubmissionStatusBadge({
       >
         {config.label}
       </Span>
-      {isLate ? (
-        <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-700">
-          Late
-        </Span>
-      ) : null}
     </div>
   );
 }
