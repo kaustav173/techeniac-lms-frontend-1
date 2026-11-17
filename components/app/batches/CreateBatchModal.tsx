@@ -221,21 +221,26 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
       setter(val);
       setErrors((prev) => {
         const hasFieldOrGeneralError = Boolean(prev[field] || prev.general);
-        const hasCrossFieldDateError =
-          (field === 'startDate' || field === 'endDate') &&
+        const isCrossFieldDateError =
           prev.endDate === 'Start date must be earlier than or equal to end date';
+        const hasCrossFieldDateError =
+          (field === 'startDate' || field === 'endDate') && isCrossFieldDateError;
 
         if (!hasFieldOrGeneralError && !hasCrossFieldDateError) {
           return prev;
         }
 
         const next: FormErrors = { ...prev };
-        delete next[field];
         delete next.general;
 
         if (hasCrossFieldDateError) {
+          if (field === 'startDate') {
+            delete next.startDate;
+          }
+
           const effectiveStart = field === 'startDate' ? val : startDate;
           const effectiveEnd = field === 'endDate' ? val : endDate;
+
           if (effectiveStart && effectiveEnd) {
             const startMs = new Date(effectiveStart).getTime();
             const endMs = new Date(effectiveEnd).getTime();
@@ -245,6 +250,8 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
           } else {
             delete next.endDate;
           }
+        } else {
+          delete next[field];
         }
 
         return next;
