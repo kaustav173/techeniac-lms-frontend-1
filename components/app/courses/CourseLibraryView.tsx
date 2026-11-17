@@ -153,8 +153,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  // Sorting state for Course Name, Topics, and Tasks
-  type CourseSortField = 'title' | 'topics' | 'tasks';
+  // Sorting state for Course Name, Topics, and Assignments (Tasks)
+  type CourseSortField = 'title' | 'topics' | 'assignments';
   const [sortField, setSortField] = useState<CourseSortField | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -538,7 +538,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                           className="w-28 text-center"
                         />
                         <SortableColumnHeader<CourseSortField>
-                          field="tasks"
+                          field="assignments"
                           label="Tasks"
                           sortField={sortField}
                           sortOrder={sortOrder}
