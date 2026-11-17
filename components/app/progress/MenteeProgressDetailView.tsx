@@ -62,8 +62,7 @@ export function MenteeProgressDetailSkeleton({
           </div>
           <div className="space-y-6">
             <Skeleton className="h-16 w-full rounded-2xl" />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Skeleton className="h-28 rounded-2xl" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Skeleton className="h-28 rounded-2xl" />
               <Skeleton className="h-28 rounded-2xl" />
               <Skeleton className="h-28 rounded-2xl" />
@@ -101,11 +100,12 @@ export function MenteeProgressDetailView({
     () => topics.filter((t) => t.status === 'COMPLETED').length,
     [topics],
   );
-  const overdueTopicsCount = useMemo(
-    () => topics.filter((t) => t.isOverdue && t.status !== 'COMPLETED').length,
-    [topics],
-  );
-  const isOverallOverdue = Boolean(allocation?.isOverdue || overdueTopicsCount > 0);
+  // Clean batch name (e.g. remove trailing date/year like "-December-2026")
+  const rawBatchName = allocation?.batchName;
+  const displayBatchName = rawBatchName
+    ? rawBatchName.replace(/\s*[-–—]\s*(?:[A-Za-z]+\s*[-–—\s]*)?\d{4}.*$/i, '').trim() ||
+      rawBatchName
+    : '';
 
   const allocationStartDate = allocation?.startDate;
   const allocationDueDate = allocation?.dueDate;
@@ -208,8 +208,7 @@ export function MenteeProgressDetailView({
           {isLoading ? (
             <div className="space-y-6">
               <Skeleton className="h-14 w-full rounded-2xl" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Skeleton className="h-28 rounded-2xl" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Skeleton className="h-28 rounded-2xl" />
                 <Skeleton className="h-28 rounded-2xl" />
                 <Skeleton className="h-28 rounded-2xl" />
@@ -233,34 +232,19 @@ export function MenteeProgressDetailView({
           ) : (
             <div className="space-y-6">
               {/* Mentee Header Hero Strip */}
-              <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs transition-colors sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-[#0044D3]">
-                    {allocation.menteeName ? allocation.menteeName.charAt(0).toUpperCase() : 'M'}
-                  </div>
-                  <div>
-                    <H1 className="truncate text-lg font-bold text-slate-900 sm:text-xl">
-                      {allocation.menteeName || 'Learner Progress'}
-                    </H1>
-                    <Span className="text-xs text-slate-500">
-                      {allocation.courseTitle}
-                      {allocation.batchName
-                        ? ` • Batch: ${allocation.batchName}`
-                        : ' • Individual Track'}
-                    </Span>
-                  </div>
+              <div className="flex items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-[#0044D3]">
+                  {allocation.menteeName ? allocation.menteeName.charAt(0).toUpperCase() : 'M'}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Span className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
-                    Allocation ID:{' '}
-                    <span className="font-mono text-slate-500">{allocation.id.slice(0, 8)}...</span>
-                  </Span>
+                <div>
+                  <H1 className="truncate text-lg font-bold text-slate-900 sm:text-xl">
+                    {allocation.menteeName || 'Learner Progress'}
+                  </H1>
                 </div>
               </div>
 
-              {/* Structured Metadata Grid (2x2) */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Structured Metadata Grid (3 Cards) */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {/* Card 1: Overall Completion */}
                 <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                   <div className="flex items-center gap-3">
@@ -304,50 +288,7 @@ export function MenteeProgressDetailView({
                   </div>
                 </div>
 
-                {/* Card 2: Timeline Status */}
-                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                        isOverallOverdue
-                          ? 'bg-rose-50 text-rose-600'
-                          : 'bg-emerald-50 text-emerald-600'
-                      }`}
-                    >
-                      <svg
-                        className="h-4.5 w-4.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Timeline Status
-                      </Span>
-                      <div className="mt-0.5 flex items-center gap-2">
-                        <Span
-                          className={`rounded-md border px-2 py-0.5 text-xs font-bold ${
-                            isOverallOverdue
-                              ? 'border-rose-200 bg-rose-50 text-rose-700'
-                              : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                          }`}
-                        >
-                          {isOverallOverdue ? 'Overdue' : 'On Track'}
-                        </Span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Allocation Window */}
+                {/* Card 2: Allocation Window */}
                 <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
@@ -383,7 +324,7 @@ export function MenteeProgressDetailView({
                   </div>
                 </div>
 
-                {/* Card 4: Assigned Course & Batch */}
+                {/* Card 3: Assigned Course & Batch */}
                 <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
@@ -412,9 +353,7 @@ export function MenteeProgressDetailView({
                         {allocation.courseTitle}
                       </Span>
                       <Span className="mt-0.5 block truncate text-xs text-slate-500">
-                        {allocation.batchName
-                          ? `Batch: ${allocation.batchName}`
-                          : 'Individual Track'}
+                        {displayBatchName ? `Batch: ${displayBatchName}` : 'Individual Track'}
                       </Span>
                     </div>
                   </div>
@@ -425,7 +364,7 @@ export function MenteeProgressDetailView({
               <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-2xs">
                 <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-5 py-3.5">
                   <Span className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-bold tracking-wider text-[#0044D3] uppercase">
-                    Active Topic Milestones & Deadlines
+                    Topic Deadlines
                   </Span>
                   <Span className="text-xs font-semibold text-slate-500">
                     {completedTopicsCount} of {totalActiveTopics} Finished
