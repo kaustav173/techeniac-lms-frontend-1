@@ -159,11 +159,23 @@ export function MenteeProgressDetailView({
     }
 
     try {
+      // Send as ISO 8601 string clamped to allocation boundaries (IST end-of-day: 23:59:59+05:30)
+      const targetTime = new Date(`${inlineDeadline}T23:59:59+05:30`).getTime();
+      const dueTime = allocationDueDate ? new Date(allocationDueDate).getTime() : Infinity;
+      const startTime = allocationStartDate ? new Date(allocationStartDate).getTime() : -Infinity;
+
+      const isoDeadline =
+        targetTime > dueTime && allocationDueDate
+          ? allocationDueDate
+          : targetTime < startTime && allocationStartDate
+            ? allocationStartDate
+            : new Date(targetTime).toISOString();
+
       await updateDeadlineMutation.mutateAsync({
         allocationId,
         topicId,
         payload: {
-          deadline: new Date(`${inlineDeadline}T23:59:59.999Z`).toISOString(),
+          deadline: isoDeadline,
         },
       });
       setEditingTopicId(null);
