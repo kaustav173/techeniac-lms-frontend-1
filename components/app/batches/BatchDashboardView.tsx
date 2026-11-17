@@ -39,7 +39,7 @@ import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
-import { getBatchStatusBadgeClass } from './batchStatus';
+import { formatBatchStatus, getBatchStatusBadgeClass } from './batchStatus';
 
 export interface BatchMemberItem {
   id: string;
@@ -402,6 +402,28 @@ export function BatchDashboardView({
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
 
+  const assignedMenteesToRemovedMentor = useMemo(() => {
+    if (!memberToRemove || memberToRemove.role !== 'MENTOR' || !batch) return [];
+    return batch.members.filter(
+      (m) =>
+        m.memberRole === 'MENTEE' &&
+        ((m.mappedToUserId && m.mappedToUserId === memberToRemove.id) ||
+          m.mappedToName === memberToRemove.name),
+    );
+  }, [batch, memberToRemove]);
+
+  const removeMemberWarningMessage = useMemo(() => {
+    if (assignedMenteesToRemovedMentor.length === 0) return null;
+    if (assignedMenteesToRemovedMentor.length === 1) {
+      return 'This mentor is currently assigned to the following mentee. The mentee will need to be reassigned to another mentor:';
+    }
+    return `This mentor is currently assigned to ${assignedMenteesToRemovedMentor.length} mentees. The mentees will need to be reassigned to another mentor:`;
+  }, [assignedMenteesToRemovedMentor]);
+
+  const removeMemberWarningItems = useMemo(() => {
+    return assignedMenteesToRemovedMentor.map((m) => (m.email ? `${m.name} (${m.email})` : m.name));
+  }, [assignedMenteesToRemovedMentor]);
+
   // Sorting state for Batch Members
   const [memberSortField, setMemberSortField] = useState<'name' | null>(null);
   const [memberSortOrder, setMemberSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -553,11 +575,11 @@ export function BatchDashboardView({
               {batch.name}
             </H1>
             <Span
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getBatchStatusBadgeClass(
                 batch.status,
               )}`}
             >
-              {batch.status}
+              {formatBatchStatus(batch.status)}
             </Span>
           </div>
 
@@ -1096,11 +1118,11 @@ export function BatchDashboardView({
                       </svg>
                       <Span
                         className={cn(
-                          'rounded-md px-2.5 py-0.5 text-xs font-bold uppercase',
+                          'rounded-md px-2.5 py-0.5 text-xs font-semibold',
                           getBatchStatusBadgeClass(h.toStatus),
                         )}
                       >
-                        {h.toStatus}
+                        {formatBatchStatus(h.toStatus)}
                       </Span>
                       <Span className="text-xs text-slate-400">•</Span>
                       <Span className="text-sm font-medium text-slate-500">
@@ -1174,7 +1196,9 @@ export function BatchDashboardView({
         }}
         onConfirm={handleConfirmRemoveMember}
         title="Remove Member?"
-        description={`Are you sure you want to remove ${memberToRemove?.role.toLowerCase() || 'member'} ${memberToRemove?.name || ''} from this batch? Their historical logs and learning history will be preserved.`}
+        description={`Are you sure you want to remove ${memberToRemove?.role.toLowerCase() || 'member'} ${memberToRemove?.name || ''} from this batch?`}
+        warningMessage={removeMemberWarningMessage}
+        warningItems={removeMemberWarningItems}
         confirmLabel="Remove Member"
         confirmVariant="danger"
         isLoading={removeMemberMutation.isPending}

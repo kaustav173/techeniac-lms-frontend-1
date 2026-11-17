@@ -11,6 +11,7 @@ import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { H3, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import {
+  areResourcesEqual,
   findDuplicateTitle,
   isValidWebUrl,
   RESOURCE_TYPE_OPTIONS,
@@ -71,6 +72,23 @@ export function AssignmentEditor({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Compute dirty state comparing current values against initial assignment props
+  const isDirty =
+    title.trim() !== assignment.title.trim() ||
+    instructions.trim() !== (assignment.instructions || '').trim() ||
+    (totalDurationMinutes ?? null) !== (assignment.estimatedMinutes ?? null) ||
+    maxMarks !== (Number(assignment.maxMarks) || 0) ||
+    passMarks !== (Number(assignment.passMarks) || 0) ||
+    allowLate !== assignment.allowLate ||
+    pdfMode !== assignment.pdfMode ||
+    zipMode !== assignment.zipMode ||
+    urlMode !== assignment.urlMode ||
+    !areResourcesEqual(resources, assignment.resources);
+
+  React.useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   const handleAddResource = () => {
     const trimmedTitle = newResourceTitle.trim();
     const trimmedUrl = newResourceUrl.trim();
@@ -103,17 +121,16 @@ export function AssignmentEditor({
     setNewResourceTitle('');
     setNewResourceUrl('');
     setErrorMsg(null);
-    onDirtyChange(true);
   };
 
   const handleRemoveResource = (index: number) => {
     const updated = resources.filter((_, i) => i !== index);
     setResources(updated);
-    onDirtyChange(true);
   };
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!isDirty || isSaving) return;
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Assignment title cannot be empty.');
@@ -258,7 +275,6 @@ export function AssignmentEditor({
   const handleChange = (updater: () => void) => {
     updater();
     if (errorMsg) setErrorMsg(null);
-    onDirtyChange(true);
   };
 
   return (
@@ -266,7 +282,7 @@ export function AssignmentEditor({
       <EditorFormShell
         category={`${assignment.scope} Task`}
         title={title || assignment.title}
-        isDirty={true}
+        isDirty={isDirty}
         isSaving={isSaving}
         saveSuccess={saveSuccess}
         onSave={() => {

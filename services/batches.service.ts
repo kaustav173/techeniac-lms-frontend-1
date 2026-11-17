@@ -1,5 +1,8 @@
 import type { BatchStatus, CreateBatchFormData } from '@/lib/validation';
 import { apiClient } from '@/services/api.client';
+import { BatchMemberRole } from '@/types/batches';
+
+export { BatchMemberRole };
 
 export interface ApiBatchSummary {
   id: string;
@@ -25,7 +28,7 @@ export interface ApiBatchMemberItem {
   id: string;
   name: string;
   email: string;
-  memberRole: 'MENTOR' | 'MENTEE';
+  memberRole: BatchMemberRole | 'MENTOR' | 'MENTEE';
   mappedToName?: string | undefined;
   mappedToUserId?: string | undefined;
   joinedAt: string;
@@ -315,7 +318,7 @@ export const batchesService = {
 
   async addMembers(
     batchId: string,
-    data: { userIds: string[]; memberRole: 'MENTOR' | 'MENTEE' },
+    data: { userIds: string[]; memberRole: BatchMemberRole | 'MENTOR' | 'MENTEE' },
   ): Promise<void> {
     await apiClient<ApiResponse<unknown>>(`/batches/${batchId}/members`, {
       method: 'POST',

@@ -15,21 +15,24 @@ export interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> 
   readonly title?: string | undefined;
   readonly onDismiss?: (() => void) | undefined;
   readonly onRetry?: (() => void) | undefined;
-  readonly showCode?: boolean | undefined;
   readonly className?: string | undefined;
+}
+
+export interface ParsedApiError {
+  title: string;
+  message: string;
+  /** Retained for telemetry, logging, and future diagnostic consumers */
+  code?: string | undefined;
+  /** Retained for telemetry, logging, and future diagnostic consumers */
+  status?: number | undefined;
+  details?: ErrorDetailItem[] | undefined;
 }
 
 /**
  * Parses and formats any incoming backend API error, ApiError instance, standard Error,
  * or custom error object into human-understandable title, message, code, and details.
  */
-export function parseApiError(err: unknown): {
-  title: string;
-  message: string;
-  code?: string | undefined;
-  status?: number | undefined;
-  details?: ErrorDetailItem[] | undefined;
-} {
+export function parseApiError(err: unknown): ParsedApiError {
   if (!err) {
     return { title: 'Error', message: 'An unknown error occurred.' };
   }
@@ -131,7 +134,6 @@ export function ErrorMessage({
   title: customTitle,
   onDismiss,
   onRetry,
-  showCode = true,
   className,
   ...props
 }: Readonly<ErrorMessageProps>) {
@@ -164,21 +166,7 @@ export function ErrorMessage({
 
         {/* Content Area */}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <H4 className="text-sm leading-tight font-semibold text-red-950">{title}</H4>
-
-            {showCode && parsed.code ? (
-              <Span className="inline-flex items-center rounded-md bg-red-100/90 px-1.5 py-0.5 font-mono text-[10px] font-medium text-red-800">
-                {parsed.code}
-              </Span>
-            ) : null}
-
-            {parsed.status ? (
-              <Span className="inline-flex items-center rounded-md bg-red-100/60 px-1.5 py-0.5 font-mono text-[10px] text-red-700">
-                HTTP {parsed.status}
-              </Span>
-            ) : null}
-          </div>
+          <H4 className="text-sm leading-tight font-semibold text-red-950">{title}</H4>
 
           {/* Main Error Message (high-contrast dark text) */}
           <P className="mt-1.5 text-xs leading-relaxed font-normal text-red-800">

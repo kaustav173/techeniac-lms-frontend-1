@@ -241,13 +241,21 @@ export function MapMenteeModal({
       size="md"
       footer={
         <div className="flex w-full items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             form="map-mentee-form"
             variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
             disabled={isSubmitting || !selectedMentorId || isArchived}
           >
             {isArchived ? "Can't Map (Archived)" : submitLabel}

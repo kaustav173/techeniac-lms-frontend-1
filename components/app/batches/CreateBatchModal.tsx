@@ -26,10 +26,13 @@ export interface CreateBatchModalProps {
   onSuccess: (data: CreateBatchFormData) => void;
 }
 
-function extractZodFieldErrors(issues: z.ZodIssue[]): Record<string, string> {
-  const fieldErrors: Record<string, string> = {};
+export type BatchFormField = 'name' | 'code' | 'startDate' | 'endDate' | 'description';
+export type FormErrors = Partial<Record<BatchFormField | 'general', string>>;
+
+function extractZodFieldErrors(issues: z.ZodIssue[]): FormErrors {
+  const fieldErrors: FormErrors = {};
   for (const issue of issues) {
-    const field = issue.path[0]?.toString();
+    const field = issue.path[0]?.toString() as BatchFormField | undefined;
     if (field && !fieldErrors[field]) {
       fieldErrors[field] = issue.message;
     }
@@ -37,12 +40,13 @@ function extractZodFieldErrors(issues: z.ZodIssue[]): Record<string, string> {
   return fieldErrors;
 }
 
-function parseApiErrors(err: unknown): Record<string, string> {
+function parseApiErrors(err: unknown): FormErrors {
   if (err instanceof ApiError && Array.isArray(err.details)) {
-    const fieldErrors: Record<string, string> = {};
+    const fieldErrors: FormErrors = {};
     for (const item of err.details as Array<{ field?: string; message?: string }>) {
-      if (item.field && item.message) {
-        fieldErrors[item.field] = item.message;
+      const field = item.field as BatchFormField | undefined;
+      if (field && item.message) {
+        fieldErrors[field] = item.message;
       }
     }
     return {
@@ -60,7 +64,7 @@ interface FormFieldsProps {
   startDate: string;
   endDate: string;
   description: string;
-  errors: Record<string, string>;
+  errors: FormErrors;
   disabled: boolean;
   onNameChange: (val: string) => void;
   onCodeChange: (val: string) => void;
@@ -196,7 +200,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
@@ -211,6 +215,48 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
     setErrors({});
     setIsDiscardConfirmOpen(false);
   }, []);
+
+  const handleFieldChange =
+    (field: BatchFormField, setter: (val: string) => void) => (val: string) => {
+      setter(val);
+      setErrors((prev) => {
+        const hasFieldOrGeneralError = Boolean(prev[field] || prev.general);
+        const isCrossFieldDateError =
+          prev.endDate === 'Start date must be earlier than or equal to end date';
+        const hasCrossFieldDateError =
+          (field === 'startDate' || field === 'endDate') && isCrossFieldDateError;
+
+        if (!hasFieldOrGeneralError && !hasCrossFieldDateError) {
+          return prev;
+        }
+
+        const next: FormErrors = { ...prev };
+        delete next.general;
+
+        if (hasCrossFieldDateError) {
+          if (field === 'startDate') {
+            delete next.startDate;
+          }
+
+          const effectiveStart = field === 'startDate' ? val : startDate;
+          const effectiveEnd = field === 'endDate' ? val : endDate;
+
+          if (effectiveStart && effectiveEnd) {
+            const startMs = new Date(effectiveStart).getTime();
+            const endMs = new Date(effectiveEnd).getTime();
+            if (!Number.isNaN(startMs) && !Number.isNaN(endMs) && startMs <= endMs) {
+              delete next.endDate;
+            }
+          } else {
+            delete next.endDate;
+          }
+        } else {
+          delete next[field];
+        }
+
+        return next;
+      });
+    };
 
   if (!isOpen) return null;
 
@@ -311,11 +357,11 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
             description={description}
             errors={errors}
             disabled={isSubmitting}
-            onNameChange={setName}
-            onCodeChange={setCode}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onDescriptionChange={setDescription}
+            onNameChange={handleFieldChange('name', setName)}
+            onCodeChange={handleFieldChange('code', setCode)}
+            onStartDateChange={handleFieldChange('startDate', setStartDate)}
+            onEndDateChange={handleFieldChange('endDate', setEndDate)}
+            onDescriptionChange={handleFieldChange('description', setDescription)}
           />
         </Form>
       </Modal>

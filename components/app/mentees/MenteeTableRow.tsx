@@ -6,6 +6,7 @@ import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/Table';
 import { P, Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
+import { formatDateDMY } from '@/lib/date';
 import type { ApiMentorMappedMentee } from '@/services/batches.service';
 
 export interface MenteeTableRowProps {
@@ -68,7 +69,7 @@ export function MenteeTableRow({
       <TableCell
         className={actions ? 'text-sm text-slate-600' : 'text-right text-sm text-slate-600'}
       >
-        {mentee.startDate ? mentee.startDate.slice(0, 10) : '—'}
+        {mentee.startDate ? formatDateDMY(mentee.startDate) : '—'}
       </TableCell>
       {actions ? (
         <TableCell
