@@ -473,20 +473,16 @@ export function MentorMenteesView() {
             <TableContainer className="rounded-none border-0 shadow-none">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                      Mentee
-                    </TableHead>
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                      Course
-                    </TableHead>
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                  <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
+                    <TableHead className="py-3.5 font-semibold text-slate-700">Mentee</TableHead>
+                    <TableHead className="py-3.5 font-semibold text-slate-700">Course</TableHead>
+                    <TableHead className="py-3.5 font-semibold text-slate-700">
                       Course Code
                     </TableHead>
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 font-semibold text-slate-700">
                       Mapped Since
                     </TableHead>
-                    <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 text-right font-semibold text-slate-700">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -570,9 +566,9 @@ export function MentorMenteesView() {
             <TableContainer className="rounded-none border-0 shadow-none">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+                  <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
                     <TableHead
-                      className="py-3.5 text-sm font-semibold text-[#667085]"
+                      className="py-3.5 font-semibold text-slate-700"
                       aria-sort={
                         menteeSort === 'asc'
                           ? 'ascending'
@@ -586,7 +582,7 @@ export function MentorMenteesView() {
                         variant="ghost"
                         size="sm"
                         onClick={handleMenteeSort}
-                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
                         title={
                           menteeSort === 'asc'
                             ? 'Sorted A to Z (click for Z to A)'
@@ -595,20 +591,18 @@ export function MentorMenteesView() {
                               : 'Sort by mentee name'
                         }
                       >
-                        <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                        <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                           Mentee
                         </Span>
                         {renderSortIcon(menteeSort !== null, menteeSort)}
                       </Button>
                     </TableHead>
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
-                      Course
-                    </TableHead>
-                    <TableHead className="py-3.5 text-sm font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 font-semibold text-slate-700">Course</TableHead>
+                    <TableHead className="py-3.5 font-semibold text-slate-700">
                       Course Code
                     </TableHead>
                     <TableHead
-                      className="py-3.5 text-sm font-semibold text-[#667085]"
+                      className="py-3.5 font-semibold text-slate-700"
                       aria-sort={
                         mappedSinceSort === 'asc'
                           ? 'ascending'
@@ -622,7 +616,7 @@ export function MentorMenteesView() {
                         variant="ghost"
                         size="sm"
                         onClick={handleMappedSinceSort}
-                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
                         title={
                           mappedSinceSort === 'desc'
                             ? 'Sorted newest first (click for oldest first)'
@@ -631,13 +625,13 @@ export function MentorMenteesView() {
                               : 'Sort by mapped date'
                         }
                       >
-                        <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                        <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                           Mapped Since
                         </Span>
                         {renderSortIcon(mappedSinceSort !== null, mappedSinceSort)}
                       </Button>
                     </TableHead>
-                    <TableHead className="py-3.5 text-right text-sm font-semibold text-[#667085]">
+                    <TableHead className="py-3.5 text-right font-semibold text-slate-700">
                       Actions
                     </TableHead>
                   </TableRow>

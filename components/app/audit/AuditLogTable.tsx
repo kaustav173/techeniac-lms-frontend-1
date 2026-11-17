@@ -285,7 +285,7 @@ export function AuditLogTable() {
       {/* Audit Log Table using UI Primitives */}
       <TableContainer>
         <Table className="w-full table-fixed text-left">
-          <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
+          <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
             <TableRow>
               <SortableColumnHeader<'createdAt'>
                 field="createdAt"
@@ -294,21 +294,21 @@ export function AuditLogTable() {
                 sortOrder={filters.sortOrder ?? 'desc'}
                 onSort={handleSort}
                 tooltip="Sort by Date & Time (IST)"
-                className="w-[16%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]"
+                className="w-[16%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
               />
-              <TableHead className="w-[14%] px-4 py-3.5 pr-6 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[14%] px-4 py-2.5 pr-6 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                 Type
               </TableHead>
-              <TableHead className="w-[18%] px-4 py-3.5 pl-6 text-left text-xs font-semibold text-[#667085] sm:pl-8">
+              <TableHead className="w-[18%] px-4 py-2.5 pl-6 text-left font-semibold text-slate-700 sm:px-5 sm:py-3 sm:pl-8">
                 Activity
               </TableHead>
-              <TableHead className="w-[17%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[17%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                 Actor
               </TableHead>
-              <TableHead className="w-[24%] px-4 py-3.5 text-left text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[24%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                 Target Entity
               </TableHead>
-              <TableHead className="w-[11%] px-4 py-3.5 text-center text-xs font-semibold text-[#667085]">
+              <TableHead className="w-[11%] px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                 Actions
               </TableHead>
             </TableRow>
@@ -382,7 +382,7 @@ export function AuditLogTable() {
                     {/* Date & Time */}
                     <TableCell className="w-[16%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <Span className="text-sm font-semibold text-slate-900">
+                        <Span className="text-base font-semibold text-slate-900">
                           {formattedDate}
                         </Span>
                         <Span className="text-xs text-slate-500">{formattedTime}</Span>
@@ -392,7 +392,7 @@ export function AuditLogTable() {
                     {/* Type */}
                     <TableCell className="w-[14%] px-4 py-3.5 pr-6 whitespace-nowrap">
                       <Span
-                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${getAuditTypeBadge(
+                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide ${getAuditTypeBadge(
                           item.type,
                         )}`}
                       >
@@ -401,14 +401,14 @@ export function AuditLogTable() {
                     </TableCell>
 
                     {/* Action */}
-                    <TableCell className="w-[18%] px-4 py-3.5 pl-6 text-[11px] font-semibold whitespace-nowrap text-slate-800 sm:pl-8">
+                    <TableCell className="w-[18%] px-4 py-3.5 pl-6 text-sm font-semibold whitespace-nowrap text-slate-800 sm:pl-8">
                       {formatAuditAction(item.action)}
                     </TableCell>
 
                     {/* Actor */}
                     <TableCell className="w-[17%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <Span className="text-sm font-semibold text-slate-900">{actorName}</Span>
+                        <Span className="text-base font-semibold text-slate-900">{actorName}</Span>
                         {actorRole ? (
                           <Span className="text-xs text-slate-500">{actorRole}</Span>
                         ) : null}
@@ -419,7 +419,7 @@ export function AuditLogTable() {
                     <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex max-w-[240px] flex-col">
                         <Span
-                          className="truncate text-sm font-semibold text-slate-900"
+                          className="truncate text-base font-semibold text-slate-900"
                           title={target.name}
                         >
                           {target.name}

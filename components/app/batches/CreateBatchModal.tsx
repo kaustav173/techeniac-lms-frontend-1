@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { z } from 'zod';
 
 import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
@@ -202,6 +202,16 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
   const { toastSuccess, toastError } = useToast();
 
+  const resetForm = useCallback(() => {
+    setName('');
+    setCode('');
+    setStartDate('');
+    setEndDate('');
+    setDescription('');
+    setErrors({});
+    setIsDiscardConfirmOpen(false);
+  }, []);
+
   const handleFieldChange = (field: string, setter: (val: string) => void) => (val: string) => {
     setter(val);
     setErrors((prev) => {
@@ -229,18 +239,13 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
     if (isDirty) {
       setIsDiscardConfirmOpen(true);
     } else {
+      resetForm();
       onClose();
     }
   };
 
   const handleConfirmDiscard = () => {
-    setIsDiscardConfirmOpen(false);
-    setName('');
-    setCode('');
-    setStartDate('');
-    setEndDate('');
-    setDescription('');
-    setErrors({});
+    resetForm();
     onClose();
   };
 
@@ -264,6 +269,7 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
     try {
       await createBatch(result.data);
       toastSuccess(`Batch "${result.data.name}" created successfully.`, 'Batch Created');
+      resetForm();
       onSuccess(result.data);
       onClose();
     } catch (err: unknown) {

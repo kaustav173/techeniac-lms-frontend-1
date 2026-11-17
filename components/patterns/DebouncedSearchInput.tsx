@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/lib/cn';
 
 export interface DebouncedSearchInputProps {
@@ -101,26 +102,29 @@ export function DebouncedSearchInput({
         )}
       />
       {hasValue && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleClear}
-          title="Clear search"
-          aria-label="Clear search input"
-          className="absolute inset-y-0 right-1.5 my-auto h-7 w-7 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-400"
-        >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </Button>
+        <div className="absolute inset-y-0 right-1.5 my-auto flex h-7 w-7 items-center justify-center">
+          <Tooltip content="Clear search" side="bottom">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              aria-label="Clear search input"
+              className="h-7 w-7 rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-400"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </Tooltip>
+        </div>
       )}
     </div>
   );

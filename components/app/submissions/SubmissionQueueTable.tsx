@@ -462,10 +462,10 @@ export function SubmissionQueueTable() {
       <div className="w-full overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         <TableContainer className="rounded-none border-0 shadow-none">
           <Table className="w-full border-collapse text-left text-sm">
-            <TableHeader className="border-b border-[#E1E6EC] bg-[#F8FAFC]">
+            <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
               <TableRow>
                 <TableHead
-                  className="px-6 py-3.5 text-sm font-semibold text-[#667085]"
+                  className="px-6 py-2.5 font-semibold text-slate-700 sm:px-6 sm:py-3"
                   aria-sort={
                     nameSort === 'asc' ? 'ascending' : nameSort === 'desc' ? 'descending' : 'none'
                   }
@@ -475,7 +475,7 @@ export function SubmissionQueueTable() {
                     variant="ghost"
                     size="sm"
                     onClick={handleNameSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
                     title={
                       nameSort === 'asc'
                         ? 'Sorted A to Z (click for Z to A)'
@@ -484,20 +484,22 @@ export function SubmissionQueueTable() {
                           : 'Sort by mentee name'
                     }
                   >
-                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Mentee
                     </Span>
                     {renderSortIcon(nameSort !== null, nameSort)}
                   </Button>
                 </TableHead>
-                <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Assignment & Course</Span>
+                <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <Span className="text-sm font-semibold text-slate-700 sm:text-base">
+                    Assignment & Course
+                  </Span>
                 </TableHead>
-                <TableHead className="px-3 py-3.5 text-center text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Version</Span>
+                <TableHead className="px-3 py-2.5 text-center font-semibold text-slate-700 sm:px-4 sm:py-3">
+                  <Span className="text-sm font-semibold text-slate-700 sm:text-base">Version</Span>
                 </TableHead>
                 <TableHead
-                  className="px-4 py-3.5 text-sm font-semibold text-[#667085]"
+                  className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3"
                   aria-sort={
                     submittedSort === 'asc'
                       ? 'ascending'
@@ -511,7 +513,7 @@ export function SubmissionQueueTable() {
                     variant="ghost"
                     size="sm"
                     onClick={handleSubmittedSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-[#667085] hover:bg-transparent hover:text-[#111827] focus-visible:outline-none"
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
                     title={
                       submittedSort === 'desc'
                         ? 'Sorted newest first (click for oldest first)'
@@ -520,17 +522,19 @@ export function SubmissionQueueTable() {
                           : 'Sort by submission date'
                     }
                   >
-                    <Span className="text-sm font-semibold text-[#667085] transition-colors group-hover:text-[#111827]">
+                    <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Submitted
                     </Span>
                     {renderSortIcon(submittedSort !== null, submittedSort)}
                   </Button>
                 </TableHead>
-                <TableHead className="px-4 py-3.5 text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Status & Score</Span>
+                <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <Span className="text-sm font-semibold text-slate-700 sm:text-base">
+                    Status & Score
+                  </Span>
                 </TableHead>
-                <TableHead className="px-6 py-3.5 text-right text-sm font-semibold text-[#667085]">
-                  <Span className="text-sm font-semibold text-[#667085]">Actions</Span>
+                <TableHead className="px-6 py-2.5 text-right font-semibold text-slate-700 sm:px-6 sm:py-3">
+                  <Span className="text-sm font-semibold text-slate-700 sm:text-base">Actions</Span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -612,7 +616,7 @@ export function SubmissionQueueTable() {
                                 className="border-b border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
                               >
                                 <div className="sticky top-16">
-                                  <P className="font-semibold text-slate-900">
+                                  <P className="text-base font-semibold text-slate-900">
                                     {group.mentee.name}
                                   </P>
                                   {group.batchName && (
@@ -668,7 +672,7 @@ export function SubmissionQueueTable() {
                             {/* Assignment Column */}
                             <TableCell className="px-4 py-4">
                               <P
-                                className="max-w-xs truncate font-semibold text-slate-800"
+                                className="max-w-xs truncate text-base font-semibold text-slate-900"
                                 title={sub.assignmentTitle}
                               >
                                 {truncateText(sub.assignmentTitle, 6, 40)}

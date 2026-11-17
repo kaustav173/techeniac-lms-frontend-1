@@ -514,7 +514,9 @@ export function User360Shell({
                   <TableBody>
                     {tabs.roleHistory.map((rh) => (
                       <TableRow key={rh.id} className="transition-colors hover:bg-slate-50/60">
-                        <TableCell className="font-semibold text-slate-900">{rh.role}</TableCell>
+                        <TableCell className="text-base font-semibold text-slate-900">
+                          {rh.role}
+                        </TableCell>
                         <TableCell className="text-slate-600">
                           {formatDateIST(rh.fromAt)} &ndash;{' '}
                           {rh.toAt ? formatDateIST(rh.toAt) : 'Present'}
@@ -555,7 +557,7 @@ export function User360Shell({
                   <TableBody>
                     {tabs.batchHistory.map((b) => (
                       <TableRow key={b.id} className="transition-colors hover:bg-slate-50/60">
-                        <TableCell className="font-semibold text-slate-900">
+                        <TableCell className="text-base font-semibold text-slate-900">
                           {b.batchName} ({b.batchCode})
                         </TableCell>
                         <TableCell className="text-slate-700">{b.role}</TableCell>
@@ -742,7 +744,7 @@ export function User360Shell({
                   <TableBody>
                     {tabs.assignmentGradeHistory.map((s) => (
                       <TableRow key={s.id} className="transition-colors hover:bg-slate-50/60">
-                        <TableCell className="font-semibold text-slate-900">
+                        <TableCell className="text-base font-semibold text-slate-900">
                           {s.assignmentTitle}
                         </TableCell>
                         <TableCell className="text-slate-600">v{s.version}</TableCell>
