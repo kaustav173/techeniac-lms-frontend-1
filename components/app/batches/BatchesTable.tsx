@@ -28,7 +28,11 @@ import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus } from '@/lib/validation';
 import type { ApiBatchSummary } from '@/services/batches.service';
 
-import { DEFAULT_PAGE_SIZE_OPTIONS, getBatchStatusBadgeClass } from './batchStatus';
+import {
+  DEFAULT_PAGE_SIZE_OPTIONS,
+  formatBatchStatus,
+  getBatchStatusBadgeClass,
+} from './batchStatus';
 
 const BATCH_STATUS_FILTER_OPTIONS: MultiSelectOption<BatchStatus>[] = [
   { value: 'LIVE', label: 'Live' },
@@ -76,7 +80,7 @@ function BatchesTableRow({
             batch.status,
           )}`}
         >
-          {batch.status}
+          {formatBatchStatus(batch.status)}
         </Span>
       </TableCell>
       <TableCell className="w-[18%] text-sm text-slate-600">

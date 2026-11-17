@@ -39,7 +39,7 @@ import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
 
-import { getBatchStatusBadgeClass } from './batchStatus';
+import { formatBatchStatus, getBatchStatusBadgeClass } from './batchStatus';
 
 export interface BatchMemberItem {
   id: string;
@@ -575,11 +575,11 @@ export function BatchDashboardView({
               {batch.name}
             </H1>
             <Span
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase ${getBatchStatusBadgeClass(
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getBatchStatusBadgeClass(
                 batch.status,
               )}`}
             >
-              {batch.status}
+              {formatBatchStatus(batch.status)}
             </Span>
           </div>
 
@@ -1140,11 +1140,11 @@ export function BatchDashboardView({
                   </Span>
                   <Span
                     className={cn(
-                      'mt-1.5 inline-block rounded-full px-3 py-0.5 text-xs font-bold uppercase',
+                      'mt-1.5 inline-block rounded-full px-3 py-0.5 text-xs font-semibold',
                       getBatchStatusBadgeClass(batch.status),
                     )}
                   >
-                    {batch.status}
+                    {formatBatchStatus(batch.status)}
                   </Span>
                 </div>
               </div>
@@ -1217,11 +1217,11 @@ export function BatchDashboardView({
                       </svg>
                       <Span
                         className={cn(
-                          'rounded-md px-2.5 py-0.5 text-xs font-bold uppercase',
+                          'rounded-md px-2.5 py-0.5 text-xs font-semibold',
                           getBatchStatusBadgeClass(h.toStatus),
                         )}
                       >
-                        {h.toStatus}
+                        {formatBatchStatus(h.toStatus)}
                       </Span>
                       <Span className="text-xs text-slate-400">•</Span>
                       <Span className="text-sm font-medium text-slate-500">
