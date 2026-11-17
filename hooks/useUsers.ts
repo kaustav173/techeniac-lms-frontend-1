@@ -16,6 +16,7 @@ import {
   type UserQueryFilters,
   usersService,
 } from '@/services/users.service';
+import type { BatchMemberRole } from '@/types/batches';
 
 export type { ApiUser, UserQueryFilters };
 
@@ -233,10 +234,11 @@ export function useUsers(
 
 export function useInfiniteUsers(
   filters: {
-    role: 'MENTEE' | 'MENTOR';
+    role: BatchMemberRole | 'MENTEE' | 'MENTOR';
     search?: string | undefined;
     status?: string | undefined;
     limit?: number | undefined;
+    withoutActiveBatch?: boolean | undefined;
   },
   options?: { enabled?: boolean },
 ) {
@@ -249,6 +251,7 @@ export function useInfiniteUsers(
       status: filters.status,
       limit,
       search: trimmedSearch,
+      withoutActiveBatch: filters.withoutActiveBatch,
     }),
     queryFn: async ({ pageParam = 1 }) => {
       const res = await usersService.listUsers({
@@ -257,6 +260,7 @@ export function useInfiniteUsers(
         role: filters.role,
         status: filters.status,
         search: trimmedSearch,
+        withoutActiveBatch: filters.withoutActiveBatch,
       });
       const totalPages = Math.ceil(res.total / limit);
       return {

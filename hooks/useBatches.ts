@@ -18,6 +18,7 @@ import {
   batchesService,
   type BatchQueryFilters,
 } from '@/services/batches.service';
+import { BatchMemberRole } from '@/types/batches';
 
 export const batchKeys = {
   all: ['batches'] as const,
@@ -181,7 +182,7 @@ export function useAddBatchMembersMutation() {
     mutationFn: (variables: {
       batchId: string;
       userIds: string[];
-      memberRole: 'MENTOR' | 'MENTEE';
+      memberRole: BatchMemberRole | 'MENTOR' | 'MENTEE';
     }) =>
       batchesService.addMembers(variables.batchId, {
         userIds: variables.userIds,

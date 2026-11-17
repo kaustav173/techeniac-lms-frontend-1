@@ -16,6 +16,7 @@ import { useAddBatchMembersMutation } from '@/hooks/useBatches';
 import { useToast } from '@/hooks/useToast';
 import { useInfiniteUsers, userKeys } from '@/hooks/useUsers';
 import { type BatchStatus, isBatchLocked } from '@/lib/validation';
+import { BatchMemberRole } from '@/types/batches';
 
 export interface AddMemberModalProps {
   batchId: string;
@@ -47,7 +48,7 @@ function AddMemberCandidateList({
   hasNextPage: boolean;
   onFetchNextPage: () => void;
   candidates: Array<{ id: string; name: string; email: string; role: string }>;
-  role: 'MENTEE' | 'MENTOR';
+  role: BatchMemberRole;
   selectedUserIds: string[];
   onToggleUser: (userId: string) => void;
   search: string;
@@ -159,7 +160,7 @@ export function AddMemberModal({
   existingMemberUserIds,
 }: Readonly<AddMemberModalProps>) {
   const isArchived = Boolean(batchStatus && isBatchLocked(batchStatus));
-  const [role, setRole] = useState<'MENTEE' | 'MENTOR'>('MENTEE');
+  const [role, setRole] = useState<BatchMemberRole>(BatchMemberRole.MENTEE);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>([]);
@@ -188,6 +189,7 @@ export function AddMemberModal({
       role,
       status: 'active',
       search: debouncedSearch,
+      withoutActiveBatch: role === BatchMemberRole.MENTEE ? true : undefined,
       limit: 10,
     },
     { enabled: isOpen },
@@ -219,7 +221,7 @@ export function AddMemberModal({
 
   const toggleUser = (userId: string) => {
     if (isArchived) return;
-    if (role === 'MENTEE') {
+    if (role === BatchMemberRole.MENTEE) {
       setSelectedMenteeIds((prev) =>
         prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
       );
@@ -230,7 +232,7 @@ export function AddMemberModal({
     }
   };
 
-  const handleRoleChange = (newRole: 'MENTEE' | 'MENTOR') => {
+  const handleRoleChange = (newRole: BatchMemberRole) => {
     if (isArchived) return;
     setRole(newRole);
     setSubmitError(null);
@@ -253,7 +255,7 @@ export function AddMemberModal({
         await addMembers({
           batchId,
           userIds: selectedMenteeIds,
-          memberRole: 'MENTEE',
+          memberRole: BatchMemberRole.MENTEE,
         });
         setSelectedMenteeIds([]);
       }
@@ -261,7 +263,7 @@ export function AddMemberModal({
         await addMembers({
           batchId,
           userIds: selectedMentorIds,
-          memberRole: 'MENTOR',
+          memberRole: BatchMemberRole.MENTOR,
         });
         setSelectedMentorIds([]);
       }
@@ -364,12 +366,12 @@ export function AddMemberModal({
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              variant={role === 'MENTEE' ? 'primary' : 'secondary'}
+              variant={role === BatchMemberRole.MENTEE ? 'primary' : 'secondary'}
               size="sm"
               disabled={isArchived}
-              onClick={() => handleRoleChange('MENTEE')}
+              onClick={() => handleRoleChange(BatchMemberRole.MENTEE)}
               className={
-                role === 'MENTEE'
+                role === BatchMemberRole.MENTEE
                   ? 'rounded-full bg-blue-600 font-bold text-white shadow-xs'
                   : 'rounded-full font-semibold text-slate-700'
               }
@@ -378,12 +380,12 @@ export function AddMemberModal({
             </Button>
             <Button
               type="button"
-              variant={role === 'MENTOR' ? 'primary' : 'secondary'}
+              variant={role === BatchMemberRole.MENTOR ? 'primary' : 'secondary'}
               size="sm"
               disabled={isArchived}
-              onClick={() => handleRoleChange('MENTOR')}
+              onClick={() => handleRoleChange(BatchMemberRole.MENTOR)}
               className={
-                role === 'MENTOR'
+                role === BatchMemberRole.MENTOR
                   ? 'rounded-full bg-blue-600 font-bold text-white shadow-xs'
                   : 'rounded-full font-semibold text-slate-700'
               }
@@ -410,7 +412,8 @@ export function AddMemberModal({
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label>
-              Eligible {role === 'MENTEE' ? 'Mentees' : 'Mentors'} ({totalCandidatesCount})
+              Eligible {role === BatchMemberRole.MENTEE ? 'Mentees' : 'Mentors'} (
+              {totalCandidatesCount})
             </Label>
             {candidates.length > 0 && !isArchived ? (
               <Span className="text-[11px] text-slate-500">Click to select</Span>
@@ -423,7 +426,9 @@ export function AddMemberModal({
             onFetchNextPage={() => void fetchNextPage()}
             candidates={candidates}
             role={role}
-            selectedUserIds={role === 'MENTEE' ? selectedMenteeIds : selectedMentorIds}
+            selectedUserIds={
+              role === BatchMemberRole.MENTEE ? selectedMenteeIds : selectedMentorIds
+            }
             onToggleUser={toggleUser}
             search={search}
             isError={isError}
