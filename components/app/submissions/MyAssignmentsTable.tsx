@@ -103,12 +103,6 @@ export function MyAssignmentsTable({
 
   useEffect(() => {
     if (!openActionMenuId) return;
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
-        setOpenActionMenuId(null);
-        setMenuPosition(null);
-      }
-    };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpenActionMenuId(null);
@@ -119,12 +113,10 @@ export function MyAssignmentsTable({
       setOpenActionMenuId(null);
       setMenuPosition(null);
     };
-    document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleScrollOrResize, true);
     window.addEventListener('resize', handleScrollOrResize);
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleScrollOrResize, true);
       window.removeEventListener('resize', handleScrollOrResize);
@@ -191,7 +183,7 @@ export function MyAssignmentsTable({
   }, [assignments, searchQuery, activeStatuses, isServerPaginated]);
 
   const sortedAssignments = useMemo(() => {
-    if (!sortField) return filteredAssignments;
+    if (isServerPaginated || !sortField) return filteredAssignments;
     return [...filteredAssignments].sort((a, b) => {
       let cmp = 0;
       if (sortField === 'title') {
@@ -209,7 +201,7 @@ export function MyAssignmentsTable({
       }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
-  }, [filteredAssignments, sortField, sortOrder]);
+  }, [filteredAssignments, sortField, sortOrder, isServerPaginated]);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || activeStatuses.length > 0);
 
@@ -398,46 +390,68 @@ export function MyAssignmentsTable({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
-                  <SortableColumnHeader<SortField>
-                    field="title"
-                    label="Assignment"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[20%] px-5 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="courseTitle"
-                    label="Course"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[18%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="dueDate"
-                    label="Due Date"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[17%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="estimatedMinutes"
-                    label="Est. Time"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[9%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
-                  />
-                  <SortableColumnHeader<SortField>
-                    field="maxMarks"
-                    label="Max Marks"
-                    sortField={sortField}
-                    sortOrder={sortOrder}
-                    onSort={handleSort}
-                    className="w-[11%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
-                  />
+                  {isServerPaginated ? (
+                    <>
+                      <TableHead className="w-[20%] px-5 py-2.5 text-left text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
+                        Assignment
+                      </TableHead>
+                      <TableHead className="w-[18%] px-4 py-2.5 text-left text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
+                        Course
+                      </TableHead>
+                      <TableHead className="w-[17%] px-4 py-2.5 text-left text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
+                        Due Date
+                      </TableHead>
+                      <TableHead className="w-[9%] px-4 py-2.5 text-left text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
+                        Est. Time
+                      </TableHead>
+                      <TableHead className="w-[11%] px-4 py-2.5 text-left text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
+                        Max Marks
+                      </TableHead>
+                    </>
+                  ) : (
+                    <>
+                      <SortableColumnHeader<SortField>
+                        field="title"
+                        label="Assignment"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[20%] px-5 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="courseTitle"
+                        label="Course"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[18%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="dueDate"
+                        label="Due Date"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[17%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="estimatedMinutes"
+                        label="Est. Time"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[9%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
+                      />
+                      <SortableColumnHeader<SortField>
+                        field="maxMarks"
+                        label="Max Marks"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="w-[11%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]"
+                      />
+                    </>
+                  )}
                   <TableHead className="w-[17%] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
                     Status
                   </TableHead>
@@ -528,7 +542,10 @@ export function MyAssignmentsTable({
 
                       {/* Status Column */}
                       <TableCell className="w-[17%] px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
-                        <SubmissionStatusBadge status={assignment.status} />
+                        <SubmissionStatusBadge
+                          status={assignment.status}
+                          isLate={assignment.latestSubmission?.isLate}
+                        />
                         {assignment.latestSubmission?.marks !== null &&
                         assignment.latestSubmission?.marks !== undefined ? (
                           <div className="mt-1 text-xs font-semibold text-emerald-600">
