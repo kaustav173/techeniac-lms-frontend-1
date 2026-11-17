@@ -58,7 +58,7 @@ export function MenteeTableRow({
         </div>
       </TableCell>
       <TableCell className="text-base font-semibold text-slate-900">
-        {mentee.batchName ?? 'Course'}
+        {mentee.batchName ?? '—'}
       </TableCell>
       <TableCell>
         <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-semibold text-slate-900">

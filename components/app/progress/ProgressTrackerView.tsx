@@ -42,8 +42,9 @@ import {
 import { cn } from '@/lib/cn';
 import { formatDateDDMMYY, toISTDateInputValue } from '@/lib/date';
 
-interface ProgressTrackerViewProps {
+export interface ProgressTrackerViewProps {
   readonly portalType?: 'mentor' | 'admin';
+  readonly initialSearch?: string;
 }
 
 const STATUS_FILTER_OPTIONS: readonly MultiSelectOption[] = [
@@ -66,14 +67,52 @@ function resolveSelectedOptions<T extends string>(
   return vals.map((val) => options.find((o) => o.value === val) ?? { value: val, label: val });
 }
 
-export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
+export function ProgressTrackerView({
+  portalType = 'mentor',
+  initialSearch = '',
+}: ProgressTrackerViewProps) {
   const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
   const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
   const [selectedStatusOptions, setSelectedStatusOptions] = useState<MultiSelectOption[]>([]);
   const [batchSearch, setBatchSearch] = useState<string>('');
   const [courseSearch, setCourseSearch] = useState<string>('');
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>(() => {
+    if (initialSearch) return initialSearch;
+    if (typeof window !== 'undefined' && portalType === 'mentor') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('menteeName') ?? '';
+    }
+    return '';
+  });
+  const [prevInitialSearch, setPrevInitialSearch] = useState<string>(initialSearch);
   const [page, setPage] = useState<number>(1);
+
+  if (initialSearch !== prevInitialSearch) {
+    setPrevInitialSearch(initialSearch);
+    setSearch(initialSearch);
+    setPage(1);
+  }
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || portalType !== 'mentor') return;
+
+    const syncMenteeSearch = () => {
+      const params = new URLSearchParams(window.location.search);
+      const menteeName = params.get('menteeName');
+      if (menteeName) {
+        setSearch((prev) => (prev !== menteeName ? menteeName : prev));
+        setPage(1);
+      }
+    };
+
+    const frameId = requestAnimationFrame(syncMenteeSearch);
+    window.addEventListener('popstate', syncMenteeSearch);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('popstate', syncMenteeSearch);
+    };
+  }, [portalType]);
   const [limit, setLimit] = useState<number>(10);
   const [sortField, setSortField] = useState<'menteeName' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');

@@ -159,9 +159,11 @@ function MenteeActionMenu({
           </Link>
           <Link
             href={
-              menteeId
-                ? `/mentor/progress?menteeId=${encodeURIComponent(menteeId)}`
-                : '/mentor/progress'
+              menteeName
+                ? `/mentor/progress?menteeName=${encodeURIComponent(menteeName)}${menteeId ? `&menteeId=${encodeURIComponent(menteeId)}` : ''}`
+                : menteeId
+                  ? `/mentor/progress?menteeId=${encodeURIComponent(menteeId)}`
+                  : '/mentor/progress'
             }
             role="menuitem"
             onClick={handleItemClick}
@@ -185,7 +187,7 @@ function MenteeActionMenu({
           <Link
             href={
               menteeId
-                ? `/mentor/reviews?menteeId=${encodeURIComponent(menteeId)}`
+                ? `/mentor/reviews?menteeId=${encodeURIComponent(menteeId)}&search=${encodeURIComponent(menteeName ?? '')}`
                 : '/mentor/reviews'
             }
             role="menuitem"
@@ -414,7 +416,7 @@ export function MentorMenteesView() {
           </div>
           <Input
             type="search"
-            placeholder="Search by name, email, or course..."
+            placeholder="Search by name, email, or batch..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -425,17 +427,17 @@ export function MentorMenteesView() {
           />
         </div>
 
-        {/* Course / Batch Filter & Clear Filters placed side by side */}
+        {/* Batch Filter & Clear Filters placed side by side */}
         <div className="flex items-center gap-3">
           <MultiSelectDropdown
-            label="Course"
+            label="Batch"
             options={courseOptions}
             selectedValues={selectedBatchIds}
             onChange={(vals) => {
               setSelectedBatchIds(vals);
               setPage(1);
             }}
-            placeholder="Course"
+            placeholder="Batch"
             className="w-full shrink-0 sm:w-[219px]"
             buttonClassName="h-[47px] rounded-2xl border-[#E1E6EC] shadow-2xs"
             menuClassName="w-full sm:min-w-[219px] sm:w-[219px]"
@@ -475,9 +477,9 @@ export function MentorMenteesView() {
                 <TableHeader>
                   <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
                     <TableHead className="py-3.5 font-semibold text-slate-700">Mentee</TableHead>
-                    <TableHead className="py-3.5 font-semibold text-slate-700">Course</TableHead>
+                    <TableHead className="py-3.5 font-semibold text-slate-700">Batch</TableHead>
                     <TableHead className="py-3.5 font-semibold text-slate-700">
-                      Course Code
+                      Batch Code
                     </TableHead>
                     <TableHead className="py-3.5 font-semibold text-slate-700">
                       Mapped Since
@@ -597,9 +599,9 @@ export function MentorMenteesView() {
                         {renderSortIcon(menteeSort !== null, menteeSort)}
                       </Button>
                     </TableHead>
-                    <TableHead className="py-3.5 font-semibold text-slate-700">Course</TableHead>
+                    <TableHead className="py-3.5 font-semibold text-slate-700">Batch</TableHead>
                     <TableHead className="py-3.5 font-semibold text-slate-700">
-                      Course Code
+                      Batch Code
                     </TableHead>
                     <TableHead
                       className="py-3.5 font-semibold text-slate-700"
