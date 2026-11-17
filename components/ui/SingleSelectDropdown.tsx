@@ -20,6 +20,7 @@ export interface SingleSelectDropdownProps<T extends string | number = string> {
   readonly label?: string | undefined;
   readonly placeholder?: string | undefined;
   readonly triggerLabel?: string | undefined;
+  readonly emptyMessage?: string | undefined;
   readonly disabled?: boolean | undefined;
   readonly className?: string | undefined;
   readonly triggerClassName?: string | undefined;
@@ -38,6 +39,7 @@ export function SingleSelectDropdown<T extends string | number = string>({
   label,
   placeholder = 'Select an option',
   triggerLabel,
+  emptyMessage,
   disabled = false,
   className,
   triggerClassName,
@@ -184,49 +186,55 @@ export function SingleSelectDropdown<T extends string | number = string>({
               )}
             >
               <div className="max-h-60 space-y-0.5 overflow-y-auto">
-                {options.map((opt) => {
-                  const isSelected = opt.value === value;
-                  return (
-                    <div
-                      key={String(opt.value)}
-                      role="option"
-                      tabIndex={0}
-                      aria-selected={isSelected}
-                      onClick={() => handleSelect(opt.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleSelect(opt.value);
-                        }
-                      }}
-                      className={cn(
-                        'flex cursor-pointer items-center justify-between gap-3 rounded-lg text-left transition-colors',
-                        size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
-                        isSelected
-                          ? 'bg-blue-50 font-bold text-[#0044D3]'
-                          : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900',
-                        'focus-visible:bg-slate-100 focus-visible:outline-none',
-                      )}
-                    >
-                      <Span className="truncate">{opt.label}</Span>
-                      {isSelected ? (
-                        <svg
-                          className={cn(
-                            'shrink-0 text-[#0044D3]',
-                            size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
-                          )}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                          aria-hidden="true"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : null}
-                    </div>
-                  );
-                })}
+                {options.length === 0 ? (
+                  <Span className="block px-3 py-3 text-center text-xs font-medium text-slate-400">
+                    {emptyMessage ?? 'No options available'}
+                  </Span>
+                ) : (
+                  options.map((opt) => {
+                    const isSelected = opt.value === value;
+                    return (
+                      <div
+                        key={String(opt.value)}
+                        role="option"
+                        tabIndex={0}
+                        aria-selected={isSelected}
+                        onClick={() => handleSelect(opt.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelect(opt.value);
+                          }
+                        }}
+                        className={cn(
+                          'flex cursor-pointer items-center justify-between gap-3 rounded-lg text-left transition-colors',
+                          size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
+                          isSelected
+                            ? 'bg-blue-50 font-bold text-[#0044D3]'
+                            : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900',
+                          'focus-visible:bg-slate-100 focus-visible:outline-none',
+                        )}
+                      >
+                        <Span className="truncate">{opt.label}</Span>
+                        {isSelected ? (
+                          <svg
+                            className={cn(
+                              'shrink-0 text-[#0044D3]',
+                              size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4',
+                            )}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                            aria-hidden="true"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : null}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>,
             document.body,
