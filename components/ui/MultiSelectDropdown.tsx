@@ -261,9 +261,7 @@ export function MultiSelectDropdown<T extends string = string>({
                     isChecked ? 'bg-blue-50 font-semibold text-[#0044D3]' : 'text-slate-700',
                   )}
                 >
-                  <Span title={opt.label} className="min-w-0 flex-1 truncate">
-                    {opt.label}
-                  </Span>
+                  <Span className="min-w-0 flex-1 truncate">{opt.label}</Span>
                   {isChecked ? (
                     <svg
                       className="h-4 w-4 shrink-0 text-[#0044D3]"
@@ -303,9 +301,7 @@ export function MultiSelectDropdown<T extends string = string>({
                   onChange={() => {}} // handled by parent container click
                   className="pointer-events-none shrink-0"
                 />
-                <Span title={opt.label} className="min-w-0 flex-1 truncate">
-                  {opt.label}
-                </Span>
+                <Span className="min-w-0 flex-1 truncate">{opt.label}</Span>
               </div>
             );
           })
@@ -347,9 +343,7 @@ export function MultiSelectDropdown<T extends string = string>({
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-          <Span title={displayLabel} className="min-w-0 truncate">
-            {displayLabel}
-          </Span>
+          <Span className="min-w-0 truncate">{displayLabel}</Span>
           {extraCount > 0 ? (
             <Span className="inline-flex shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 px-2 py-0.5 text-xs font-semibold text-[#0044D3]">
               +{extraCount}
