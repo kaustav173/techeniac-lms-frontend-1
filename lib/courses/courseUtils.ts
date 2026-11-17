@@ -1,4 +1,5 @@
 import type { SingleSelectOption } from '@/components/ui/SingleSelectDropdown';
+import type { ResourceItem } from '@/types/courses';
 
 export const RESOURCE_TYPE_OPTIONS: readonly SingleSelectOption<'LINK' | 'ATTACHMENT'>[] = [
   { value: 'LINK', label: 'LINK' },
@@ -27,4 +28,22 @@ export function findDuplicateTitle<T extends { id?: string; title?: string }>(
     (item) =>
       (excludeId ? item.id !== excludeId : true) && item.title?.trim().toLowerCase() === normalized,
   );
+}
+
+export function areResourcesEqual(
+  a: readonly ResourceItem[] | null | undefined,
+  b: readonly ResourceItem[] | null | undefined,
+): boolean {
+  const listA = a || [];
+  const listB = b || [];
+  if (listA.length !== listB.length) return false;
+  return listA.every((item, i) => {
+    const other = listB[i];
+    return (
+      Boolean(other) &&
+      item.title === other?.title &&
+      item.url === other?.url &&
+      item.type === other?.type
+    );
+  });
 }
