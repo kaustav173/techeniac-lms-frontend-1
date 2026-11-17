@@ -6,7 +6,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { H2, P } from '@/components/ui/Typography';
+import { H2, P, Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -21,39 +21,48 @@ export interface PortalSessionStateProps {
 function AdminDashboardSkeleton() {
   return (
     <>
-      {/* Welcome Section Skeleton */}
-      <div className="mb-8 rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-72 sm:w-96" />
-            <Skeleton className="h-4 w-60 sm:w-80" />
-          </div>
-          <Skeleton className="h-20 w-full rounded-2xl sm:w-64" />
-        </div>
-      </div>
-
-      {/* Section Title Skeleton */}
-      <div className="mb-6 space-y-2">
-        <Skeleton className="h-7 w-52" />
-        <Skeleton className="h-4 w-72" />
-      </div>
-
-      {/* 4-Card Grid Skeleton */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
+      {/* 5 KPI Metric Cards Skeleton (Matching Image 1: Users, Batches, Courses, Allocations, Submissions) */}
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {[1, 2, 3, 4, 5].map((idx) => (
           <div
-            key={i}
-            className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
+            key={`kpi-skel-${idx}`}
+            className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs"
           >
             <div>
               <div className="flex items-center justify-between">
-                <Skeleton className="h-11 w-11 rounded-xl" />
-                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-3 w-20 rounded-md" />
+                <Skeleton className="h-7 w-7 rounded-full" />
               </div>
-              <Skeleton className="mt-5 h-6 w-36" />
-              <Skeleton className="mt-3 h-4 w-full" />
-              <Skeleton className="mt-2 h-4 w-3/4" />
+              <div className="mt-1 flex h-9 items-center">
+                <Skeleton className="h-8 w-16 rounded-md" />
+              </div>
             </div>
+            <div className="mt-3 border-t border-slate-100 pt-2.5">
+              <Skeleton className="h-3.5 w-28 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 7 Core Feature Cards Skeleton (Matching Image 1: 4 in row 1, 3 in row 2 on xl) */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {[1, 2, 3, 4, 5, 6, 7].map((idx) => (
+          <div
+            key={`module-skel-${idx}`}
+            className="flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-12 w-12 rounded-2xl" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="mt-4 h-6 w-44 rounded-md" />
+              <div className="mt-2 space-y-1.5">
+                <Skeleton className="h-3.5 w-full rounded-md" />
+                <Skeleton className="h-3.5 w-4/5 rounded-md" />
+              </div>
+            </div>
+            <Skeleton className="mt-4 h-4 w-28 rounded-md" />
           </div>
         ))}
       </div>
@@ -307,12 +316,19 @@ export function PortalSessionState({
         className={`sticky top-0 z-30 border-b border-[#E1E6EC] bg-white/95 backdrop-blur-md transition-all duration-300 ${contentMarginClass}`}
       >
         <div className="flex h-20 w-full items-center justify-between px-6 sm:px-8">
-          <div className="flex items-center gap-3 md:hidden">
-            <Skeleton className="h-10 w-10 rounded-xl" />
-            <Skeleton className="h-6 w-32 rounded-md" />
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-xl md:hidden" />
+            <Span className="text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
+              {variant === 'mentor'
+                ? 'Mentor Workspace'
+                : variant === 'mentee'
+                  ? 'Mentee Workspace'
+                  : 'Dashboard'}
+            </Span>
           </div>
           <div className="relative ml-auto flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="hidden h-10 w-36 rounded-full sm:block" />
           </div>
         </div>
       </div>
