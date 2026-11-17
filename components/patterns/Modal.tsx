@@ -2,7 +2,6 @@
 
 import React, { useRef } from 'react';
 
-import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { useDialogAccessibility } from '@/hooks/useDialogAccessibility';
 import { cn } from '@/lib/cn';
@@ -21,7 +20,6 @@ export interface ModalProps {
   ariaLabelledBy?: string | undefined;
   isSubmitting?: boolean | undefined;
   preventClose?: boolean | undefined;
-  showCloseButton?: boolean | undefined;
 }
 
 export function Modal({
@@ -38,7 +36,6 @@ export function Modal({
   ariaLabelledBy,
   isSubmitting = false,
   preventClose = false,
-  showCloseButton = true,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const isLocked = Boolean(isSubmitting || preventClose);
@@ -105,28 +102,6 @@ export function Modal({
               </Typography>
             ) : null}
           </div>
-          {showCloseButton ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              disabled={isLocked}
-              aria-label="Close dialog"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-40"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
-          ) : null}
         </div>
 
         {/* Modal Body */}

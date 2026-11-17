@@ -109,9 +109,7 @@ function AssignCourseModalDialog({
   }, [batchesInfiniteData]);
 
   const { data: batchDetailData } = useBatchDetail(selectedBatchId, undefined, {
-    enabled:
-      Boolean(selectedBatchId) &&
-      (targetType === 'SELECTED_MENTEES' || !infiniteBatches.some((b) => b.id === selectedBatchId)),
+    enabled: Boolean(selectedBatchId) && targetType !== 'INDIVIDUAL_MENTEES',
   });
   const canTargetIndividualMentees = userRole === 'SUPER_ADMIN' && !initialBatchId;
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
@@ -120,7 +118,7 @@ function AssignCourseModalDialog({
   );
 
   const createMutation = useCreateAllocationsMutation();
-  const { toastSuccess, toastError } = useToast();
+  const { toastSuccess, toastError, toastInfo } = useToast();
 
   const activeBatches = useMemo(() => {
     const list = infiniteBatches.filter((b) => b.status === 'LIVE' || b.status === 'DRAFT');
@@ -237,6 +235,17 @@ function AssignCourseModalDialog({
       }));
   }, [batchDetailData]);
 
+  const menteeNames = useMemo(
+    () =>
+      new Map(
+        (targetType === 'INDIVIDUAL_MENTEES' ? allUsers : availableBatchMentees).map((mentee) => [
+          mentee.id,
+          mentee.name,
+        ]),
+      ),
+    [targetType, allUsers, availableBatchMentees],
+  );
+
   const toggleMentee = (userId: string) => {
     setSelectedMenteeIds((prev) =>
       prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
@@ -345,10 +354,14 @@ function AssignCourseModalDialog({
       });
 
       const count = res.created.length;
-      toastSuccess(
-        `Course successfully assigned to ${count} mentee${count === 1 ? '' : 's'}.`,
-        'Course Allocated',
-      );
+      if (count > 0) {
+        toastSuccess(
+          `Course successfully assigned to ${count} mentee${count === 1 ? '' : 's'}.`,
+          'Course Allocated',
+        );
+      } else {
+        toastInfo('No new course allocations were created.', 'No New Allocations');
+      }
       setResult(res);
       onSuccess?.();
     } catch (err: unknown) {
@@ -369,8 +382,12 @@ function AssignCourseModalDialog({
           handleReset();
           onClose();
         }}
-        title="Course Allocation Completed"
-        description="The course allocation request was successfully processed."
+        title={createdAllocations.length > 0 ? 'Course Allocation Completed' : 'No New Allocations'}
+        description={
+          createdAllocations.length > 0
+            ? 'The course allocation request was successfully processed.'
+            : undefined
+        }
         size="md"
         footer={
           <Button
@@ -386,14 +403,16 @@ function AssignCourseModalDialog({
         }
       >
         <div className="space-y-4">
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <P className="text-sm font-semibold text-emerald-900">
-              Successfully Created: {createdAllocations.length} allocation(s)
-            </P>
-            <P className="mt-1 text-xs text-emerald-700">
-              Course is now available for the allocated mentees.
-            </P>
-          </div>
+          {createdAllocations.length > 0 ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <P className="text-sm font-semibold text-emerald-900">
+                Successfully Created: {createdAllocations.length} allocation(s)
+              </P>
+              <P className="mt-1 text-xs text-emerald-700">
+                Course is now available for the allocated mentees.
+              </P>
+            </div>
+          ) : null}
 
           {skippedAllocations.length > 0 ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -401,14 +420,14 @@ function AssignCourseModalDialog({
                 Skipped Mentees: {skippedAllocations.length}
               </P>
               <P className="mt-0.5 text-xs text-amber-700">
-                These mentees already hold an open allocation of this course and were safely
-                skipped.
+                These mentees already hold an open allocation of this course.
               </P>
               <ul className="mt-2 max-h-32 divide-y divide-amber-100 overflow-y-auto rounded-lg border border-amber-200/60 bg-white/70 text-xs text-amber-900">
                 {skippedAllocations.map((s, idx) => (
-                  <li key={idx} className="flex items-center justify-between p-2">
-                    <Span className="truncate text-[11px]">{s.menteeId}</Span>
-                    <Span className="text-[10px] font-medium text-amber-700">{s.reason}</Span>
+                  <li key={idx} className="flex items-center justify-between gap-3 p-2">
+                    <Span className="min-w-0 flex-1 text-[11px] [overflow-wrap:anywhere]">
+                      {menteeNames.get(s.menteeId) || 'Unknown Mentee'}
+                    </Span>
                   </li>
                 ))}
               </ul>
@@ -583,7 +602,7 @@ function AssignCourseModalDialog({
             </div>
 
             {selectedCourse ? (
-              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 [overflow-wrap:anywhere]">
                 <H3 className="text-sm font-bold text-slate-900">{selectedCourse.title}</H3>
                 <P className="mt-1 text-xs text-slate-600">
                   {selectedCourse.description || 'Enterprise curriculum module.'}
