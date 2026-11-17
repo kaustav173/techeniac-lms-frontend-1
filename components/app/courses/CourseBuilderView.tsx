@@ -757,7 +757,6 @@ export function CourseBuilderBodySkeleton({ contentMarginClass }: { contentMargi
             <Skeleton className="h-3.5 w-3.5 rounded-full" />
             <Skeleton className="h-3.5 w-24 rounded-md" />
           </div>
-          <Skeleton className="h-5 w-52 rounded-md" />
         </div>
       </div>
 
@@ -1241,37 +1240,6 @@ function CourseBuilderContent({
               </svg>
               <Span>Back to Courses</Span>
             </Link>
-
-            {/* Shifted Course Name & Status Badge - Clickable to open Course Details */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleSelectNode({ type: 'COURSE', id: course.id })}
-              className={`hidden h-9 min-w-0 items-center gap-2 truncate rounded-full border px-3.5 text-xs font-semibold shadow-xs transition-all sm:flex ${
-                selectedNode.type === 'COURSE' && selectedNode.id === course.id
-                  ? 'border-blue-200 bg-blue-50 text-[#0044D3] hover:bg-blue-100'
-                  : 'border-slate-200/80 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-              title="Click to view & edit Course Details"
-            >
-              <svg
-                className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-              <Span className="max-w-[280px] truncate text-xs font-bold md:max-w-md lg:max-w-xl">
-                {course.title}
-              </Span>
-            </Button>
           </div>
 
           {/* Right Action / Dirty State Indicator */}

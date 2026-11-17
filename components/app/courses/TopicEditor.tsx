@@ -467,7 +467,7 @@ export function TopicEditor({
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
+              <H3 className="text-base font-bold text-slate-900">Resources</H3>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}

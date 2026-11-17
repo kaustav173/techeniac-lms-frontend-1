@@ -303,9 +303,6 @@ export function CourseDetailsEditor({
             <Span className="block text-base font-bold text-slate-900">
               Course Visibility Status
             </Span>
-            <Span className="mt-0.5 block text-xs text-slate-500">
-              When inactive, hidden from mentee discovery catalog and cannot be newly allocated.
-            </Span>
           </div>
 
           <div className="flex items-center gap-3">

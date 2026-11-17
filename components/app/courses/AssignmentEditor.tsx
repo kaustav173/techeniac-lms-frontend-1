@@ -144,6 +144,10 @@ export function AssignmentEditor({
       setErrorMsg('Assignment title cannot exceed 100 characters.');
       return;
     }
+    if (instructions.trim().length > 2000) {
+      setErrorMsg('Instructions cannot exceed 2000 characters.');
+      return;
+    }
 
     if (assignment.scope === AssignmentScope.COURSE) {
       const duplicateCourseAssign = findDuplicateTitle(
@@ -327,13 +331,17 @@ export function AssignmentEditor({
           </div>
 
           <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Instructions
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Instructions
+              </Label>
+              <Span className="text-xs font-medium text-slate-400">{instructions.length}/2000</Span>
+            </div>
             <textarea
               rows={6}
+              maxLength={2000}
               value={instructions}
-              onChange={(e) => handleChange(() => setInstructions(e.target.value))}
+              onChange={(e) => handleChange(() => setInstructions(e.target.value.slice(0, 2000)))}
               placeholder="State the technical specifications, requirements, and constraints for mentees..."
               className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
@@ -558,7 +566,7 @@ export function AssignmentEditor({
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
+              <H3 className="text-base font-bold text-slate-900">Resources</H3>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
