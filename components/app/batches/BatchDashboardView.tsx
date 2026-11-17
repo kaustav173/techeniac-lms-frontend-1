@@ -47,6 +47,7 @@ export interface BatchMemberItem {
   email: string;
   memberRole: 'MENTOR' | 'MENTEE';
   mappedToName?: string | undefined;
+  mappedToUserId?: string | undefined;
   joinedAt: string;
 }
 
@@ -393,6 +394,28 @@ export function BatchDashboardView({
   const mentorOptions = useMemo(() => {
     return mentors.map((m) => ({ id: m.id, name: m.name, email: m.email }));
   }, [mentors]);
+
+  const assignedMenteesToRemovedMentor = useMemo(() => {
+    if (!memberToRemove || memberToRemove.role !== 'MENTOR' || !batch) return [];
+    return batch.members.filter(
+      (m) =>
+        m.memberRole === 'MENTEE' &&
+        ((m.mappedToUserId && m.mappedToUserId === memberToRemove.id) ||
+          m.mappedToName === memberToRemove.name),
+    );
+  }, [batch, memberToRemove]);
+
+  const removeMemberWarningMessage = useMemo(() => {
+    if (assignedMenteesToRemovedMentor.length === 0) return null;
+    if (assignedMenteesToRemovedMentor.length === 1) {
+      return 'This mentor is currently assigned to the following mentee. The mentee will need to be reassigned to another mentor:';
+    }
+    return `This mentor is currently assigned to ${assignedMenteesToRemovedMentor.length} mentees. The mentees will need to be reassigned to another mentor:`;
+  }, [assignedMenteesToRemovedMentor]);
+
+  const removeMemberWarningItems = useMemo(() => {
+    return assignedMenteesToRemovedMentor.map((m) => (m.email ? `${m.name} (${m.email})` : m.name));
+  }, [assignedMenteesToRemovedMentor]);
 
   // Sorting state for Batch Members
   const [memberSortField, setMemberSortField] = useState<'name' | null>(null);
@@ -1265,7 +1288,9 @@ export function BatchDashboardView({
         }}
         onConfirm={handleConfirmRemoveMember}
         title="Remove Member?"
-        description={`Are you sure you want to remove ${memberToRemove?.role.toLowerCase() || 'member'} ${memberToRemove?.name || ''} from this batch? Their historical logs and learning history will be preserved.`}
+        description={`Are you sure you want to remove ${memberToRemove?.role.toLowerCase() || 'member'} ${memberToRemove?.name || ''} from this batch?`}
+        warningMessage={removeMemberWarningMessage}
+        warningItems={removeMemberWarningItems}
         confirmLabel="Remove Member"
         confirmVariant="danger"
         isLoading={removeMemberMutation.isPending}

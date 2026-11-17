@@ -18,6 +18,8 @@ export interface ConfirmationModalProps {
   confirmVariant?: ButtonVariant | undefined;
   isLoading?: boolean | undefined;
   errorMessage?: string | null | undefined;
+  warningMessage?: string | null | undefined;
+  warningItems?: string[] | undefined;
 }
 
 export function ConfirmationModal({
@@ -31,6 +33,8 @@ export function ConfirmationModal({
   confirmVariant = 'primary',
   isLoading = false,
   errorMessage,
+  warningMessage,
+  warningItems,
 }: Readonly<ConfirmationModalProps>) {
   const titleId = useId();
   const descId = useId();
@@ -116,6 +120,41 @@ export function ConfirmationModal({
         >
           {description}
         </P>
+
+        {/* Optional Warning Alert */}
+        {warningMessage || (warningItems && warningItems.length > 0) ? (
+          <div
+            role="alert"
+            className="mt-3 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50/90 p-3 text-left text-xs leading-relaxed font-medium text-amber-900 shadow-xs"
+          >
+            <svg
+              className="mt-0.5 h-4 w-4 shrink-0 text-amber-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <div className="min-w-0 flex-1">
+              {warningMessage ? <Span>{warningMessage}</Span> : null}
+              {warningItems && warningItems.length > 0 ? (
+                <ul className="mt-1.5 max-h-32 list-disc space-y-1 overflow-y-auto pl-4 text-xs text-amber-800">
+                  {warningItems.map((item, idx) => (
+                    <li key={`${item}-${idx}`} className="font-medium break-words">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {/* Optional Error Alert */}
         {errorMessage ? (
