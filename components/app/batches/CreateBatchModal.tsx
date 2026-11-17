@@ -202,6 +202,25 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
   const { mutateAsync: createBatch, isPending: isSubmitting } = useCreateBatchMutation();
   const { toastSuccess, toastError } = useToast();
 
+  const handleFieldChange = (field: string, setter: (val: string) => void) => (val: string) => {
+    setter(val);
+    setErrors((prev) => {
+      const isDateRelated =
+        (field === 'startDate' || field === 'endDate') && (prev.startDate || prev.endDate);
+      if (!prev[field] && !prev.general && !isDateRelated) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[field];
+      delete next.general;
+      if (field === 'startDate' || field === 'endDate') {
+        delete next.startDate;
+        delete next.endDate;
+      }
+      return next;
+    });
+  };
+
   if (!isOpen) return null;
 
   const isDirty = Boolean(name.trim() || code.trim() || startDate || endDate || description.trim());
@@ -305,11 +324,11 @@ export function CreateBatchModal({ isOpen, onClose, onSuccess }: Readonly<Create
             description={description}
             errors={errors}
             disabled={isSubmitting}
-            onNameChange={setName}
-            onCodeChange={setCode}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            onDescriptionChange={setDescription}
+            onNameChange={handleFieldChange('name', setName)}
+            onCodeChange={handleFieldChange('code', setCode)}
+            onStartDateChange={handleFieldChange('startDate', setStartDate)}
+            onEndDateChange={handleFieldChange('endDate', setEndDate)}
+            onDescriptionChange={handleFieldChange('description', setDescription)}
           />
         </Form>
       </Modal>

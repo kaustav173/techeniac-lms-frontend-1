@@ -23,6 +23,7 @@ export const createBatchSchema = z
     code: z
       .string({ required_error: 'Batch code is required' })
       .trim()
+      .min(1, 'Batch code is required')
       .min(3, 'Batch code must be at least 3 characters')
       .max(20, 'Batch code must not exceed 20 characters')
       .regex(/^[A-Z0-9-]+$/, 'Batch code must be uppercase alphanumeric and hyphens only')

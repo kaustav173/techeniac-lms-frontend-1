@@ -188,6 +188,7 @@ export function AddMemberModal({
       role,
       status: 'active',
       search: debouncedSearch,
+      withoutActiveBatch: role === 'MENTEE' ? true : undefined,
       limit: 10,
     },
     { enabled: isOpen },
