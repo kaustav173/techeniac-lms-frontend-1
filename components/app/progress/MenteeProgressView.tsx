@@ -35,7 +35,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/cn';
-import { formatDateDDMMYY } from '@/lib/date';
+import { formatDateDMY } from '@/lib/date';
 
 type AllocationSortField = 'course' | 'due';
 
@@ -373,7 +373,7 @@ export function MenteeProgressView() {
                         {/* 3. Due Date (whitespace-nowrap text-sm) */}
                         <TableCell className="w-[14%] px-4 py-3.5 align-middle">
                           <Span className="block text-sm font-medium whitespace-nowrap text-slate-600">
-                            {formatDateDDMMYY(alloc.dueDate)}
+                            {formatDateDMY(alloc.dueDate)}
                           </Span>
                         </TableCell>
 
