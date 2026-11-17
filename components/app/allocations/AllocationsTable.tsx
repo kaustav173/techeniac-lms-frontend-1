@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
@@ -394,26 +395,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
           {/* Circular Red Cross Clear Button */}
           {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
-              title="Clear all filters"
-              aria-label="Clear all filters"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                aria-hidden="true"
+            <Tooltip content="Clear all filters" side="bottom">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
+                aria-label="Clear all filters"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </Tooltip>
           ) : null}
         </div>
 
@@ -550,24 +552,30 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                       )}
                     >
                       <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
-                        <Span
-                          className="block truncate text-base font-semibold text-slate-900"
-                          title={alloc.user?.name ?? 'Individual Mentee'}
-                        >
-                          {alloc.user?.name ?? 'Individual Mentee'}
-                        </Span>
+                        <Tooltip content={alloc.user?.name ?? 'Individual Mentee'}>
+                          <Span className="block truncate text-base font-semibold text-slate-900">
+                            {alloc.user?.name ?? 'Individual Mentee'}
+                          </Span>
+                        </Tooltip>
                       </TableCell>
                       <TableCell className="w-[30%] px-4 py-3 align-middle">
                         <div className="flex min-w-0 flex-col justify-center">
-                          <Span
-                            className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
-                            title={alloc.course?.title ?? 'Untitled Course'}
-                          >
-                            {alloc.course?.title ?? 'Untitled Course'}
-                          </Span>
-                          <Span className="truncate text-xs font-semibold text-blue-600">
-                            {alloc.batch?.name || 'Individual Track'}
-                          </Span>
+                          <Tooltip content={alloc.course?.title ?? 'Untitled Course'}>
+                            <Span className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]">
+                              {alloc.course?.title ?? 'Untitled Course'}
+                            </Span>
+                          </Tooltip>
+                          {alloc.batch ? (
+                            <Tooltip content={alloc.batch.name}>
+                              <Span className="truncate text-xs font-semibold text-blue-600">
+                                {alloc.batch.name}
+                              </Span>
+                            </Tooltip>
+                          ) : (
+                            <Span className="truncate text-xs font-semibold text-blue-600">
+                              Individual Track
+                            </Span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
@@ -589,21 +597,22 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-center">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => toggleActionMenu(e, alloc.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
-                            title="Allocation actions"
-                            aria-label="Allocation actions"
-                            aria-haspopup="menu"
-                            aria-expanded={isActionMenuOpen}
-                          >
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                            </svg>
-                          </Button>
+                          <Tooltip content="Allocation actions">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => toggleActionMenu(e, alloc.id)}
+                              className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+                              aria-label="Allocation actions"
+                              aria-haspopup="menu"
+                              aria-expanded={isActionMenuOpen}
+                            >
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </Button>
+                          </Tooltip>
 
                           {isActionMenuOpen && menuPosition && (
                             <div
