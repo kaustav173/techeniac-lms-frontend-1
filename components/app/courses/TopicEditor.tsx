@@ -60,9 +60,11 @@ export function TopicEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Compute dirty state comparing current values against initial topic props
+  const isTitleDirty = title.trim() !== topic.title.trim();
+  const isDescriptionDirty = description.trim() !== (topic.description || '').trim();
   const isDirty =
-    title.trim() !== topic.title.trim() ||
-    description.trim() !== (topic.description || '').trim() ||
+    isTitleDirty ||
+    isDescriptionDirty ||
     (totalEstimatedMins ?? null) !== (topic.estimatedMinutes ?? null) ||
     isActive !== topic.isActive ||
     !areResourcesEqual(resources, topic.resources);
@@ -136,11 +138,11 @@ export function TopicEditor({
       setErrorMsg('Topic title cannot be empty.');
       return;
     }
-    if (trimmedTitle.length > 100) {
+    if (isTitleDirty && trimmedTitle.length > 100) {
       setErrorMsg('Topic title cannot exceed 100 characters.');
       return;
     }
-    if (description.trim().length > 2000) {
+    if (isDescriptionDirty && description.trim().length > 2000) {
       setErrorMsg('Topic description cannot exceed 2000 characters.');
       return;
     }
@@ -331,7 +333,9 @@ export function TopicEditor({
               type="text"
               maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
               onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Branching & Trunk Strategies"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"

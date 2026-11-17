@@ -73,9 +73,11 @@ export function AssignmentEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Compute dirty state comparing current values against initial assignment props
+  const isTitleDirty = title.trim() !== assignment.title.trim();
+  const isInstructionsDirty = instructions.trim() !== (assignment.instructions || '').trim();
   const isDirty =
-    title.trim() !== assignment.title.trim() ||
-    instructions.trim() !== (assignment.instructions || '').trim() ||
+    isTitleDirty ||
+    isInstructionsDirty ||
     (totalDurationMinutes ?? null) !== (assignment.estimatedMinutes ?? null) ||
     maxMarks !== (Number(assignment.maxMarks) || 0) ||
     passMarks !== (Number(assignment.passMarks) || 0) ||
@@ -140,11 +142,11 @@ export function AssignmentEditor({
       setErrorMsg('Assignment title cannot be empty.');
       return;
     }
-    if (trimmedTitle.length > 100) {
+    if (isTitleDirty && trimmedTitle.length > 100) {
       setErrorMsg('Assignment title cannot exceed 100 characters.');
       return;
     }
-    if (instructions.trim().length > 2000) {
+    if (isInstructionsDirty && instructions.trim().length > 2000) {
       setErrorMsg('Instructions cannot exceed 2000 characters.');
       return;
     }
@@ -323,7 +325,9 @@ export function AssignmentEditor({
               type="text"
               maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
               onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Build a Raft Distributed Consensus Node"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"

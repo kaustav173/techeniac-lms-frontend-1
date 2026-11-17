@@ -10,7 +10,6 @@ import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
-import { useToast } from '@/hooks/useToast';
 import {
   areResourcesEqual,
   findDuplicateTitle,
@@ -74,12 +73,13 @@ export function SubtopicEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const { toastError } = useToast();
 
   // Compute dirty state comparing current values against initial subtopic props
+  const isTitleDirty = title.trim() !== subtopic.title.trim();
+  const isContentDirty = content !== (subtopic.content || '');
   const isDirty =
-    title.trim() !== subtopic.title.trim() ||
-    content.trim() !== (subtopic.content || '').trim() ||
+    isTitleDirty ||
+    isContentDirty ||
     (totalEstimatedMins ?? null) !== (subtopic.estimatedMinutes ?? null) ||
     isActive !== subtopic.isActive ||
     !areResourcesEqual(resources, subtopic.resources);
@@ -100,19 +100,19 @@ export function SubtopicEditor({
     const trimmedUrl = newResourceUrl.trim();
 
     if (!trimmedTitle) {
-      toastError('Resource title is required.');
+      setErrorMsg('Resource title is required.');
       return;
     }
     if (trimmedTitle.length > 100) {
-      toastError('Resource title cannot exceed 100 characters.');
+      setErrorMsg('Resource title cannot exceed 100 characters.');
       return;
     }
     if (!trimmedUrl) {
-      toastError('Resource URL is required.');
+      setErrorMsg('Resource URL is required.');
       return;
     }
     if (!isValidWebUrl(trimmedUrl)) {
-      toastError(
+      setErrorMsg(
         'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...).',
       );
       return;
@@ -144,17 +144,14 @@ export function SubtopicEditor({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Subtopic title cannot be empty.');
-      toastError('Subtopic title cannot be empty.');
       return;
     }
-    if (trimmedTitle.length > 100) {
+    if (isTitleDirty && trimmedTitle.length > 100) {
       setErrorMsg('Subtopic title cannot exceed 100 characters.');
-      toastError('Subtopic title cannot exceed 100 characters.');
       return;
     }
-    if (content.length > 500) {
+    if (isContentDirty && content.length > 500) {
       setErrorMsg('Lesson content cannot exceed 500 characters.');
-      toastError('Lesson content cannot exceed 500 characters.');
       return;
     }
 
@@ -226,19 +223,14 @@ export function SubtopicEditor({
     if (pendingTitle || pendingUrl) {
       if (!pendingTitle) {
         setErrorMsg('Resource title is required (or clear the resource input before saving).');
-        toastError('Resource title is required (or clear the resource input before saving).');
         return;
       }
       if (pendingTitle.length > 100) {
         setErrorMsg('Resource title cannot exceed 100 characters.');
-        toastError('Resource title cannot exceed 100 characters.');
         return;
       }
       if (!pendingUrl || !isValidWebUrl(pendingUrl)) {
         setErrorMsg(
-          'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...) or clear the pending resource fields.',
-        );
-        toastError(
           'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...) or clear the pending resource fields.',
         );
         return;
@@ -287,7 +279,6 @@ export function SubtopicEditor({
       } else {
         const msg = formatErrorMessage(err, 'Failed to save subtopic changes');
         setErrorMsg(msg);
-        toastError(msg);
       }
     } finally {
       setIsSaving(false);
@@ -350,7 +341,9 @@ export function SubtopicEditor({
               type="text"
               maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
               onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Interactive Rebase and Squash Commits"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
