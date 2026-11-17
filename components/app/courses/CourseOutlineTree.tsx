@@ -648,6 +648,7 @@ export function CourseOutlineTree({
 }: Readonly<CourseOutlineTreeProps>) {
   const [collapsedTopics, setCollapsedTopics] = useState<Record<string, boolean>>({});
   const [isTopicsSectionCollapsed, setIsTopicsSectionCollapsed] = useState(false);
+  const [isAssignmentsSectionCollapsed, setIsAssignmentsSectionCollapsed] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Local reorder buffering state
@@ -1177,9 +1178,9 @@ export function CourseOutlineTree({
             isSavingOrder ? 'pointer-events-none opacity-60 blur-[0.6px] select-none' : ''
           }`}
         >
-          {/* 1. Topics Card Section */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          {/* 1. Topics Section */}
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-200/70 pb-2.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -1284,7 +1285,7 @@ export function CourseOutlineTree({
                                 <div className="flex items-center justify-between px-0.5 pb-1.5">
                                   <div className="flex items-center gap-1.5">
                                     <Span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                                      Lessons / Subtopics
+                                      Subtopics
                                     </Span>
                                     <Span className="py-0.2 rounded-full border border-blue-200/80 bg-blue-50 px-2 text-[10px] font-bold text-blue-700">
                                       {subtopics.length}
@@ -1473,20 +1474,41 @@ export function CourseOutlineTree({
           {/* 4. Course-Level Assignments Section (At bottom) */}
           <div className="mt-4">
             <div className="flex items-center justify-between pb-2">
-              <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                aria-expanded={!isAssignmentsSectionCollapsed}
+                onClick={() => setIsAssignmentsSectionCollapsed((prev) => !prev)}
+                className="flex h-auto items-center gap-2 p-0 text-left transition-colors hover:bg-transparent hover:opacity-80 focus-visible:outline-hidden"
+                title={
+                  isAssignmentsSectionCollapsed ? 'Expand assignments' : 'Collapse assignments'
+                }
+              >
+                <svg
+                  className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
+                    isAssignmentsSectionCollapsed ? '-rotate-90' : 'rotate-0'
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
                 <Span className="text-xs font-bold tracking-wider text-slate-700 uppercase">
-                  Course-Level Assignments
+                  Assignments
                 </Span>
                 <Span className="rounded-full border border-purple-200/80 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                   {courseAssignments.length}
                 </Span>
-              </div>
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
                 disabled={Boolean(isReorderingCourseAssignments || isSavingOrder)}
                 onClick={onAddCourseAssignment}
                 className="inline-flex h-auto items-center gap-1 rounded-full border border-purple-200/90 bg-white px-2.5 py-0.5 text-xs font-semibold text-purple-700 shadow-2xs transition-colors hover:bg-purple-50 disabled:opacity-40"
+                title="Add Assignment"
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -1497,56 +1519,58 @@ export function CourseOutlineTree({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                <Span>Task</Span>
+                <Span>Assignment</Span>
               </Button>
             </div>
 
-            <div
-              className={`relative mt-2 transition-all duration-200 ${
-                isReorderingCourseAssignments
-                  ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
-                  : ''
-              }`}
-            >
-              <SortableContext
-                items={courseAssignments.map((a) => a.id)}
-                strategy={verticalListSortingStrategy}
+            {!isAssignmentsSectionCollapsed && (
+              <div
+                className={`relative mt-2 transition-all duration-200 ${
+                  isReorderingCourseAssignments
+                    ? 'pointer-events-none opacity-50 blur-[0.6px] select-none'
+                    : ''
+                }`}
               >
-                <div className="space-y-1">
-                  {courseAssignments.length === 0 ? (
-                    <P className="rounded-lg border border-dashed border-slate-200/80 bg-slate-50/50 py-3 text-center text-xs text-slate-400">
-                      No course assignments created yet
-                    </P>
-                  ) : (
-                    courseAssignments.map((assignment) => {
-                      const isSelected =
-                        selectedNode.type === 'ASSIGNMENT' && selectedNode.id === assignment.id;
-                      return (
-                        <SortableAssignmentItem
-                          key={assignment.id}
-                          assignment={assignment}
-                          scope="COURSE"
-                          isSelected={isSelected}
-                          isDisabledDrag={isReorderingCourseAssignments || isSavingOrder}
-                          isBeingSaved={
-                            isSavingOrder ||
-                            isReorderingCourseAssignments ||
-                            activeReorderingIds.includes(assignment.id)
-                          }
-                          reorderingId={reorderingId}
-                          isMenuOpen={activeMenuId === `assign-${assignment.id}`}
-                          onSelectNode={onSelectNode}
-                          onToggleMenu={(id) =>
-                            setActiveMenuId((prev) => (prev === id ? null : id))
-                          }
-                          onRequestDeleteNode={onRequestDeleteNode}
-                        />
-                      );
-                    })
-                  )}
-                </div>
-              </SortableContext>
-            </div>
+                <SortableContext
+                  items={courseAssignments.map((a) => a.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-1">
+                    {courseAssignments.length === 0 ? (
+                      <P className="rounded-lg border border-dashed border-slate-200/80 bg-slate-50/50 py-3 text-center text-xs text-slate-400">
+                        No course assignments created yet
+                      </P>
+                    ) : (
+                      courseAssignments.map((assignment) => {
+                        const isSelected =
+                          selectedNode.type === 'ASSIGNMENT' && selectedNode.id === assignment.id;
+                        return (
+                          <SortableAssignmentItem
+                            key={assignment.id}
+                            assignment={assignment}
+                            scope="COURSE"
+                            isSelected={isSelected}
+                            isDisabledDrag={isReorderingCourseAssignments || isSavingOrder}
+                            isBeingSaved={
+                              isSavingOrder ||
+                              isReorderingCourseAssignments ||
+                              activeReorderingIds.includes(assignment.id)
+                            }
+                            reorderingId={reorderingId}
+                            isMenuOpen={activeMenuId === `assign-${assignment.id}`}
+                            onSelectNode={onSelectNode}
+                            onToggleMenu={(id) =>
+                              setActiveMenuId((prev) => (prev === id ? null : id))
+                            }
+                            onRequestDeleteNode={onRequestDeleteNode}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
+                </SortableContext>
+              </div>
+            )}
           </div>
         </div>
       </div>

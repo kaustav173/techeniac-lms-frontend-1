@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 
 import { EditorFormShell } from '@/components/app/courses/EditorFormShell';
 import { Button } from '@/components/ui/Button';
-import { FieldError } from '@/components/ui/FieldError';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
+import { useToast } from '@/hooks/useToast';
 import {
   areResourcesEqual,
   findDuplicateTitle,
@@ -74,6 +74,7 @@ export function SubtopicEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { toastError } = useToast();
 
   // Compute dirty state comparing current values against initial subtopic props
   const isDirty =
@@ -99,15 +100,19 @@ export function SubtopicEditor({
     const trimmedUrl = newResourceUrl.trim();
 
     if (!trimmedTitle) {
-      setErrorMsg('Resource title is required.');
+      toastError('Resource title is required.');
+      return;
+    }
+    if (trimmedTitle.length > 100) {
+      toastError('Resource title cannot exceed 100 characters.');
       return;
     }
     if (!trimmedUrl) {
-      setErrorMsg('Resource URL is required.');
+      toastError('Resource URL is required.');
       return;
     }
     if (!isValidWebUrl(trimmedUrl)) {
-      setErrorMsg(
+      toastError(
         'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...).',
       );
       return;
@@ -139,6 +144,17 @@ export function SubtopicEditor({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Subtopic title cannot be empty.');
+      toastError('Subtopic title cannot be empty.');
+      return;
+    }
+    if (trimmedTitle.length > 100) {
+      setErrorMsg('Subtopic title cannot exceed 100 characters.');
+      toastError('Subtopic title cannot exceed 100 characters.');
+      return;
+    }
+    if (content.length > 500) {
+      setErrorMsg('Lesson content cannot exceed 500 characters.');
+      toastError('Lesson content cannot exceed 500 characters.');
       return;
     }
 
@@ -210,10 +226,19 @@ export function SubtopicEditor({
     if (pendingTitle || pendingUrl) {
       if (!pendingTitle) {
         setErrorMsg('Resource title is required (or clear the resource input before saving).');
+        toastError('Resource title is required (or clear the resource input before saving).');
+        return;
+      }
+      if (pendingTitle.length > 100) {
+        setErrorMsg('Resource title cannot exceed 100 characters.');
+        toastError('Resource title cannot exceed 100 characters.');
         return;
       }
       if (!pendingUrl || !isValidWebUrl(pendingUrl)) {
         setErrorMsg(
+          'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...) or clear the pending resource fields.',
+        );
+        toastError(
           'Invalid resource URL format. Please provide a valid web link (e.g. https://github.com/...) or clear the pending resource fields.',
         );
         return;
@@ -260,7 +285,9 @@ export function SubtopicEditor({
       if (isConflictError(err)) {
         onConflict();
       } else {
-        setErrorMsg(formatErrorMessage(err, 'Failed to save subtopic changes'));
+        const msg = formatErrorMessage(err, 'Failed to save subtopic changes');
+        setErrorMsg(msg);
+        toastError(msg);
       }
     } finally {
       setIsSaving(false);
@@ -317,13 +344,14 @@ export function SubtopicEditor({
               required={true}
               className="block text-sm font-semibold tracking-wide text-slate-800"
             >
-              Subtopic Title
+              Title
             </Label>
             <Input
               type="text"
+              maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
+              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Interactive Rebase and Squash Commits"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
@@ -331,9 +359,12 @@ export function SubtopicEditor({
 
           <div>
             <div className="flex items-center justify-between">
-              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-                Lesson Content & Instructions (Rich Text)
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                  Lesson Content
+                </Label>
+                <Span className="text-xs font-medium text-slate-400">{content.length}/500</Span>
+              </div>
               <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-0.5 text-xs">
                 <Button
                   type="button"
@@ -365,8 +396,9 @@ export function SubtopicEditor({
             {activeTab === 'editor' ? (
               <textarea
                 rows={12}
+                maxLength={500}
                 value={content}
-                onChange={(e) => handleChange(() => setContent(e.target.value))}
+                onChange={(e) => handleChange(() => setContent(e.target.value.slice(0, 500)))}
                 placeholder="Enter markdown lesson content"
                 className="mt-2.5 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
               />
@@ -438,56 +470,6 @@ export function SubtopicEditor({
                 : 'Optional'}
             </Span>
           </div>
-
-          {remainingBudget !== null ? (
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs font-medium text-blue-800">
-              <svg
-                className="h-4 w-4 shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <Span>
-                Available topic budget:{' '}
-                <Span className="font-bold">
-                  {Math.floor(remainingBudget / 60)}h {remainingBudget % 60}m remaining
-                </Span>{' '}
-                (Topic &quot;{parentTopicTitle || 'Topic'}&quot; total:{' '}
-                {Math.floor(parentTopicEstimatedMinutes! / 60)}h {parentTopicEstimatedMinutes! % 60}
-                m, other subtopics: {Math.floor((otherSubtopicsMinutes || 0) / 60)}h{' '}
-                {(otherSubtopicsMinutes || 0) % 60}m)
-              </Span>
-            </div>
-          ) : courseEstimatedMinutes && courseEstimatedMinutes > 0 ? (
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs font-medium text-blue-800">
-              <svg
-                className="h-4 w-4 shrink-0 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <Span>
-                Course duration limit:{' '}
-                <Span className="font-bold">
-                  {Math.floor(courseEstimatedMinutes / 60)}h {courseEstimatedMinutes % 60}m total
-                </Span>
-              </Span>
-            </div>
-          ) : null}
         </div>
 
         {/* Section 3: Resources & Attachments Manager */}
@@ -556,21 +538,15 @@ export function SubtopicEditor({
             )}
           </div>
 
-          {errorMsg && (
-            <FieldError
-              error={errorMsg}
-              className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
-            />
-          )}
-
           <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-12">
             <div className="sm:col-span-4">
               <Input
                 type="text"
+                maxLength={100}
                 placeholder="Resource title (e.g. Solution Spec)"
                 value={newResourceTitle}
                 onChange={(e) => {
-                  setNewResourceTitle(e.target.value);
+                  setNewResourceTitle(e.target.value.slice(0, 100));
                   if (errorMsg) setErrorMsg(null);
                 }}
                 className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"

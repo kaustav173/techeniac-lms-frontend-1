@@ -69,6 +69,10 @@ export function CourseDetailsEditor({
       setErrorMsg('Course title cannot exceed 100 characters.');
       return;
     }
+    if (description.trim().length > 2000) {
+      setErrorMsg('Course description cannot exceed 2000 characters.');
+      return;
+    }
 
     const parsedHours = durationHours !== '' ? Number.parseInt(durationHours, 10) : 0;
     const parsedMins = durationMinutes !== '' ? Number.parseInt(durationMinutes, 10) : 0;
@@ -145,7 +149,7 @@ export function CourseDetailsEditor({
   return (
     <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       <EditorFormShell
-        category="Course Settings"
+        category="Course"
         title={title || course.title}
         isDirty={isDirty}
         isSaving={isSaving}
@@ -182,7 +186,7 @@ export function CourseDetailsEditor({
               required={true}
               className="block text-sm font-semibold tracking-wide text-slate-800"
             >
-              Course Title
+              Title
             </Label>
             <Input
               type="text"
@@ -196,13 +200,17 @@ export function CourseDetailsEditor({
           </div>
 
           <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Description
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Description
+              </Label>
+              <Span className="text-xs font-medium text-slate-400">{description.length}/2000</Span>
+            </div>
             <textarea
               rows={4}
+              maxLength={2000}
               value={description}
-              onChange={(e) => handleChange(() => setDescription(e.target.value))}
+              onChange={(e) => handleChange(() => setDescription(e.target.value.slice(0, 2000)))}
               placeholder="Provide a comprehensive syllabus overview, prerequisites, and target learning outcomes..."
               className="mt-2 min-h-[120px] w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
