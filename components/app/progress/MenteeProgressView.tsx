@@ -34,7 +34,6 @@ import {
   useAllocationsList,
 } from '@/hooks/useAllocations';
 import { useAuth } from '@/hooks/useAuth';
-import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
 
 type AllocationSortField = 'course' | 'due';
@@ -86,7 +85,7 @@ export function MenteeProgressView() {
     enabled: Boolean(user?.id),
   });
 
-  const isInitialLoading = !user?.id || isLoading;
+  const isTableLoading = !user?.id || isLoading || isFetching;
 
   const allocations = useMemo<readonly CourseAllocation[]>(
     () => allocationsData?.items ?? [],
@@ -253,13 +252,8 @@ export function MenteeProgressView() {
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody
-                className={cn(
-                  'divide-y divide-[#F2F4F7]',
-                  isFetching && !isInitialLoading && 'opacity-60 transition-opacity',
-                )}
-              >
-                {isInitialLoading ? (
+              <TableBody className="divide-y divide-[#F2F4F7]">
+                {isTableLoading ? (
                   Array.from({ length: limit }).map((_, idx) => (
                     <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
                       <TableCell className="w-[28%] px-4 py-3.5">
@@ -454,7 +448,7 @@ export function MenteeProgressView() {
           </TableContainer>
 
           {/* Skeleton or Joined Real Pagination Controls */}
-          {isInitialLoading ? (
+          {isTableLoading ? (
             <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
               <Skeleton className="h-4 w-32 rounded-md" />
               <div className="flex items-center gap-2">
@@ -477,7 +471,7 @@ export function MenteeProgressView() {
               }}
               itemLabel="courses"
               pageSizeOptions={[10, 20, 50]}
-              isLoading={isInitialLoading}
+              isLoading={isTableLoading}
               className="border-t border-[#E1E6EC]"
             />
           ) : null}
