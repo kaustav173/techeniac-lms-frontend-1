@@ -34,7 +34,13 @@ export function isTerminalAllocationStatus(status: CourseAllocationStatus): bool
   );
 }
 
-export type AllocationTargetType = 'BATCH' | 'SELECTED_MENTEES' | 'INDIVIDUAL_MENTEES';
+export const AllocationTargetType = {
+  BATCH: 'BATCH',
+  SELECTED_MENTEES: 'SELECTED_MENTEES',
+  INDIVIDUAL_MENTEES: 'INDIVIDUAL_MENTEES',
+} as const;
+
+export type AllocationTargetType = (typeof AllocationTargetType)[keyof typeof AllocationTargetType];
 
 export interface AssignmentDueOverride {
   readonly id: string;

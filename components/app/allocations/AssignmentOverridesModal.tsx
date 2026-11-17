@@ -18,7 +18,7 @@ import {
 } from '@/hooks/useAllocations';
 import { useCourseDetail } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/useToast';
-import { toISTDateInputValue } from '@/lib/date';
+import { formatDateIST, toISTDateInputValue } from '@/lib/date';
 
 export interface AssignmentOverridesModalProps {
   readonly allocation: CourseAllocation | null;
@@ -41,7 +41,9 @@ export function AssignmentOverridesModal({
   const { data: overrides, isLoading: isLoadingOverrides } = useAssignmentOverrides(
     allocation?.id ?? '',
   );
-  const { data: courseDetail } = useCourseDetail(allocation?.courseId ?? '');
+  const { data: courseDetail, isLoading: isLoadingCourse } = useCourseDetail(
+    allocation?.courseId ?? '',
+  );
 
   const setOverrideMutation = useSetAssignmentOverrideMutation();
   const { toastSuccess, toastError } = useToast();
@@ -155,9 +157,7 @@ export function AssignmentOverridesModal({
                     <P className="text-sm font-medium text-slate-900">
                       {ov.assignment?.title ?? ov.assignmentId}
                     </P>
-                    <Span className="text-xs text-slate-400">
-                      Due: {new Date(ov.dueDate).toLocaleDateString()}
-                    </Span>
+                    <Span className="text-xs text-slate-400">Due: {formatDateIST(ov.dueDate)}</Span>
                   </div>
                   <Span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                     Overridden
@@ -184,7 +184,7 @@ export function AssignmentOverridesModal({
             />
           ) : null}
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="override-assignment-select" required>
               Assignment
             </Label>
@@ -194,12 +194,15 @@ export function AssignmentOverridesModal({
               onChange={setSelectedAssignmentId}
               options={assignmentOptions}
               placeholder="-- Choose assignment --"
+              emptyMessage={
+                isLoadingCourse ? 'Loading assignments...' : 'No assignments found for this course'
+              }
               className="w-full"
               triggerClassName="w-full bg-white"
             />
           </div>
 
-          <div>
+          <div className="space-y-1.5">
             <Label htmlFor="override-due-date" required>
               New Date
             </Label>

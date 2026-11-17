@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import {
@@ -37,7 +37,7 @@ import {
 } from '@/hooks/useProgress';
 import { cn } from '@/lib/cn';
 
-interface ProgressTrackerViewProps {
+export interface ProgressTrackerViewProps {
   readonly portalType?: 'mentor' | 'admin';
 }
 
@@ -61,6 +61,19 @@ function resolveSelectedOptions<T extends string>(
   return vals.map((val) => options.find((o) => o.value === val) ?? { value: val, label: val });
 }
 
+function MenteeSearchUrlSync({ onSync }: { readonly onSync: (name: string) => void }) {
+  const searchParams = useSearchParams();
+  const menteeName = searchParams.get('menteeName');
+
+  useEffect(() => {
+    if (menteeName) {
+      onSync(menteeName);
+    }
+  }, [menteeName, onSync]);
+
+  return null;
+}
+
 export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerViewProps) {
   const [selectedBatchOptions, setSelectedBatchOptions] = useState<MultiSelectOption[]>([]);
   const [selectedCourseOptions, setSelectedCourseOptions] = useState<MultiSelectOption[]>([]);
@@ -69,6 +82,12 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   const [courseSearch, setCourseSearch] = useState<string>('');
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState<number>(1);
+
+  const handleSyncMenteeSearch = useCallback((menteeName: string) => {
+    setSearch((prev) => (prev !== menteeName ? menteeName : prev));
+    setPage(1);
+  }, []);
+
   const [limit, setLimit] = useState<number>(10);
   const [sortField, setSortField] = useState<'menteeName' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -283,6 +302,9 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
+      <Suspense fallback={null}>
+        <MenteeSearchUrlSync onSync={handleSyncMenteeSearch} />
+      </Suspense>
       <Header {...navConfig} />
 
       <DashboardContent>

@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { Modal } from '@/components/patterns/Modal';
+import { Button } from '@/components/ui/Button';
 import { H4, Span } from '@/components/ui/Typography';
 import {
   formatAuditAction,
@@ -84,6 +85,13 @@ export function AuditDetailModal({ entry, isOpen, onClose }: AuditDetailModalPro
       className="max-w-4xl"
       title="Audit Event Details"
       titleClassName="text-xl font-bold text-slate-900 sm:text-2xl"
+      footer={
+        <div className="flex w-full justify-end">
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-6">
         {/* Event Header Hero Card */}

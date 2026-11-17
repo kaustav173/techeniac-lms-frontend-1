@@ -6,7 +6,7 @@ import { Modal } from '@/components/patterns/Modal';
 import { Button } from '@/components/ui/Button';
 import { Form } from '@/components/ui/Form';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
+import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { Textarea } from '@/components/ui/Textarea';
 import { P, Span } from '@/components/ui/Typography';
 import { useUpdateBatchStatusMutation } from '@/hooks/useBatches';
@@ -157,18 +157,15 @@ export function BatchStatusModal({
             <Label htmlFor="target-batch-status" required>
               New Status
             </Label>
-            <Select
+            <SingleSelectDropdown<BatchStatus>
               id="target-batch-status"
               value={newStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as BatchStatus)}
-              className="cursor-pointer text-sm font-semibold text-slate-900"
-            >
-              {allowedNextStatuses.map((st) => (
-                <option key={st} value={st} className="font-medium text-slate-900">
-                  {st}
-                </option>
-              ))}
-            </Select>
+              onChange={setSelectedStatus}
+              options={allowedNextStatuses.map((status) => ({ value: status, label: status }))}
+              disabled={isSubmitting}
+              className="w-full"
+              triggerClassName="w-full text-sm font-semibold text-slate-900"
+            />
           </div>
         ) : (
           <div className="rounded-xl border border-slate-200 bg-slate-100 p-3.5 text-center text-xs font-medium text-slate-600">
