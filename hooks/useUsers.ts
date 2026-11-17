@@ -16,6 +16,7 @@ import {
   type UserQueryFilters,
   usersService,
 } from '@/services/users.service';
+import type { BatchMemberRole } from '@/types/batches';
 
 export type { ApiUser, UserQueryFilters };
 
@@ -233,7 +234,7 @@ export function useUsers(
 
 export function useInfiniteUsers(
   filters: {
-    role: 'MENTEE' | 'MENTOR';
+    role: BatchMemberRole | 'MENTEE' | 'MENTOR';
     search?: string | undefined;
     status?: string | undefined;
     limit?: number | undefined;
