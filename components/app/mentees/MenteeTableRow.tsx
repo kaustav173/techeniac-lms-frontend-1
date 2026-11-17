@@ -51,22 +51,22 @@ export function MenteeTableRow({
     >
       <TableCell className={actions ? 'w-[32%]' : 'w-[40%]'}>
         <div className="min-w-0">
-          <P className="truncate text-sm font-bold text-[#111827]">
+          <P className="truncate text-base font-semibold text-slate-900">
             {mentee.name ?? 'Assigned Mentee'}
           </P>
-          <P className="truncate text-xs text-[#667085]">{mentee.email ?? '—'}</P>
+          <P className="truncate text-xs text-slate-500">{mentee.email ?? '—'}</P>
         </div>
       </TableCell>
-      <TableCell className="text-sm font-medium text-[#111827]">
+      <TableCell className="text-base font-semibold text-slate-900">
         {mentee.batchName ?? 'Course'}
       </TableCell>
       <TableCell>
-        <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-bold text-[#111827]">
+        <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-semibold text-slate-900">
           {mentee.batchCode ?? '—'}
         </Span>
       </TableCell>
       <TableCell
-        className={actions ? 'text-sm text-[#667085]' : 'text-right text-sm text-[#667085]'}
+        className={actions ? 'text-sm text-slate-600' : 'text-right text-sm text-slate-600'}
       >
         {mentee.startDate ? mentee.startDate.slice(0, 10) : '—'}
       </TableCell>

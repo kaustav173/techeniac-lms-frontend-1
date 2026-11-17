@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import {
   type AllocationFilters,
@@ -37,8 +38,6 @@ import { useInfiniteBatches } from '@/hooks/useBatches';
 import { useInfiniteCourses } from '@/hooks/useCourses';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
-
-const EM_DASH = '—';
 
 function mergeSelectedOptionLabels<T>(
   selectedMap: Record<string, string>,
@@ -188,9 +187,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     [loadedBatches, selectedBatchOptions],
   );
 
+  const isTableLoading = isLoading || isFetching;
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
-  const pagination = data?.pagination;
+  const pagination = useMemo(
+    () =>
+      data?.pagination ?? {
+        page: filters.page ?? 1,
+        limit: filters.limit ?? 10,
+        total: 0,
+        totalPages: 1,
+      },
+    [data?.pagination, filters.page, filters.limit],
+  );
 
   const handleSort = (field: SortField) => {
     let nextField: SortField | null = field;
@@ -386,26 +395,27 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
           {/* Circular Red Cross Clear Button */}
           {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
-              title="Clear all filters"
-              aria-label="Clear all filters"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                aria-hidden="true"
+            <Tooltip content="Clear all filters" side="bottom">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose-300 bg-rose-50 p-0 text-rose-700 shadow-2xs transition-colors hover:border-rose-400 hover:bg-rose-100 hover:text-rose-800 focus-visible:ring-2 focus-visible:ring-rose-500/30"
+                aria-label="Clear all filters"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </Tooltip>
           ) : null}
         </div>
 
@@ -426,18 +436,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
       {/* Data Table & Attached Pagination in Single Card */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
         <TableContainer className="rounded-none border-0 shadow-none">
-          <Table className="w-full text-left text-base sm:text-base">
+          <Table className="w-full table-fixed text-left">
             <TableHeader>
               <TableRow>
-                <SortableColumnHeader<SortField>
-                  field="course"
-                  label="Course"
-                  sortField={sortField}
-                  sortOrder={sortOrder ?? 'desc'}
-                  onSort={handleSort}
-                  tooltip="Sort by course"
-                  className="py-4 pr-4 pl-6 text-base font-bold text-[#667085] sm:text-lg"
-                />
                 <SortableColumnHeader<SortField>
                   field="mentee"
                   label="Mentee"
@@ -445,16 +446,16 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by mentee"
-                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
+                  className="w-[20%] py-3.5 pr-4 pl-6 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
-                  field="batch"
-                  label="Batch"
+                  field="course"
+                  label="Course & Batch"
                   sortField={sortField}
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
-                  tooltip="Sort by batch"
-                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
+                  tooltip="Sort by course"
+                  className="w-[30%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="started"
@@ -463,7 +464,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by start date"
-                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
+                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="due"
@@ -472,7 +473,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by due date"
-                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
+                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="duration"
@@ -481,49 +482,49 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by duration"
-                  className="px-4 py-4 text-base font-bold text-[#667085] sm:text-lg"
+                  className="w-[10%] px-4 py-3.5 font-semibold text-slate-700"
                 />
-                <TableHead className="px-4 py-4 text-base font-bold whitespace-nowrap text-[#667085] sm:text-lg">
+                <TableHead className="w-[10%] px-4 py-3.5 font-semibold whitespace-nowrap text-slate-700">
                   Status
                 </TableHead>
-                <TableHead className="py-4 pr-6 pl-4 text-right text-base font-bold text-[#667085] sm:text-lg">
+                <TableHead className="w-[6%] px-3 py-3.5 text-center font-semibold text-slate-700">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading || isFetching ? (
+              {isTableLoading ? (
                 Array.from({ length: 10 }).map((_, idx) => (
                   <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                    <TableCell className="py-4 pr-4 pl-6 text-sm sm:text-base">
-                      <Skeleton className="h-4 w-36 rounded-md" />
+                    <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
+                      <Skeleton className="h-5 w-32 rounded-md sm:w-40" />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
-                      <Skeleton className="h-4 w-28 rounded-md" />
+                    <TableCell className="w-[30%] px-4 py-3 align-middle">
+                      <div className="flex min-w-0 flex-col justify-center gap-1.5">
+                        <Skeleton className="h-5 w-48 rounded-md sm:w-64" />
+                        <Skeleton className="h-3.5 w-28 rounded-md sm:w-36" />
+                      </div>
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
+                    <TableCell className="w-[12%] px-4 py-3 align-middle">
                       <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
-                      <Skeleton className="h-4 w-20 rounded-md" />
+                    <TableCell className="w-[12%] px-4 py-3 align-middle">
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
-                      <Skeleton className="h-4 w-20 rounded-md" />
+                    <TableCell className="w-[10%] px-4 py-3 align-middle">
+                      <Skeleton className="h-4 w-12 rounded-md" />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
-                      <Skeleton className="h-4 w-16 rounded-md" />
-                    </TableCell>
-                    <TableCell className="px-4 py-4 text-sm sm:text-base">
+                    <TableCell className="w-[10%] px-4 py-3 align-middle">
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
-                    <TableCell className="py-4 pr-6 pl-4 text-right text-sm sm:text-base">
-                      <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                    <TableCell className="w-[6%] px-3 py-3 text-center align-middle">
+                      <Skeleton className="mx-auto h-8 w-8 rounded-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="px-6 py-8 text-center">
+                  <TableCell colSpan={7} className="px-6 py-8 text-center">
                     <ErrorMessage
                       error={error}
                       title="Failed to load allocations"
@@ -533,7 +534,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </TableRow>
               ) : allocations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="px-6 py-12 text-center">
+                  <TableCell colSpan={7} className="px-6 py-12 text-center">
                     <P className="text-xs font-medium text-slate-600">
                       No course allocations found.
                     </P>
@@ -546,74 +547,72 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     <TableRow
                       key={alloc.id}
                       className={cn(
-                        'transition-colors hover:bg-[#F9FAFB]/90',
+                        'h-16 transition-colors hover:bg-slate-50/70',
                         isActionMenuOpen && 'relative z-30',
                       )}
                     >
-                      <TableCell className="py-4 pr-4 pl-6 align-middle text-base sm:text-lg">
-                        <P
-                          className="max-w-[200px] truncate text-base font-semibold text-[#111827] sm:text-lg"
-                          title={alloc.course?.title ?? 'Untitled Course'}
-                        >
-                          {alloc.course?.title ?? 'Untitled Course'}
-                        </P>
-                      </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base sm:text-lg">
-                        <P
-                          className="max-w-[180px] truncate text-base font-semibold text-[#111827] sm:text-lg"
-                          title={alloc.user?.name ?? 'Individual Mentee'}
-                        >
-                          {alloc.user?.name ?? 'Individual Mentee'}
-                        </P>
-                      </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base sm:text-lg">
-                        {alloc.batch ? (
-                          <P
-                            className="max-w-[200px] truncate text-base font-semibold text-[#111827] sm:text-lg"
-                            title={alloc.batch.name}
-                          >
-                            {alloc.batch.name}
-                          </P>
-                        ) : (
-                          <Span className="text-base font-semibold text-[#667085] sm:text-lg">
-                            {EM_DASH}
+                      <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
+                        <Tooltip content={alloc.user?.name ?? 'Individual Mentee'}>
+                          <Span className="block truncate text-base font-semibold text-slate-900">
+                            {alloc.user?.name ?? 'Individual Mentee'}
                           </Span>
-                        )}
+                        </Tooltip>
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
+                      <TableCell className="w-[30%] px-4 py-3 align-middle">
+                        <div className="flex min-w-0 flex-col justify-center">
+                          <Tooltip content={alloc.course?.title ?? 'Untitled Course'}>
+                            <Span className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]">
+                              {alloc.course?.title ?? 'Untitled Course'}
+                            </Span>
+                          </Tooltip>
+                          {alloc.batch ? (
+                            <Tooltip content={alloc.batch.name}>
+                              <Span className="truncate text-xs font-semibold text-blue-600">
+                                {alloc.batch.name}
+                              </Span>
+                            </Tooltip>
+                          ) : (
+                            <Span className="truncate text-xs font-semibold text-blue-600">
+                              Individual Track
+                            </Span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.startDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
+                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.dueDate)}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base font-semibold whitespace-nowrap text-[#344054] sm:text-lg">
+                      <TableCell className="w-[10%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDurationMinutes(
                           alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-4 align-middle text-base whitespace-nowrap sm:text-lg">
+                      <TableCell className="w-[10%] px-4 py-3 align-middle whitespace-nowrap">
                         <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
                       </TableCell>
                       <TableCell
-                        className="py-4 pr-6 pl-4 text-right align-middle text-sm sm:text-base"
+                        className="w-[6%] px-3 py-3 text-center align-middle"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-end">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => toggleActionMenu(e, alloc.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
-                            title="Allocation actions"
-                            aria-label="Allocation actions"
-                            aria-haspopup="menu"
-                            aria-expanded={isActionMenuOpen}
-                          >
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                            </svg>
-                          </Button>
+                        <div className="flex items-center justify-center">
+                          <Tooltip content="Allocation actions">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => toggleActionMenu(e, alloc.id)}
+                              className="flex h-8 w-8 items-center justify-center rounded-full p-0 text-[#667085] hover:bg-slate-100 hover:text-[#111827] focus-visible:ring-2 focus-visible:ring-[#0044D3]"
+                              aria-label="Allocation actions"
+                              aria-haspopup="menu"
+                              aria-expanded={isActionMenuOpen}
+                            >
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            </Button>
+                          </Tooltip>
 
                           {isActionMenuOpen && menuPosition && (
                             <div
@@ -790,7 +789,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         </TableContainer>
 
         {/* Attached Pagination Controls */}
-        {pagination && pagination.total > 0 && (
+        {!isError && (isTableLoading || pagination.total > 0) && (
           <PaginationControls
             page={pagination.page}
             limit={pagination.limit}
@@ -798,7 +797,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             totalPages={pagination.totalPages}
             onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
             onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
-            isLoading={isLoading || isFetching}
+            isLoading={isTableLoading}
             itemLabel="allocations"
             pageSizeOptions={[10, 20, 50]}
             className="border-t border-[#E1E6EC]"

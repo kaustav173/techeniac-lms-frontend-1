@@ -218,8 +218,8 @@ export function MenteeProgressView() {
         {/* Progress Telemetry Data Table & Joined Pagination */}
         <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
           <TableContainer className="rounded-none border-0 shadow-none">
-            <Table className="w-full min-w-[680px] table-fixed text-left text-xs text-[#111827]">
-              <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-[#667085]">
+            <Table className="w-full min-w-[680px] table-fixed text-left">
+              <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
                   <SortableColumnHeader<AllocationSortField>
                     field="course"
@@ -228,11 +228,9 @@ export function MenteeProgressView() {
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     tooltip="Sort by Course Name"
-                    className="w-[28%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm"
-                    buttonClassName="text-sm sm:text-sm font-semibold text-[#667085]"
-                    labelClassName="text-sm sm:text-sm font-semibold text-[#667085]"
+                    className="w-[28%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[20%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[20%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Batch
                   </TableHead>
                   <SortableColumnHeader<AllocationSortField>
@@ -242,17 +240,15 @@ export function MenteeProgressView() {
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     tooltip="Sort by Due Date"
-                    className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm"
-                    buttonClassName="text-sm sm:text-sm font-semibold text-[#667085]"
-                    labelClassName="text-sm sm:text-sm font-semibold text-[#667085]"
+                    className="w-[14%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[18%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Progress
                   </TableHead>
-                  <TableHead className="w-[14%] px-4 py-3.5 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[14%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-[6%] pr-6 pl-2 text-left text-sm font-semibold text-[#667085] sm:text-sm">
+                  <TableHead className="w-[6%] pr-6 pl-2 text-left font-semibold text-slate-700">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -350,7 +346,7 @@ export function MenteeProgressView() {
                         <TableCell className="w-[28%] px-4 py-3.5 align-middle">
                           <P
                             title={alloc.course?.title ?? 'Untitled Course'}
-                            className="truncate text-sm font-semibold text-[#111827]"
+                            className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
                           >
                             {alloc.course?.title ?? 'Untitled Course'}
                           </P>
@@ -361,22 +357,22 @@ export function MenteeProgressView() {
                           <div className="space-y-0.5">
                             <Span
                               title={alloc.batch?.name ?? 'Individual Allocation'}
-                              className="block max-w-[200px] truncate text-xs font-semibold text-[#111827]"
+                              className="block max-w-[200px] truncate text-base font-semibold text-slate-900"
                             >
                               {alloc.batch?.name ?? 'Individual Allocation'}
                             </Span>
                             <Span
                               title={alloc.batch?.code ?? 'Core Track'}
-                              className="block max-w-[200px] truncate text-[11px] text-[#667085]"
+                              className="block max-w-[200px] truncate text-xs text-slate-500"
                             >
                               {alloc.batch?.code ?? 'Core Track'}
                             </Span>
                           </div>
                         </TableCell>
 
-                        {/* 3. Due Date (whitespace-nowrap text-xs) */}
+                        {/* 3. Due Date (whitespace-nowrap text-sm) */}
                         <TableCell className="w-[14%] px-4 py-3.5 align-middle">
-                          <Span className="block text-xs font-medium whitespace-nowrap text-[#111827]">
+                          <Span className="block text-sm font-medium whitespace-nowrap text-slate-600">
                             {formatDateDDMMYY(alloc.dueDate)}
                           </Span>
                         </TableCell>

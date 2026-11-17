@@ -9,6 +9,7 @@ import { ConfirmationModal } from '@/components/patterns/ConfirmationModal';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { Span } from '@/components/ui/Typography';
 import { useSidebar } from '@/context/SidebarContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -493,32 +494,32 @@ function HeaderInner({
 
                   if (item.href !== '#') {
                     return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        prefetch={true}
-                        title={item.label}
-                        aria-label={item.label}
-                        className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
-                          isActive
-                            ? 'bg-blue-100 text-[#0044D3] shadow-xs'
-                            : 'text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
-                        }`}
-                      >
-                        {icon}
-                      </Link>
+                      <Tooltip key={item.label} content={item.label} side="right">
+                        <Link
+                          href={item.href}
+                          prefetch={true}
+                          aria-label={item.label}
+                          className={`flex h-11 w-11 items-center justify-center rounded-full transition-all ${
+                            isActive
+                              ? 'bg-blue-100 text-[#0044D3] shadow-xs'
+                              : 'text-[#667085] hover:bg-[#F6F8FC] hover:text-[#111827]'
+                          }`}
+                        >
+                          {icon}
+                        </Link>
+                      </Tooltip>
                     );
                   }
 
                   return (
-                    <div
-                      key={item.label}
-                      title={`${item.label} (Coming Soon)`}
-                      aria-label={`${item.label} (Coming Soon)`}
-                      className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
-                    >
-                      {icon}
-                    </div>
+                    <Tooltip key={item.label} content={`${item.label} (Coming Soon)`} side="right">
+                      <div
+                        aria-label={`${item.label} (Coming Soon)`}
+                        className="flex h-11 w-11 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
+                      >
+                        {icon}
+                      </div>
+                    </Tooltip>
                   );
                 })}
           </nav>
@@ -529,39 +530,39 @@ function HeaderInner({
           {isLoading || !user ? (
             <Skeleton className="h-10 w-10 rounded-full" />
           ) : (
-            <div
-              title={`${user.name} (${formattedRole})`}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0044D3] text-xs font-bold text-white shadow-xs"
-            >
-              {userInitials}
-            </div>
+            <Tooltip content={`${user.name} (${formattedRole})`} side="right">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0044D3] text-xs font-bold text-white shadow-xs">
+                {userInitials}
+              </div>
+            </Tooltip>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                setIsMobileNavOpen(true);
-              } else {
-                setIsDrawerOpen(true);
-              }
-            }}
-            className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
-            title="Expand sidebar"
-            aria-label="Expand sidebar"
-          >
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          <Tooltip content="Expand sidebar" side="right">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setIsMobileNavOpen(true);
+                } else {
+                  setIsDrawerOpen(true);
+                }
+              }}
+              className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+              aria-label="Expand sidebar"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M9 3v18" />
-            </svg>
-          </Button>
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18" />
+              </svg>
+            </Button>
+          </Tooltip>
         </div>
       </aside>
 
@@ -690,26 +691,27 @@ function HeaderInner({
               </Span>
             </div>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsDrawerOpen(false)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
-            title="Collapse sidebar"
-            aria-label="Collapse sidebar"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          <Tooltip content="Collapse sidebar" side="right">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDrawerOpen(false)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+              aria-label="Collapse sidebar"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M9 3v18" />
-            </svg>
-          </Button>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18" />
+              </svg>
+            </Button>
+          </Tooltip>
         </div>
       </aside>
 
@@ -822,32 +824,33 @@ export function HeaderSkeleton({ title = 'Dashboard' }: { title?: string }) {
 
         <div className="flex flex-col items-center gap-3 pb-2">
           <Skeleton className="h-10 w-10 rounded-full" />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                setIsMobileNavOpen(true);
-              } else {
-                setIsDrawerOpen(true);
-              }
-            }}
-            className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
-            title="Expand sidebar"
-            aria-label="Expand sidebar"
-          >
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          <Tooltip content="Expand sidebar" side="right">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setIsMobileNavOpen(true);
+                } else {
+                  setIsDrawerOpen(true);
+                }
+              }}
+              className="flex h-10 w-10 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+              aria-label="Expand sidebar"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M9 3v18" />
-            </svg>
-          </Button>
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18" />
+              </svg>
+            </Button>
+          </Tooltip>
         </div>
       </aside>
 
@@ -909,26 +912,27 @@ export function HeaderSkeleton({ title = 'Dashboard' }: { title?: string }) {
             <Skeleton className="h-4 w-28 rounded-md" />
             <Skeleton className="h-3 w-40 rounded-md" />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsDrawerOpen(false)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
-            title="Collapse sidebar"
-            aria-label="Collapse sidebar"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+          <Tooltip content="Collapse sidebar" side="right">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDrawerOpen(false)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[#E1E6EC] p-0 text-[#667085] transition-colors hover:bg-[#F6F8FC] hover:text-[#111827]"
+              aria-label="Collapse sidebar"
             >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M9 3v18" />
-            </svg>
-          </Button>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18" />
+              </svg>
+            </Button>
+          </Tooltip>
         </div>
       </aside>
     </>

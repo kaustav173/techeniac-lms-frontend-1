@@ -667,22 +667,22 @@ export function LearningHistoryView({
                             alloc.assignments.length > 0 ? (
                               <div className="mt-3 overflow-hidden rounded-xl border border-[#E1E6EC] bg-white shadow-2xs">
                                 <div className="overflow-x-auto">
-                                  <Table className="w-full min-w-[640px] border-collapse text-left text-xs text-[#111827]">
+                                  <Table className="w-full min-w-[640px] border-collapse text-left">
                                     <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
                                       <TableRow>
-                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                        <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                                           Assignment
                                         </TableHead>
-                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                        <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                                           Submitted
                                         </TableHead>
-                                        <TableHead className="px-4 py-2.5 text-center text-xs font-semibold text-[#667085]">
+                                        <TableHead className="px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                                           Version
                                         </TableHead>
-                                        <TableHead className="px-4 py-2.5 text-center text-xs font-semibold text-[#667085]">
+                                        <TableHead className="px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                                           Score
                                         </TableHead>
-                                        <TableHead className="px-4 py-2.5 text-xs font-semibold text-[#667085]">
+                                        <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                                           Mentor Feedback
                                         </TableHead>
                                       </TableRow>
@@ -694,7 +694,7 @@ export function LearningHistoryView({
                                           className="bg-white transition-colors hover:bg-[#F9FAFB]/90"
                                         >
                                           <TableCell className="px-4 py-3 align-middle">
-                                            <P className="text-sm font-semibold text-[#111827]">
+                                            <P className="text-base font-semibold text-slate-900">
                                               {assign.assignmentTitle}
                                             </P>
                                           </TableCell>
