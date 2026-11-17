@@ -11,6 +11,7 @@ import { SingleSelectDropdown } from '@/components/ui/SingleSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useDurationInput } from '@/hooks/useDurationInput';
 import {
+  areResourcesEqual,
   findDuplicateTitle,
   isValidWebUrl,
   RESOURCE_TYPE_OPTIONS,
@@ -58,6 +59,18 @@ export function TopicEditor({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Compute dirty state comparing current values against initial topic props
+  const isDirty =
+    title.trim() !== topic.title.trim() ||
+    description.trim() !== (topic.description || '').trim() ||
+    (totalEstimatedMins ?? null) !== (topic.estimatedMinutes ?? null) ||
+    isActive !== topic.isActive ||
+    !areResourcesEqual(resources, topic.resources);
+
+  React.useEffect(() => {
+    onDirtyChange(isDirty);
+  }, [isDirty, onDirtyChange]);
+
   const subtopicsTotalMinutes =
     topic.subtopics?.reduce((acc, s) => acc + (s.estimatedMinutes || 0), 0) || 0;
 
@@ -104,17 +117,16 @@ export function TopicEditor({
     setNewResourceTitle('');
     setNewResourceUrl('');
     setErrorMsg(null);
-    onDirtyChange(true);
   };
 
   const handleRemoveResource = (indexToRemove: number) => {
     const updated = resources.filter((_, idx) => idx !== indexToRemove);
     setResources(updated);
-    onDirtyChange(true);
   };
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!isDirty || isSaving) return;
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Topic title cannot be empty.');
@@ -254,7 +266,6 @@ export function TopicEditor({
   const handleChange = (updater: () => void) => {
     updater();
     if (errorMsg) setErrorMsg(null);
-    onDirtyChange(true);
   };
 
   const affectedMentees = impact?.affectedMenteesCount ?? 0;
@@ -264,7 +275,7 @@ export function TopicEditor({
       <EditorFormShell
         category="Topic Parameters"
         title={topic.title}
-        isDirty={true}
+        isDirty={isDirty}
         isSaving={isSaving}
         saveSuccess={saveSuccess}
         onSave={() => {
