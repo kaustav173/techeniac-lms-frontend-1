@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/Label';
 import { MultiSelectDropdown, type MultiSelectOption } from '@/components/ui/MultiSelectDropdown';
 import { H3, P, Span } from '@/components/ui/Typography';
 import {
-  type AllocationTargetType,
+  AllocationTargetType,
   type CreateAllocationsResponse,
   useCreateAllocationsMutation,
 } from '@/hooks/useAllocations';
@@ -49,7 +49,7 @@ function AssignCourseModalDialog({
   // Wizard step: 1 = Course, 2 = Targets, 3 = Schedule & Review
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(initialCourseId ? 2 : 1);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId ?? '');
-  const [targetType, setTargetType] = useState<AllocationTargetType>('BATCH');
+  const [targetType, setTargetType] = useState<AllocationTargetType>(AllocationTargetType.BATCH);
   const [selectedBatchId, setSelectedBatchId] = useState<string>(initialBatchId ?? '');
   const [selectedMenteeIds, setSelectedMenteeIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>('');
@@ -109,12 +109,16 @@ function AssignCourseModalDialog({
   }, [batchesInfiniteData]);
 
   const { data: batchDetailData } = useBatchDetail(selectedBatchId, undefined, {
-    enabled: Boolean(selectedBatchId) && targetType !== 'INDIVIDUAL_MENTEES',
+    enabled: Boolean(selectedBatchId) && targetType !== AllocationTargetType.INDIVIDUAL_MENTEES,
   });
   const canTargetIndividualMentees = userRole === 'SUPER_ADMIN' && !initialBatchId;
   const { users: allUsers, isLoading: isLoadingUsers } = useUsers(
-    targetType === 'INDIVIDUAL_MENTEES' ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 } : {},
-    { enabled: targetType === 'INDIVIDUAL_MENTEES' && canTargetIndividualMentees },
+    targetType === AllocationTargetType.INDIVIDUAL_MENTEES
+      ? { role: 'MENTEE', status: 'ACTIVE', limit: 100 }
+      : {},
+    {
+      enabled: targetType === AllocationTargetType.INDIVIDUAL_MENTEES && canTargetIndividualMentees,
+    },
   );
 
   const createMutation = useCreateAllocationsMutation();
@@ -238,10 +242,10 @@ function AssignCourseModalDialog({
   const menteeNames = useMemo(
     () =>
       new Map(
-        (targetType === 'INDIVIDUAL_MENTEES' ? allUsers : availableBatchMentees).map((mentee) => [
-          mentee.id,
-          mentee.name,
-        ]),
+        (targetType === AllocationTargetType.INDIVIDUAL_MENTEES
+          ? allUsers
+          : availableBatchMentees
+        ).map((mentee) => [mentee.id, mentee.name]),
       ),
     [targetType, allUsers, availableBatchMentees],
   );
@@ -253,9 +257,9 @@ function AssignCourseModalDialog({
   };
 
   const selectAllMentees = () => {
-    if (targetType === 'SELECTED_MENTEES') {
+    if (targetType === AllocationTargetType.SELECTED_MENTEES) {
       setSelectedMenteeIds(availableBatchMentees.map((m) => m.id));
-    } else if (targetType === 'INDIVIDUAL_MENTEES') {
+    } else if (targetType === AllocationTargetType.INDIVIDUAL_MENTEES) {
       setSelectedMenteeIds(allUsers.map((u) => u.id));
     }
   };
@@ -267,7 +271,7 @@ function AssignCourseModalDialog({
   const handleReset = () => {
     setCurrentStep(initialCourseId ? 2 : 1);
     setSelectedCourseId(initialCourseId ?? '');
-    setTargetType('BATCH');
+    setTargetType(AllocationTargetType.BATCH);
     setSelectedBatchId(initialBatchId ?? '');
     setSelectedMenteeIds([]);
     setDueDate('');
@@ -289,12 +293,13 @@ function AssignCourseModalDialog({
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
-      if (targetType !== 'INDIVIDUAL_MENTEES' && !selectedBatchId) {
+      if (targetType !== AllocationTargetType.INDIVIDUAL_MENTEES && !selectedBatchId) {
         setErrorMsg('Please select a target batch.');
         return;
       }
       if (
-        (targetType === 'SELECTED_MENTEES' || targetType === 'INDIVIDUAL_MENTEES') &&
+        (targetType === AllocationTargetType.SELECTED_MENTEES ||
+          targetType === AllocationTargetType.INDIVIDUAL_MENTEES) &&
         selectedMenteeIds.length === 0
       ) {
         setErrorMsg('Please select at least one mentee.');
@@ -347,8 +352,9 @@ function AssignCourseModalDialog({
       const res = await createMutation.mutateAsync({
         courseId: selectedCourseId,
         targetType,
-        batchId: targetType !== 'INDIVIDUAL_MENTEES' ? selectedBatchId : undefined,
-        menteeIds: targetType !== 'BATCH' ? selectedMenteeIds : undefined,
+        batchId:
+          targetType !== AllocationTargetType.INDIVIDUAL_MENTEES ? selectedBatchId : undefined,
+        menteeIds: targetType !== AllocationTargetType.BATCH ? selectedMenteeIds : undefined,
         startDate: new Date(startDate).toISOString(),
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
       });
@@ -637,14 +643,14 @@ function AssignCourseModalDialog({
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setTargetType('BATCH');
+                    setTargetType(AllocationTargetType.BATCH);
                     if (initialBatchId) {
                       setSelectedBatchId(initialBatchId);
                     }
                     setSelectedMenteeIds([]);
                   }}
                   className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
-                    targetType === 'BATCH'
+                    targetType === AllocationTargetType.BATCH
                       ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
@@ -659,14 +665,14 @@ function AssignCourseModalDialog({
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    setTargetType('SELECTED_MENTEES');
+                    setTargetType(AllocationTargetType.SELECTED_MENTEES);
                     if (initialBatchId) {
                       setSelectedBatchId(initialBatchId);
                     }
                     setSelectedMenteeIds([]);
                   }}
                   className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
-                    targetType === 'SELECTED_MENTEES'
+                    targetType === AllocationTargetType.SELECTED_MENTEES
                       ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
@@ -682,12 +688,12 @@ function AssignCourseModalDialog({
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setTargetType('INDIVIDUAL_MENTEES');
+                      setTargetType(AllocationTargetType.INDIVIDUAL_MENTEES);
                       setSelectedBatchId('');
                       setSelectedMenteeIds([]);
                     }}
                     className={`h-auto flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
-                      targetType === 'INDIVIDUAL_MENTEES'
+                      targetType === AllocationTargetType.INDIVIDUAL_MENTEES
                         ? 'border-blue-600 bg-blue-50/60 shadow-xs ring-2 ring-blue-500 hover:bg-blue-50/70'
                         : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                     }`}
@@ -702,7 +708,7 @@ function AssignCourseModalDialog({
             </div>
 
             {/* Target Batch Select */}
-            {targetType !== 'INDIVIDUAL_MENTEES' ? (
+            {targetType !== AllocationTargetType.INDIVIDUAL_MENTEES ? (
               <div className="space-y-2">
                 <Label htmlFor="assign-batch-select" required>
                   Select Target Batch
@@ -789,7 +795,7 @@ function AssignCourseModalDialog({
             ) : null}
 
             {/* Checkbox list for INDIVIDUAL_MENTEES */}
-            {targetType === 'INDIVIDUAL_MENTEES' ? (
+            {targetType === AllocationTargetType.INDIVIDUAL_MENTEES ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label required>
