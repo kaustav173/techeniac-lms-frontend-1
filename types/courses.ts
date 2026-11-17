@@ -94,7 +94,7 @@ export interface ListCoursesQuery {
   limit?: number | undefined;
   search?: string | undefined;
   isActive?: boolean | 'all' | undefined;
-  sortBy?: 'createdAt' | 'title' | 'updatedAt' | 'topics' | 'tasks' | undefined;
+  sortBy?: 'createdAt' | 'title' | 'updatedAt' | 'topics' | 'assignments' | undefined;
   sortOrder?: 'asc' | 'desc' | undefined;
 }
 
