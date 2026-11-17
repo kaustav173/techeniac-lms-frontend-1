@@ -10,6 +10,25 @@ export const VALID_BATCH_STATUSES: readonly BatchStatus[] = [
   'ARCHIVED',
 ];
 
+export const BATCH_STATUS_LABELS: Record<BatchStatus, string> = {
+  LIVE: 'Live',
+  DRAFT: 'Draft',
+  ON_HOLD: 'On Hold',
+  COMPLETED: 'Completed',
+  ARCHIVED: 'Archived',
+};
+
+export function formatBatchStatus(status: string): string {
+  if (isBatchStatus(status)) {
+    return BATCH_STATUS_LABELS[status];
+  }
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function isBatchStatus(val: string): val is BatchStatus {
   return VALID_BATCH_STATUSES.includes(val as BatchStatus);
 }
