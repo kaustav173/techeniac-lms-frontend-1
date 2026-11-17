@@ -38,8 +38,6 @@ import { useInfiniteCourses } from '@/hooks/useCourses';
 import { cn } from '@/lib/cn';
 import { formatDateIST } from '@/lib/date';
 
-const EM_DASH = '—';
-
 function mergeSelectedOptionLabels<T>(
   selectedMap: Record<string, string>,
   loadedItems: readonly T[],
@@ -188,9 +186,19 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
     [loadedBatches, selectedBatchOptions],
   );
 
+  const isTableLoading = isLoading || isFetching;
   const rawAllocations = data?.items;
   const allocations = useMemo(() => rawAllocations ?? [], [rawAllocations]);
-  const pagination = data?.pagination;
+  const pagination = useMemo(
+    () =>
+      data?.pagination ?? {
+        page: filters.page ?? 1,
+        limit: filters.limit ?? 10,
+        total: 0,
+        totalPages: 1,
+      },
+    [data?.pagination, filters.page, filters.limit],
+  );
 
   const handleSort = (field: SortField) => {
     let nextField: SortField | null = field;
@@ -430,31 +438,22 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             <TableHeader>
               <TableRow>
                 <SortableColumnHeader<SortField>
-                  field="course"
-                  label="Course"
-                  sortField={sortField}
-                  sortOrder={sortOrder ?? 'desc'}
-                  onSort={handleSort}
-                  tooltip="Sort by course"
-                  className="w-[22%] py-3.5 pr-4 pl-6 font-semibold text-slate-700"
-                />
-                <SortableColumnHeader<SortField>
                   field="mentee"
                   label="Mentee"
                   sortField={sortField}
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by mentee"
-                  className="w-[18%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[20%] py-3.5 pr-4 pl-6 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
-                  field="batch"
-                  label="Batch"
+                  field="course"
+                  label="Course & Batch"
                   sortField={sortField}
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
-                  tooltip="Sort by batch"
-                  className="w-[18%] px-4 py-3.5 font-semibold text-slate-700"
+                  tooltip="Sort by course"
+                  className="w-[30%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="started"
@@ -463,7 +462,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by start date"
-                  className="w-[11%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="due"
@@ -472,7 +471,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by due date"
-                  className="w-[11%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="duration"
@@ -481,49 +480,49 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by duration"
-                  className="w-[8%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[10%] px-4 py-3.5 font-semibold text-slate-700"
                 />
-                <TableHead className="w-[8%] px-4 py-3.5 font-semibold whitespace-nowrap text-slate-700">
+                <TableHead className="w-[10%] px-4 py-3.5 font-semibold whitespace-nowrap text-slate-700">
                   Status
                 </TableHead>
-                <TableHead className="w-[4%] py-3.5 pr-6 pl-4 text-right font-semibold text-slate-700">
+                <TableHead className="w-[6%] px-3 py-3.5 text-center font-semibold text-slate-700">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading || isFetching ? (
+              {isTableLoading ? (
                 Array.from({ length: 10 }).map((_, idx) => (
-                  <TableRow key={`alloc-skel-${idx}`} className="h-14">
-                    <TableCell className="w-[22%] py-3 pr-4 pl-6">
-                      <Skeleton className="h-4 w-36 rounded-md" />
+                  <TableRow key={`alloc-skel-${idx}`} className="h-16">
+                    <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
+                      <Skeleton className="h-5 w-32 rounded-md sm:w-40" />
                     </TableCell>
-                    <TableCell className="w-[18%] px-4 py-3">
-                      <Skeleton className="h-4 w-28 rounded-md" />
+                    <TableCell className="w-[30%] px-4 py-3 align-middle">
+                      <div className="flex min-w-0 flex-col justify-center gap-1.5">
+                        <Skeleton className="h-5 w-48 rounded-md sm:w-64" />
+                        <Skeleton className="h-3.5 w-28 rounded-md sm:w-36" />
+                      </div>
                     </TableCell>
-                    <TableCell className="w-[18%] px-4 py-3">
-                      <Skeleton className="h-4 w-28 rounded-md" />
+                    <TableCell className="w-[12%] px-4 py-3 align-middle">
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[11%] px-4 py-3">
-                      <Skeleton className="h-4 w-20 rounded-md" />
+                    <TableCell className="w-[12%] px-4 py-3 align-middle">
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[11%] px-4 py-3">
-                      <Skeleton className="h-4 w-20 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[8%] px-4 py-3">
+                    <TableCell className="w-[10%] px-4 py-3 align-middle">
                       <Skeleton className="h-4 w-12 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[8%] px-4 py-3">
-                      <Skeleton className="h-6 w-16 rounded-full" />
+                    <TableCell className="w-[10%] px-4 py-3 align-middle">
+                      <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
-                    <TableCell className="w-[4%] py-3 pr-6 pl-4 text-right">
-                      <Skeleton className="ml-auto h-8 w-8 rounded-full" />
+                    <TableCell className="w-[6%] px-3 py-3 text-center align-middle">
+                      <Skeleton className="mx-auto h-8 w-8 rounded-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="px-6 py-8 text-center">
+                  <TableCell colSpan={7} className="px-6 py-8 text-center">
                     <ErrorMessage
                       error={error}
                       title="Failed to load allocations"
@@ -533,7 +532,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 </TableRow>
               ) : allocations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="px-6 py-12 text-center">
+                  <TableCell colSpan={7} className="px-6 py-12 text-center">
                     <P className="text-xs font-medium text-slate-600">
                       No course allocations found.
                     </P>
@@ -546,57 +545,50 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                     <TableRow
                       key={alloc.id}
                       className={cn(
-                        'h-14 transition-colors hover:bg-slate-50/70',
+                        'h-16 transition-colors hover:bg-slate-50/70',
                         isActionMenuOpen && 'relative z-30',
                       )}
                     >
-                      <TableCell className="w-[22%] py-3 pr-4 pl-6 align-middle">
-                        <P
-                          className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
-                          title={alloc.course?.title ?? 'Untitled Course'}
-                        >
-                          {alloc.course?.title ?? 'Untitled Course'}
-                        </P>
-                      </TableCell>
-                      <TableCell className="w-[18%] px-4 py-3 align-middle">
-                        <P
-                          className="truncate text-base font-semibold text-slate-900"
+                      <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
+                        <Span
+                          className="block truncate text-base font-semibold text-slate-900"
                           title={alloc.user?.name ?? 'Individual Mentee'}
                         >
                           {alloc.user?.name ?? 'Individual Mentee'}
-                        </P>
+                        </Span>
                       </TableCell>
-                      <TableCell className="w-[18%] px-4 py-3 align-middle">
-                        {alloc.batch ? (
-                          <P
-                            className="truncate text-base font-semibold text-slate-900"
-                            title={alloc.batch.name}
+                      <TableCell className="w-[30%] px-4 py-3 align-middle">
+                        <div className="flex min-w-0 flex-col justify-center">
+                          <Span
+                            className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
+                            title={alloc.course?.title ?? 'Untitled Course'}
                           >
-                            {alloc.batch.name}
-                          </P>
-                        ) : (
-                          <Span className="text-base font-semibold text-slate-400">{EM_DASH}</Span>
-                        )}
+                            {alloc.course?.title ?? 'Untitled Course'}
+                          </Span>
+                          <Span className="truncate text-xs font-semibold text-blue-600">
+                            {alloc.batch?.name || 'Individual Track'}
+                          </Span>
+                        </div>
                       </TableCell>
-                      <TableCell className="w-[11%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.startDate)}
                       </TableCell>
-                      <TableCell className="w-[11%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.dueDate)}
                       </TableCell>
-                      <TableCell className="w-[8%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="w-[10%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDurationMinutes(
                           alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
                         )}
                       </TableCell>
-                      <TableCell className="w-[8%] px-4 py-3 align-middle whitespace-nowrap">
+                      <TableCell className="w-[10%] px-4 py-3 align-middle whitespace-nowrap">
                         <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
                       </TableCell>
                       <TableCell
-                        className="w-[4%] py-3 pr-6 pl-4 text-right align-middle"
+                        className="w-[6%] px-3 py-3 text-center align-middle"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-center">
                           <Button
                             type="button"
                             variant="ghost"
@@ -788,7 +780,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         </TableContainer>
 
         {/* Attached Pagination Controls */}
-        {pagination && pagination.total > 0 && (
+        {!isError && (isTableLoading || pagination.total > 0) && (
           <PaginationControls
             page={pagination.page}
             limit={pagination.limit}
@@ -796,7 +788,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             totalPages={pagination.totalPages}
             onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
             onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
-            isLoading={isLoading || isFetching}
+            isLoading={isTableLoading}
             itemLabel="allocations"
             pageSizeOptions={[10, 20, 50]}
             className="border-t border-[#E1E6EC]"
