@@ -11,7 +11,8 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { ErrorMessage, parseApiError } from '@/components/ui/ErrorMessage';
+import { Label } from '@/components/ui/Label';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { H1, H4, P, Span } from '@/components/ui/Typography';
 import {
@@ -19,6 +20,7 @@ import {
   useAllocationProgress,
   useUpdateTopicDeadlineMutation,
 } from '@/hooks/useProgress';
+import { useToast } from '@/hooks/useToast';
 import { formatDateDDMMYY, toISTDateInputValue } from '@/lib/date';
 
 interface MenteeProgressDetailViewProps {
@@ -57,7 +59,7 @@ export function MenteeProgressDetailSkeleton({
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span>Back to Progress</span>
+              <Span>Back to Progress</Span>
             </Link>
           </div>
           <div className="space-y-6">
@@ -75,12 +77,41 @@ export function MenteeProgressDetailSkeleton({
   );
 }
 
+interface MetricCardProps {
+  readonly iconBgColor: string;
+  readonly iconTextColor: string;
+  readonly icon: React.ReactNode;
+  readonly label: string;
+  readonly children: React.ReactNode;
+}
+
+function MetricCard({ iconBgColor, iconTextColor, icon, label, children }: MetricCardProps) {
+  return (
+    <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBgColor} ${iconTextColor}`}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
+            {label}
+          </Span>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MenteeProgressDetailView({
   allocationId,
   portalType = 'admin',
 }: MenteeProgressDetailViewProps) {
   const navConfig = portalType === 'mentor' ? MENTOR_PROGRESS_NAV : ADMIN_PROGRESS_NAV;
   const backHref = portalType === 'mentor' ? '/mentor/progress' : '/admin/progress';
+  const { toastSuccess, toastError } = useToast();
 
   // 1. Fetch detailed allocation progress
   const {
@@ -103,7 +134,7 @@ export function MenteeProgressDetailView({
   // Clean batch name (e.g. remove trailing date/year like "-December-2026")
   const rawBatchName = allocation?.batchName;
   const displayBatchName = rawBatchName
-    ? rawBatchName.replace(/\s*[-–—]\s*(?:[A-Za-z]+\s*[-–—\s]*)?\d{4}.*$/i, '').trim() ||
+    ? rawBatchName.replace(/\s*[-–—]\s*(?:[A-Za-z]+\s*[-–—\s]*)?\d{4}\s*$/i, '').trim() ||
       rawBatchName
     : '';
 
@@ -178,14 +209,24 @@ export function MenteeProgressDetailView({
           deadline: isoDeadline,
         },
       });
+      const topicObj = topics.find((item) => item.topicId === topicId);
+      toastSuccess(
+        `Target deadline for "${topicObj?.title || 'topic'}" updated.`,
+        'Deadline Updated',
+      );
       setEditingTopicId(null);
       setInlineDeadline('');
       setInlineError(null);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update topic deadline';
-      setInlineError(msg);
+      const parsed = parseApiError(err);
+      setInlineError(parsed.message);
+      toastError(parsed.message, 'Update Failed');
     }
   };
+
+  if (isLoading) {
+    return <MenteeProgressDetailSkeleton portalType={portalType} />;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
@@ -212,22 +253,11 @@ export function MenteeProgressDetailView({
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span>Back to Progress</span>
+              <Span>Back to Progress</Span>
             </Link>
           </div>
 
-          {/* Loading Skeleton State */}
-          {isLoading ? (
-            <div className="space-y-6">
-              <Skeleton className="h-14 w-full rounded-2xl" />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Skeleton className="h-28 rounded-2xl" />
-                <Skeleton className="h-28 rounded-2xl" />
-                <Skeleton className="h-28 rounded-2xl" />
-              </div>
-              <Skeleton className="h-64 rounded-2xl" />
-            </div>
-          ) : isError ? (
+          {isError ? (
             <div className="rounded-2xl border border-rose-200 bg-white p-6 shadow-xs">
               <ErrorMessage error={error} onRetry={() => void refetch()} />
             </div>
@@ -244,132 +274,132 @@ export function MenteeProgressDetailView({
           ) : (
             <div className="space-y-6">
               {/* Mentee Header Hero Strip */}
-              <div className="flex items-center gap-3 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-[#0044D3]">
-                  {allocation.menteeName ? allocation.menteeName.charAt(0).toUpperCase() : 'M'}
+              <div className="flex flex-col gap-2 rounded-2xl border border-[#E1E6EC] bg-gradient-to-r from-blue-50/50 via-slate-50/60 to-white px-5 py-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-[#0044D3]">
+                    {allocation.menteeName ? allocation.menteeName.charAt(0).toUpperCase() : 'M'}
+                  </div>
+                  <div>
+                    <H1 className="truncate text-lg font-bold text-slate-900 sm:text-xl">
+                      {allocation.menteeName || 'Learner Progress'}
+                    </H1>
+                  </div>
                 </div>
-                <div>
-                  <H1 className="truncate text-lg font-bold text-slate-900 sm:text-xl">
-                    {allocation.menteeName || 'Learner Progress'}
-                  </H1>
-                </div>
+
+                {allocation.isOverdue && (
+                  <div className="flex items-center">
+                    <Span className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700">
+                      Allocation Overdue
+                    </Span>
+                  </div>
+                )}
               </div>
 
               {/* Structured Metadata Grid (3 Cards) */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {/* Card 1: Overall Completion */}
-                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0044D3]">
-                      <svg
-                        className="h-4.5 w-4.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Overall Completion
-                      </Span>
-                      <div className="mt-0.5 flex items-center gap-2">
-                        <Span className="truncate text-sm font-bold text-slate-900">
-                          {allocation.progressPercent}% Completed
-                        </Span>
-                        <Span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
-                          {completedTopicsCount} / {totalActiveTopics} Finished
-                        </Span>
-                      </div>
-                      {/* Sleek Progress bar */}
-                      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                        <div
-                          className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
-                          style={{
-                            width: `${Math.min(100, Math.max(0, allocation.progressPercent))}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
+                <MetricCard
+                  iconBgColor="bg-blue-50"
+                  iconTextColor="text-[#0044D3]"
+                  icon={
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
+                  label="Overall Completion"
+                >
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <Span className="truncate text-sm font-bold text-slate-900">
+                      {allocation.progressPercent}% Completed
+                    </Span>
+                    <Span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-bold text-[#0044D3]">
+                      {completedTopicsCount} / {totalActiveTopics} Finished
+                    </Span>
                   </div>
-                </div>
+                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-[#0044D3] transition-all duration-300"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, allocation.progressPercent))}%`,
+                      }}
+                    />
+                  </div>
+                </MetricCard>
 
                 {/* Card 2: Allocation Window */}
-                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                      <svg
-                        className="h-4.5 w-4.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Allocation Window
-                      </Span>
-                      {minDate || maxDate ? (
-                        <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
-                          {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
-                          {maxDate ? formatDateDDMMYY(maxDate) : '—'}
-                        </Span>
-                      ) : (
-                        <Span className="mt-0.5 block truncate text-xs text-slate-400">
-                          Flexible timeline (no window set)
-                        </Span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <MetricCard
+                  iconBgColor="bg-violet-50"
+                  iconTextColor="text-violet-600"
+                  icon={
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  }
+                  label="Allocation Window"
+                >
+                  {minDate || maxDate ? (
+                    <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
+                      {minDate ? formatDateDDMMYY(minDate) : '—'} →{' '}
+                      {maxDate ? formatDateDDMMYY(maxDate) : '—'}
+                    </Span>
+                  ) : (
+                    <Span className="mt-0.5 block truncate text-xs text-slate-400">
+                      Flexible timeline (no window set)
+                    </Span>
+                  )}
+                </MetricCard>
 
                 {/* Card 3: Assigned Course & Batch */}
-                <div className="rounded-2xl border border-[#E1E6EC] bg-white p-4.5 shadow-xs transition-colors hover:border-slate-300">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                      <svg
-                        className="h-4.5 w-4.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Span className="block text-xs font-bold tracking-wider text-slate-400 uppercase">
-                        Course Track
-                      </Span>
-                      <Span
-                        className="mt-0.5 block truncate text-sm font-bold text-slate-900"
-                        title={allocation.courseTitle}
-                      >
-                        {allocation.courseTitle}
-                      </Span>
-                      <Span className="mt-0.5 block truncate text-xs text-slate-500">
-                        {displayBatchName ? `Batch: ${displayBatchName}` : 'Individual Track'}
-                      </Span>
-                    </div>
-                  </div>
-                </div>
+                <MetricCard
+                  iconBgColor="bg-amber-50"
+                  iconTextColor="text-amber-600"
+                  icon={
+                    <svg
+                      className="h-4.5 w-4.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  }
+                  label="Course Track"
+                >
+                  <Span
+                    className="mt-0.5 block truncate text-sm font-bold text-slate-900"
+                    title={allocation.courseTitle}
+                  >
+                    {allocation.courseTitle}
+                  </Span>
+                  <Span className="mt-0.5 block truncate text-xs text-slate-500">
+                    {displayBatchName ? `Batch: ${displayBatchName}` : 'Individual Track'}
+                  </Span>
+                </MetricCard>
               </div>
 
               {/* Active Topic Milestones Container */}
@@ -467,6 +497,11 @@ export function MenteeProgressDetailView({
                                   size="sm"
                                   type="button"
                                   disabled={Boolean(editingTopicId && editingTopicId !== t.topicId)}
+                                  title={
+                                    Boolean(editingTopicId && editingTopicId !== t.topicId)
+                                      ? 'Finish editing the active topic deadline first'
+                                      : undefined
+                                  }
                                   onClick={() => handleStartEditDeadline(t)}
                                   className="h-8 px-2 text-xs font-semibold text-[#0044D3] hover:underline disabled:opacity-40"
                                 >
@@ -481,9 +516,12 @@ export function MenteeProgressDetailView({
                             <div className="mt-3.5 rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5 shadow-2xs">
                               <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-col">
-                                  <Span className="text-xs font-bold text-slate-800">
+                                  <Label
+                                    htmlFor={`deadline-${t.topicId}`}
+                                    className="text-xs font-bold text-slate-800"
+                                  >
                                     Target Deadline Date (DD/MM/YY):
-                                  </Span>
+                                  </Label>
                                   {minDate && maxDate && (
                                     <Span className="mt-0.5 text-[11px] text-slate-500">
                                       Window: {formatDateDDMMYY(minDate)} →{' '}

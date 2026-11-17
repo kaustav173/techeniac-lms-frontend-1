@@ -20,10 +20,10 @@ export interface AllocationProgressOverview {
   readonly id: string;
   readonly courseId: string;
   readonly courseTitle: string;
-  readonly menteeId?: string;
-  readonly menteeName?: string;
-  readonly batchId?: string | null;
-  readonly batchName?: string | null;
+  readonly menteeId?: string | null;
+  readonly menteeName?: string | null;
+  readonly batchId: string | null;
+  readonly batchName: string | null;
   readonly status: CourseAllocationStatus;
   readonly progressPercent: number;
   readonly startDate: string;

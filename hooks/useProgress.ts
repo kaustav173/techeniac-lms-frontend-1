@@ -70,7 +70,7 @@ export function usePrefetchAllocationProgress() {
     (allocationId: string | undefined) => {
       if (!allocationId || !UUID_REGEX.test(allocationId)) return;
       void queryClient
-        .prefetchQuery({
+        .query({
           queryKey: progressKeys.allocation(allocationId),
           queryFn: () => progressService.getAllocationProgress(allocationId),
           staleTime: 5 * 60 * 1000,
@@ -117,11 +117,7 @@ export function useUpdateTopicStatusMutation() {
             ? {
                 ...t,
                 status: payload.status,
-                completedAt: isCompleted
-                  ? new Date().toISOString()
-                  : payload.status === 'NOT_STARTED'
-                    ? null
-                    : t.completedAt,
+                completedAt: isCompleted ? new Date().toISOString() : null,
                 isOverdue: isCompleted
                   ? false
                   : Boolean(t.deadline && new Date(t.deadline) < new Date()),
@@ -151,6 +147,36 @@ export function useUpdateTopicStatusMutation() {
       if (context?.previousAllocation) {
         queryClient.setQueryData(progressKeys.allocation(allocationId), context.previousAllocation);
       }
+    },
+    onSuccess: (data, { allocationId, topicId }) => {
+      queryClient.setQueryData<AllocationProgressResponse>(
+        progressKeys.allocation(allocationId),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            allocation: {
+              ...old.allocation,
+              progressPercent: data.allocation.progressPercent,
+              status: data.allocation.status,
+            },
+            topics: old.topics.map((t) =>
+              t.topicId === topicId
+                ? {
+                    ...t,
+                    status: data.topicProgress.status,
+                    completedAt: data.topicProgress.completedAt,
+                    note: data.topicProgress.note,
+                    isOverdue:
+                      data.topicProgress.status === 'COMPLETED'
+                        ? false
+                        : Boolean(t.deadline && new Date(t.deadline) < new Date()),
+                  }
+                : t,
+            ),
+          };
+        },
+      );
     },
     onSettled: (_, __, { allocationId }) => {
       void queryClient.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
