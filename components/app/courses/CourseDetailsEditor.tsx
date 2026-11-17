@@ -220,7 +220,7 @@ export function CourseDetailsEditor({
         {/* Section 2: Estimated Duration & Scheduling */}
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Benchmark</H3>
+            <H3 className="text-base font-bold text-slate-900">Duration</H3>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">

@@ -360,7 +360,7 @@ export function AssignmentEditor({
                 required={true}
                 className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
               >
-                Est. Duration
+                Duration
               </Label>
               <div className="mt-1.5 grid grid-cols-2 gap-2">
                 <div className="relative">
