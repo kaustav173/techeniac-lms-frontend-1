@@ -236,8 +236,8 @@ function AddTopicModal({
       setError('Topic title cannot be empty.');
       return;
     }
-    if (trimmed.length > 150) {
-      setError('Topic title cannot exceed 150 characters.');
+    if (trimmed.length > 100) {
+      setError('Topic title cannot exceed 100 characters.');
       return;
     }
 
@@ -327,10 +327,11 @@ function AddTopicModal({
           </Label>
           <Input
             type="text"
+            maxLength={100}
             value={title}
             hasError={Boolean(error)}
             onChange={(e) => {
-              setTitle(e.target.value);
+              setTitle(e.target.value.slice(0, 100));
               if (error) setError(null);
             }}
             placeholder="e.g. Distributed Consensus"
@@ -370,8 +371,8 @@ function AddSubtopicModal({
       setError('Subtopic title cannot be empty.');
       return;
     }
-    if (trimmed.length > 150) {
-      setError('Subtopic title cannot exceed 150 characters.');
+    if (trimmed.length > 100) {
+      setError('Subtopic title cannot exceed 100 characters.');
       return;
     }
 
@@ -459,10 +460,11 @@ function AddSubtopicModal({
           </Label>
           <Input
             type="text"
+            maxLength={100}
             value={title}
             hasError={Boolean(error)}
             onChange={(e) => {
-              setTitle(e.target.value);
+              setTitle(e.target.value.slice(0, 100));
               if (error) setError(null);
             }}
             placeholder="e.g. Raft Leader Election Protocol"
@@ -488,7 +490,7 @@ function validateAssignmentInput({
   passMarks: number;
 }): string | null {
   if (!title) return 'Assignment title cannot be empty.';
-  if (title.length > 150) return 'Assignment title cannot exceed 150 characters.';
+  if (title.length > 100) return 'Assignment title cannot exceed 100 characters.';
   if (calculatedMinutes <= 0) return 'Estimated duration must be greater than 0 minutes.';
   if (minutes !== '') {
     const parsedMins = Number.parseInt(minutes, 10);
@@ -647,14 +649,15 @@ function AddAssignmentModal({
       >
         <div>
           <Label required={true} className="block text-xs font-semibold text-slate-700">
-            Assignment Title
+            Title
           </Label>
           <Input
             type="text"
+            maxLength={100}
             value={title}
             hasError={Boolean(error)}
             onChange={(e) => {
-              setTitle(e.target.value);
+              setTitle(e.target.value.slice(0, 100));
               if (error) setError(null);
             }}
             placeholder="e.g. Implement Raft Log Compaction"

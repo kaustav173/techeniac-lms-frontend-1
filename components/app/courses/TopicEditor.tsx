@@ -60,9 +60,11 @@ export function TopicEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Compute dirty state comparing current values against initial topic props
+  const isTitleDirty = title.trim() !== topic.title.trim();
+  const isDescriptionDirty = description.trim() !== (topic.description || '').trim();
   const isDirty =
-    title.trim() !== topic.title.trim() ||
-    description.trim() !== (topic.description || '').trim() ||
+    isTitleDirty ||
+    isDescriptionDirty ||
     (totalEstimatedMins ?? null) !== (topic.estimatedMinutes ?? null) ||
     isActive !== topic.isActive ||
     !areResourcesEqual(resources, topic.resources);
@@ -91,6 +93,10 @@ export function TopicEditor({
 
     if (!trimmedTitle) {
       setErrorMsg('Resource title is required.');
+      return;
+    }
+    if (trimmedTitle.length > 100) {
+      setErrorMsg('Resource title cannot exceed 100 characters.');
       return;
     }
     if (!trimmedUrl) {
@@ -130,6 +136,14 @@ export function TopicEditor({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Topic title cannot be empty.');
+      return;
+    }
+    if (isTitleDirty && trimmedTitle.length > 100) {
+      setErrorMsg('Topic title cannot exceed 100 characters.');
+      return;
+    }
+    if (isDescriptionDirty && description.trim().length > 2000) {
+      setErrorMsg('Topic description cannot exceed 2000 characters.');
       return;
     }
 
@@ -206,6 +220,10 @@ export function TopicEditor({
     if (pendingTitle || pendingUrl) {
       if (!pendingTitle) {
         setErrorMsg('Resource title is required (or clear the resource input before saving).');
+        return;
+      }
+      if (pendingTitle.length > 100) {
+        setErrorMsg('Resource title cannot exceed 100 characters.');
         return;
       }
       if (!pendingUrl || !isValidWebUrl(pendingUrl)) {
@@ -313,22 +331,29 @@ export function TopicEditor({
             </Label>
             <Input
               type="text"
+              maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
+              onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Branching & Trunk Strategies"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
           <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Description
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Description
+              </Label>
+              <Span className="text-xs font-medium text-slate-400">{description.length}/2000</Span>
+            </div>
             <textarea
               rows={4}
+              maxLength={2000}
               value={description}
-              onChange={(e) => handleChange(() => setDescription(e.target.value))}
+              onChange={(e) => handleChange(() => setDescription(e.target.value.slice(0, 2000)))}
               placeholder="Brief scope, prerequisites, and learning objectives for this topic..."
               className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
@@ -338,7 +363,7 @@ export function TopicEditor({
         {/* Section 2: Estimated Duration & Planning */}
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Planning</H3>
+            <H3 className="text-base font-bold text-slate-900">Duration</H3>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -446,7 +471,7 @@ export function TopicEditor({
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <H3 className="text-base font-bold text-slate-900">Resource Links & Attachments</H3>
+              <H3 className="text-base font-bold text-slate-900">Resources</H3>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
@@ -519,10 +544,11 @@ export function TopicEditor({
             <div className="sm:col-span-4">
               <Input
                 type="text"
+                maxLength={100}
                 placeholder="Resource title (e.g. Git Spec)"
                 value={newResourceTitle}
                 onChange={(e) => {
-                  setNewResourceTitle(e.target.value);
+                  setNewResourceTitle(e.target.value.slice(0, 100));
                   if (errorMsg) setErrorMsg(null);
                 }}
                 className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"

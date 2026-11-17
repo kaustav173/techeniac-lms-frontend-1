@@ -47,9 +47,11 @@ export function CourseDetailsEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Compute dirty state comparing current values against initial course props
+  const isTitleDirty = title.trim() !== course.title.trim();
+  const isDescriptionDirty = description.trim() !== (course.description || '').trim();
   const isDirty =
-    title.trim() !== course.title.trim() ||
-    description.trim() !== (course.description || '').trim() ||
+    isTitleDirty ||
+    isDescriptionDirty ||
     (totalEstimatedMins ?? null) !== (course.estimatedMinutes ?? null) ||
     isActive !== course.isActive;
 
@@ -65,8 +67,12 @@ export function CourseDetailsEditor({
       setErrorMsg('Course title cannot be empty.');
       return;
     }
-    if (title.trim().length > 100) {
+    if (isTitleDirty && title.trim().length > 100) {
       setErrorMsg('Course title cannot exceed 100 characters.');
+      return;
+    }
+    if (isDescriptionDirty && description.trim().length > 2000) {
+      setErrorMsg('Course description cannot exceed 2000 characters.');
       return;
     }
 
@@ -145,7 +151,7 @@ export function CourseDetailsEditor({
   return (
     <div className="flex h-full [scrollbar-gutter:stable] flex-col overflow-y-auto bg-slate-50/50 p-4 sm:p-8">
       <EditorFormShell
-        category="Course Settings"
+        category="Course"
         title={title || course.title}
         isDirty={isDirty}
         isSaving={isSaving}
@@ -182,13 +188,15 @@ export function CourseDetailsEditor({
               required={true}
               className="block text-sm font-semibold tracking-wide text-slate-800"
             >
-              Course Title
+              Title
             </Label>
             <Input
               type="text"
               maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && (!title.trim() || title.trim().length > 100))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
               onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Distributed Systems Engineering"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
@@ -196,13 +204,17 @@ export function CourseDetailsEditor({
           </div>
 
           <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Description
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Description
+              </Label>
+              <Span className="text-xs font-medium text-slate-400">{description.length}/2000</Span>
+            </div>
             <textarea
               rows={4}
+              maxLength={2000}
               value={description}
-              onChange={(e) => handleChange(() => setDescription(e.target.value))}
+              onChange={(e) => handleChange(() => setDescription(e.target.value.slice(0, 2000)))}
               placeholder="Provide a comprehensive syllabus overview, prerequisites, and target learning outcomes..."
               className="mt-2 min-h-[120px] w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
@@ -212,7 +224,7 @@ export function CourseDetailsEditor({
         {/* Section 2: Estimated Duration & Scheduling */}
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Estimated Duration & Benchmark</H3>
+            <H3 className="text-base font-bold text-slate-900">Duration</H3>
           </div>
 
           <div className="grid max-w-sm grid-cols-2 gap-4">
@@ -294,9 +306,6 @@ export function CourseDetailsEditor({
           <div>
             <Span className="block text-base font-bold text-slate-900">
               Course Visibility Status
-            </Span>
-            <Span className="mt-0.5 block text-xs text-slate-500">
-              When inactive, hidden from mentee discovery catalog and cannot be newly allocated.
             </Span>
           </div>
 

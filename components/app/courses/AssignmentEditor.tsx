@@ -73,9 +73,11 @@ export function AssignmentEditor({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Compute dirty state comparing current values against initial assignment props
+  const isTitleDirty = title.trim() !== assignment.title.trim();
+  const isInstructionsDirty = instructions.trim() !== (assignment.instructions || '').trim();
   const isDirty =
-    title.trim() !== assignment.title.trim() ||
-    instructions.trim() !== (assignment.instructions || '').trim() ||
+    isTitleDirty ||
+    isInstructionsDirty ||
     (totalDurationMinutes ?? null) !== (assignment.estimatedMinutes ?? null) ||
     maxMarks !== (Number(assignment.maxMarks) || 0) ||
     passMarks !== (Number(assignment.passMarks) || 0) ||
@@ -95,6 +97,10 @@ export function AssignmentEditor({
 
     if (!trimmedTitle) {
       setErrorMsg('Resource title is required.');
+      return;
+    }
+    if (trimmedTitle.length > 100) {
+      setErrorMsg('Resource title cannot exceed 100 characters.');
       return;
     }
     if (!trimmedUrl) {
@@ -134,6 +140,14 @@ export function AssignmentEditor({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setErrorMsg('Assignment title cannot be empty.');
+      return;
+    }
+    if (isTitleDirty && trimmedTitle.length > 100) {
+      setErrorMsg('Assignment title cannot exceed 100 characters.');
+      return;
+    }
+    if (isInstructionsDirty && instructions.trim().length > 2000) {
+      setErrorMsg('Instructions cannot exceed 2000 characters.');
       return;
     }
 
@@ -210,6 +224,10 @@ export function AssignmentEditor({
     if (pendingTitle || pendingUrl) {
       if (!pendingTitle) {
         setErrorMsg('Resource title is required (or clear the resource input before saving).');
+        return;
+      }
+      if (pendingTitle.length > 100) {
+        setErrorMsg('Resource title cannot exceed 100 characters.');
         return;
       }
       if (!pendingUrl || !isValidWebUrl(pendingUrl)) {
@@ -293,7 +311,7 @@ export function AssignmentEditor({
         {/* Section 1: Core Specifications */}
         <div className="space-y-5">
           <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Task Information & Prompt</H3>
+            <H3 className="text-base font-bold text-slate-900">Task Information</H3>
           </div>
 
           <div>
@@ -301,26 +319,33 @@ export function AssignmentEditor({
               required={true}
               className="block text-sm font-semibold tracking-wide text-slate-800"
             >
-              Assignment Title
+              Title
             </Label>
             <Input
               type="text"
+              maxLength={100}
               value={title}
-              hasError={Boolean(errorMsg && !title.trim())}
-              onChange={(e) => handleChange(() => setTitle(e.target.value))}
+              hasError={Boolean(
+                errorMsg && (!title.trim() || (isTitleDirty && title.trim().length > 100)),
+              )}
+              onChange={(e) => handleChange(() => setTitle(e.target.value.slice(0, 100)))}
               placeholder="e.g. Build a Raft Distributed Consensus Node"
               className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
           </div>
 
           <div>
-            <Label className="block text-sm font-semibold tracking-wide text-slate-800">
-              Instructions & Problem Statement (Rich Text)
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="block text-sm font-semibold tracking-wide text-slate-800">
+                Instructions
+              </Label>
+              <Span className="text-xs font-medium text-slate-400">{instructions.length}/2000</Span>
+            </div>
             <textarea
               rows={6}
+              maxLength={2000}
               value={instructions}
-              onChange={(e) => handleChange(() => setInstructions(e.target.value))}
+              onChange={(e) => handleChange(() => setInstructions(e.target.value.slice(0, 2000)))}
               placeholder="State the technical specifications, requirements, and constraints for mentees..."
               className="mt-2 w-full rounded-xl border border-slate-300 bg-white p-4 font-mono text-sm leading-relaxed text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-[#0044D3] focus:outline-hidden"
             />
@@ -330,7 +355,7 @@ export function AssignmentEditor({
         {/* Section 2: Time, Marks & Late Submissions */}
         <div className="space-y-5 border-t border-slate-100 pt-7">
           <div className="border-b border-slate-100 pb-3.5">
-            <H3 className="text-base font-bold text-slate-900">Grading & Duration Calibration</H3>
+            <H3 className="text-base font-bold text-slate-900">Grading</H3>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -339,7 +364,7 @@ export function AssignmentEditor({
                 required={true}
                 className="block text-xs font-semibold tracking-wider text-slate-600 uppercase"
               >
-                Est. Duration
+                Duration
               </Label>
               <div className="mt-1.5 grid grid-cols-2 gap-2">
                 <div className="relative">
@@ -545,7 +570,7 @@ export function AssignmentEditor({
         <div className="space-y-4 border-t border-slate-100 pt-7">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <H3 className="text-base font-bold text-slate-900">Task Resources & References</H3>
+              <H3 className="text-base font-bold text-slate-900">Resources</H3>
             </div>
             <Span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
               {resources.length} {resources.length === 1 ? 'Resource' : 'Resources'}
@@ -611,10 +636,11 @@ export function AssignmentEditor({
             <div className="sm:col-span-4">
               <Input
                 type="text"
+                maxLength={100}
                 placeholder="Resource title"
                 value={newResourceTitle}
                 onChange={(e) => {
-                  setNewResourceTitle(e.target.value);
+                  setNewResourceTitle(e.target.value.slice(0, 100));
                   if (errorMsg) setErrorMsg(null);
                 }}
                 className="h-10 w-full rounded-xl border border-slate-300 px-3.5 text-sm text-slate-900 shadow-xs focus:border-blue-600 focus:outline-hidden"
