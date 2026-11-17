@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { Span } from '@/components/ui/Typography';
 import { useBatchesList } from '@/hooks/useBatches';
 import { useRoleRedirect } from '@/hooks/useRoleRedirect';
@@ -64,17 +65,19 @@ function BatchesTableRow({
       }}
       className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
-      <TableCell className="w-[44%] font-semibold text-slate-900">
-        <Link
-          href={`/admin/batches/${batch.id}`}
-          onClick={(e) => e.stopPropagation()}
-          title={batch.name}
-          className="block truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
-        >
-          {batch.name}
-        </Link>
+      <TableCell className="w-[39%] font-semibold text-slate-900">
+        <Tooltip content={batch.name} containerClassName="block max-w-full">
+          <Link
+            href={`/admin/batches/${batch.id}`}
+            onClick={(e) => e.stopPropagation()}
+            title={batch.name}
+            className="block truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
+          >
+            {batch.name}
+          </Link>
+        </Tooltip>
       </TableCell>
-      <TableCell className="w-[14%]">
+      <TableCell className="w-[12%]">
         <Span
           className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getBatchStatusBadgeClass(
             batch.status,
@@ -83,15 +86,15 @@ function BatchesTableRow({
           {formatBatchStatus(batch.status)}
         </Span>
       </TableCell>
-      <TableCell className="w-[18%] text-sm text-slate-600">
-        <Span>
+      <TableCell className="w-[23%] text-sm whitespace-nowrap text-slate-600">
+        <Span className="whitespace-nowrap">
           {formatDateDMY(batch.startDate)} → {formatDateDMY(batch.endDate)}
         </Span>
       </TableCell>
-      <TableCell className="w-[12%] text-center">
+      <TableCell className="w-[13%] text-center">
         <Span className="text-base font-semibold text-slate-900">{batch.mentorsCount ?? 0}</Span>
       </TableCell>
-      <TableCell className="w-[12%] text-center">
+      <TableCell className="w-[13%] text-center">
         <Span className="text-base font-semibold text-slate-900">{batch.menteesCount ?? 0}</Span>
       </TableCell>
     </TableRow>
@@ -103,19 +106,19 @@ function BatchesTableSkeleton({ count = 10 }: Readonly<{ count?: number }>) {
     <>
       {Array.from({ length: count }).map((_, idx) => (
         <TableRow key={`batch-skel-${idx}`} className="h-14">
-          <TableCell className="w-[44%]">
-            <Skeleton className="h-4 w-44 rounded-md" />
+          <TableCell className="w-[39%]">
+            <Skeleton className="h-4 w-52 rounded-md" />
           </TableCell>
-          <TableCell className="w-[14%]">
+          <TableCell className="w-[12%]">
             <Skeleton className="h-5 w-20 rounded-full" />
           </TableCell>
-          <TableCell className="w-[18%]">
-            <Skeleton className="h-4 w-36 rounded-md" />
+          <TableCell className="w-[23%]">
+            <Skeleton className="h-4 w-40 rounded-md" />
           </TableCell>
-          <TableCell className="w-[12%] text-center">
+          <TableCell className="w-[13%] text-center">
             <Skeleton className="mx-auto h-4 w-8 rounded-md" />
           </TableCell>
-          <TableCell className="w-[12%] text-center">
+          <TableCell className="w-[13%] text-center">
             <Skeleton className="mx-auto h-4 w-8 rounded-md" />
           </TableCell>
         </TableRow>
@@ -138,29 +141,27 @@ export function BatchesPageSkeleton() {
         <Skeleton className="h-11 w-48 rounded-xl" />
       </div>
 
-      {/* Table Skeleton */}
-      <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-        <div className="h-12 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-          <div className="grid grid-cols-5 gap-4">
-            <Skeleton className="h-4 w-28 rounded-md" />
-            <Skeleton className="h-4 w-16 rounded-md" />
-            <Skeleton className="h-4 w-24 rounded-md" />
-            <Skeleton className="h-4 w-12 rounded-md" />
-            <Skeleton className="h-4 w-12 rounded-md" />
-          </div>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="flex h-14 items-center justify-between px-4">
-              <Skeleton className="h-4 w-40 rounded-md" />
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-4 w-32 rounded-md" />
-              <Skeleton className="h-4 w-8 rounded-md" />
-              <Skeleton className="h-4 w-8 rounded-md" />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Table Skeleton matching exact table structure */}
+      <TableContainer>
+        <Table className="table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[39%] font-semibold text-slate-700">Batch Name</TableHead>
+              <TableHead className="w-[12%] font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="w-[23%] font-semibold text-slate-700">Timeline</TableHead>
+              <TableHead className="w-[13%] text-center font-semibold text-slate-700">
+                Mentors
+              </TableHead>
+              <TableHead className="w-[13%] text-center font-semibold text-slate-700">
+                Mentees
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <BatchesTableSkeleton count={10} />
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 }
@@ -368,9 +369,9 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort all batches by Batch Name"
-                className="w-[44%] font-semibold text-slate-700"
+                className="w-[39%] font-semibold text-slate-700"
               />
-              <TableHead className="w-[14%] font-semibold text-slate-700">Status</TableHead>
+              <TableHead className="w-[12%] font-semibold text-slate-700">Status</TableHead>
               <SortableColumnHeader<BatchSortField>
                 field="startDate"
                 label="Timeline"
@@ -378,7 +379,7 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort all batches by Timeline"
-                className="w-[18%] font-semibold text-slate-700"
+                className="w-[23%] font-semibold text-slate-700"
               />
               <SortableColumnHeader<BatchSortField>
                 field="mentors"
@@ -387,7 +388,7 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort batches on current page by Mentor count"
-                className="w-[12%] text-center font-semibold text-slate-700"
+                className="w-[13%] text-center font-semibold text-slate-700"
               />
               <SortableColumnHeader<BatchSortField>
                 field="mentees"
@@ -396,7 +397,7 @@ export function BatchesTable() {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 tooltip="Sort batches on current page by Mentee count"
-                className="w-[12%] text-center font-semibold text-slate-700"
+                className="w-[13%] text-center font-semibold text-slate-700"
               />
             </TableRow>
           </TableHeader>
