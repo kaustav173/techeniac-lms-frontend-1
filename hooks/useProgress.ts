@@ -98,11 +98,87 @@ export function useUpdateTopicStatusMutation() {
       readonly allocationId: string;
       readonly topicId: string;
       readonly payload: UpdateTopicStatusPayload;
-    }
+    },
+    { readonly previousAllocation?: AllocationProgressResponse | undefined }
   >({
     mutationFn: ({ allocationId, topicId, payload }) =>
       progressService.updateTopicStatus(allocationId, topicId, payload),
-    onSuccess: (_, { allocationId }) => {
+    onMutate: async ({ allocationId, topicId, payload }) => {
+      await queryClient.cancelQueries({ queryKey: progressKeys.allocation(allocationId) });
+
+      const previousAllocation = queryClient.getQueryData<AllocationProgressResponse>(
+        progressKeys.allocation(allocationId),
+      );
+
+      if (previousAllocation) {
+        const isCompleted = payload.status === 'COMPLETED';
+        const updatedTopics = previousAllocation.topics.map((t) =>
+          t.topicId === topicId
+            ? {
+                ...t,
+                status: payload.status,
+                completedAt: isCompleted ? new Date().toISOString() : null,
+                isOverdue: isCompleted
+                  ? false
+                  : Boolean(t.deadline && new Date(t.deadline) < new Date()),
+              }
+            : t,
+        );
+        const completedCount = updatedTopics.filter((t) => t.status === 'COMPLETED').length;
+        const total = updatedTopics.length;
+        const progressPercent = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
+        queryClient.setQueryData<AllocationProgressResponse>(
+          progressKeys.allocation(allocationId),
+          {
+            ...previousAllocation,
+            allocation: {
+              ...previousAllocation.allocation,
+              progressPercent,
+            },
+            topics: updatedTopics,
+          },
+        );
+      }
+
+      return { previousAllocation };
+    },
+    onError: (_err, { allocationId }, context) => {
+      if (context?.previousAllocation) {
+        queryClient.setQueryData(progressKeys.allocation(allocationId), context.previousAllocation);
+      }
+    },
+    onSuccess: (data, { allocationId, topicId }) => {
+      queryClient.setQueryData<AllocationProgressResponse>(
+        progressKeys.allocation(allocationId),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            allocation: {
+              ...old.allocation,
+              progressPercent: data.allocation.progressPercent,
+              status: data.allocation.status,
+            },
+            topics: old.topics.map((t) =>
+              t.topicId === topicId
+                ? {
+                    ...t,
+                    status: data.topicProgress.status,
+                    completedAt: data.topicProgress.completedAt,
+                    note: data.topicProgress.note,
+                    isOverdue:
+                      data.topicProgress.status === 'COMPLETED'
+                        ? false
+                        : Boolean(t.deadline && new Date(t.deadline) < new Date()),
+                  }
+                : t,
+            ),
+          };
+        },
+      );
+    },
+    onSettled: (_, __, { allocationId }) => {
       void queryClient.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
       void queryClient.invalidateQueries({ queryKey: ['allocations'] });
       void queryClient.invalidateQueries({ queryKey: progressKeys.all });
@@ -119,11 +195,69 @@ export function useUpdateTopicDeadlineMutation() {
       readonly allocationId: string;
       readonly topicId: string;
       readonly payload: UpdateTopicDeadlinePayload;
-    }
+    },
+    { readonly previousAllocation?: AllocationProgressResponse | undefined }
   >({
     mutationFn: ({ allocationId, topicId, payload }) =>
       progressService.updateTopicDeadline(allocationId, topicId, payload),
-    onSuccess: (_, { allocationId }) => {
+    onMutate: async ({ allocationId, topicId, payload }) => {
+      await queryClient.cancelQueries({ queryKey: progressKeys.allocation(allocationId) });
+
+      const previousAllocation = queryClient.getQueryData<AllocationProgressResponse>(
+        progressKeys.allocation(allocationId),
+      );
+
+      if (previousAllocation) {
+        queryClient.setQueryData<AllocationProgressResponse>(
+          progressKeys.allocation(allocationId),
+          {
+            ...previousAllocation,
+            topics: previousAllocation.topics.map((t) =>
+              t.topicId === topicId
+                ? {
+                    ...t,
+                    deadline: payload.deadline,
+                    isOverdue:
+                      t.status !== 'COMPLETED' &&
+                      Boolean(payload.deadline && new Date(payload.deadline) < new Date()),
+                  }
+                : t,
+            ),
+          },
+        );
+      }
+
+      return { previousAllocation };
+    },
+    onError: (_err, { allocationId }, context) => {
+      if (context?.previousAllocation) {
+        queryClient.setQueryData(progressKeys.allocation(allocationId), context.previousAllocation);
+      }
+    },
+    onSuccess: (data, { allocationId, topicId, payload }) => {
+      const savedDeadline = data?.deadline || payload.deadline;
+      queryClient.setQueryData<AllocationProgressResponse>(
+        progressKeys.allocation(allocationId),
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            topics: old.topics.map((t) =>
+              t.topicId === topicId
+                ? {
+                    ...t,
+                    deadline: savedDeadline,
+                    isOverdue:
+                      t.status !== 'COMPLETED' &&
+                      Boolean(savedDeadline && new Date(savedDeadline) < new Date()),
+                  }
+                : t,
+            ),
+          };
+        },
+      );
+    },
+    onSettled: (_, __, { allocationId }) => {
       void queryClient.invalidateQueries({ queryKey: progressKeys.allocation(allocationId) });
       void queryClient.invalidateQueries({ queryKey: ['allocations'] });
       void queryClient.invalidateQueries({ queryKey: progressKeys.all });
