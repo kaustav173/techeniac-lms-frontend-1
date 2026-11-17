@@ -66,11 +66,10 @@ function BatchesTableRow({
       className="animate-row-enter h-14 cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
     >
       <TableCell className="w-[39%] font-semibold text-slate-900">
-        <Tooltip content={batch.name} containerClassName="block max-w-full">
+        <Tooltip content={batch.name} containerClassName="inline-flex max-w-full">
           <Link
             href={`/admin/batches/${batch.id}`}
             onClick={(e) => e.stopPropagation()}
-            title={batch.name}
             className="block truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
           >
             {batch.name}
@@ -313,26 +312,27 @@ export function BatchesTable() {
             }}
           />
           {hasActiveFilters ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              title="Clear all filters"
-              aria-label="Clear all filters"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                aria-hidden="true"
+            <Tooltip content="Clear all filters" side="bottom">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                aria-label="Clear all filters"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 p-0 text-red-600 shadow-2xs transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </Tooltip>
           ) : null}
         </div>
         <div className="flex items-center gap-3">
@@ -368,7 +368,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort all batches by Batch Name"
+                tooltip="Sort by Batch Name"
                 className="w-[39%] font-semibold text-slate-700"
               />
               <TableHead className="w-[12%] font-semibold text-slate-700">Status</TableHead>
@@ -378,7 +378,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort all batches by Timeline"
+                tooltip="Sort by Timeline"
                 className="w-[23%] font-semibold text-slate-700"
               />
               <SortableColumnHeader<BatchSortField>
@@ -387,7 +387,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort batches on current page by Mentor count"
+                tooltip="Sort by Mentor count"
                 className="w-[13%] text-center font-semibold text-slate-700"
               />
               <SortableColumnHeader<BatchSortField>
@@ -396,7 +396,7 @@ export function BatchesTable() {
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSort={handleSort}
-                tooltip="Sort batches on current page by Mentee count"
+                tooltip="Sort by Mentee count"
                 className="w-[13%] text-center font-semibold text-slate-700"
               />
             </TableRow>

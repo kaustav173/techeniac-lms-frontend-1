@@ -40,6 +40,7 @@ export function Tooltip({
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState<Coords | null>(null);
   const triggerRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -55,7 +56,11 @@ export function Tooltip({
     const rect = triggerRef.current.getBoundingClientRect();
     const gap = 7;
 
-    const isTooCloseToTop = rect.top < 38;
+    const tooltipEl = tooltipRef.current;
+    const tooltipWidth = tooltipEl ? tooltipEl.offsetWidth : 160;
+    const tooltipHeight = tooltipEl ? tooltipEl.offsetHeight : 28;
+
+    const isTooCloseToTop = rect.top < tooltipHeight + gap + 8;
     const effectiveSide = side === 'top' && isTooCloseToTop ? 'bottom' : side;
 
     let top = 0;
@@ -65,11 +70,12 @@ export function Tooltip({
     if (effectiveSide === 'top') {
       top = rect.top - gap;
       left = rect.left + rect.width / 2;
-      if (left < 70) {
-        left = Math.max(8, rect.left);
+      const halfWidth = tooltipWidth / 2;
+      if (left - halfWidth < 12) {
+        left = 12;
         transform = 'translate(0, -100%)';
-      } else if (left > window.innerWidth - 70) {
-        left = Math.min(window.innerWidth - 8, rect.right);
+      } else if (left + halfWidth > window.innerWidth - 12) {
+        left = window.innerWidth - 12;
         transform = 'translate(-100%, -100%)';
       } else {
         transform = 'translate(-50%, -100%)';
@@ -77,11 +83,12 @@ export function Tooltip({
     } else if (effectiveSide === 'bottom') {
       top = rect.bottom + gap;
       left = rect.left + rect.width / 2;
-      if (left < 70) {
-        left = Math.max(8, rect.left);
+      const halfWidth = tooltipWidth / 2;
+      if (left - halfWidth < 12) {
+        left = 12;
         transform = 'translate(0, 0)';
-      } else if (left > window.innerWidth - 70) {
-        left = Math.min(window.innerWidth - 8, rect.right);
+      } else if (left + halfWidth > window.innerWidth - 12) {
+        left = window.innerWidth - 12;
         transform = 'translate(-100%, 0)';
       } else {
         transform = 'translate(-50%, 0)';
@@ -115,6 +122,7 @@ export function Tooltip({
 
   useEffect(() => {
     if (!isVisible) return;
+    updateCoords();
     const handleScrollOrResize = () => {
       updateCoords();
     };
@@ -134,6 +142,7 @@ export function Tooltip({
     mounted && isVisible && coords && typeof document !== 'undefined'
       ? createPortal(
           <div
+            ref={tooltipRef}
             role="tooltip"
             aria-hidden={!isVisible}
             style={{
