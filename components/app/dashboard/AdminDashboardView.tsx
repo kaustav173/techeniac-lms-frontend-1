@@ -23,11 +23,20 @@ export function AdminDashboardSkeleton() {
           {Array.from({ length: 5 }).map((_, idx) => (
             <div
               key={`kpi-skel-${idx}`}
-              className="rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs"
+              className="flex flex-col justify-between rounded-2xl border border-[#E1E6EC] bg-white p-5 shadow-xs"
             >
-              <Skeleton className="h-3 w-20 rounded-md" />
-              <Skeleton className="mt-2 h-9 w-16 rounded-md" />
-              <Skeleton className="mt-3 h-3 w-28 rounded-md" />
+              <div>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-3 w-20 rounded-md" />
+                  <Skeleton className="h-7 w-7 rounded-full" />
+                </div>
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-16 rounded-md" />
+                </div>
+              </div>
+              <div className="mt-3 border-t border-slate-100 pt-2.5">
+                <Skeleton className="h-3.5 w-28 rounded-md" />
+              </div>
             </div>
           ))}
         </div>
@@ -39,13 +48,16 @@ export function AdminDashboardSkeleton() {
               key={`module-skel-${idx}`}
               className="flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-6 shadow-xs"
             >
-              <div className="space-y-4">
+              <div>
                 <div className="flex items-center justify-between">
                   <Skeleton className="h-12 w-12 rounded-2xl" />
                   <Skeleton className="h-5 w-16 rounded-full" />
                 </div>
-                <Skeleton className="h-5 w-40 rounded-md" />
-                <Skeleton className="h-10 w-full rounded-md" />
+                <Skeleton className="mt-4 h-6 w-44 rounded-md" />
+                <div className="mt-2 space-y-1.5">
+                  <Skeleton className="h-3.5 w-full rounded-md" />
+                  <Skeleton className="h-3.5 w-4/5 rounded-md" />
+                </div>
               </div>
               <Skeleton className="mt-4 h-4 w-28 rounded-md" />
             </div>
@@ -59,10 +71,13 @@ export function AdminDashboardSkeleton() {
 export function AdminDashboardView() {
   const {
     data: dashboard,
+    isLoading: isLoadingDashboard,
     isError: isErrorDashboard,
     error: dashboardError,
     refetch: refetchDashboard,
   } = useAdminDashboard();
+
+  const isKpiLoading = isLoadingDashboard || !dashboard;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
@@ -122,15 +137,25 @@ export function AdminDashboardView() {
                   </svg>
                 </div>
               </div>
-              <P className="mt-1 text-3xl font-bold text-[#111827]">
-                {dashboard?.users?.totalUsers ?? 0}
-              </P>
+              {isKpiLoading ? (
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-16 rounded-md" />
+                </div>
+              ) : (
+                <P className="mt-1 text-3xl font-bold text-[#111827]">
+                  {dashboard?.users?.totalUsers ?? 0}
+                </P>
+              )}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
-              <Span className="block text-xs text-[#667085]">
-                {dashboard?.users?.menteesCount ?? 0} Mentees •{' '}
-                {dashboard?.users?.mentorsCount ?? 0} Mentors
-              </Span>
+              {isKpiLoading ? (
+                <Skeleton className="h-4 w-32 rounded-md" />
+              ) : (
+                <Span className="block text-xs text-[#667085]">
+                  {dashboard?.users?.menteesCount ?? 0} Mentees •{' '}
+                  {dashboard?.users?.mentorsCount ?? 0} Mentors
+                </Span>
+              )}
             </div>
           </Link>
 
@@ -160,15 +185,25 @@ export function AdminDashboardView() {
                   </svg>
                 </div>
               </div>
-              <P className="mt-1 text-3xl font-bold text-emerald-600">
-                {dashboard?.batches?.liveBatches ?? 0}
-              </P>
+              {isKpiLoading ? (
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-14 rounded-md" />
+                </div>
+              ) : (
+                <P className="mt-1 text-3xl font-bold text-emerald-600">
+                  {dashboard?.batches?.liveBatches ?? 0}
+                </P>
+              )}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
-              <Span className="block text-xs text-[#667085]">
-                {dashboard?.batches?.totalBatches ?? 0} total •{' '}
-                {dashboard?.batches?.draftBatches ?? 0} draft
-              </Span>
+              {isKpiLoading ? (
+                <Skeleton className="h-4 w-28 rounded-md" />
+              ) : (
+                <Span className="block text-xs text-[#667085]">
+                  {dashboard?.batches?.totalBatches ?? 0} total •{' '}
+                  {dashboard?.batches?.draftBatches ?? 0} draft
+                </Span>
+              )}
             </div>
           </Link>
 
@@ -198,14 +233,24 @@ export function AdminDashboardView() {
                   </svg>
                 </div>
               </div>
-              <P className="mt-1 text-3xl font-bold text-[#0044D3]">
-                {dashboard?.courses?.publishedCourses ?? 0}
-              </P>
+              {isKpiLoading ? (
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-14 rounded-md" />
+                </div>
+              ) : (
+                <P className="mt-1 text-3xl font-bold text-[#0044D3]">
+                  {dashboard?.courses?.publishedCourses ?? 0}
+                </P>
+              )}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
-              <Span className="block text-xs text-[#667085]">
-                {dashboard?.courses?.totalCourses ?? 0} total courses
-              </Span>
+              {isKpiLoading ? (
+                <Skeleton className="h-4 w-24 rounded-md" />
+              ) : (
+                <Span className="block text-xs text-[#667085]">
+                  {dashboard?.courses?.totalCourses ?? 0} total courses
+                </Span>
+              )}
             </div>
           </Link>
 
@@ -235,14 +280,24 @@ export function AdminDashboardView() {
                   </svg>
                 </div>
               </div>
-              <P className="mt-1 text-3xl font-bold text-amber-600">
-                {dashboard?.allocations?.activeAllocations ?? 0}
-              </P>
+              {isKpiLoading ? (
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-14 rounded-md" />
+                </div>
+              ) : (
+                <P className="mt-1 text-3xl font-bold text-amber-600">
+                  {dashboard?.allocations?.activeAllocations ?? 0}
+                </P>
+              )}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
-              <Span className="block text-xs text-[#667085]">
-                {dashboard?.allocations?.completedAllocations ?? 0} completed
-              </Span>
+              {isKpiLoading ? (
+                <Skeleton className="h-4 w-24 rounded-md" />
+              ) : (
+                <Span className="block text-xs text-[#667085]">
+                  {dashboard?.allocations?.completedAllocations ?? 0} completed
+                </Span>
+              )}
             </div>
           </Link>
 
@@ -272,15 +327,25 @@ export function AdminDashboardView() {
                   </svg>
                 </div>
               </div>
-              <P className="mt-1 text-3xl font-bold text-rose-600">
-                {dashboard?.submissions?.pendingReviewCount ?? 0}
-              </P>
+              {isKpiLoading ? (
+                <div className="mt-1 flex h-9 items-center">
+                  <Skeleton className="h-8 w-14 rounded-md" />
+                </div>
+              ) : (
+                <P className="mt-1 text-3xl font-bold text-rose-600">
+                  {dashboard?.submissions?.pendingReviewCount ?? 0}
+                </P>
+              )}
             </div>
             <div className="mt-3 border-t border-slate-100 pt-2.5">
-              <Span className="block text-xs text-[#667085]">
-                {dashboard?.submissions?.gradedCount ?? 0} graded •{' '}
-                {dashboard?.submissions?.resubmitRequestedCount ?? 0} resubmits
-              </Span>
+              {isKpiLoading ? (
+                <Skeleton className="h-4 w-36 rounded-md" />
+              ) : (
+                <Span className="block text-xs text-[#667085]">
+                  {dashboard?.submissions?.gradedCount ?? 0} graded •{' '}
+                  {dashboard?.submissions?.resubmitRequestedCount ?? 0} resubmits
+                </Span>
+              )}
             </div>
           </Link>
         </div>
@@ -310,9 +375,13 @@ export function AdminDashboardView() {
                     />
                   </svg>
                 </div>
-                <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#0044D3]">
-                  {dashboard?.users?.totalUsers ?? 0} Users
-                </Span>
+                {isKpiLoading ? (
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                ) : (
+                  <Span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-[#0044D3]">
+                    {dashboard?.users?.totalUsers ?? 0} Users
+                  </Span>
+                )}
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-[#0044D3]">
                 Users & Access Control
@@ -359,9 +428,13 @@ export function AdminDashboardView() {
                     />
                   </svg>
                 </div>
-                <Span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                  {dashboard?.batches?.liveBatches ?? 0} Live
-                </Span>
+                {isKpiLoading ? (
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                ) : (
+                  <Span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                    {dashboard?.batches?.liveBatches ?? 0} Live
+                  </Span>
+                )}
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-emerald-700">
                 Batches
@@ -408,9 +481,13 @@ export function AdminDashboardView() {
                     />
                   </svg>
                 </div>
-                <Span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
-                  {dashboard?.courses?.totalCourses ?? 0} Courses
-                </Span>
+                {isKpiLoading ? (
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                ) : (
+                  <Span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+                    {dashboard?.courses?.totalCourses ?? 0} Courses
+                  </Span>
+                )}
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-sky-700">
                 Courses & Builder
@@ -456,9 +533,13 @@ export function AdminDashboardView() {
                     />
                   </svg>
                 </div>
-                <Span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-                  {dashboard?.allocations?.activeAllocations ?? 0} Active
-                </Span>
+                {isKpiLoading ? (
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                ) : (
+                  <Span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                    {dashboard?.allocations?.activeAllocations ?? 0} Active
+                  </Span>
+                )}
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-amber-700">
                 Course Allocations
@@ -504,9 +585,13 @@ export function AdminDashboardView() {
                     />
                   </svg>
                 </div>
-                <Span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
-                  {dashboard?.submissions?.pendingReviewCount ?? 0} Pending
-                </Span>
+                {isKpiLoading ? (
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                ) : (
+                  <Span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                    {dashboard?.submissions?.pendingReviewCount ?? 0} Pending
+                  </Span>
+                )}
               </div>
               <CardTitle className="mt-4 transition-colors group-hover:text-purple-700">
                 Progress Matrix
