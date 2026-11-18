@@ -31,6 +31,7 @@ function MenteeAssignmentDetailContent({ params }: Readonly<PageProps>) {
         sessionError={sessionError}
         loadingMessage="Loading assignment workspace..."
         variant="mentee"
+        title="Assignments"
       />
     );
   }

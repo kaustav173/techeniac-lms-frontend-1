@@ -16,6 +16,7 @@ export interface PortalSessionStateProps {
   readonly spinnerColor?: string;
   readonly retryButtonColor?: string;
   readonly variant?: 'admin' | 'mentor' | 'mentee';
+  readonly title?: string;
 }
 
 function AdminDashboardSkeleton() {
@@ -203,6 +204,7 @@ export function PortalSessionState({
   sessionError,
   loadingMessage = 'Loading workspace...',
   variant = 'admin',
+  title = 'Dashboard',
 }: Readonly<PortalSessionStateProps>) {
   const { refreshUser } = useAuth();
   const { isDrawerOpen, isMobileNavOpen, contentMarginClass } = useSidebar();
@@ -319,11 +321,7 @@ export function PortalSessionState({
           <div className="flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-xl md:hidden" />
             <Span className="text-xl font-bold tracking-tight text-[#111827] sm:text-2xl">
-              {variant === 'mentor'
-                ? 'Mentor Workspace'
-                : variant === 'mentee'
-                  ? 'Mentee Workspace'
-                  : 'Dashboard'}
+              {title}
             </Span>
           </div>
           <div className="relative ml-auto flex items-center gap-3">

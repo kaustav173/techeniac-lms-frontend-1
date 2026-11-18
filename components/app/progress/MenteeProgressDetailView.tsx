@@ -14,6 +14,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { ErrorMessage, parseApiError } from '@/components/ui/ErrorMessage';
 import { Label } from '@/components/ui/Label';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H1, H4, P, Span } from '@/components/ui/Typography';
 import {
   type TopicProgressItem,
@@ -390,12 +391,14 @@ export function MenteeProgressDetailView({
                   }
                   label="Course Track"
                 >
-                  <Span
-                    className="mt-0.5 block truncate text-sm font-bold text-slate-900"
-                    title={allocation.courseTitle}
+                  <Tooltip
+                    content={allocation.courseTitle}
+                    containerClassName="inline-flex max-w-full"
                   >
-                    {allocation.courseTitle}
-                  </Span>
+                    <Span className="mt-0.5 block truncate text-sm font-bold text-slate-900">
+                      {allocation.courseTitle}
+                    </Span>
+                  </Tooltip>
                   <Span className="mt-0.5 block truncate text-xs text-slate-500">
                     {displayBatchName ? `Batch: ${displayBatchName}` : 'Individual Track'}
                   </Span>

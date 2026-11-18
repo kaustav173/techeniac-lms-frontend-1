@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import type { MenteePerformanceRow, PerformanceFilterParams } from '@/services/performance.service';
 
@@ -41,25 +42,22 @@ function PerformanceTableSkeleton({ count = 10 }: { count?: number }) {
     <>
       {Array.from({ length: count }).map((_, i) => (
         <TableRow key={`perf-skel-${i}`} className="h-16">
-          <TableCell className="w-[24%] px-6 py-4">
-            <div className="flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-32 rounded-md" />
-              <Skeleton className="h-3 w-40 rounded-md" />
-            </div>
+          <TableCell className="w-[19%] px-6 py-4">
+            <Skeleton className="h-4 w-36 rounded-md" />
           </TableCell>
-          <TableCell className="w-[14%] px-4 py-4">
-            <Skeleton className="h-5 w-20 rounded-md" />
+          <TableCell className="w-[19%] px-4 py-4">
+            <Skeleton className="h-4 w-36 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%] px-4 py-4">
             <Skeleton className="h-4 w-24 rounded-md" />
           </TableCell>
-          <TableCell className="w-[16%] px-4 py-4">
+          <TableCell className="w-[14%] px-4 py-4">
             <div className="flex w-32 flex-col gap-1.5">
               <Skeleton className="h-3 w-10 rounded-md" />
               <Skeleton className="h-1.5 w-full rounded-full" />
             </div>
           </TableCell>
-          <TableCell className="w-[10%] px-4 py-4 text-center">
+          <TableCell className="w-[12%] px-4 py-4 text-center">
             <Skeleton className="mx-auto h-4 w-12 rounded-md" />
           </TableCell>
           <TableCell className="w-[12%] px-4 py-4 text-center">
@@ -117,7 +115,7 @@ export function PerformanceTable({
     if (!isActive) {
       return (
         <svg
-          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -134,7 +132,7 @@ export function PerformanceTable({
     }
     return (
       <svg
-        className="h-3.5 w-3.5 text-[#0044D3]"
+        className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -189,162 +187,193 @@ export function PerformanceTable({
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-xs">
       <div className="overflow-x-auto rounded-t-3xl">
-        <Table className="w-full text-left">
+        <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-slate-700">
             <TableRow>
               <TableHead
                 aria-sort={getAriaSort('name')}
-                className="px-6 py-3.5 font-semibold text-slate-700"
+                className="w-[19%] px-6 py-3.5 font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('name')}
-                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'name' && sortOrder
                       ? `Sorted by name (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
                       : 'Sort by name'
                   }
+                  side="top"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Mentee
-                  </Span>
-                  {renderSortIcon('name')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('name')}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Mentee
+                    </Span>
+                    {renderSortIcon('name')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('batch')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[19%] px-4 py-3.5 font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('batch')}
-                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'batch' && sortOrder
                       ? `Sorted by batch (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
                       : 'Sort by batch'
                   }
+                  side="top"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Batch
-                  </Span>
-                  {renderSortIcon('batch')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('batch')}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Batch
+                    </Span>
+                    {renderSortIcon('batch')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('courses')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[14%] px-4 py-3.5 font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('courses')}
-                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'courses' && sortOrder
                       ? `Sorted by courses (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by courses'
                   }
+                  side="top"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Courses
-                  </Span>
-                  {renderSortIcon('courses')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('courses')}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Courses
+                    </Span>
+                    {renderSortIcon('courses')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('completionPercentage')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[14%] px-4 py-3.5 font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('completionPercentage')}
-                  className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'completionPercentage' && sortOrder
                       ? `Sorted by completion (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by completion'
                   }
+                  side="top"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Completion
-                  </Span>
-                  {renderSortIcon('completionPercentage')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('completionPercentage')}
+                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Completion
+                    </Span>
+                    {renderSortIcon('completionPercentage')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('averageMarks')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[12%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('averageMarks')}
-                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'averageMarks' && sortOrder
                       ? `Sorted by average score (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by average score'
                   }
+                  side="top"
+                  containerClassName="inline-flex justify-center"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Avg Score
-                  </Span>
-                  {renderSortIcon('averageMarks')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('averageMarks')}
+                    className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Avg Score
+                    </Span>
+                    {renderSortIcon('averageMarks')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('onTimeRate')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[12%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('onTimeRate')}
-                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'onTimeRate' && sortOrder
                       ? `Sorted by submissions on-time rate (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by submissions'
                   }
+                  side="top"
+                  containerClassName="inline-flex justify-center"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Submissions
-                  </Span>
-                  {renderSortIcon('onTimeRate')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('onTimeRate')}
+                    className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Submissions
+                    </Span>
+                    {renderSortIcon('onTimeRate')}
+                  </Button>
+                </Tooltip>
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('overdueCount')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[10%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleSort('overdueCount')}
-                  className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                  title={
+                <Tooltip
+                  content={
                     sortBy === 'overdueCount' && sortOrder
                       ? `Sorted by overdue tasks (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
                       : 'Sort by overdue tasks'
                   }
+                  side="top"
+                  containerClassName="inline-flex justify-center"
                 >
-                  <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                    Overdue
-                  </Span>
-                  {renderSortIcon('overdueCount')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSort('overdueCount')}
+                    className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                  >
+                    <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                      Overdue
+                    </Span>
+                    {renderSortIcon('overdueCount')}
+                  </Button>
+                </Tooltip>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -358,28 +387,29 @@ export function PerformanceTable({
                   className="transition-colors hover:bg-slate-50/60"
                 >
                   {/* Mentee Identity */}
-                  <TableCell className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <Span className="text-base font-semibold text-slate-900">
+                  <TableCell className="w-[19%] px-6 py-4">
+                    <Tooltip content={row.menteeName} containerClassName="inline-flex max-w-full">
+                      <Span className="block truncate text-base font-semibold text-slate-900">
                         {row.menteeName}
                       </Span>
-                      <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
-                    </div>
+                    </Tooltip>
                   </TableCell>
 
                   {/* Batch Name */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="w-[19%] px-4 py-4">
                     {row.batchName ? (
-                      <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                        {row.batchName}
-                      </Span>
+                      <Tooltip content={row.batchName} containerClassName="inline-flex max-w-full">
+                        <Span className="block truncate text-base font-semibold text-slate-900">
+                          {row.batchName}
+                        </Span>
+                      </Tooltip>
                     ) : (
                       <Span className="text-slate-400">—</Span>
                     )}
                   </TableCell>
 
                   {/* Courses Count */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="w-[14%] px-4 py-4">
                     <Span className="text-base font-semibold text-slate-900">
                       {row.completedCoursesCount}
                     </Span>
@@ -387,7 +417,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Completion Progress Bar */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="w-[14%] px-4 py-4">
                     <div className="flex w-32 flex-col gap-1">
                       <div className="flex justify-between text-xs">
                         <Span className="font-semibold text-slate-700">
@@ -406,7 +436,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Average Marks */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[12%] px-4 py-4 text-center">
                     {row.averageMarks !== null ? (
                       <Span className="text-base font-semibold text-slate-900">
                         {row.averageMarks}
@@ -417,7 +447,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Submissions & On-time Rate */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[12%] px-4 py-4 text-center">
                     <div className="flex flex-col items-center">
                       <Span className="text-base font-semibold text-slate-900">
                         {row.totalSubmissions}
@@ -429,7 +459,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Overdue Count */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[10%] px-4 py-4 text-center">
                     {row.overdueCount > 0 ? (
                       <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
                         {row.overdueCount} overdue

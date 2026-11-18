@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import {
   AllocationDisplayStatus,
@@ -145,7 +146,7 @@ export function MenteeProgressView() {
   );
 
   if (sessionError && !user) {
-    return <PortalSessionState sessionError={sessionError} variant="mentee" />;
+    return <PortalSessionState sessionError={sessionError} variant="mentee" title="Progress" />;
   }
 
   return (
@@ -180,26 +181,27 @@ export function MenteeProgressView() {
 
           {/* 3. Clear Filters Button */}
           {hasActiveFilters && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              title="Clear all filters"
-              aria-label="Clear all filters"
-              className="h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
+            <Tooltip content="Clear all filters" side="bottom">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                aria-label="Clear all filters"
+                className="h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 rounded-full border border-red-200/60 bg-[#FEE2E2] p-0 text-[#DC2626] transition-all hover:bg-[#FCD2D2] hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-400"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </Tooltip>
           )}
         </div>
 
@@ -338,29 +340,37 @@ export function MenteeProgressView() {
                       >
                         {/* 1. Course Name (truncated with full name on hover, increased font size) */}
                         <TableCell className="w-[28%] px-4 py-3.5 align-middle">
-                          <P
-                            title={alloc.course?.title ?? 'Untitled Course'}
-                            className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
+                          <Tooltip
+                            content={alloc.course?.title ?? 'Untitled Course'}
+                            containerClassName="inline-flex max-w-full"
                           >
-                            {alloc.course?.title ?? 'Untitled Course'}
-                          </P>
+                            <P className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]">
+                              {alloc.course?.title ?? 'Untitled Course'}
+                            </P>
+                          </Tooltip>
                         </TableCell>
 
                         {/* 2. Batch Cohort & Code (truncated, never wrap onto second line) */}
                         <TableCell className="w-[20%] px-4 py-3.5 align-middle">
                           <div className="space-y-0.5">
-                            <Span
-                              title={alloc.batch?.name ?? 'Individual Allocation'}
-                              className="block max-w-[200px] truncate text-base font-semibold text-slate-900"
+                            <Tooltip
+                              content={alloc.batch?.name ?? 'Individual Allocation'}
+                              containerClassName="inline-flex max-w-full"
                             >
-                              {alloc.batch?.name ?? 'Individual Allocation'}
-                            </Span>
-                            <Span
-                              title={alloc.batch?.code ?? 'Core Track'}
-                              className="block max-w-[200px] truncate text-xs text-slate-500"
-                            >
-                              {alloc.batch?.code ?? 'Core Track'}
-                            </Span>
+                              <Span className="block max-w-[200px] truncate text-base font-semibold text-slate-900">
+                                {alloc.batch?.name ?? 'Individual Allocation'}
+                              </Span>
+                            </Tooltip>
+                            {alloc.batch?.code ? (
+                              <Tooltip
+                                content={alloc.batch.code}
+                                containerClassName="inline-flex max-w-full"
+                              >
+                                <Span className="block max-w-[200px] truncate text-xs text-slate-500">
+                                  {alloc.batch.code}
+                                </Span>
+                              </Tooltip>
+                            ) : null}
                           </div>
                         </TableCell>
 
@@ -410,33 +420,37 @@ export function MenteeProgressView() {
                         {/* 6. Action: Three Dots Button */}
                         <TableCell className="w-[6%] pr-6 pl-2 text-left align-middle">
                           <div className="flex items-center justify-start">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/mentee/courses/${alloc.id}`);
-                              }}
-                              title={
+                            <Tooltip
+                              content={
                                 isCompleted
                                   ? 'Review Syllabus'
                                   : isClosed
                                     ? 'View Syllabus'
                                     : 'Continue Learning'
                               }
-                              aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
-                              className="h-11 min-h-[44px] w-11 min-w-[44px] rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
+                              side="top"
                             >
-                              <svg
-                                className="h-4 w-4"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                                aria-hidden="true"
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/mentee/courses/${alloc.id}`);
+                                }}
+                                aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
+                                className="h-11 min-h-[44px] w-11 min-w-[44px] rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
                               >
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                              </svg>
-                            </Button>
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                </svg>
+                              </Button>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>

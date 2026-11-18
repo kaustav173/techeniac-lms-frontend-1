@@ -6,6 +6,7 @@ import { AssignmentSubmissionForm } from '@/components/app/submissions/Assignmen
 import { SubmissionVersionHistory } from '@/components/app/submissions/SubmissionVersionHistory';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import { formatDateTimeIST } from '@/lib/date';
 import { AssignmentScope } from '@/types/courses';
@@ -118,13 +119,15 @@ export function AssignmentDetailView({
                 {assignment.scope === AssignmentScope.COURSE ? 'Course Scope' : 'Topic Scope'}
               </Span>
               {isBatchReadOnly && (
-                <Span
-                  title={`This assignment is part of a batch with status "${allocation.batchStatus}". Submissions are closed.`}
-                  className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-amber-200 bg-[#FEF9EE] px-3 py-0.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100"
+                <Tooltip
+                  content={`This assignment is part of a batch with status "${allocation.batchStatus}". Submissions are closed.`}
+                  side="bottom"
                 >
-                  <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  Submissions Closed
-                </Span>
+                  <Span className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-amber-200 bg-[#FEF9EE] px-3 py-0.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100">
+                    <Span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    Submissions Closed
+                  </Span>
+                </Tooltip>
               )}
             </div>
             <H1 className="text-2xl font-bold tracking-tight text-[#111827]">{assignment.title}</H1>

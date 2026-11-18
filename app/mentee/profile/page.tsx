@@ -18,6 +18,7 @@ export default function MenteeProfilePage() {
         sessionError={sessionError}
         loadingMessage="Loading student profile..."
         variant="mentee"
+        title="Profile"
       />
     );
   }

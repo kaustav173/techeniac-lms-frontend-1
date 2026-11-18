@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { getRolePortalPath } from '@/hooks/useRoleRedirect';
@@ -624,23 +625,27 @@ export function UsersTable() {
                     {/* User Column (Name only) */}
                     <TableCell className="w-[32%]">
                       <div className="flex items-center truncate">
-                        <Link
-                          href={`/admin/users/${u.id}`}
-                          title={`View user profile for ${u.name}`}
-                          className="group flex min-w-0 items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                        <Tooltip
+                          content={u.name || '—'}
+                          containerClassName="inline-flex max-w-full"
                         >
-                          <Span className="block truncate text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
-                            {u.name || '—'}
-                          </Span>
-                        </Link>
+                          <Link
+                            href={`/admin/users/${u.id}`}
+                            className="group flex min-w-0 items-center rounded-xl p-0.5 text-left transition-colors hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#0044D3] focus-visible:outline-none"
+                          >
+                            <Span className="block truncate text-base leading-snug font-semibold text-slate-900 transition-colors group-hover:text-[#0044D3]">
+                              {u.name || '—'}
+                            </Span>
+                          </Link>
+                        </Tooltip>
                       </div>
                     </TableCell>
 
                     {/* Email Column */}
                     <TableCell className="w-[32%] truncate text-sm text-slate-600 select-all">
-                      <Span title={u.email} className="block truncate">
-                        {u.email}
-                      </Span>
+                      <Tooltip content={u.email} containerClassName="inline-flex max-w-full">
+                        <Span className="block truncate">{u.email}</Span>
+                      </Tooltip>
                     </TableCell>
 
                     {/* Role Column */}
