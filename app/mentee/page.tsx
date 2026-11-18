@@ -28,6 +28,7 @@ import { DashboardContent } from '@/components/layout/DashboardContent';
 import { Header } from '@/components/layout/Header';
 import { Alert } from '@/components/ui/Alert';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H1, H2, H3, P, Span } from '@/components/ui/Typography';
 import {
   type CourseAllocation,
@@ -341,12 +342,13 @@ export default function MenteePage() {
                   )}
                 </div>
               </div>
-              <P
-                className="mt-3 truncate text-xs text-[#667085]"
-                title={mentor?.email ?? undefined}
-              >
-                {mentor?.email ?? '—'}
-              </P>
+              {mentor?.email ? (
+                <Tooltip content={mentor.email} containerClassName="inline-flex max-w-full">
+                  <P className="mt-3 truncate text-xs text-[#667085]">{mentor.email}</P>
+                </Tooltip>
+              ) : (
+                <P className="mt-3 truncate text-xs text-[#667085]">—</P>
+              )}
             </div>
           </div>
         </div>
@@ -538,12 +540,11 @@ export default function MenteePage() {
                     </div>
 
                     <div className="mt-3">
-                      <H3
-                        className="truncate text-xs font-bold text-[#0F172A] transition-colors group-hover:text-[#0044D3] sm:text-sm"
-                        title={c.title}
-                      >
-                        {c.title}
-                      </H3>
+                      <Tooltip content={c.title} containerClassName="inline-flex max-w-full">
+                        <H3 className="truncate text-xs font-bold text-[#0F172A] transition-colors group-hover:text-[#0044D3] sm:text-sm">
+                          {c.title}
+                        </H3>
+                      </Tooltip>
                       <P className="mt-0.5 text-[11px] font-medium text-[#64748B]">{c.subtitle}</P>
                       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#EFF6FF]">
                         <div
@@ -596,12 +597,14 @@ export default function MenteePage() {
                     </Span>
                   </div>
                   <div className="min-w-0">
-                    <H3
-                      className="truncate text-sm font-bold text-[#0F172A] sm:text-base"
-                      title={upcomingItem.title}
+                    <Tooltip
+                      content={upcomingItem.title}
+                      containerClassName="inline-flex max-w-full"
                     >
-                      {upcomingItem.title}
-                    </H3>
+                      <H3 className="truncate text-sm font-bold text-[#0F172A] sm:text-base">
+                        {upcomingItem.title}
+                      </H3>
+                    </Tooltip>
                     <P className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
                       <ClockIcon className="h-3.5 w-3.5 text-[#667085]" />
                       <Span>{upcomingItem.subtitle}</Span>
