@@ -50,6 +50,8 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
     try {
       const loggedInUser = await login({ email: trimmedEmail, password });
       toastSuccess(`Welcome back, ${loggedInUser.name}!`, 'Signed In');
+      setEmail('');
+      setPassword('');
       if (onSubmitSuccess) {
         onSubmitSuccess({ email: trimmedEmail });
       } else {
@@ -96,6 +98,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
         <Input
           id="email"
           type="email"
+          autoComplete="username"
           value={email}
           onChange={(e) => {
             const val = e.target.value;
@@ -107,16 +110,8 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
                 return next;
               });
             }
-            if (errors.general) {
-              setErrors((prev) => {
-                const next = { ...prev };
-                delete next.general;
-                return next;
-              });
-            }
           }}
           placeholder="name@company.com"
-          autoComplete="email"
           hasError={Boolean(errors.email)}
           disabled={isFormLocked}
           className="h-14 rounded-2xl bg-slate-50 text-base focus:bg-white sm:h-15 sm:text-lg"
@@ -150,6 +145,7 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             value={password}
             onChange={(e) => {
               const val = e.target.value;
@@ -161,16 +157,8 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
                   return next;
                 });
               }
-              if (errors.general) {
-                setErrors((prev) => {
-                  const next = { ...prev };
-                  delete next.general;
-                  return next;
-                });
-              }
             }}
             placeholder="••••••••••••"
-            autoComplete="current-password"
             hasError={Boolean(errors.password)}
             disabled={isFormLocked}
             className="h-14 rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white sm:h-15 sm:text-lg"
