@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H2, Span } from '@/components/ui/Typography';
 import { useAuditLogs } from '@/hooks/useAuditLogs';
 import {
@@ -408,7 +409,11 @@ export function AuditLogTable() {
                     {/* Actor */}
                     <TableCell className="w-[17%] px-4 py-3.5 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <Span className="text-base font-semibold text-slate-900">{actorName}</Span>
+                        <Tooltip content={actorName} containerClassName="inline-flex max-w-full">
+                          <Span className="truncate text-base font-semibold text-slate-900">
+                            {actorName}
+                          </Span>
+                        </Tooltip>
                         {actorRole ? (
                           <Span className="text-xs text-slate-500">{actorRole}</Span>
                         ) : null}
@@ -418,26 +423,26 @@ export function AuditLogTable() {
                     {/* Target Entity */}
                     <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap text-slate-700">
                       <div className="flex max-w-[240px] flex-col">
-                        <Span
-                          className="truncate text-base font-semibold text-slate-900"
-                          title={target.name}
-                        >
-                          {target.name}
-                        </Span>
+                        <Tooltip content={target.name} containerClassName="inline-flex max-w-full">
+                          <Span className="truncate text-base font-semibold text-slate-900">
+                            {target.name}
+                          </Span>
+                        </Tooltip>
                         {target.type ? (
-                          <div className="group/target relative inline-flex items-center">
-                            <Span
-                              className="cursor-default truncate text-xs text-slate-500"
-                              title={target.tooltip || target.type}
+                          target.tooltip ? (
+                            <Tooltip
+                              content={target.tooltip}
+                              containerClassName="inline-flex max-w-full"
                             >
+                              <Span className="cursor-default truncate text-xs text-slate-500">
+                                {target.type}
+                              </Span>
+                            </Tooltip>
+                          ) : (
+                            <Span className="cursor-default truncate text-xs text-slate-500">
                               {target.type}
                             </Span>
-                            {target.tooltip && target.tooltip.length > 25 ? (
-                              <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden w-max max-w-xs rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-medium break-words whitespace-normal text-white shadow-xl group-hover/target:block">
-                                {target.tooltip}
-                              </div>
-                            ) : null}
-                          </div>
+                          )
                         ) : null}
                       </div>
                     </TableCell>

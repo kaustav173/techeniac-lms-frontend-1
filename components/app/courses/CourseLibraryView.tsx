@@ -31,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
@@ -595,15 +596,19 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
                           >
                             <TableCell>
                               <div className="flex max-w-[280px] sm:max-w-xs md:max-w-md">
-                                <Link
-                                  href={`/${portal}/courses/${c.id}/builder`}
-                                  prefetch={true}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
-                                  title={c.title}
+                                <Tooltip
+                                  content={c.title}
+                                  containerClassName="inline-flex max-w-full"
                                 >
-                                  {c.title}
-                                </Link>
+                                  <Link
+                                    href={`/${portal}/courses/${c.id}/builder`}
+                                    prefetch={true}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
+                                  >
+                                    {c.title}
+                                  </Link>
+                                </Tooltip>
                               </div>
                             </TableCell>
 

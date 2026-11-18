@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H3, P, Span } from '@/components/ui/Typography';
 import { usePrefetchSubmissionReview, useSubmissionQueue } from '@/hooks/useGrading';
 import { cn } from '@/lib/cn';
@@ -616,9 +617,14 @@ export function SubmissionQueueTable() {
                                 className="border-b border-[#E1E6EC]/80 bg-white px-6 py-4 align-top"
                               >
                                 <div className="sticky top-16">
-                                  <P className="text-base font-semibold text-slate-900">
-                                    {group.mentee.name}
-                                  </P>
+                                  <Tooltip
+                                    content={group.mentee.name}
+                                    containerClassName="inline-flex max-w-full"
+                                  >
+                                    <P className="text-base font-semibold text-slate-900">
+                                      {group.mentee.name}
+                                    </P>
+                                  </Tooltip>
                                   {group.batchName && (
                                     <Span className="mt-1 inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-semibold text-[#111827]">
                                       {group.batchName}
@@ -671,22 +677,26 @@ export function SubmissionQueueTable() {
 
                             {/* Assignment Column */}
                             <TableCell className="px-4 py-4">
-                              <P
-                                className="max-w-xs truncate text-base font-semibold text-slate-900"
-                                title={sub.assignmentTitle}
+                              <Tooltip
+                                content={sub.assignmentTitle}
+                                containerClassName="inline-flex max-w-full"
                               >
-                                {truncateText(sub.assignmentTitle, 6, 40)}
-                              </P>
-                              <P
-                                className="max-w-xs truncate text-xs text-slate-500"
-                                title={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
+                                <P className="max-w-xs truncate text-base font-semibold text-slate-900">
+                                  {truncateText(sub.assignmentTitle, 6, 40)}
+                                </P>
+                              </Tooltip>
+                              <Tooltip
+                                content={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
+                                containerClassName="inline-flex max-w-full"
                               >
-                                {truncateText(
-                                  `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
-                                  6,
-                                  36,
-                                )}
-                              </P>
+                                <P className="max-w-xs truncate text-xs text-slate-500">
+                                  {truncateText(
+                                    `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
+                                    6,
+                                    36,
+                                  )}
+                                </P>
+                              </Tooltip>
                             </TableCell>
 
                             {/* Version Column */}

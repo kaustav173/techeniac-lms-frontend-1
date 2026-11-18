@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H2, P, Span } from '@/components/ui/Typography';
 import { AllocationDisplayStatus, CourseAllocationStatus } from '@/hooks/useAllocations';
 import { useInfiniteBatches } from '@/hooks/useBatches';
@@ -506,23 +507,41 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                       >
                         {/* Mentee */}
                         <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap">
-                          <Span className="truncate text-base font-semibold text-slate-900 hover:text-blue-600">
-                            {item.menteeName}
-                          </Span>
+                          <Tooltip
+                            content={item.menteeName}
+                            containerClassName="inline-flex max-w-full"
+                          >
+                            <Span className="truncate text-base font-semibold text-slate-900 hover:text-blue-600">
+                              {item.menteeName}
+                            </Span>
+                          </Tooltip>
                         </TableCell>
 
                         {/* Course & Batch */}
                         <TableCell className="w-[26%] px-4 py-3.5 whitespace-nowrap">
                           <div className="flex min-w-0 flex-col">
-                            <Span
-                              className="truncate text-base font-semibold text-slate-900"
-                              title={item.courseTitle}
+                            <Tooltip
+                              content={item.courseTitle}
+                              containerClassName="inline-flex max-w-full"
                             >
-                              {item.courseTitle}
-                            </Span>
-                            <Span className="truncate text-xs font-semibold text-blue-600">
-                              {item.batchName || 'Individual Track'}
-                            </Span>
+                              <Span className="truncate text-base font-semibold text-slate-900">
+                                {item.courseTitle}
+                              </Span>
+                            </Tooltip>
+                            {item.batchName ? (
+                              <Tooltip
+                                content={item.batchName}
+                                containerClassName="inline-flex max-w-full"
+                              >
+                                <Span className="truncate text-xs font-semibold text-blue-600">
+                                  {item.batchName}
+                                </Span>
+                              </Tooltip>
+                            ) : (
+                              <Span className="truncate text-xs font-semibold text-blue-600">
+                                Individual Track
+                              </Span>
+                            )}
                           </div>
                         </TableCell>
 

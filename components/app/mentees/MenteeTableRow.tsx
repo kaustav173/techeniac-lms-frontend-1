@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { TableCell, TableRow } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import { cn } from '@/lib/cn';
 import { formatDateDMY } from '@/lib/date';
@@ -52,14 +53,23 @@ export function MenteeTableRow({
     >
       <TableCell className={actions ? 'w-[32%]' : 'w-[40%]'}>
         <div className="min-w-0">
-          <P className="truncate text-base font-semibold text-slate-900">
-            {mentee.name ?? 'Assigned Mentee'}
-          </P>
-          <P className="truncate text-xs text-slate-500">{mentee.email ?? '—'}</P>
+          <Tooltip
+            content={mentee.name ?? 'Assigned Mentee'}
+            containerClassName="inline-flex max-w-full"
+          >
+            <P className="truncate text-base font-semibold text-slate-900">
+              {mentee.name ?? 'Assigned Mentee'}
+            </P>
+          </Tooltip>
+          <Tooltip content={mentee.email ?? '—'} containerClassName="inline-flex max-w-full">
+            <P className="truncate text-xs text-slate-500">{mentee.email ?? '—'}</P>
+          </Tooltip>
         </div>
       </TableCell>
       <TableCell className="text-base font-semibold text-slate-900">
-        {mentee.batchName ?? '—'}
+        <Tooltip content={mentee.batchName ?? '—'} containerClassName="inline-flex max-w-full">
+          <Span className="block truncate">{mentee.batchName ?? '—'}</Span>
+        </Tooltip>
       </TableCell>
       <TableCell>
         <Span className="inline-block rounded-full border border-[#E1E6EC] bg-[#F6F8FC] px-2.5 py-1 text-xs font-semibold text-slate-900">
