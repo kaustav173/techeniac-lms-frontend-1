@@ -316,7 +316,7 @@ export function SubmissionQueueTable() {
     if (!isActive || !order) {
       return (
         <svg
-          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -333,7 +333,7 @@ export function SubmissionQueueTable() {
     }
     return (
       <svg
-        className="h-3.5 w-3.5 text-[#0044D3]"
+        className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -471,25 +471,36 @@ export function SubmissionQueueTable() {
                     nameSort === 'asc' ? 'ascending' : nameSort === 'desc' ? 'descending' : 'none'
                   }
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleNameSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    title={
+                  <Tooltip
+                    content={
                       nameSort === 'asc'
                         ? 'Sorted A to Z (click for Z to A)'
                         : nameSort === 'desc'
                           ? 'Sorted Z to A (click to reset)'
                           : 'Sort by mentee name'
                     }
+                    side="top"
                   >
-                    <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                      Mentee
-                    </Span>
-                    {renderSortIcon(nameSort !== null, nameSort)}
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleNameSort}
+                      className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                      aria-label={
+                        nameSort === 'asc'
+                          ? 'Sorted A to Z (click for Z to A)'
+                          : nameSort === 'desc'
+                            ? 'Sorted Z to A (click to reset)'
+                            : 'Sort by mentee name'
+                      }
+                    >
+                      <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                        Mentee
+                      </Span>
+                      {renderSortIcon(nameSort !== null, nameSort)}
+                    </Button>
+                  </Tooltip>
                 </TableHead>
                 <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                   <Span className="text-sm font-semibold text-slate-700 sm:text-base">
@@ -509,25 +520,36 @@ export function SubmissionQueueTable() {
                         : 'none'
                   }
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSubmittedSort}
-                    className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    title={
+                  <Tooltip
+                    content={
                       submittedSort === 'desc'
                         ? 'Sorted newest first (click for oldest first)'
                         : submittedSort === 'asc'
                           ? 'Sorted oldest first (click to reset)'
                           : 'Sort by submission date'
                     }
+                    side="top"
                   >
-                    <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                      Submitted
-                    </Span>
-                    {renderSortIcon(submittedSort !== null, submittedSort)}
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSubmittedSort}
+                      className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                      aria-label={
+                        submittedSort === 'desc'
+                          ? 'Sorted newest first (click for oldest first)'
+                          : submittedSort === 'asc'
+                            ? 'Sorted oldest first (click to reset)'
+                            : 'Sort by submission date'
+                      }
+                    >
+                      <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                        Submitted
+                      </Span>
+                      {renderSortIcon(submittedSort !== null, submittedSort)}
+                    </Button>
+                  </Tooltip>
                 </TableHead>
                 <TableHead className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5 sm:py-3">
                   <Span className="text-sm font-semibold text-slate-700 sm:text-base">

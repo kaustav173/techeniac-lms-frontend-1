@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { H2, P, Span } from '@/components/ui/Typography';
 import { useMentorBatches, useMentorMentees } from '@/hooks/useBatches';
 import { cn } from '@/lib/cn';
@@ -286,7 +287,7 @@ export function MentorMenteesView() {
     if (!isActive || !order) {
       return (
         <svg
-          className="h-3.5 w-3.5 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
+          className="h-3.5 w-3.5 shrink-0 text-slate-400 opacity-60 transition-opacity group-hover:opacity-100"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -303,7 +304,7 @@ export function MentorMenteesView() {
     }
     return (
       <svg
-        className="h-3.5 w-3.5 text-[#0044D3]"
+        className="h-3.5 w-3.5 shrink-0 text-[#0044D3]"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -579,25 +580,36 @@ export function MentorMenteesView() {
                             : 'none'
                       }
                     >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleMenteeSort}
-                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                        title={
+                      <Tooltip
+                        content={
                           menteeSort === 'asc'
                             ? 'Sorted A to Z (click for Z to A)'
                             : menteeSort === 'desc'
                               ? 'Sorted Z to A (click to reset)'
                               : 'Sort by mentee name'
                         }
+                        side="top"
                       >
-                        <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                          Mentee
-                        </Span>
-                        {renderSortIcon(menteeSort !== null, menteeSort)}
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleMenteeSort}
+                          className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                          aria-label={
+                            menteeSort === 'asc'
+                              ? 'Sorted A to Z (click for Z to A)'
+                              : menteeSort === 'desc'
+                                ? 'Sorted Z to A (click to reset)'
+                                : 'Sort by mentee name'
+                          }
+                        >
+                          <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                            Mentee
+                          </Span>
+                          {renderSortIcon(menteeSort !== null, menteeSort)}
+                        </Button>
+                      </Tooltip>
                     </TableHead>
                     <TableHead className="py-3.5 font-semibold text-slate-700">Batch</TableHead>
                     <TableHead className="py-3.5 font-semibold text-slate-700">
@@ -613,25 +625,36 @@ export function MentorMenteesView() {
                             : 'none'
                       }
                     >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleMappedSinceSort}
-                        className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                        title={
+                      <Tooltip
+                        content={
                           mappedSinceSort === 'desc'
                             ? 'Sorted newest first (click for oldest first)'
                             : mappedSinceSort === 'asc'
                               ? 'Sorted oldest first (click to reset)'
                               : 'Sort by mapped date'
                         }
+                        side="top"
                       >
-                        <Span className="text-sm font-semibold text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
-                          Mapped Since
-                        </Span>
-                        {renderSortIcon(mappedSinceSort !== null, mappedSinceSort)}
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleMappedSinceSort}
+                          className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
+                          aria-label={
+                            mappedSinceSort === 'desc'
+                              ? 'Sorted newest first (click for oldest first)'
+                              : mappedSinceSort === 'asc'
+                                ? 'Sorted oldest first (click to reset)'
+                                : 'Sort by mapped date'
+                          }
+                        >
+                          <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
+                            Mapped Since
+                          </Span>
+                          {renderSortIcon(mappedSinceSort !== null, mappedSinceSort)}
+                        </Button>
+                      </Tooltip>
                     </TableHead>
                     <TableHead className="py-3.5 text-right font-semibold text-slate-700">
                       Actions
