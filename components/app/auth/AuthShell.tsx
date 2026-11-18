@@ -62,8 +62,8 @@ export function AuthShell({ children, title, subtitle, footerContent }: Readonly
           </div>
 
           {/* Center Group: Illustration + Headline */}
-          <div className="relative z-10 my-auto flex w-full flex-col items-center justify-center py-4">
-            <AuthIllustration className="h-auto w-full max-w-[380px] lg:max-w-[440px]" />
+          <div className="relative z-10 my-auto flex w-full flex-col items-center justify-center py-2">
+            <AuthIllustration className="h-auto w-full max-w-[360px] lg:max-w-[420px]" />
             <div className="mt-4 text-center">
               <H2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                 Empower Learning,
@@ -77,15 +77,15 @@ export function AuthShell({ children, title, subtitle, footerContent }: Readonly
           <div className="relative z-10 h-6" aria-hidden="true" />
         </div>
 
-        {/* Right 50%: Form Workspace Container */}
-        <div className="flex h-full flex-1 flex-col items-center justify-center bg-white px-4 py-10 sm:px-8 md:w-1/2 md:p-12 lg:p-16">
-          <div className="w-full max-w-[440px] p-2 sm:p-4 lg:max-w-[480px]">
+        {/* Right 50%: Clean White Form Workspace Container */}
+        <div className="flex h-full flex-1 flex-col items-center justify-center bg-white px-4 py-10 sm:px-8 md:w-1/2 md:p-10 lg:p-12">
+          <div className="w-full max-w-[492px]">
             {/* Form Title */}
-            <div className="mb-6 text-center sm:text-left">
-              <H1 className="text-2xl font-bold tracking-tight text-[#111827] sm:text-3xl">
+            <div className="mb-9">
+              <H1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-[34px] sm:leading-tight lg:text-4xl">
                 {title}
               </H1>
-              {subtitle ? <p className="mt-1.5 text-sm text-slate-600">{subtitle}</p> : null}
+              {subtitle ? <p className="mt-2 text-sm text-slate-600">{subtitle}</p> : null}
             </div>
 
             {/* Main Form Body */}
