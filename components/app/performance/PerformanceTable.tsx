@@ -208,11 +208,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('name')}
                     className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'name' && sortOrder
-                        ? `Sorted by name (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
-                        : 'Sort by name'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Mentee
@@ -239,11 +234,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('batch')}
                     className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'batch' && sortOrder
-                        ? `Sorted by batch (${sortOrder === 'ASC' ? 'A to Z' : 'Z to A'})`
-                        : 'Sort by batch'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Batch
@@ -270,11 +260,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('courses')}
                     className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'courses' && sortOrder
-                        ? `Sorted by courses (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by courses'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Courses
@@ -301,11 +286,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('completionPercentage')}
                     className="group inline-flex h-auto cursor-pointer items-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'completionPercentage' && sortOrder
-                        ? `Sorted by completion (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by completion'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Completion
@@ -333,11 +313,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('averageMarks')}
                     className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'averageMarks' && sortOrder
-                        ? `Sorted by average score (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by average score'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Avg Score
@@ -365,11 +340,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('onTimeRate')}
                     className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'onTimeRate' && sortOrder
-                        ? `Sorted by submissions on-time rate (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by submissions'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Submissions
@@ -397,11 +367,6 @@ export function PerformanceTable({
                     size="sm"
                     onClick={() => handleSort('overdueCount')}
                     className="group inline-flex h-auto cursor-pointer items-center justify-center gap-1.5 rounded-sm p-0 text-left text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                    aria-label={
-                      sortBy === 'overdueCount' && sortOrder
-                        ? `Sorted by overdue tasks (${sortOrder === 'ASC' ? 'lowest first' : 'highest first'})`
-                        : 'Sort by overdue tasks'
-                    }
                   >
                     <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                       Overdue

@@ -487,13 +487,6 @@ export function SubmissionQueueTable() {
                       size="sm"
                       onClick={handleNameSort}
                       className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                      aria-label={
-                        nameSort === 'asc'
-                          ? 'Sorted A to Z (click for Z to A)'
-                          : nameSort === 'desc'
-                            ? 'Sorted Z to A (click to reset)'
-                            : 'Sort by mentee name'
-                      }
                     >
                       <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                         Mentee
@@ -536,13 +529,6 @@ export function SubmissionQueueTable() {
                       size="sm"
                       onClick={handleSubmittedSort}
                       className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                      aria-label={
-                        submittedSort === 'desc'
-                          ? 'Sorted newest first (click for oldest first)'
-                          : submittedSort === 'asc'
-                            ? 'Sorted oldest first (click to reset)'
-                            : 'Sort by submission date'
-                      }
                     >
                       <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                         Submitted

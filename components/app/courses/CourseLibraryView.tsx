@@ -857,6 +857,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       <Modal
         isOpen={isCreateModalOpen}
         onClose={handleCloseCreateModal}
+        isSubmitting={isSubmittingCreate}
         title="Create New Course"
         size="md"
         footer={

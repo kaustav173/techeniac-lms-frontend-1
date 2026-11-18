@@ -596,13 +596,6 @@ export function MentorMenteesView() {
                           size="sm"
                           onClick={handleMenteeSort}
                           className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                          aria-label={
-                            menteeSort === 'asc'
-                              ? 'Sorted A to Z (click for Z to A)'
-                              : menteeSort === 'desc'
-                                ? 'Sorted Z to A (click to reset)'
-                                : 'Sort by mentee name'
-                          }
                         >
                           <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                             Mentee
@@ -641,13 +634,6 @@ export function MentorMenteesView() {
                           size="sm"
                           onClick={handleMappedSinceSort}
                           className="group inline-flex h-auto cursor-pointer items-center gap-1.5 p-0 text-sm font-semibold whitespace-nowrap text-slate-700 hover:bg-transparent hover:text-slate-900 focus-visible:outline-none sm:text-base"
-                          aria-label={
-                            mappedSinceSort === 'desc'
-                              ? 'Sorted newest first (click for oldest first)'
-                              : mappedSinceSort === 'asc'
-                                ? 'Sorted oldest first (click to reset)'
-                                : 'Sort by mapped date'
-                          }
                         >
                           <Span className="text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors group-hover:text-slate-900 sm:text-base">
                             Mapped Since

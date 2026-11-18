@@ -18,6 +18,7 @@ export default function MentorProfilePage() {
         sessionError={sessionError}
         loadingMessage="Loading mentor profile..."
         variant="mentor"
+        title="Profile"
       />
     );
   }
