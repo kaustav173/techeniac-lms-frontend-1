@@ -3,7 +3,10 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   NEXT_PUBLIC_API_BASE_URL: z
-    .string({ required_error: 'NEXT_PUBLIC_API_BASE_URL is required' })
+    .string({
+      error: (issue) =>
+        issue.input === undefined ? 'NEXT_PUBLIC_API_BASE_URL is required' : undefined,
+    })
     .refine(
       (val) => val.startsWith('/') || /^https?:\/\//.test(val),
       'NEXT_PUBLIC_API_BASE_URL must be a valid URL or relative path starting with /',
@@ -25,7 +28,7 @@ function loadEnv(): Env {
   const result = envSchema.safeParse(rawEnv);
 
   if (!result.success) {
-    const errorDetails = result.error.errors
+    const errorDetails = result.error.issues
       .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
       .join('\n');
 

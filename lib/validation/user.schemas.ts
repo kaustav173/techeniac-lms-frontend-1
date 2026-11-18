@@ -29,7 +29,7 @@ export type EditUserFormData = z.infer<typeof editUserSchema>;
 export const changeRoleSchema = z.object({
   newRole: userRoleEnum,
   reason: z
-    .string({ required_error: 'Reason is required' })
+    .string({ error: (issue) => (issue.input === undefined ? 'Reason is required' : undefined) })
     .trim()
     .min(10, 'Reason must be at least 10 characters long')
     .max(500, 'Reason must not exceed 500 characters'),
