@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/FieldError';
@@ -29,53 +29,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
 
-  const userTypedRef = useRef(false);
   const isFormLocked = isSubmitting;
-
-  const unlockInputs = (e?: React.SyntheticEvent<HTMLInputElement>) => {
-    setIsUnlocked(true);
-    if (e?.currentTarget) {
-      e.currentTarget.readOnly = false;
-    }
-  };
-
-  // Prevent browser autofill/pre-filling of credentials on mount or after logout
-  useEffect(() => {
-    const clearInputs = () => {
-      if (userTypedRef.current) return;
-      const emailInput = document.getElementById('email') as HTMLInputElement | null;
-      const passwordInput = document.getElementById('password') as HTMLInputElement | null;
-      if (emailInput && emailInput.value) {
-        emailInput.value = '';
-      }
-      if (passwordInput && passwordInput.value) {
-        passwordInput.value = '';
-      }
-      setEmail('');
-      setPassword('');
-    };
-
-    const t0 = setTimeout(clearInputs, 0);
-    const t1 = setTimeout(clearInputs, 50);
-    const t2 = setTimeout(clearInputs, 150);
-    const t3 = setTimeout(clearInputs, 350);
-    const t4 = setTimeout(clearInputs, 600);
-    const t5 = setTimeout(clearInputs, 1000);
-
-    return () => {
-      clearTimeout(t0);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-      clearTimeout(t5);
-    };
-  }, []);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,34 +69,10 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
   return (
     <Form
       className="space-y-4"
-      autoComplete="off"
       onSubmit={(e) => {
         void handleSubmit(e);
       }}
     >
-      {/* Hidden dummy fields to capture aggressive browser autofill */}
-      <div
-        className="sr-only"
-        style={{
-          position: 'absolute',
-          opacity: 0,
-          height: 0,
-          width: 0,
-          overflow: 'hidden',
-          pointerEvents: 'none',
-          zIndex: -1,
-        }}
-        aria-hidden="true"
-      >
-        <input type="text" name="fake_username_prevent_autofill" tabIndex={-1} autoComplete="off" />
-        <input
-          type="password"
-          name="fake_password_prevent_autofill"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
-
       {/* Email Field with Mail Icon */}
       <div className="space-y-2">
         <Label
@@ -164,19 +97,9 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
         </Label>
         <Input
           id="email"
-          type="text"
-          inputMode="email"
+          type="email"
+          autoComplete="username"
           value={email}
-          readOnly={!isUnlocked}
-          onFocus={unlockInputs}
-          onMouseDown={unlockInputs}
-          onTouchStart={unlockInputs}
-          onKeyDown={() => {
-            userTypedRef.current = true;
-          }}
-          onPaste={() => {
-            userTypedRef.current = true;
-          }}
           onChange={(e) => {
             const val = e.target.value;
             setEmail(val);
@@ -189,7 +112,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
             }
           }}
           placeholder="name@company.com"
-          autoComplete="off"
           hasError={Boolean(errors.email)}
           disabled={isFormLocked}
           className="h-14 rounded-2xl bg-slate-50 text-base focus:bg-white sm:h-15 sm:text-lg"
@@ -222,26 +144,9 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
         <div className="relative">
           <Input
             id="password"
-            type={isPasswordFocused || password ? (showPassword ? 'text' : 'password') : 'text'}
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             value={password}
-            readOnly={!isUnlocked}
-            onFocus={(e) => {
-              setIsPasswordFocused(true);
-              unlockInputs(e);
-            }}
-            onBlur={() => {
-              if (!password) {
-                setIsPasswordFocused(false);
-              }
-            }}
-            onMouseDown={unlockInputs}
-            onTouchStart={unlockInputs}
-            onKeyDown={() => {
-              userTypedRef.current = true;
-            }}
-            onPaste={() => {
-              userTypedRef.current = true;
-            }}
             onChange={(e) => {
               const val = e.target.value;
               setPassword(val);
@@ -254,7 +159,6 @@ export function LoginForm({ onSubmitSuccess }: Readonly<LoginFormProps>) {
               }
             }}
             placeholder="••••••••••••"
-            autoComplete="new-password"
             hasError={Boolean(errors.password)}
             disabled={isFormLocked}
             className="h-14 rounded-2xl bg-slate-50 pr-12 text-base focus:bg-white sm:h-15 sm:text-lg"

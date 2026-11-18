@@ -3,7 +3,7 @@ import React from 'react';
 
 import { AuthIllustration } from '@/components/app/auth/AuthIllustration';
 import { Logo } from '@/components/ui/Logo';
-import { H1, H2, Span } from '@/components/ui/Typography';
+import { H1, H2, P, Span } from '@/components/ui/Typography';
 
 export interface AuthShellProps {
   readonly children: React.ReactNode;
@@ -73,8 +73,17 @@ export function AuthShell({ children, title, subtitle, footerContent }: Readonly
             </div>
           </div>
 
-          {/* Bottom Balanced Anchor */}
-          <div className="relative z-10 h-6" aria-hidden="true" />
+          {/* Bottom Balanced Anchor / Storyset Attribution */}
+          <div className="relative z-10 flex h-6 items-center justify-center">
+            <a
+              href="https://storyset.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-blue-200/50 transition-colors hover:text-blue-100"
+            >
+              Illustration by Storyset
+            </a>
+          </div>
         </div>
 
         {/* Right 50%: Clean White Form Workspace Container */}
@@ -85,7 +94,7 @@ export function AuthShell({ children, title, subtitle, footerContent }: Readonly
               <H1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-[34px] sm:leading-tight lg:text-4xl">
                 {title}
               </H1>
-              {subtitle ? <p className="mt-2 text-sm text-slate-600">{subtitle}</p> : null}
+              {subtitle ? <P className="mt-2 text-sm text-slate-600">{subtitle}</P> : null}
             </div>
 
             {/* Main Form Body */}
