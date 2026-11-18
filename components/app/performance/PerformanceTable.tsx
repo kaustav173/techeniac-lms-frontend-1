@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { P, Span } from '@/components/ui/Typography';
 import type { MenteePerformanceRow, PerformanceFilterParams } from '@/services/performance.service';
 
@@ -42,13 +43,10 @@ function PerformanceTableSkeleton({ count = 10 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <TableRow key={`perf-skel-${i}`} className="h-16">
           <TableCell className="w-[24%] px-6 py-4">
-            <div className="flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-32 rounded-md" />
-              <Skeleton className="h-3 w-40 rounded-md" />
-            </div>
+            <Skeleton className="h-4 w-32 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%] px-4 py-4">
-            <Skeleton className="h-5 w-20 rounded-md" />
+            <Skeleton className="h-4 w-28 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%] px-4 py-4">
             <Skeleton className="h-4 w-24 rounded-md" />
@@ -358,21 +356,22 @@ export function PerformanceTable({
                   className="transition-colors hover:bg-slate-50/60"
                 >
                   {/* Mentee Identity */}
-                  <TableCell className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <Span className="text-base font-semibold text-slate-900">
+                  <TableCell className="max-w-[220px] px-6 py-4">
+                    <Tooltip content={row.menteeName} containerClassName="inline-flex max-w-full">
+                      <Span className="block truncate text-base font-semibold text-slate-900">
                         {row.menteeName}
                       </Span>
-                      <Span className="text-xs text-slate-500">{row.menteeEmail}</Span>
-                    </div>
+                    </Tooltip>
                   </TableCell>
 
                   {/* Batch Name */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="max-w-[220px] px-4 py-4">
                     {row.batchName ? (
-                      <Span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                        {row.batchName}
-                      </Span>
+                      <Tooltip content={row.batchName} containerClassName="inline-flex max-w-full">
+                        <Span className="block truncate text-base font-semibold text-slate-900">
+                          {row.batchName}
+                        </Span>
+                      </Tooltip>
                     ) : (
                       <Span className="text-slate-400">—</Span>
                     )}
