@@ -492,7 +492,10 @@ export function MyAssignmentsTable({
                           }
                         }}
                       >
-                        <Tooltip content={assignment.title} containerClassName="w-full">
+                        <Tooltip
+                          content={assignment.title}
+                          containerClassName="inline-flex max-w-full"
+                        >
                           <Link
                             href={`/mentee/assignments/${assignment.id}`}
                             {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
@@ -505,7 +508,10 @@ export function MyAssignmentsTable({
 
                       {/* Course Column */}
                       <TableCell className="w-[18%] px-4 py-4">
-                        <Tooltip content={assignment.courseTitle} containerClassName="w-full">
+                        <Tooltip
+                          content={assignment.courseTitle}
+                          containerClassName="inline-flex max-w-full"
+                        >
                           <Span className="block w-full truncate text-base font-semibold text-slate-900">
                             {assignment.courseTitle}
                           </Span>
