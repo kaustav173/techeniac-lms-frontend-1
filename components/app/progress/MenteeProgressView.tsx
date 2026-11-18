@@ -146,7 +146,7 @@ export function MenteeProgressView() {
   );
 
   if (sessionError && !user) {
-    return <PortalSessionState sessionError={sessionError} variant="mentee" />;
+    return <PortalSessionState sessionError={sessionError} variant="mentee" title="Progress" />;
   }
 
   return (

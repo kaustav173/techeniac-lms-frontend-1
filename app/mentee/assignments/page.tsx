@@ -40,6 +40,7 @@ function MenteeAssignmentsContent() {
         sessionError={sessionError}
         loadingMessage="Loading student assignments..."
         variant="mentee"
+        title="Assignments"
       />
     );
   }
@@ -114,6 +115,7 @@ export default function MenteeAssignmentsPage() {
           sessionError={null}
           loadingMessage="Loading student assignments..."
           variant="mentee"
+          title="Assignments"
         />
       }
     >
