@@ -52,7 +52,7 @@ export function MenteeTableRow({
       )}
     >
       <TableCell className={actions ? 'w-[32%]' : 'w-[40%]'}>
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col">
           <Tooltip
             content={mentee.name ?? 'Assigned Mentee'}
             containerClassName="inline-flex max-w-full"

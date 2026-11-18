@@ -677,26 +677,28 @@ export function SubmissionQueueTable() {
 
                             {/* Assignment Column */}
                             <TableCell className="px-4 py-4">
-                              <Tooltip
-                                content={sub.assignmentTitle}
-                                containerClassName="inline-flex max-w-full"
-                              >
-                                <P className="max-w-xs truncate text-base font-semibold text-slate-900">
-                                  {truncateText(sub.assignmentTitle, 6, 40)}
-                                </P>
-                              </Tooltip>
-                              <Tooltip
-                                content={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
-                                containerClassName="inline-flex max-w-full"
-                              >
-                                <P className="max-w-xs truncate text-xs text-slate-500">
-                                  {truncateText(
-                                    `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
-                                    6,
-                                    36,
-                                  )}
-                                </P>
-                              </Tooltip>
+                              <div className="flex min-w-0 flex-col">
+                                <Tooltip
+                                  content={sub.assignmentTitle}
+                                  containerClassName="inline-flex max-w-full"
+                                >
+                                  <P className="max-w-xs truncate text-base font-semibold text-slate-900">
+                                    {truncateText(sub.assignmentTitle, 6, 40)}
+                                  </P>
+                                </Tooltip>
+                                <Tooltip
+                                  content={`${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`}
+                                  containerClassName="inline-flex max-w-full"
+                                >
+                                  <P className="max-w-xs truncate text-xs text-slate-500">
+                                    {truncateText(
+                                      `${sub.courseTitle}${sub.topicTitle ? ` • ${sub.topicTitle}` : ''}`,
+                                      6,
+                                      36,
+                                    )}
+                                  </P>
+                                </Tooltip>
+                              </div>
                             </TableCell>
 
                             {/* Version Column */}
