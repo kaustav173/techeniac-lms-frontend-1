@@ -17,7 +17,7 @@ export const auditLogFilterSchema = z
   .object({
     type: z.union([auditTypeEnum, z.literal('ALL')]).optional(),
     types: z.array(auditTypeEnum).optional(),
-    actorId: z.string().uuid().optional(),
+    actorId: z.string().guid('Invalid uuid').optional(),
     entity: z.string().max(100).optional(),
     action: z.string().max(100).optional(),
     search: z.string().max(100).optional(),

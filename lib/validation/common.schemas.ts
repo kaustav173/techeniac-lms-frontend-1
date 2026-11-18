@@ -46,7 +46,7 @@ export function checkPasswordCriteria(password: string): PasswordCriteria {
 }
 
 export const passwordSchema = z
-  .string({ required_error: 'Password is required' })
+  .string({ error: (issue) => (issue.input === undefined ? 'Password is required' : undefined) })
   .min(
     PASSWORD_RULES.minLength,
     `Password must be at least ${PASSWORD_RULES.minLength} characters long`,
@@ -58,7 +58,7 @@ export const passwordSchema = z
   .regex(PASSWORD_RULES.specialRegex, 'Password must contain at least one special character');
 
 export const emailSchema = z
-  .string({ required_error: 'Email is required' })
+  .string({ error: (issue) => (issue.input === undefined ? 'Email is required' : undefined) })
   .trim()
   .min(1, 'Email is required')
   .toLowerCase()
@@ -66,12 +66,14 @@ export const emailSchema = z
   .max(254, 'Email must not exceed 254 characters');
 
 export const uuidSchema = z
-  .string({ required_error: 'ID is required' })
-  .uuid('Invalid UUID format');
+  .string({ error: (issue) => (issue.input === undefined ? 'ID is required' : undefined) })
+  .guid('Invalid UUID format');
 
 export const createTrimmedStringSchema = (fieldName: string, min = 1, max = 255): z.ZodString =>
   z
-    .string({ required_error: `${fieldName} is required` })
+    .string({
+      error: (issue) => (issue.input === undefined ? `${fieldName} is required` : undefined),
+    })
     .trim()
     .min(min, `${fieldName} must be at least ${min} characters`)
     .max(max, `${fieldName} must not exceed ${max} characters`);

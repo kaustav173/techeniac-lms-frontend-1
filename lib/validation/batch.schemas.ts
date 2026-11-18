@@ -21,7 +21,9 @@ export const createBatchSchema = z
   .object({
     name: createTrimmedStringSchema('Batch name', 3, 100),
     code: z
-      .string({ required_error: 'Batch code is required' })
+      .string({
+        error: (issue) => (issue.input === undefined ? 'Batch code is required' : undefined),
+      })
       .trim()
       .min(1, 'Batch code is required')
       .min(3, 'Batch code must be at least 3 characters')
@@ -29,11 +31,15 @@ export const createBatchSchema = z
       .regex(/^[A-Z0-9-]+$/, 'Batch code must be uppercase alphanumeric and hyphens only')
       .transform((val) => val.toUpperCase()),
     startDate: z
-      .string({ required_error: 'Please select start date' })
+      .string({
+        error: (issue) => (issue.input === undefined ? 'Please select start date' : undefined),
+      })
       .trim()
       .min(1, 'Please select start date'),
     endDate: z
-      .string({ required_error: 'Please select end date' })
+      .string({
+        error: (issue) => (issue.input === undefined ? 'Please select end date' : undefined),
+      })
       .trim()
       .min(1, 'Please select end date'),
     description: z.string().max(5000, 'Description must not exceed 5000 characters').optional(),

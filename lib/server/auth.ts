@@ -16,50 +16,20 @@ function isUnauthorizedApiError(err: unknown): boolean {
   return err instanceof ApiError && err.status === 401;
 }
 
-async function resolveSessionWithRefresh(refreshToken: string): Promise<ServerSessionResult> {
-  const refreshedToken = await authService.refreshTokenOnServer(refreshToken);
-  if (!refreshedToken) {
+export async function verifyServerSession(accessToken?: string): Promise<ServerSessionResult> {
+  if (!accessToken) {
     return { user: null, accessToken: null };
   }
 
   try {
-    const user = await authService.getMe(refreshedToken);
-    return { user, accessToken: refreshedToken };
+    const user = await authService.getMe(accessToken);
+    return { user, accessToken };
   } catch (err) {
     if (isUnauthorizedApiError(err)) {
       return { user: null, accessToken: null };
     }
     throw err;
   }
-}
-
-export async function verifyServerSession(
-  initialAccessToken?: string,
-  refreshToken?: string,
-): Promise<ServerSessionResult> {
-  const accessToken = initialAccessToken ?? null;
-
-  if (accessToken) {
-    try {
-      const user = await authService.getMe(accessToken);
-      return { user, accessToken };
-    } catch (err) {
-      if (!isUnauthorizedApiError(err)) {
-        // Propagate 5xx/403/network/timeout errors instead of falsely treating them as expired sessions.
-        throw err;
-      }
-      if (refreshToken) {
-        return resolveSessionWithRefresh(refreshToken);
-      }
-      return { user: null, accessToken: null };
-    }
-  }
-
-  if (refreshToken) {
-    return resolveSessionWithRefresh(refreshToken);
-  }
-
-  return { user: null, accessToken: null };
 }
 
 /**
@@ -72,9 +42,9 @@ export async function requirePortalServerSession(
 ): Promise<PortalServerSessionResolution> {
   const cookieStore = await cookies();
   const rawAccessToken = cookieStore.get('accessToken')?.value;
-  const rawRefreshToken = cookieStore.get('refreshToken')?.value;
 
-  if (!rawAccessToken && !rawRefreshToken) {
+  // The login page checks the session in the browser, where a refresh can persist both cookies.
+  if (!rawAccessToken) {
     redirect('/login');
   }
 
@@ -82,7 +52,7 @@ export async function requirePortalServerSession(
   let errorMessage: string | null = null;
 
   try {
-    sessionResult = await verifyServerSession(rawAccessToken, rawRefreshToken);
+    sessionResult = await verifyServerSession(rawAccessToken);
   } catch (err) {
     errorMessage = formatErrorMessage(
       err,
