@@ -42,16 +42,16 @@ function PerformanceTableSkeleton({ count = 10 }: { count?: number }) {
     <>
       {Array.from({ length: count }).map((_, i) => (
         <TableRow key={`perf-skel-${i}`} className="h-16">
-          <TableCell className="w-[24%] px-6 py-4">
-            <Skeleton className="h-4 w-32 rounded-md" />
+          <TableCell className="w-[20%] px-6 py-4">
+            <Skeleton className="h-4 w-36 rounded-md" />
           </TableCell>
-          <TableCell className="w-[14%] px-4 py-4">
-            <Skeleton className="h-4 w-28 rounded-md" />
+          <TableCell className="w-[20%] px-4 py-4">
+            <Skeleton className="h-4 w-36 rounded-md" />
           </TableCell>
           <TableCell className="w-[14%] px-4 py-4">
             <Skeleton className="h-4 w-24 rounded-md" />
           </TableCell>
-          <TableCell className="w-[16%] px-4 py-4">
+          <TableCell className="w-[14%] px-4 py-4">
             <div className="flex w-32 flex-col gap-1.5">
               <Skeleton className="h-3 w-10 rounded-md" />
               <Skeleton className="h-1.5 w-full rounded-full" />
@@ -187,12 +187,12 @@ export function PerformanceTable({
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-xs">
       <div className="overflow-x-auto rounded-t-3xl">
-        <Table className="w-full text-left">
+        <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-slate-700">
             <TableRow>
               <TableHead
                 aria-sort={getAriaSort('name')}
-                className="px-6 py-3.5 font-semibold text-slate-700"
+                className="w-[20%] px-6 py-3.5 font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -214,7 +214,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('batch')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[20%] px-4 py-3.5 font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -236,7 +236,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('courses')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[14%] px-4 py-3.5 font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -258,7 +258,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('completionPercentage')}
-                className="px-4 py-3.5 font-semibold text-slate-700"
+                className="w-[14%] px-4 py-3.5 font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -280,7 +280,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('averageMarks')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[10%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -302,7 +302,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('onTimeRate')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[12%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -324,7 +324,7 @@ export function PerformanceTable({
               </TableHead>
               <TableHead
                 aria-sort={getAriaSort('overdueCount')}
-                className="px-4 py-3.5 text-center font-semibold text-slate-700"
+                className="w-[10%] px-4 py-3.5 text-center font-semibold text-slate-700"
               >
                 <Button
                   type="button"
@@ -356,7 +356,7 @@ export function PerformanceTable({
                   className="transition-colors hover:bg-slate-50/60"
                 >
                   {/* Mentee Identity */}
-                  <TableCell className="max-w-[220px] px-6 py-4">
+                  <TableCell className="w-[20%] px-6 py-4">
                     <Tooltip content={row.menteeName} containerClassName="inline-flex max-w-full">
                       <Span className="block truncate text-base font-semibold text-slate-900">
                         {row.menteeName}
@@ -365,7 +365,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Batch Name */}
-                  <TableCell className="max-w-[220px] px-4 py-4">
+                  <TableCell className="w-[20%] px-4 py-4">
                     {row.batchName ? (
                       <Tooltip content={row.batchName} containerClassName="inline-flex max-w-full">
                         <Span className="block truncate text-base font-semibold text-slate-900">
@@ -378,7 +378,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Courses Count */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="w-[14%] px-4 py-4">
                     <Span className="text-base font-semibold text-slate-900">
                       {row.completedCoursesCount}
                     </Span>
@@ -386,7 +386,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Completion Progress Bar */}
-                  <TableCell className="px-4 py-4">
+                  <TableCell className="w-[14%] px-4 py-4">
                     <div className="flex w-32 flex-col gap-1">
                       <div className="flex justify-between text-xs">
                         <Span className="font-semibold text-slate-700">
@@ -405,7 +405,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Average Marks */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[10%] px-4 py-4 text-center">
                     {row.averageMarks !== null ? (
                       <Span className="text-base font-semibold text-slate-900">
                         {row.averageMarks}
@@ -416,7 +416,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Submissions & On-time Rate */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[12%] px-4 py-4 text-center">
                     <div className="flex flex-col items-center">
                       <Span className="text-base font-semibold text-slate-900">
                         {row.totalSubmissions}
@@ -428,7 +428,7 @@ export function PerformanceTable({
                   </TableCell>
 
                   {/* Overdue Count */}
-                  <TableCell className="px-4 py-4 text-center">
+                  <TableCell className="w-[10%] px-4 py-4 text-center">
                     {row.overdueCount > 0 ? (
                       <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
                         {row.overdueCount} overdue
