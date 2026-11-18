@@ -235,6 +235,24 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
+  const resetCreateForm = () => {
+    setNewTitle('');
+    setNewDescription('');
+    resetDuration(2400);
+    setNewIsActive(true);
+    setCreateError(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    resetCreateForm();
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    resetCreateForm();
+  };
+
   // Impact & Action Modals State
   const [activeActionCourse, setActiveActionCourse] = useState<Course | null>(null);
   const [assignModalCourse, setAssignModalCourse] = useState<Course | null>(null);
@@ -310,10 +328,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       });
 
       toastSuccess(`Course "${created.title}" created successfully.`, 'Course Created');
-      setIsCreateModalOpen(false);
-      setNewTitle('');
-      setNewDescription('');
-      resetDuration(2400);
+      handleCloseCreateModal();
       router.push(`/${portal}/courses/${created.id}/builder`);
     } catch (err: unknown) {
       const msg = formatErrorMessage(err, 'Failed to create course');
@@ -453,7 +468,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               type="button"
               variant="primary"
               size="sm"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleOpenCreateModal}
               className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#0044D3] px-4 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#0039B3] sm:h-10 sm:text-sm"
             >
               <svg
@@ -836,7 +851,7 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
       {/* Create Course Modal */}
       <Modal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={handleCloseCreateModal}
         title="Create New Course"
         size="md"
         footer={
@@ -845,7 +860,8 @@ export function CourseLibraryView({ portal }: Readonly<CourseLibraryViewProps>) 
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsCreateModalOpen(false)}
+              disabled={isSubmittingCreate}
+              onClick={handleCloseCreateModal}
             >
               Cancel
             </Button>
