@@ -73,17 +73,8 @@ export function AuthShell({ children, title, subtitle, footerContent }: Readonly
             </div>
           </div>
 
-          {/* Bottom Balanced Anchor / Storyset Attribution */}
-          <div className="relative z-10 flex h-6 items-center justify-center">
-            <a
-              href="https://storyset.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] text-blue-200/50 transition-colors hover:text-blue-100"
-            >
-              Illustration by Storyset
-            </a>
-          </div>
+          {/* Bottom Balanced Anchor */}
+          <div className="relative z-10 h-6" aria-hidden="true" />
         </div>
 
         {/* Right 50%: Clean White Form Workspace Container */}
