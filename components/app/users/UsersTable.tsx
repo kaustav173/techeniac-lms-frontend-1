@@ -477,7 +477,25 @@ export function UsersTable() {
       </div>
 
       {/* Users Data Table */}
-      <TableContainer>
+      <TableContainer
+        fitToViewport
+        scrollRegionLabel="Users"
+        footer={
+          !usersError && (
+            <PaginationControls
+              page={page}
+              limit={limit}
+              total={effectiveTotal}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              onLimitChange={handleLimitChange}
+              isLoading={isTableLoading}
+              pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+              itemLabel="users"
+            />
+          )
+        }
+      >
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
@@ -738,21 +756,6 @@ export function UsersTable() {
             )}
           </TableBody>
         </Table>
-
-        {/* Pagination Controls with Loading State */}
-        {!usersError && (
-          <PaginationControls
-            page={page}
-            limit={limit}
-            total={effectiveTotal}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            onLimitChange={handleLimitChange}
-            isLoading={isTableLoading}
-            pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
-            itemLabel="users"
-          />
-        )}
       </TableContainer>
 
       {/* Drawers and Modals */}

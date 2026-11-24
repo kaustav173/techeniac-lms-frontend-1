@@ -284,7 +284,22 @@ export function AuditLogTable() {
       )}
 
       {/* Audit Log Table using UI Primitives */}
-      <TableContainer>
+      <TableContainer
+        fitToViewport
+        scrollRegionLabel="Audit logs"
+        footer={
+          <PaginationControls
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            itemLabel="logs"
+            isLoading={isLoading || isFetching}
+          />
+        }
+      >
         <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
             <TableRow>
@@ -490,18 +505,6 @@ export function AuditLogTable() {
             )}
           </TableBody>
         </Table>
-
-        {/* Pagination Bar using shared pattern */}
-        <PaginationControls
-          page={pagination.page}
-          limit={pagination.limit}
-          total={pagination.total}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-          onLimitChange={handleLimitChange}
-          itemLabel="logs"
-          isLoading={isLoading || isFetching}
-        />
       </TableContainer>
 
       {/* Modal */}

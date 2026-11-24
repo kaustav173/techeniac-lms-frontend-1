@@ -48,7 +48,7 @@ export function PaginationControls({
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-500 sm:flex-row',
+          'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-3 py-4 text-sm text-slate-500 sm:flex-row sm:px-6',
           className,
         )}
       >
@@ -89,7 +89,7 @@ export function PaginationControls({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-6 py-4 text-sm text-slate-600 sm:flex-row',
+        'flex flex-col items-center justify-between gap-4 border-t border-[#E1E6EC] bg-white px-3 py-4 text-sm text-slate-600 sm:flex-row sm:px-6',
         className,
       )}
     >
@@ -111,7 +111,7 @@ export function PaginationControls({
       <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
         {/* Numbered Page Navigation Pills */}
         <div
-          className="flex items-center gap-1.5"
+          className="flex max-w-full flex-wrap items-center gap-1.5"
           role="navigation"
           aria-label="Pagination Navigation"
         >

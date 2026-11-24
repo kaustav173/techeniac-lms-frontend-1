@@ -218,7 +218,40 @@ export function MenteeProgressView() {
 
         {/* Progress Telemetry Data Table & Joined Pagination */}
         <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-          <TableContainer className="rounded-none border-0 shadow-none">
+          <TableContainer
+            fitToViewport
+            scrollRegionLabel="Course progress"
+            footer={
+              isTableLoading ? (
+                <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
+                  <Skeleton className="h-4 w-32 rounded-md" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                  </div>
+                </div>
+              ) : pagination.total > 0 ? (
+                <PaginationControls
+                  page={pagination.page}
+                  limit={pagination.limit}
+                  total={pagination.total}
+                  totalPages={pagination.totalPages}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onLimitChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
+                  }}
+                  itemLabel="courses"
+                  pageSizeOptions={[10, 20, 50]}
+                  isLoading={isTableLoading}
+                  className="border-t border-[#E1E6EC]"
+                />
+              ) : null
+            }
+            className="rounded-none border-0 shadow-none"
+          >
             <Table className="w-full min-w-[760px] table-fixed text-left">
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
@@ -460,35 +493,6 @@ export function MenteeProgressView() {
               </TableBody>
             </Table>
           </TableContainer>
-
-          {/* Skeleton or Joined Real Pagination Controls */}
-          {isTableLoading ? (
-            <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
-              <Skeleton className="h-4 w-32 rounded-md" />
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-20 rounded-lg" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
-                <Skeleton className="h-8 w-20 rounded-lg" />
-              </div>
-            </div>
-          ) : pagination.total > 0 ? (
-            <PaginationControls
-              page={pagination.page}
-              limit={pagination.limit}
-              total={pagination.total}
-              totalPages={pagination.totalPages}
-              onPageChange={(newPage) => setPage(newPage)}
-              onLimitChange={(newLimit) => {
-                setLimit(newLimit);
-                setPage(1);
-              }}
-              itemLabel="courses"
-              pageSizeOptions={[10, 20, 50]}
-              isLoading={isTableLoading}
-              className="border-t border-[#E1E6EC]"
-            />
-          ) : null}
         </div>
       </DashboardContent>
     </div>

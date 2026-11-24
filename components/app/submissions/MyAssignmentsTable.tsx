@@ -323,9 +323,31 @@ export function MyAssignmentsTable({
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-          <TableContainer className="w-full rounded-none border-0 shadow-none">
+          <TableContainer
+            fitToViewport={Boolean(pagination)}
+            scrollRegionLabel="Assignments"
+            footer={
+              pagination && !error && (isLoading || effectiveTotal > 0) ? (
+                <PaginationControls
+                  page={effectivePage}
+                  limit={pagination.limit}
+                  total={effectiveTotal}
+                  totalPages={effectiveTotalPages}
+                  onPageChange={pagination.onPageChange}
+                  onLimitChange={pagination.onLimitChange}
+                  itemLabel="assignments"
+                  pageSizeOptions={[10, 20, 50]}
+                  isLoading={isLoading}
+                  className="border-t border-[#E1E6EC]"
+                />
+              ) : null
+            }
+            className="w-full rounded-none border-0 shadow-none"
+          >
             <Table className="w-full min-w-[960px] table-fixed">
-              <TableHeader className="static border-b border-[#E1E6EC] bg-[#F6F8FC]">
+              <TableHeader
+                className={cn('border-b border-[#E1E6EC] bg-[#F6F8FC]', !pagination && 'static')}
+              >
                 <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC] hover:bg-[#F6F8FC]">
                   {isServerPaginated ? (
                     <>
@@ -574,21 +596,6 @@ export function MyAssignmentsTable({
               </TableBody>
             </Table>
           </TableContainer>
-
-          {pagination && !error && (isLoading || effectiveTotal > 0) ? (
-            <PaginationControls
-              page={effectivePage}
-              limit={pagination.limit}
-              total={effectiveTotal}
-              totalPages={effectiveTotalPages}
-              onPageChange={pagination.onPageChange}
-              onLimitChange={pagination.onLimitChange}
-              itemLabel="assignments"
-              pageSizeOptions={[10, 20, 50]}
-              isLoading={isLoading}
-              className="border-t border-[#E1E6EC]"
-            />
-          ) : null}
         </div>
       )}
 

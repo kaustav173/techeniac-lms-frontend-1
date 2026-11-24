@@ -1,0 +1,29 @@
+@media (forced-colors: none) {
+  .table-scrollbar {
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #7889a0;
+
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+  }
+
+  .table-scrollbar:hover {
+    --scrollbar-thumb: #52647d;
+  }
+
+  .table-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .table-scrollbar::-webkit-scrollbar-track,
+  .table-scrollbar::-webkit-scrollbar-corner {
+    background-color: var(--scrollbar-track);
+  }
+
+  .table-scrollbar::-webkit-scrollbar-thumb {
+    border: 2px solid var(--scrollbar-track);
+    border-radius: 999px;
+    background-color: var(--scrollbar-thumb);
+  }
+}

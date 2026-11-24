@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableHeader,
   TableRow,
@@ -186,7 +187,24 @@ export function PerformanceTable({
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-xs">
-      <div className="overflow-x-auto rounded-t-3xl">
+      <TableContainer
+        fitToViewport
+        scrollRegionLabel="Mentee performance"
+        footer={
+          <PaginationControls
+            page={page}
+            limit={limit}
+            total={total}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            onLimitChange={onLimitChange}
+            isLoading={isTableLoading}
+            itemLabel="mentees"
+            className="rounded-b-3xl"
+          />
+        }
+        className="rounded-t-3xl rounded-b-none border-0 shadow-none"
+      >
         <Table className="w-full table-fixed text-left">
           <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] text-sm font-semibold text-slate-700">
             <TableRow>
@@ -473,19 +491,7 @@ export function PerformanceTable({
             )}
           </TableBody>
         </Table>
-      </div>
-
-      <PaginationControls
-        page={page}
-        limit={limit}
-        total={total}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        onLimitChange={onLimitChange}
-        isLoading={isTableLoading}
-        itemLabel="mentees"
-        className="rounded-b-3xl"
-      />
+      </TableContainer>
     </div>
   );
 }
