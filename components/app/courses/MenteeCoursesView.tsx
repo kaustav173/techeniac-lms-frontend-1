@@ -34,6 +34,9 @@ const COURSE_STATUS_OPTIONS: MultiSelectOption[] = [
   { value: 'closed', label: 'Closed' },
 ];
 
+const COURSE_GRID_CLASS =
+  'grid grid-cols-1 items-stretch gap-6 @min-[33rem]:grid-cols-2 @min-[50rem]:grid-cols-3';
+
 const MAX_DESCRIPTION_CHARS = 90;
 const DEFAULT_COURSE_DESCRIPTION =
   'Structured learning modules, milestone task submissions, and topic reviews.';
@@ -53,7 +56,7 @@ export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
           <Skeleton className="h-11 w-[140px] rounded-xl" />
         </div>
       </div>
-      <div className="mt-6 grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className={`mt-6 ${COURSE_GRID_CLASS}`}>
         {Array.from({ length: count }).map((_, idx) => (
           <div
             key={`course-skel-${idx}`}
@@ -61,7 +64,7 @@ export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
           >
             <div>
               {/* Top Header: Badge & Status */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <Skeleton className="h-5 w-24 rounded-full" />
                 <Skeleton className="h-5 w-20 rounded-full" />
               </div>
@@ -87,7 +90,7 @@ export function MenteeCoursesSkeleton({ count = 10 }: { count?: number }) {
               </div>
             </div>
             {/* Footer */}
-            <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3.5">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#E1E6EC] pt-3.5">
               <Skeleton className="h-4 w-20 rounded-md" />
               <Skeleton className="h-4 w-16 rounded-md" />
             </div>
@@ -190,7 +193,7 @@ export function MenteeCoursesView() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827] antialiased">
       <Header {...MENTEE_COURSES_NAV} />
 
-      <DashboardContent className="animate-slide-up space-y-6">
+      <DashboardContent className="animate-slide-up @container space-y-6">
         {isLoading ? (
           <MenteeCoursesSkeleton count={limit} />
         ) : (
@@ -267,7 +270,7 @@ export function MenteeCoursesView() {
                   </P>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className={COURSE_GRID_CLASS}>
                   {allocations.map((alloc, idx) => (
                     <MenteeAllocationCard key={alloc.id} allocation={alloc} index={idx} />
                   ))}
@@ -335,8 +338,8 @@ function MenteeAllocationCard({
     >
       <div>
         {/* Top Header: Badge & Status */}
-        <div className="flex items-center justify-between gap-2">
-          <Span className="inline-flex items-center rounded-full bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-medium text-[#0044D3]">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Span className="inline-block max-w-full rounded-full bg-[#F6F8FC] px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-[#0044D3]">
             {allocation.batch ? allocation.batch.name : 'Individual Track'}
           </Span>
           <AllocationStatusBadge status={allocation.status} isOverdue={isOverdue} />
@@ -348,7 +351,7 @@ function MenteeAllocationCard({
           {...hoverProps}
           className="mt-3.5 block after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-[#0044D3]"
         >
-          <H3 className="line-clamp-1 text-base font-bold text-[#111827] transition-colors group-hover:text-[#0044D3]">
+          <H3 className="line-clamp-2 text-base font-bold wrap-anywhere text-[#111827] transition-colors group-hover:text-[#0044D3]">
             {allocation.course?.title ?? 'Course Track'}
           </H3>
         </Link>
@@ -383,7 +386,7 @@ function MenteeAllocationCard({
         </div>
 
         {/* Metadata Row */}
-        <div className="mt-4 flex items-center justify-between text-xs text-[#667085]">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#667085]">
           <div className="flex items-center gap-1.5">
             <svg
               className="h-4 w-4 shrink-0 text-[#667085]"
@@ -421,7 +424,7 @@ function MenteeAllocationCard({
       </div>
 
       {/* Minimal Footer */}
-      <div className="mt-4 flex items-center justify-between border-t border-[#E1E6EC] pt-3.5">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#E1E6EC] pt-3.5">
         <Link
           href={`/mentee/assignments?courseId=${allocation.courseId}`}
           onClick={(e) => e.stopPropagation()}
@@ -431,7 +434,7 @@ function MenteeAllocationCard({
         </Link>
 
         <Span
-          className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+          className={`inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
             isRevokedOrClosed
               ? 'text-[#667085]'
               : isCompleted
