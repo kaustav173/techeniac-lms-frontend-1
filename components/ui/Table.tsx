@@ -237,7 +237,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
       ref={ref}
       scope={scope}
       className={cn(
-        'px-4 py-2.5 text-sm font-semibold text-slate-700 sm:px-5 sm:py-3 sm:text-base',
+        'bg-inherit px-4 py-2.5 text-sm font-semibold text-slate-700 sm:px-5 sm:py-3 sm:text-base',
         className,
       )}
       {...props}

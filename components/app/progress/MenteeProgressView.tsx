@@ -252,7 +252,7 @@ export function MenteeProgressView() {
             }
             className="rounded-none border-0 shadow-none"
           >
-            <Table className="w-full min-w-[680px] table-fixed text-left">
+            <Table className="w-full min-w-[760px] table-fixed text-left">
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
                   <SortableColumnHeader<AllocationSortField>
@@ -262,9 +262,9 @@ export function MenteeProgressView() {
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     tooltip="Sort by Course Name"
-                    className="w-[28%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
+                    className="w-[26%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[20%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Batch
                   </TableHead>
                   <SortableColumnHeader<AllocationSortField>
@@ -276,13 +276,13 @@ export function MenteeProgressView() {
                     tooltip="Sort by Due Date"
                     className="w-[14%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-[17%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Progress
                   </TableHead>
                   <TableHead className="w-[14%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-[6%] pr-6 pl-2 text-left font-semibold text-slate-700">
+                  <TableHead className="w-[11%] py-2.5 pr-8 pl-2 text-right font-semibold text-slate-700 sm:py-3 sm:pr-10">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -291,10 +291,10 @@ export function MenteeProgressView() {
                 {isTableLoading ? (
                   Array.from({ length: limit }).map((_, idx) => (
                     <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
-                      <TableCell className="w-[28%] px-4 py-3.5">
+                      <TableCell className="w-[26%] px-4 py-3.5">
                         <Skeleton className="h-4 w-44 rounded-md" />
                       </TableCell>
-                      <TableCell className="w-[20%] px-4 py-3.5">
+                      <TableCell className="w-[18%] px-4 py-3.5">
                         <div className="space-y-1.5">
                           <Skeleton className="h-4 w-32 rounded-md" />
                           <Skeleton className="h-3 w-20 rounded-md" />
@@ -303,7 +303,7 @@ export function MenteeProgressView() {
                       <TableCell className="w-[14%] px-4 py-3.5">
                         <Skeleton className="h-4 w-20 rounded-md" />
                       </TableCell>
-                      <TableCell className="w-[18%] px-4 py-3.5">
+                      <TableCell className="w-[17%] px-4 py-3.5">
                         <div className="flex items-center gap-2">
                           <Skeleton className="h-2 w-20 rounded-full" />
                           <Skeleton className="h-3 w-8 rounded-md" />
@@ -312,8 +312,8 @@ export function MenteeProgressView() {
                       <TableCell className="w-[14%] px-4 py-3.5">
                         <Skeleton className="h-6 w-20 rounded-full" />
                       </TableCell>
-                      <TableCell className="w-[6%] pr-6 pl-2 text-left">
-                        <div className="flex items-center justify-start">
+                      <TableCell className="w-[11%] py-3.5 pr-8 pl-2 text-right sm:pr-10">
+                        <div className="flex items-center justify-end">
                           <Skeleton className="h-8 w-8 rounded-full" />
                         </div>
                       </TableCell>
@@ -372,7 +372,7 @@ export function MenteeProgressView() {
                         className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:bg-slate-100/80 focus-visible:outline-none"
                       >
                         {/* 1. Course Name (truncated with full name on hover, increased font size) */}
-                        <TableCell className="w-[28%] px-4 py-3.5 align-middle">
+                        <TableCell className="w-[26%] px-4 py-3.5 align-middle">
                           <Tooltip
                             content={alloc.course?.title ?? 'Untitled Course'}
                             containerClassName="inline-flex max-w-full"
@@ -384,7 +384,7 @@ export function MenteeProgressView() {
                         </TableCell>
 
                         {/* 2. Batch Cohort & Code (truncated, never wrap onto second line) */}
-                        <TableCell className="w-[20%] px-4 py-3.5 align-middle">
+                        <TableCell className="w-[18%] px-4 py-3.5 align-middle">
                           <div className="space-y-0.5">
                             <Tooltip
                               content={alloc.batch?.name ?? 'Individual Allocation'}
@@ -415,7 +415,7 @@ export function MenteeProgressView() {
                         </TableCell>
 
                         {/* 4. Progress Bar & Percentage */}
-                        <TableCell className="w-[18%] px-4 py-3.5 align-middle">
+                        <TableCell className="w-[17%] px-4 py-3.5 align-middle">
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-16 overflow-hidden rounded-full bg-[#E1E6EC] sm:w-20">
                               <div
@@ -451,8 +451,8 @@ export function MenteeProgressView() {
                         </TableCell>
 
                         {/* 6. Action: Three Dots Button */}
-                        <TableCell className="w-[6%] pr-6 pl-2 text-left align-middle">
-                          <div className="flex items-center justify-start">
+                        <TableCell className="w-[11%] py-3.5 pr-8 pl-2 text-right align-middle sm:pr-10">
+                          <div className="flex items-center justify-end">
                             <Tooltip
                               content={
                                 isCompleted
@@ -472,10 +472,10 @@ export function MenteeProgressView() {
                                   router.push(`/mentee/courses/${alloc.id}`);
                                 }}
                                 aria-label={`${isCompleted ? 'Review Syllabus' : 'Continue Learning'} for ${alloc.course?.title ?? 'course'}`}
-                                className="h-11 min-h-[44px] w-11 min-w-[44px] rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0044D3] focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
+                                className="h-9 w-9 rounded-full p-0 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#0044D3]/40 focus-visible:ring-offset-1 focus-visible:outline-none"
                               >
                                 <svg
-                                  className="h-4 w-4"
+                                  className="h-5 w-5"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                   aria-hidden="true"

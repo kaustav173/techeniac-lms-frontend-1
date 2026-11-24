@@ -14,6 +14,31 @@ import { useRoleRedirect } from '@/hooks/useRoleRedirect';
 import { useMyAssignments } from '@/hooks/useSubmissions';
 import type { AssignmentDerivedStatus } from '@/types/submissions';
 
+function MenteeAssignmentsSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
+      <Header {...MENTEE_ASSIGNMENTS_NAV} />
+      <DashboardContent className="animate-slide-up space-y-6">
+        <MyAssignmentsTable
+          assignments={[]}
+          isLoading={true}
+          error={null}
+          searchQuery=""
+          selectedStatuses={[]}
+          pagination={{
+            page: 1,
+            limit: 10,
+            total: 10,
+            totalPages: 1,
+            onPageChange: () => {},
+            onLimitChange: () => {},
+          }}
+        />
+      </DashboardContent>
+    </div>
+  );
+}
+
 function MenteeAssignmentsContent() {
   const router = useRouter();
   const { user, isAuthorized, sessionError } = useRoleRedirect({ allowedRoles: ['MENTEE'] });
@@ -35,14 +60,17 @@ function MenteeAssignmentsContent() {
     });
 
   if (!isAuthorized || !user) {
-    return (
-      <PortalSessionState
-        sessionError={sessionError}
-        loadingMessage="Loading student assignments..."
-        variant="mentee"
-        title="Assignments"
-      />
-    );
+    if (sessionError) {
+      return (
+        <PortalSessionState
+          sessionError={sessionError}
+          loadingMessage="Loading student assignments..."
+          variant="mentee"
+          title="Assignments"
+        />
+      );
+    }
+    return <MenteeAssignmentsSkeleton />;
   }
 
   return (
@@ -109,16 +137,7 @@ function MenteeAssignmentsContent() {
 
 export default function MenteeAssignmentsPage() {
   return (
-    <Suspense
-      fallback={
-        <PortalSessionState
-          sessionError={null}
-          loadingMessage="Loading student assignments..."
-          variant="mentee"
-          title="Assignments"
-        />
-      }
-    >
+    <Suspense fallback={<MenteeAssignmentsSkeleton />}>
       <MenteeAssignmentsContent />
     </Suspense>
   );

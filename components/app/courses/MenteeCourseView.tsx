@@ -289,9 +289,9 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
             <div className="mt-6 flex justify-start">
               <Link
                 href="/mentee/courses"
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+                className="group inline-flex items-center gap-2 rounded-full border border-[#E1E6EC] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111827] shadow-2xs transition-colors hover:border-[#0044D3]/30 hover:bg-slate-50 hover:text-[#0044D3]"
               >
-                <ArrowLeftIcon className="h-3.5 w-3.5" />
+                <ArrowLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
                 <Span>Back to Courses</Span>
               </Link>
             </div>
@@ -319,7 +319,7 @@ export function MenteeCourseView({ allocationId }: MenteeCourseViewProps) {
         <div>
           <Link
             href="/mentee/courses"
-            className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 transition-colors hover:text-slate-900"
+            className="group inline-flex items-center gap-2 rounded-full border border-[#E1E6EC] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#111827] shadow-2xs transition-colors hover:border-[#0044D3]/30 hover:bg-slate-50 hover:text-[#0044D3]"
           >
             <ArrowLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
             <Span>Back to Courses</Span>
