@@ -28,7 +28,7 @@ const STATUS_CONFIG: Record<
     border: 'border-blue-200',
   },
   [AssignmentDerivedStatus.RESUBMIT_REQUESTED]: {
-    label: 'Resubmit Requested',
+    label: 'Resubmit',
     bg: 'bg-amber-50',
     text: 'text-amber-800',
     border: 'border-amber-200',
@@ -62,21 +62,22 @@ export function SubmissionStatusBadge({
 
   return (
     <div className={cn('inline-flex items-center gap-1.5', className)}>
-      <Span
-        className={cn(
-          'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-          config.bg,
-          config.text,
-          config.border,
-        )}
-      >
-        {config.label}
-      </Span>
       {isLate ? (
         <Span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
           Late
         </Span>
-      ) : null}
+      ) : (
+        <Span
+          className={cn(
+            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+            config.bg,
+            config.text,
+            config.border,
+          )}
+        >
+          {config.label}
+        </Span>
+      )}
     </div>
   );
 }
