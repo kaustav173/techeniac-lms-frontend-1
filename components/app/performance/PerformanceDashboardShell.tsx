@@ -71,7 +71,7 @@ export function PerformanceDashboardShell({
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <Header title={title} {...navConfig} />
-      <DashboardContent className="space-y-6">
+      <DashboardContent className="@container space-y-6">
         <div className="flex flex-col gap-6">
           {/* Filtering Toolbar */}
           <PerformanceFiltersBar

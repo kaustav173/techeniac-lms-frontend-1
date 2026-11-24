@@ -315,11 +315,11 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       {/* Filter Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-wrap items-center gap-3">
         {/* Search Input */}
-        <div className="relative w-full sm:w-[424px]">
+        <div className="relative min-w-0 basis-full @min-[50rem]:grow @min-[50rem]:basis-80">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
             <svg
               className="h-4 w-4"
@@ -338,7 +338,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           </div>
           <Input
             type="search"
-            placeholder="Search allocations by batch, course, or mentee..."
+            placeholder="Search allocations…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             aria-label="Search allocations by batch, course, or mentee"
@@ -347,7 +347,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
         </div>
 
         {/* Dropdown Filters & Clear */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex max-w-full flex-wrap items-center gap-3">
           {/* Course Filter Dropdown */}
           <MultiSelectDropdown
             label="Course"
@@ -360,8 +360,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 void fetchNextCourses();
               }
             }}
-            className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
+            className="shrink-0"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] px-4 whitespace-nowrap shadow-2xs"
             menuClassName="min-w-[200px]"
           />
 
@@ -377,8 +377,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                 void fetchNextBatches();
               }
             }}
-            className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
+            className="shrink-0"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] px-4 whitespace-nowrap shadow-2xs"
             menuClassName="min-w-[200px]"
           />
 
@@ -388,8 +388,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             options={ALLOCATION_STATUS_OPTIONS}
             selectedValues={filters.statuses?.map((s) => String(s)) ?? []}
             onChange={handleStatusFilter}
-            className="w-full shrink-0 sm:w-auto"
-            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] shadow-2xs px-4 w-full sm:w-auto"
+            className="shrink-0"
+            buttonClassName="h-[48px] rounded-2xl border-[#E1E6EC] px-4 whitespace-nowrap shadow-2xs"
             menuClassName="min-w-[180px]"
           />
 
@@ -419,13 +419,13 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
           ) : null}
         </div>
 
-        <div className="flex items-center gap-3 sm:ml-auto">
+        <div className="ml-auto shrink-0">
           <Button
             type="button"
             variant="primary"
             size="sm"
             onClick={() => setIsAssignModalOpen(true)}
-            className="h-[47px] gap-2 rounded-full bg-[#0044D3] px-5 text-sm font-semibold text-white shadow-xs hover:bg-[#0039B3]"
+            className="h-[47px] gap-2 rounded-full bg-[#0044D3] px-5 text-sm font-semibold whitespace-nowrap text-white shadow-xs hover:bg-[#0039B3]"
           >
             <Span className="text-base font-bold">+</Span>
             <Span>Allocate Course</Span>
@@ -435,8 +435,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
       {/* Data Table & Attached Pagination in Single Card */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-        <TableContainer className="rounded-none border-0 shadow-none">
-          <Table className="w-full table-fixed text-left">
+        <P className="border-b border-[#E1E6EC] px-4 py-2 text-xs text-slate-600 @min-[64rem]:hidden">
+          Scroll horizontally to see all columns.
+        </P>
+        <TableContainer
+          className="rounded-none border-0 shadow-none"
+          scrollRegionLabel="Course allocations"
+        >
+          <Table className="min-w-[64rem] table-fixed text-left">
             <TableHeader>
               <TableRow>
                 <SortableColumnHeader<SortField>
@@ -446,7 +452,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by mentee"
-                  className="w-[20%] py-3.5 pr-4 pl-6 font-semibold text-slate-700"
+                  className="w-[17%] py-3.5 pr-4 pl-6 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="course"
@@ -455,7 +461,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by course"
-                  className="w-[30%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="started"
@@ -464,7 +470,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by start date"
-                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[8.5rem] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="due"
@@ -473,7 +479,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by due date"
-                  className="w-[12%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[8.5rem] px-4 py-3.5 font-semibold text-slate-700"
                 />
                 <SortableColumnHeader<SortField>
                   field="duration"
@@ -482,12 +488,12 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                   sortOrder={sortOrder ?? 'desc'}
                   onSort={handleSort}
                   tooltip="Sort by duration"
-                  className="w-[10%] px-4 py-3.5 font-semibold text-slate-700"
+                  className="w-[7.5rem] px-4 py-3.5 font-semibold text-slate-700"
                 />
-                <TableHead className="w-[10%] px-4 py-3.5 font-semibold whitespace-nowrap text-slate-700">
+                <TableHead className="w-44 px-4 py-3.5 font-semibold whitespace-nowrap text-slate-700">
                   Status
                 </TableHead>
-                <TableHead className="w-[6%] px-3 py-3.5 text-center font-semibold text-slate-700">
+                <TableHead className="w-24 px-3 py-3.5 text-center font-semibold text-slate-700">
                   Actions
                 </TableHead>
               </TableRow>
@@ -496,46 +502,48 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               {isTableLoading ? (
                 Array.from({ length: 10 }).map((_, idx) => (
                   <TableRow key={`alloc-skel-${idx}`} className="h-16">
-                    <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
-                      <Skeleton className="h-5 w-32 rounded-md sm:w-40" />
+                    <TableCell className="py-3 pr-4 pl-6 align-middle">
+                      <Skeleton className="h-5 w-32 max-w-full rounded-md sm:w-40" />
                     </TableCell>
-                    <TableCell className="w-[30%] px-4 py-3 align-middle">
+                    <TableCell className="px-4 py-3 align-middle">
                       <div className="flex min-w-0 flex-col justify-center gap-1.5">
-                        <Skeleton className="h-5 w-48 rounded-md sm:w-64" />
-                        <Skeleton className="h-3.5 w-28 rounded-md sm:w-36" />
+                        <Skeleton className="h-5 w-48 max-w-full rounded-md sm:w-64" />
+                        <Skeleton className="h-3.5 w-28 max-w-full rounded-md sm:w-36" />
                       </div>
                     </TableCell>
-                    <TableCell className="w-[12%] px-4 py-3 align-middle">
+                    <TableCell className="px-4 py-3 align-middle">
                       <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[12%] px-4 py-3 align-middle">
+                    <TableCell className="px-4 py-3 align-middle">
                       <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[10%] px-4 py-3 align-middle">
+                    <TableCell className="px-4 py-3 align-middle">
                       <Skeleton className="h-4 w-12 rounded-md" />
                     </TableCell>
-                    <TableCell className="w-[10%] px-4 py-3 align-middle">
+                    <TableCell className="px-4 py-3 align-middle">
                       <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
-                    <TableCell className="w-[6%] px-3 py-3 text-center align-middle">
+                    <TableCell className="px-3 py-3 text-center align-middle">
                       <Skeleton className="mx-auto h-8 w-8 rounded-full" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : isError ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="px-6 py-8 text-center">
-                    <ErrorMessage
-                      error={error}
-                      title="Failed to load allocations"
-                      onRetry={() => void refetch()}
-                    />
+                  <TableCell colSpan={7} className="p-0 sm:p-0">
+                    <div className="sticky left-0 w-[calc(100cqw-2px)] max-w-full px-6 py-8 text-center">
+                      <ErrorMessage
+                        error={error}
+                        title="Failed to load allocations"
+                        onRetry={() => void refetch()}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : allocations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="px-6 py-12 text-center">
-                    <P className="text-xs font-medium text-slate-600">
+                  <TableCell colSpan={7} className="p-0 sm:p-0">
+                    <P className="sticky left-0 w-[calc(100cqw-2px)] max-w-full px-6 py-12 text-center text-xs font-medium text-slate-600">
                       No course allocations found.
                     </P>
                   </TableCell>
@@ -543,6 +551,8 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
               ) : (
                 allocations.map((alloc) => {
                   const isActionMenuOpen = openActionMenuId === alloc.id;
+                  const menteeId = encodeURIComponent(alloc.userId);
+                  const menteeName = encodeURIComponent(alloc.user?.name?.trim() ?? '');
                   return (
                     <TableRow
                       key={alloc.id}
@@ -551,14 +561,14 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                         isActionMenuOpen && 'relative z-30',
                       )}
                     >
-                      <TableCell className="w-[20%] py-3 pr-4 pl-6 align-middle">
+                      <TableCell className="py-3 pr-4 pl-6 align-middle">
                         <Tooltip content={alloc.user?.name ?? 'Individual Mentee'}>
                           <Span className="block truncate text-base font-semibold text-slate-900">
                             {alloc.user?.name ?? 'Individual Mentee'}
                           </Span>
                         </Tooltip>
                       </TableCell>
-                      <TableCell className="w-[30%] px-4 py-3 align-middle">
+                      <TableCell className="px-4 py-3 align-middle">
                         <div className="flex min-w-0 flex-col justify-center">
                           <Tooltip content={alloc.course?.title ?? 'Untitled Course'}>
                             <Span className="truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]">
@@ -578,22 +588,22 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.startDate)}
                       </TableCell>
-                      <TableCell className="w-[12%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDateIST(alloc.dueDate)}
                       </TableCell>
-                      <TableCell className="w-[10%] px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
+                      <TableCell className="px-4 py-3 align-middle text-sm font-normal whitespace-nowrap text-slate-500">
                         {formatDurationMinutes(
                           alloc.estimatedMinutes ?? alloc.course?.estimatedMinutes,
                         )}
                       </TableCell>
-                      <TableCell className="w-[10%] px-4 py-3 align-middle whitespace-nowrap">
+                      <TableCell className="px-4 py-3 align-middle whitespace-nowrap">
                         <AllocationStatusBadge status={alloc.status} isOverdue={alloc.isOverdue} />
                       </TableCell>
                       <TableCell
-                        className="w-[6%] px-3 py-3 text-center align-middle"
+                        className="px-3 py-3 text-center align-middle"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-center">
@@ -720,9 +730,9 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                 <>
                                   <Link
                                     href={
-                                      alloc.user?.id
-                                        ? `/mentor/progress?menteeId=${alloc.user.id}`
-                                        : '/mentor/progress'
+                                      menteeName
+                                        ? `/mentor/progress?menteeName=${menteeName}&menteeId=${menteeId}`
+                                        : `/mentor/progress/${encodeURIComponent(alloc.id)}`
                                     }
                                     role="menuitem"
                                     onClick={() => {
@@ -747,11 +757,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                     <Span>Progress</Span>
                                   </Link>
                                   <Link
-                                    href={
-                                      alloc.user?.id
-                                        ? `/mentor/reviews?menteeId=${alloc.user.id}`
-                                        : '/mentor/reviews'
-                                    }
+                                    href={`/mentor/reviews?menteeId=${menteeId}&search=${menteeName}`}
                                     role="menuitem"
                                     onClick={() => {
                                       setOpenActionMenuId(null);
@@ -772,7 +778,7 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                       />
                                     </svg>
-                                    <Span>Submissions</Span>
+                                    <Span>Reviews</Span>
                                   </Link>
                                 </>
                               )}

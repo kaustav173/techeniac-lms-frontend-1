@@ -4,10 +4,12 @@ import { cn } from '@/lib/cn';
 
 export interface TableContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   readonly children: React.ReactNode;
+  readonly scrollRegionLabel?: string;
+  readonly footer?: React.ReactNode;
 }
 
 export const TableContainer = React.forwardRef<HTMLDivElement, TableContainerProps>(
-  ({ className, children, ...props }, ref) => (
+  ({ className, children, scrollRegionLabel, footer, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
@@ -16,7 +18,19 @@ export const TableContainer = React.forwardRef<HTMLDivElement, TableContainerPro
       )}
       {...props}
     >
-      <div className="w-full overflow-x-auto">{children}</div>
+      <div
+        className={cn(
+          'w-full overflow-x-auto',
+          scrollRegionLabel &&
+            'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600',
+        )}
+        role={scrollRegionLabel ? 'region' : undefined}
+        aria-label={scrollRegionLabel}
+        tabIndex={scrollRegionLabel ? 0 : undefined}
+      >
+        {children}
+      </div>
+      {footer}
     </div>
   ),
 );

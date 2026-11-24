@@ -214,36 +214,36 @@ export function PerformanceFiltersBar({
   };
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      {/* Filters Toolbar */}
-      <div className="flex flex-1 flex-wrap items-center gap-3">
-        {/* Search Input */}
-        <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
-          <svg
-            className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <Input
-            type="search"
-            placeholder="Search by name or email..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Search Input */}
+      <div className="relative min-w-0 basis-full @min-[55rem]:grow @min-[55rem]:basis-64">
+        <svg
+          className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[#667085]"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
-        </div>
+        </svg>
+        <Input
+          type="search"
+          placeholder="Search by name or email…"
+          aria-label="Search by name or email"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="h-[49px] rounded-2xl border-[#E1E6EC] pr-4 pl-10 text-sm font-medium shadow-2xs hover:border-slate-300 focus:border-[#0044D3]"
+        />
+      </div>
 
+      <div className="flex max-w-full flex-wrap items-center gap-3">
         {/* Batch Filter (Multi-select, 10 items infinite scroll, server search) */}
-        <div className="w-full sm:w-[169px]">
+        <div className="w-28 @min-[65rem]:w-36">
           <MultiSelectDropdown
             label="Batch"
             options={batchOptions}
@@ -261,7 +261,7 @@ export function PerformanceFiltersBar({
         </div>
 
         {/* Course Filter (Multi-select, 10 items infinite scroll, server search) */}
-        <div className="w-full sm:w-[158px]">
+        <div className="w-28 @min-[65rem]:w-36">
           <MultiSelectDropdown
             label="Course"
             options={courseOptions}
@@ -281,7 +281,7 @@ export function PerformanceFiltersBar({
         </div>
 
         {/* Status Filter (Multi-select) */}
-        <div className="w-full sm:w-[168px]">
+        <div className="w-28 @min-[65rem]:w-36">
           <MultiSelectDropdown
             label="Status"
             options={STATUS_FILTER_OPTIONS}
@@ -321,14 +321,14 @@ export function PerformanceFiltersBar({
       </div>
 
       {/* Right: Export CSV Button */}
-      <div className="shrink-0">
+      <div className="ml-auto shrink-0">
         <Button
           type="button"
           variant="primary"
           size="sm"
           onClick={onExportCsv}
           disabled={isExporting}
-          className="flex h-10 items-center gap-1.5 text-xs font-semibold"
+          className="flex h-10 items-center gap-1.5 text-xs font-semibold whitespace-nowrap"
         >
           {isExporting ? (
             <Span>Exporting...</Span>

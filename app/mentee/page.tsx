@@ -44,6 +44,10 @@ import { formatDateIST, formatDateTime, formatTimeIST, toISTDateInputValue } fro
 import { AssignmentDerivedStatus } from '@/types/submissions';
 
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 40;
+const PROGRESS_PERCENT_FORMAT = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  maximumFractionDigits: 1,
+});
 
 function formatDate(dateInput?: string | null): string {
   if (!dateInput) return '—';
@@ -260,7 +264,7 @@ export default function MenteePage() {
     <div className="flex min-h-screen flex-col bg-[#F6F8FC] text-[#111827]">
       <Header {...MENTEE_PORTAL_NAV} />
 
-      <DashboardContent className="animate-slide-up space-y-6 pb-12 sm:space-y-8">
+      <DashboardContent className="animate-slide-up @container space-y-6 pb-12 sm:space-y-8">
         {batchError ? (
           <Alert
             variant="error"
@@ -285,9 +289,9 @@ export default function MenteePage() {
         {/* ================================================================ */}
         {/* ROW 1: Welcome Banner (7 cols) + Batch & Mentor Cards (5 cols)    */}
         {/* ================================================================ */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 @min-[72rem]:grid-cols-12">
           {/* Welcome Banner */}
-          <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#DBEAFE] bg-gradient-to-r from-[#EFF6FF] via-[#EEF2FF] to-[#E0E7FF] p-6 shadow-xs sm:flex-row sm:items-center sm:p-8 lg:col-span-7">
+          <div className="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#DBEAFE] bg-gradient-to-r from-[#EFF6FF] via-[#EEF2FF] to-[#E0E7FF] p-6 shadow-xs sm:p-8 @min-[30rem]:flex-row @min-[30rem]:items-center @min-[72rem]:col-span-7">
             <div className="relative z-10 max-w-sm">
               <H1 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
                 Welcome back, {user.name}!
@@ -296,13 +300,13 @@ export default function MenteePage() {
                 Keep learning, keep growing 🚀
               </P>
             </div>
-            <div className="relative mt-4 flex flex-shrink-0 items-center justify-center sm:mt-0 sm:justify-end">
+            <div className="relative mt-4 flex flex-shrink-0 items-center justify-center @min-[30rem]:mt-0 @min-[30rem]:justify-end">
               <StudentIllustration />
             </div>
           </div>
 
           {/* Batch & Mentor Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-4 @min-[72rem]:col-span-5">
             {/* Current Batch */}
             <div className="flex flex-col justify-between rounded-3xl border border-[#E1E6EC] bg-white p-5 shadow-xs sm:p-6">
               <div className="flex items-center gap-3">
@@ -314,7 +318,7 @@ export default function MenteePage() {
                   {isLoading ? (
                     <Skeleton className="mt-1 h-5 w-24" />
                   ) : (
-                    <H2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
+                    <H2 className="mt-0.5 text-sm font-bold wrap-anywhere text-[#0F172A] sm:text-base">
                       {batch?.name ?? 'No batch assigned'}
                     </H2>
                   )}
@@ -336,7 +340,7 @@ export default function MenteePage() {
                   {isLoading ? (
                     <Skeleton className="mt-1 h-5 w-24" />
                   ) : (
-                    <H2 className="mt-0.5 truncate text-sm font-bold text-[#0F172A] sm:text-base">
+                    <H2 className="mt-0.5 text-sm font-bold wrap-anywhere text-[#0F172A] sm:text-base">
                       {mentor?.name ?? 'No mentor assigned'}
                     </H2>
                   )}
@@ -410,8 +414,8 @@ export default function MenteePage() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <Span className="text-xl leading-tight font-black text-[#0F172A] sm:text-2xl">
-                    {overallProgress}%
+                  <Span className="text-lg leading-tight font-black whitespace-nowrap text-[#0F172A]">
+                    {PROGRESS_PERCENT_FORMAT.format(overallProgress / 100)}
                   </Span>
                   <Span className="text-[11px] font-semibold text-[#64748B]">Complete</Span>
                 </div>

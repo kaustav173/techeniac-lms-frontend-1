@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { AllocationStatusBadge } from '@/components/app/allocations/AllocationStatusBadge';
 import {
@@ -113,27 +114,62 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
     [selectedStatusOptions],
   );
 
-  // 3-dots action menu state
-  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
+  const [actionMenu, setActionMenu] = useState<{
+    id: string;
+    trigger: HTMLButtonElement;
+    top: number;
+    left: number;
+    opensAbove: boolean;
+  } | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!openActionMenuId) return;
+    if (!actionMenu) return;
+    actionMenuRef.current?.querySelector('button')?.focus({ preventScroll: true });
+
+    const closeMenu = () => setActionMenu(null);
     const handleOutsideClick = (e: MouseEvent) => {
-      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
-        setOpenActionMenuId(null);
+      if (
+        !actionMenu.trigger.contains(e.target as Node) &&
+        !actionMenuRef.current?.contains(e.target as Node)
+      ) {
+        closeMenu();
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpenActionMenuId(null);
+      if (e.key === 'Escape') {
+        closeMenu();
+        actionMenu.trigger.focus({ preventScroll: true });
+      }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('resize', closeMenu);
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('resize', closeMenu);
     };
-  }, [openActionMenuId]);
+  }, [actionMenu]);
+
+  const toggleActionMenu = (trigger: HTMLButtonElement, id: string) => {
+    if (actionMenu?.id === id) {
+      setActionMenu(null);
+      return;
+    }
+
+    const anchor = trigger.getBoundingClientRect();
+    const opensAbove = window.innerHeight - anchor.bottom < 56;
+    setActionMenu({
+      id,
+      trigger,
+      top: opensAbove ? anchor.top - 6 : anchor.bottom + 6,
+      left: Math.min(anchor.right, document.documentElement.clientWidth - 8),
+      opensAbove,
+    });
+  };
 
   const prefetchProgress = usePrefetchAllocationProgress();
 
@@ -309,21 +345,21 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
       <Header {...navConfig} />
 
       <DashboardContent>
-        <div className="space-y-6">
+        <div className="@container space-y-6">
           {/* Filters Bar */}
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
               {/* 1. Search mentee, course, batch, or status */}
-              <div className="w-full sm:w-[375px]">
+              <div className="min-w-0 basis-full @min-[42rem]:basis-[22rem]">
                 <DebouncedSearchInput
                   value={search}
                   onSearchChange={handleSearchChange}
-                  placeholder="Search by mentee, course, batch, or status..."
+                  placeholder="Search mentee, course, batch, or status…"
                 />
               </div>
 
               {/* 2. Batch Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-auto">
+              <div className="w-28 min-w-0 @min-[50rem]:w-auto">
                 <MultiSelectDropdown
                   label="Batch"
                   options={batchOptions}
@@ -331,8 +367,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleBatchChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full sm:w-auto"
-                  buttonClassName="w-full sm:w-auto px-4"
+                  className="w-full"
+                  buttonClassName="w-full px-4"
                   menuClassName="min-w-[200px]"
                   onScrollEnd={handleBatchScrollEnd}
                   onSearch={setBatchSearch}
@@ -343,7 +379,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 3. Course Filter (Multi-select dropdown with infinite scroll & server search) */}
-              <div className="w-full sm:w-auto">
+              <div className="w-28 min-w-0 @min-[50rem]:w-auto">
                 <MultiSelectDropdown
                   label="Course"
                   options={courseOptions}
@@ -351,8 +387,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleCourseChange}
                   singleSelect={false}
                   align="left"
-                  className="w-full sm:w-auto"
-                  buttonClassName="w-full sm:w-auto px-4"
+                  className="w-full"
+                  buttonClassName="w-full px-4"
                   menuClassName="min-w-[200px]"
                   onScrollEnd={handleCourseScrollEnd}
                   onSearch={setCourseSearch}
@@ -363,7 +399,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
               </div>
 
               {/* 4. Course Status Filter */}
-              <div className="w-full sm:w-auto">
+              <div className="w-28 min-w-0 @min-[50rem]:w-auto">
                 <MultiSelectDropdown
                   label="Status"
                   options={STATUS_FILTER_OPTIONS}
@@ -371,8 +407,8 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   onChange={handleStatusChange}
                   singleSelect={false}
                   align="right"
-                  className="w-full sm:w-auto"
-                  buttonClassName="w-full sm:w-auto px-4"
+                  className="w-full"
+                  buttonClassName="w-full px-4"
                   menuClassName="min-w-[180px]"
                 />
               </div>
@@ -411,8 +447,28 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           )}
 
           {/* Main Telemetry Matrix Table using UI Primitives */}
-          <TableContainer>
-            <Table className="w-full table-fixed text-left">
+          <P className="relative top-3 text-xs text-slate-600 @min-[64rem]:hidden">
+            Scroll horizontally to see all columns.
+          </P>
+          <TableContainer
+            scrollRegionLabel="Mentee progress"
+            footer={
+              <PaginationControls
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                  setPage(1);
+                }}
+                itemLabel="Mentees"
+                isLoading={isTableLoading}
+              />
+            }
+          >
+            <Table className="min-w-[64rem] table-fixed text-left">
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
                   <SortableColumnHeader<'menteeName'>
@@ -422,21 +478,21 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                     sortOrder={sortOrder}
                     onSort={handleSortName}
                     tooltip="Sort by Mentee Name"
-                    className="w-[24%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
+                    className="w-[19%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3"
                   />
-                  <TableHead className="w-[26%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Course & Batch
                   </TableHead>
-                  <TableHead className="w-[18%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-44 px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Progress
                   </TableHead>
-                  <TableHead className="w-[12%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-36 px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Topics Done
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-44 px-4 py-2.5 text-left font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Status
                   </TableHead>
-                  <TableHead className="w-[10%] px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
+                  <TableHead className="w-24 px-4 py-2.5 text-center font-semibold text-slate-700 sm:px-5 sm:py-3">
                     Actions
                   </TableHead>
                 </TableRow>
@@ -445,28 +501,28 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 {isTableLoading ? (
                   Array.from({ length: 10 }).map((_, idx) => (
                     <TableRow key={`tracker-skel-${idx}`} className="animate-pulse">
-                      <TableCell className="w-[24%] px-4 py-3.5">
+                      <TableCell className="px-4 py-3.5">
                         <Skeleton className="h-4 w-28 rounded-md" />
                       </TableCell>
-                      <TableCell className="w-[26%] px-4 py-3.5">
+                      <TableCell className="px-4 py-3.5">
                         <div className="space-y-1.5">
                           <Skeleton className="h-4 w-36 rounded-md" />
                           <Skeleton className="h-3 w-24 rounded-md" />
                         </div>
                       </TableCell>
-                      <TableCell className="w-[18%] px-4 py-3.5">
+                      <TableCell className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <Skeleton className="h-2 w-24 rounded-full" />
                           <Skeleton className="h-3 w-8 rounded-md" />
                         </div>
                       </TableCell>
-                      <TableCell className="w-[12%] px-4 py-3.5">
+                      <TableCell className="px-4 py-3.5">
                         <Skeleton className="h-4 w-16 rounded-md" />
                       </TableCell>
-                      <TableCell className="w-[10%] px-4 py-3.5">
+                      <TableCell className="px-4 py-3.5">
                         <Skeleton className="h-6 w-20 rounded-full" />
                       </TableCell>
-                      <TableCell className="w-[10%] px-4 py-3.5 text-center">
+                      <TableCell className="px-4 py-3.5 text-center">
                         <div className="flex items-center justify-center">
                           <Skeleton className="h-8 w-8 rounded-full" />
                         </div>
@@ -475,12 +531,14 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                   ))
                 ) : filteredTrackers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="px-5 py-14 text-center">
-                      <div className="mx-auto max-w-sm space-y-2.5">
+                    <TableCell colSpan={6} className="p-0 sm:p-0">
+                      <div className="sticky left-0 w-[calc(100cqw-2px)] max-w-full space-y-2.5 px-5 py-14 text-center">
                         <H2 className="text-base font-bold text-slate-900">No mentees in scope</H2>
-                        <P className="text-xs text-slate-500">
-                          No active mentee progress records match your current filter parameters.
-                        </P>
+                        {portalType === 'admin' ? (
+                          <P className="text-xs text-slate-500">
+                            No active mentee progress records match your current filter parameters.
+                          </P>
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -496,7 +554,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         onMouseEnter={() => prefetchProgress(item.allocationId)}
                         onFocus={() => prefetchProgress(item.allocationId)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                          if (
+                            e.target === e.currentTarget &&
+                            (e.key === 'Enter' || e.key === ' ')
+                          ) {
                             e.preventDefault();
                             handleNavigateToDetail(item.allocationId);
                           }
@@ -506,7 +567,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         className="cursor-pointer transition-colors hover:bg-[#F9FAFB]/80 focus:bg-slate-50 focus:outline-hidden"
                       >
                         {/* Mentee */}
-                        <TableCell className="w-[24%] px-4 py-3.5 whitespace-nowrap">
+                        <TableCell className="px-4 py-3.5 whitespace-nowrap">
                           <Tooltip
                             content={item.menteeName}
                             containerClassName="inline-flex max-w-full"
@@ -518,7 +579,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         </TableCell>
 
                         {/* Course & Batch */}
-                        <TableCell className="w-[26%] px-4 py-3.5 whitespace-nowrap">
+                        <TableCell className="px-4 py-3.5 whitespace-nowrap">
                           <div className="flex min-w-0 flex-col">
                             <Tooltip
                               content={item.courseTitle}
@@ -546,7 +607,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         </TableCell>
 
                         {/* Progress Bar & % */}
-                        <TableCell className="w-[18%] px-4 py-3.5 whitespace-nowrap">
+                        <TableCell className="px-4 py-3.5 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
                             <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">
                               <div
@@ -569,7 +630,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         </TableCell>
 
                         {/* Clearance count */}
-                        <TableCell className="w-[12%] px-4 py-3.5 whitespace-nowrap">
+                        <TableCell className="px-4 py-3.5 whitespace-nowrap">
                           <Span className="text-base font-semibold text-slate-900">
                             {item.completedTopicsCount} / {item.totalActiveTopics}
                           </Span>{' '}
@@ -577,37 +638,28 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         </TableCell>
 
                         {/* Status */}
-                        <TableCell className="w-[10%] px-4 py-3.5 whitespace-nowrap">
+                        <TableCell className="px-4 py-3.5 whitespace-nowrap">
                           <AllocationStatusBadge status={item.status} isOverdue={isOverdue} />
                         </TableCell>
 
                         {/* Action Menu (3-dots) */}
                         <TableCell
-                          className={cn(
-                            'w-[10%] px-4 py-3.5 text-center whitespace-nowrap',
-                            openActionMenuId === item.allocationId && 'relative z-30',
-                          )}
+                          className="px-4 py-3.5 text-center whitespace-nowrap"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div
-                            className={cn(
-                              'relative inline-block text-left',
-                              openActionMenuId === item.allocationId && 'z-40',
-                            )}
-                            ref={openActionMenuId === item.allocationId ? actionMenuRef : undefined}
-                          >
+                          <div className="inline-block text-left">
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setOpenActionMenuId(
-                                  openActionMenuId === item.allocationId ? null : item.allocationId,
-                                );
+                                toggleActionMenu(e.currentTarget, item.allocationId);
                               }}
                               onMouseEnter={() => prefetchProgress(item.allocationId)}
                               title="Progress actions"
+                              aria-haspopup="menu"
+                              aria-expanded={actionMenu?.id === item.allocationId}
                               aria-label={`Actions for ${item.menteeName}`}
                               className="h-8 w-8 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                             >
@@ -616,41 +668,56 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                               </svg>
                             </Button>
 
-                            {openActionMenuId === item.allocationId && (
-                              <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenActionMenuId(null);
-                                    handleNavigateToDetail(item.allocationId);
+                            {actionMenu?.id === item.allocationId &&
+                              createPortal(
+                                <div
+                                  ref={actionMenuRef}
+                                  role="menu"
+                                  aria-label="Progress actions"
+                                  style={{
+                                    top: actionMenu.top,
+                                    left: `clamp(8px, ${actionMenu.left}px - 11rem, 100vw - 11rem - 8px)`,
                                   }}
-                                  className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                                  className={cn(
+                                    'animate-in fade-in fixed z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl',
+                                    actionMenu.opensAbove && '-translate-y-full',
+                                  )}
                                 >
-                                  <svg
-                                    className="h-3.5 w-3.5 text-[#0044D3]"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    role="menuitem"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActionMenu(null);
+                                      handleNavigateToDetail(item.allocationId);
+                                    }}
+                                    className="flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                  </svg>
-                                  <Span>Inspect Progress</Span>
-                                </Button>
-                              </div>
-                            )}
+                                    <svg
+                                      className="h-3.5 w-3.5 text-[#0044D3]"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={2}
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                      />
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                      />
+                                    </svg>
+                                    <Span>Inspect Progress</Span>
+                                  </Button>
+                                </div>,
+                                document.body,
+                              )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -659,21 +726,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 )}
               </TableBody>
             </Table>
-
-            {/* Pagination Controls */}
-            <PaginationControls
-              page={pagination.page}
-              limit={pagination.limit}
-              total={pagination.total}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-              onLimitChange={(newLimit) => {
-                setLimit(newLimit);
-                setPage(1);
-              }}
-              itemLabel="Mentees"
-              isLoading={isTableLoading}
-            />
           </TableContainer>
         </div>
       </DashboardContent>
