@@ -312,75 +312,7 @@ export function MyAssignmentsTable({
         <ErrorMessage error={error} title="Failed to load assignments" onRetry={onRetry} />
       ) : null}
 
-      {isLoading ? (
-        <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-          <TableContainer className="w-full rounded-none border-0 shadow-none">
-            <Table className="w-full min-w-[960px] table-fixed">
-              <TableHeader className="static border-b border-[#E1E6EC] bg-[#F6F8FC]">
-                <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC] hover:bg-[#F6F8FC]">
-                  <TableHead className="w-[24%] bg-[#F6F8FC] px-5 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Assignment
-                  </TableHead>
-                  <TableHead className="w-[16%] bg-[#F6F8FC] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Course
-                  </TableHead>
-                  <TableHead className="w-[17%] bg-[#F6F8FC] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Due Date
-                  </TableHead>
-                  <TableHead className="w-[10%] bg-[#F6F8FC] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Est. Time
-                  </TableHead>
-                  <TableHead className="w-[11%] bg-[#F6F8FC] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Max Marks
-                  </TableHead>
-                  <TableHead className="w-[13%] bg-[#F6F8FC] px-4 py-2.5 text-base font-semibold text-slate-800 sm:px-5 sm:py-3 sm:text-[17px]">
-                    Status
-                  </TableHead>
-                  <TableHead className="w-[9%] bg-[#F6F8FC] py-2.5 pr-2 pl-2 text-left text-base font-semibold text-slate-800 sm:py-3 sm:pr-2 sm:pl-2 sm:text-[17px]">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: 10 }).map((_, idx) => (
-                  <TableRow key={`assign-skel-${idx}`} className="h-16">
-                    <TableCell className="w-[24%] px-5 py-4">
-                      <Skeleton className="h-4 w-44 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[16%] px-4 py-4">
-                      <Skeleton className="h-4 w-36 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[17%] px-4 py-4">
-                      <Skeleton className="h-4 w-28 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[10%] px-4 py-4">
-                      <Skeleton className="h-4 w-16 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[11%] px-4 py-4">
-                      <Skeleton className="h-4 w-16 rounded-md" />
-                    </TableCell>
-                    <TableCell className="w-[13%] px-4 py-4">
-                      <Skeleton className="h-6 w-24 rounded-full" />
-                    </TableCell>
-                    <TableCell className="w-[9%] py-4 pr-2 pl-2 text-left">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <div className="flex items-center justify-between border-t border-[#E1E6EC] bg-white px-6 py-4">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-8 w-20 rounded-lg" />
-              <Skeleton className="h-8 w-8 rounded-lg" />
-              <Skeleton className="h-8 w-8 rounded-lg" />
-              <Skeleton className="h-8 w-20 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      ) : sortedAssignments.length === 0 ? (
+      {!isLoading && sortedAssignments.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#E1E6EC] bg-white p-12 text-center shadow-xs">
           <P className="text-sm font-semibold text-[#111827]">No assignments found</P>
           <P className="mt-1 text-xs text-[#667085]">
@@ -466,140 +398,184 @@ export function MyAssignmentsTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedAssignments.map((assignment, idx) => {
-                  const isActionMenuOpen = activeMenuState?.id === assignment.id;
-                  return (
-                    <TableRow
-                      key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
-                      tabIndex={0}
-                      role="button"
-                      onClick={(e) => {
-                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                        router.push(`/mentee/assignments/${assignment.id}`);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          router.push(`/mentee/assignments/${assignment.id}`);
-                        }
-                      }}
-                      className={cn(
-                        'cursor-pointer transition-colors hover:bg-[#F6F8FC]/60 focus-visible:bg-[#F6F8FC] focus-visible:outline-none',
-                        isActionMenuOpen && 'relative z-30',
-                      )}
-                    >
-                      {/* Assignment Column (Truncated with full name tooltip on hover) */}
-                      <TableCell
-                        className="w-[24%] px-5 py-4"
-                        onClick={(e) => {
-                          if (e.metaKey || e.ctrlKey || e.shiftKey) {
-                            e.stopPropagation();
-                          }
-                        }}
-                      >
-                        <Tooltip
-                          content={assignment.title}
-                          containerClassName="inline-flex max-w-full"
-                        >
-                          <Link
-                            href={`/mentee/assignments/${assignment.id}`}
-                            {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
-                            className="block w-full truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
-                          >
-                            {assignment.title}
-                          </Link>
-                        </Tooltip>
-                      </TableCell>
+                {isLoading
+                  ? Array.from({ length: Math.min(pagination?.limit ?? 10, 10) }).map((_, idx) => (
+                      <TableRow key={`assign-skel-${idx}`} className="transition-colors">
+                        {/* 1. Assignment Title */}
+                        <TableCell className="w-[24%] px-5 py-4">
+                          <Skeleton className="h-5 w-48 rounded-md sm:w-56" />
+                        </TableCell>
 
-                      {/* Course Column */}
-                      <TableCell className="w-[16%] px-4 py-4">
-                        <Tooltip
-                          content={assignment.courseTitle}
-                          containerClassName="inline-flex max-w-full"
-                        >
-                          <Span className="block w-full truncate text-base font-semibold text-slate-900">
-                            {assignment.courseTitle}
-                          </Span>
-                        </Tooltip>
-                      </TableCell>
+                        {/* 2. Course */}
+                        <TableCell className="w-[16%] px-4 py-4">
+                          <Skeleton className="h-5 w-32 rounded-md sm:w-40" />
+                        </TableCell>
 
-                      {/* Due Date Column (Without IST) */}
-                      <TableCell className="w-[17%] px-4 py-4 whitespace-nowrap">
-                        <Span className="text-sm font-medium text-slate-600">
-                          {formatDateTime(assignment.dueDate)}
-                        </Span>
-                      </TableCell>
+                        {/* 3. Due Date */}
+                        <TableCell className="w-[17%] px-4 py-4 whitespace-nowrap">
+                          <Skeleton className="h-4 w-36 rounded-md" />
+                        </TableCell>
 
-                      {/* Est. Time Column */}
-                      <TableCell className="w-[10%] px-4 py-4 whitespace-nowrap">
-                        <Span className="text-base font-semibold text-slate-900">
-                          {assignment.estimatedMinutes} mins
-                        </Span>
-                      </TableCell>
+                        {/* 4. Est. Time */}
+                        <TableCell className="w-[10%] px-4 py-4 whitespace-nowrap">
+                          <Skeleton className="h-5 w-16 rounded-md" />
+                        </TableCell>
 
-                      {/* Marks Column */}
-                      <TableCell className="w-[11%] px-4 py-4 whitespace-nowrap">
-                        <div className="space-y-0.5">
-                          <Span className="text-base font-semibold text-slate-900">
-                            {assignment.maxMarks} marks
-                          </Span>
-                          {assignment.passMarks ? (
-                            <Span className="block text-[11px] text-[#667085]">
-                              (Pass: {assignment.passMarks})
-                            </Span>
-                          ) : null}
-                        </div>
-                      </TableCell>
-
-                      {/* Status Column */}
-                      <TableCell className="w-[13%] px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
-                        <SubmissionStatusBadge
-                          status={assignment.status}
-                          isLate={assignment.latestSubmission?.isLate}
-                        />
-                        {assignment.latestSubmission?.marks !== null &&
-                        assignment.latestSubmission?.marks !== undefined ? (
-                          <div className="mt-1 text-xs font-semibold text-emerald-600">
-                            Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
+                        {/* 5. Max Marks (Two lines: marks + pass marks) */}
+                        <TableCell className="w-[11%] px-4 py-4 whitespace-nowrap">
+                          <div className="space-y-1">
+                            <Skeleton className="h-5 w-16 rounded-md" />
+                            <Skeleton className="h-3.5 w-14 rounded-md" />
                           </div>
-                        ) : null}
-                      </TableCell>
+                        </TableCell>
 
-                      {/* 3-Dots Action Menu */}
-                      <TableCell
-                        className="w-[9%] py-4 pr-2 pl-2 text-left whitespace-nowrap"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-start">
-                          <Tooltip content="Assignment actions">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => toggleActionMenu(e, assignment)}
-                              aria-label={`Actions for ${assignment.title}`}
-                              aria-haspopup="menu"
-                              aria-expanded={isActionMenuOpen}
-                              className={cn(
-                                'h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#0044D3]',
-                                isActionMenuOpen && 'bg-slate-100 text-slate-900',
-                              )}
+                        {/* 6. Status (Pill badge) */}
+                        <TableCell className="w-[13%] px-4 py-4 whitespace-nowrap">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </TableCell>
+
+                        {/* 7. Actions Button (3-dots circle) */}
+                        <TableCell className="w-[9%] py-4 pr-2 pl-2 text-left whitespace-nowrap">
+                          <div className="flex items-center justify-start">
+                            <Skeleton className="h-9 w-9 rounded-full" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : paginatedAssignments.map((assignment, idx) => {
+                      const isActionMenuOpen = activeMenuState?.id === assignment.id;
+                      return (
+                        <TableRow
+                          key={assignment.id ? `${assignment.id}-${idx}` : `assign-${idx}`}
+                          tabIndex={0}
+                          role="button"
+                          onClick={(e) => {
+                            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                            router.push(`/mentee/assignments/${assignment.id}`);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              router.push(`/mentee/assignments/${assignment.id}`);
+                            }
+                          }}
+                          className={cn(
+                            'cursor-pointer transition-colors hover:bg-[#F6F8FC]/60 focus-visible:bg-[#F6F8FC] focus-visible:outline-none',
+                            isActionMenuOpen && 'relative z-30',
+                          )}
+                        >
+                          {/* Assignment Column (Truncated with full name tooltip on hover) */}
+                          <TableCell
+                            className="w-[24%] px-5 py-4"
+                            onClick={(e) => {
+                              if (e.metaKey || e.ctrlKey || e.shiftKey) {
+                                e.stopPropagation();
+                              }
+                            }}
+                          >
+                            <Tooltip
+                              content={assignment.title}
+                              containerClassName="inline-flex max-w-full"
                             >
-                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                              </svg>
-                            </Button>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                              <Link
+                                href={`/mentee/assignments/${assignment.id}`}
+                                {...getHoverHandlers(() => prefetchAssignment(assignment.id))}
+                                className="block w-full truncate text-base font-semibold text-slate-900 transition-colors hover:text-[#0044D3]"
+                              >
+                                {assignment.title}
+                              </Link>
+                            </Tooltip>
+                          </TableCell>
+
+                          {/* Course Column */}
+                          <TableCell className="w-[16%] px-4 py-4">
+                            <Tooltip
+                              content={assignment.courseTitle}
+                              containerClassName="inline-flex max-w-full"
+                            >
+                              <Span className="block w-full truncate text-base font-semibold text-slate-900">
+                                {assignment.courseTitle}
+                              </Span>
+                            </Tooltip>
+                          </TableCell>
+
+                          {/* Due Date Column (Without IST) */}
+                          <TableCell className="w-[17%] px-4 py-4 whitespace-nowrap">
+                            <Span className="text-sm font-medium text-slate-600">
+                              {formatDateTime(assignment.dueDate)}
+                            </Span>
+                          </TableCell>
+
+                          {/* Est. Time Column */}
+                          <TableCell className="w-[10%] px-4 py-4 whitespace-nowrap">
+                            <Span className="text-base font-semibold text-slate-900">
+                              {assignment.estimatedMinutes} mins
+                            </Span>
+                          </TableCell>
+
+                          {/* Marks Column */}
+                          <TableCell className="w-[11%] px-4 py-4 whitespace-nowrap">
+                            <div className="space-y-0.5">
+                              <Span className="text-base font-semibold text-slate-900">
+                                {assignment.maxMarks} marks
+                              </Span>
+                              {assignment.passMarks ? (
+                                <Span className="block text-[11px] text-[#667085]">
+                                  (Pass: {assignment.passMarks})
+                                </Span>
+                              ) : null}
+                            </div>
+                          </TableCell>
+
+                          {/* Status Column */}
+                          <TableCell className="w-[13%] px-4 py-4 text-xs whitespace-nowrap sm:text-xs">
+                            <SubmissionStatusBadge
+                              status={assignment.status}
+                              isLate={assignment.latestSubmission?.isLate}
+                            />
+                            {assignment.latestSubmission?.marks !== null &&
+                            assignment.latestSubmission?.marks !== undefined ? (
+                              <div className="mt-1 text-xs font-semibold text-emerald-600">
+                                Score: {assignment.latestSubmission.marks} / {assignment.maxMarks}
+                              </div>
+                            ) : null}
+                          </TableCell>
+
+                          {/* 3-Dots Action Menu */}
+                          <TableCell
+                            className="w-[9%] py-4 pr-2 pl-2 text-left whitespace-nowrap"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-start">
+                              <Tooltip content="Assignment actions">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => toggleActionMenu(e, assignment)}
+                                  aria-label={`Actions for ${assignment.title}`}
+                                  aria-haspopup="menu"
+                                  aria-expanded={isActionMenuOpen}
+                                  className={cn(
+                                    'h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#0044D3]',
+                                    isActionMenuOpen && 'bg-slate-100 text-slate-900',
+                                  )}
+                                >
+                                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                  </svg>
+                                </Button>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {pagination && !error && effectiveTotal > 0 ? (
+          {pagination && !error && (isLoading || effectiveTotal > 0) ? (
             <PaginationControls
               page={effectivePage}
               limit={pagination.limit}
@@ -609,6 +585,7 @@ export function MyAssignmentsTable({
               onLimitChange={pagination.onLimitChange}
               itemLabel="assignments"
               pageSizeOptions={[10, 20, 50]}
+              isLoading={isLoading}
               className="border-t border-[#E1E6EC]"
             />
           ) : null}
