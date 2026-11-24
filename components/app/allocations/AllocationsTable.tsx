@@ -435,7 +435,28 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
 
       {/* Data Table & Attached Pagination in Single Card */}
       <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-        <TableContainer className="rounded-none border-0 shadow-none">
+        <TableContainer
+          fitToViewport
+          scrollRegionLabel="Course allocations"
+          footer={
+            !isError &&
+            (isTableLoading || pagination.total > 0) && (
+              <PaginationControls
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
+                onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
+                isLoading={isTableLoading}
+                itemLabel="allocations"
+                pageSizeOptions={[10, 20, 50]}
+                className="border-t border-[#E1E6EC]"
+              />
+            )
+          }
+          className="rounded-none border-0 shadow-none"
+        >
           <Table className="w-full table-fixed text-left">
             <TableHeader>
               <TableRow>
@@ -787,22 +808,6 @@ export function AllocationsTable({ userRole }: AllocationsTableProps) {
             </TableBody>
           </Table>
         </TableContainer>
-
-        {/* Attached Pagination Controls */}
-        {!isError && (isTableLoading || pagination.total > 0) && (
-          <PaginationControls
-            page={pagination.page}
-            limit={pagination.limit}
-            total={pagination.total}
-            totalPages={pagination.totalPages}
-            onPageChange={(page) => setFilters((prev) => ({ ...prev, page }))}
-            onLimitChange={(limit) => setFilters((prev) => ({ ...prev, limit, page: 1 }))}
-            isLoading={isTableLoading}
-            itemLabel="allocations"
-            pageSizeOptions={[10, 20, 50]}
-            className="border-t border-[#E1E6EC]"
-          />
-        )}
       </div>
 
       {/* Modals */}

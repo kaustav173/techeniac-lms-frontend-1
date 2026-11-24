@@ -25,6 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableRowMenu,
 } from '@/components/ui/Table';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { H2, P, Span } from '@/components/ui/Typography';
@@ -116,11 +117,15 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
   // 3-dots action menu state
   const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!openActionMenuId) return;
     const handleOutsideClick = (e: MouseEvent) => {
-      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+      if (
+        !actionMenuRef.current?.contains(e.target as Node) &&
+        !popupRef.current?.contains(e.target as Node)
+      ) {
         setOpenActionMenuId(null);
       }
     };
@@ -411,7 +416,25 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
           )}
 
           {/* Main Telemetry Matrix Table using UI Primitives */}
-          <TableContainer>
+          <TableContainer
+            fitToViewport
+            scrollRegionLabel="Mentee progress"
+            footer={
+              <PaginationControls
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+                onLimitChange={(newLimit) => {
+                  setLimit(newLimit);
+                  setPage(1);
+                }}
+                itemLabel="Mentees"
+                isLoading={isTableLoading}
+              />
+            }
+          >
             <Table className="w-full table-fixed text-left">
               <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC] font-semibold text-slate-700">
                 <TableRow>
@@ -496,7 +519,10 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                         onMouseEnter={() => prefetchProgress(item.allocationId)}
                         onFocus={() => prefetchProgress(item.allocationId)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                          if (
+                            e.target === e.currentTarget &&
+                            (e.key === 'Enter' || e.key === ' ')
+                          ) {
                             e.preventDefault();
                             handleNavigateToDetail(item.allocationId);
                           }
@@ -617,7 +643,11 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                             </Button>
 
                             {openActionMenuId === item.allocationId && (
-                              <div className="animate-in fade-in zoom-in-95 absolute top-9 right-0 z-50 w-44 rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl">
+                              <TableRowMenu
+                                anchorRef={actionMenuRef}
+                                popupRef={popupRef}
+                                className="animate-in fade-in rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xl"
+                              >
                                 <Button
                                   type="button"
                                   variant="ghost"
@@ -649,7 +679,7 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                                   </svg>
                                   <Span>Inspect Progress</Span>
                                 </Button>
-                              </div>
+                              </TableRowMenu>
                             )}
                           </div>
                         </TableCell>
@@ -659,21 +689,6 @@ export function ProgressTrackerView({ portalType = 'mentor' }: ProgressTrackerVi
                 )}
               </TableBody>
             </Table>
-
-            {/* Pagination Controls */}
-            <PaginationControls
-              page={pagination.page}
-              limit={pagination.limit}
-              total={pagination.total}
-              totalPages={pagination.totalPages}
-              onPageChange={setPage}
-              onLimitChange={(newLimit) => {
-                setLimit(newLimit);
-                setPage(1);
-              }}
-              itemLabel="Mentees"
-              isLoading={isTableLoading}
-            />
           </TableContainer>
         </div>
       </DashboardContent>

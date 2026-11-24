@@ -18,6 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableRowMenu,
 } from '@/components/ui/Table';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { H2, P, Span } from '@/components/ui/Typography';
@@ -27,7 +28,6 @@ import { cn } from '@/lib/cn';
 interface MenteeActionMenuProps {
   readonly menteeName?: string | undefined;
   readonly menteeId?: string | undefined;
-  readonly openUpward?: boolean | undefined;
   readonly isOpen?: boolean | undefined;
   readonly onToggle?: (() => void) | undefined;
   readonly onClose?: (() => void) | undefined;
@@ -36,20 +36,22 @@ interface MenteeActionMenuProps {
 function MenteeActionMenu({
   menteeName,
   menteeId,
-  openUpward,
   isOpen: controlledIsOpen,
   onToggle,
   onClose,
 }: MenteeActionMenuProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [isMeasuredUpward, setIsMeasuredUpward] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
 
   const isMenuOpen = controlledIsOpen ?? internalIsOpen;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        !menuRef.current?.contains(event.target as Node) &&
+        !popupRef.current?.contains(event.target as Node)
+      ) {
         if (onClose) {
           onClose();
         } else {
@@ -79,16 +81,6 @@ function MenteeActionMenu({
   }, [isMenuOpen, onClose]);
 
   const handleToggle = () => {
-    if (!isMenuOpen && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const container = menuRef.current.closest('.overflow-x-auto');
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        setIsMeasuredUpward(containerRect.bottom - rect.bottom < 120);
-      } else {
-        setIsMeasuredUpward(window.innerHeight - rect.bottom < 140);
-      }
-    }
     if (onToggle) {
       onToggle();
     } else {
@@ -103,8 +95,6 @@ function MenteeActionMenu({
       setInternalIsOpen(false);
     }
   };
-
-  const shouldOpenUp = openUpward ?? isMeasuredUpward;
 
   return (
     <div
@@ -130,12 +120,10 @@ function MenteeActionMenu({
       </Button>
 
       {isMenuOpen ? (
-        <div
-          role="menu"
-          className={cn(
-            'animate-in fade-in zoom-in-95 absolute right-0 z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-100',
-            shouldOpenUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-          )}
+        <TableRowMenu
+          anchorRef={menuRef}
+          popupRef={popupRef}
+          className="animate-in fade-in rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-100"
         >
           <Link
             href={menteeId ? `/mentor/mentees/${menteeId}` : '/mentor/mentees'}
@@ -210,7 +198,7 @@ function MenteeActionMenu({
             </svg>
             <Span>Reviews</Span>
           </Link>
-        </div>
+        </TableRowMenu>
       ) : null}
     </div>
   );
@@ -566,7 +554,33 @@ export function MentorMenteesView() {
         ) : (
           /* Table of Mapped Mentees */
           <div>
-            <TableContainer className="rounded-none border-0 shadow-none">
+            <TableContainer
+              fitToViewport
+              scrollRegionLabel="Mentees"
+              footer={
+                filteredMentees.length > 0 ? (
+                  <PaginationControls
+                    page={page}
+                    limit={pageSize}
+                    total={filteredMentees.length}
+                    totalPages={totalPages}
+                    onPageChange={(p) => {
+                      setPage(p);
+                      setOpenActionMenuId(null);
+                    }}
+                    onLimitChange={(newLimit) => {
+                      setPageSize(newLimit);
+                      setPage(1);
+                      setOpenActionMenuId(null);
+                    }}
+                    itemLabel="mentees"
+                    pageSizeOptions={[10, 20, 50]}
+                    className="px-6 py-2.5"
+                  />
+                ) : null
+              }
+              className="rounded-none border-0 shadow-none"
+            >
               <Table>
                 <TableHeader>
                   <TableRow className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
@@ -648,7 +662,7 @@ export function MentorMenteesView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedMentees.map((mentee, index) => {
+                  {paginatedMentees.map((mentee) => {
                     const isMenuOpen = openActionMenuId === mentee.id;
                     return (
                       <MenteeTableRow
@@ -659,7 +673,6 @@ export function MentorMenteesView() {
                           <MenteeActionMenu
                             menteeName={mentee.name}
                             menteeId={mentee.menteeId || mentee.id}
-                            openUpward={index >= paginatedMentees.length - 2}
                             isOpen={isMenuOpen}
                             onToggle={() =>
                               setOpenActionMenuId((prev) => (prev === mentee.id ? null : mentee.id))
@@ -673,27 +686,6 @@ export function MentorMenteesView() {
                 </TableBody>
               </Table>
             </TableContainer>
-
-            {filteredMentees.length > 0 ? (
-              <PaginationControls
-                page={page}
-                limit={pageSize}
-                total={filteredMentees.length}
-                totalPages={totalPages}
-                onPageChange={(p) => {
-                  setPage(p);
-                  setOpenActionMenuId(null);
-                }}
-                onLimitChange={(newLimit) => {
-                  setPageSize(newLimit);
-                  setPage(1);
-                  setOpenActionMenuId(null);
-                }}
-                itemLabel="mentees"
-                pageSizeOptions={[10, 20, 50]}
-                className="px-6 py-2.5"
-              />
-            ) : null}
           </div>
         )}
       </div>

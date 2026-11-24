@@ -358,7 +358,23 @@ export function BatchesTable() {
       ) : null}
 
       {/* Batches Table View */}
-      <TableContainer>
+      <TableContainer
+        fitToViewport
+        scrollRegionLabel="Batches"
+        footer={
+          <PaginationControls
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            isLoading={isTableLoading}
+            itemLabel="batches"
+            pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+          />
+        }
+      >
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
@@ -415,19 +431,6 @@ export function BatchesTable() {
             )}
           </TableBody>
         </Table>
-
-        {/* Pagination Controls with Loading State */}
-        <PaginationControls
-          page={pagination.page}
-          limit={pagination.limit}
-          total={pagination.total}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-          onLimitChange={handleLimitChange}
-          isLoading={isTableLoading}
-          itemLabel="batches"
-          pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
-        />
       </TableContainer>
 
       {/* Create Batch Modal */}

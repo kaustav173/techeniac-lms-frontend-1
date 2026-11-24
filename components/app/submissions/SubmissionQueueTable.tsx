@@ -17,6 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableRowMenu,
 } from '@/components/ui/Table';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { H3, P, Span } from '@/components/ui/Typography';
@@ -54,23 +55,24 @@ const STATUS_OPTIONS: MultiSelectOption<SubmissionStatus>[] = [
 interface SubmissionActionMenuProps {
   readonly submission: SubmissionQueueItem;
   readonly onOpenReview: () => void;
-  readonly openUpward?: boolean | undefined;
   readonly onPrefetch?: (() => void) | undefined;
 }
 
 function SubmissionActionMenu({
   submission,
   onOpenReview,
-  openUpward,
   onPrefetch,
 }: Readonly<SubmissionActionMenuProps>) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMeasuredUpward, setIsMeasuredUpward] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        !menuRef.current?.contains(event.target as Node) &&
+        !popupRef.current?.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -92,20 +94,8 @@ function SubmissionActionMenu({
   }, [isOpen]);
 
   const handleToggle = () => {
-    if (!isOpen && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const container = menuRef.current.closest('.overflow-x-auto');
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        setIsMeasuredUpward(containerRect.bottom - rect.bottom < 120);
-      } else {
-        setIsMeasuredUpward(window.innerHeight - rect.bottom < 140);
-      }
-    }
     setIsOpen((prev) => !prev);
   };
-
-  const shouldOpenUp = openUpward ?? isMeasuredUpward;
 
   return (
     <div
@@ -130,12 +120,10 @@ function SubmissionActionMenu({
       </Button>
 
       {isOpen ? (
-        <div
-          role="menu"
-          className={cn(
-            'animate-in fade-in zoom-in-95 absolute right-0 z-50 w-44 rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-100',
-            shouldOpenUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-          )}
+        <TableRowMenu
+          anchorRef={menuRef}
+          popupRef={popupRef}
+          className="animate-in fade-in rounded-2xl border border-[#E1E6EC] bg-white p-1.5 shadow-lg duration-100"
         >
           <Button
             type="button"
@@ -166,7 +154,7 @@ function SubmissionActionMenu({
               {submission.status === SubmissionStatus.GRADED ? 'View / Edit' : 'Review & Grade'}
             </Span>
           </Button>
-        </div>
+        </TableRowMenu>
       ) : null}
     </div>
   );
@@ -461,7 +449,28 @@ export function SubmissionQueueTable() {
 
       {/* Queue Table */}
       <div className="w-full overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
-        <TableContainer className="rounded-none border-0 shadow-none">
+        <TableContainer
+          fitToViewport
+          scrollRegionLabel="Submissions"
+          footer={
+            <PaginationControls
+              page={page}
+              limit={limit}
+              total={total}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
+              itemLabel="submissions"
+              pageSizeOptions={[10, 20, 50]}
+              isLoading={isLoading}
+              className="border-t border-[#E1E6EC] px-6 py-2.5"
+            />
+          }
+          className="rounded-none border-0 shadow-none"
+        >
           <Table className="w-full border-collapse text-left text-sm">
             <TableHeader className="border-b border-[#E1E6EC] bg-[#F6F8FC]">
               <TableRow>
@@ -587,14 +596,13 @@ export function SubmissionQueueTable() {
               )}
 
               {!isInitialLoading &&
-                menteeGroups.map((group, groupIndex) => {
+                menteeGroups.map((group) => {
                   const isExpanded = Boolean(expandedMentees[group.mentee.id]);
                   const totalItems = group.items.length;
                   const hasMore = totalItems > 3;
                   const displayedItems =
                     isExpanded || !hasMore ? group.items : group.items.slice(0, 3);
                   const rowSpan = displayedItems.length;
-                  const isLastGroup = groupIndex === menteeGroups.length - 1;
 
                   return (
                     <React.Fragment key={group.mentee.id}>
@@ -740,7 +748,6 @@ export function SubmissionQueueTable() {
                               <SubmissionActionMenu
                                 submission={sub}
                                 onOpenReview={() => setSelectedSubmissionId(sub.id)}
-                                openUpward={isLastGroup && itemIndex >= displayedItems.length - 2}
                                 onPrefetch={() => prefetchReview(sub.id)}
                               />
                             </TableCell>
@@ -753,23 +760,6 @@ export function SubmissionQueueTable() {
             </TableBody>
           </Table>
         </TableContainer>
-
-        {/* Server-Side Pagination Bar */}
-        <PaginationControls
-          page={page}
-          limit={limit}
-          total={total}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onLimitChange={(newLimit) => {
-            setLimit(newLimit);
-            setPage(1);
-          }}
-          itemLabel="submissions"
-          pageSizeOptions={[10, 20, 50]}
-          isLoading={isLoading}
-          className="border-t border-[#E1E6EC] px-6 py-2.5"
-        />
       </div>
 
       {/* Review & Grading Modal */}

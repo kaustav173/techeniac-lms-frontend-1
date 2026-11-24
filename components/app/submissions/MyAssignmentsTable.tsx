@@ -385,6 +385,23 @@ export function MyAssignmentsTable({
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[#E1E6EC] bg-white shadow-xs">
           <TableContainer
+            fitToViewport
+            scrollRegionLabel="Assignments"
+            footer={
+              pagination && !error && effectiveTotal > 0 ? (
+                <PaginationControls
+                  page={effectivePage}
+                  limit={pagination.limit}
+                  total={effectiveTotal}
+                  totalPages={effectiveTotalPages}
+                  onPageChange={pagination.onPageChange}
+                  onLimitChange={pagination.onLimitChange}
+                  itemLabel="assignments"
+                  pageSizeOptions={[10, 20, 50]}
+                  className="border-t border-[#E1E6EC]"
+                />
+              ) : null
+            }
             className={`w-full rounded-none border-0 shadow-none ${isFetching && !isLoading ? 'opacity-60 transition-opacity' : ''}`}
           >
             <Table className="w-full table-fixed">
@@ -634,20 +651,6 @@ export function MyAssignmentsTable({
               </TableBody>
             </Table>
           </TableContainer>
-
-          {pagination && !error && effectiveTotal > 0 ? (
-            <PaginationControls
-              page={effectivePage}
-              limit={pagination.limit}
-              total={effectiveTotal}
-              totalPages={effectiveTotalPages}
-              onPageChange={pagination.onPageChange}
-              onLimitChange={pagination.onLimitChange}
-              itemLabel="assignments"
-              pageSizeOptions={[10, 20, 50]}
-              className="border-t border-[#E1E6EC]"
-            />
-          ) : null}
         </div>
       )}
     </div>

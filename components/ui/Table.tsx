@@ -1,26 +1,140 @@
-import React from 'react';
+'use client';
+
+import './Table.css';
+
+import React, { useLayoutEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 import { cn } from '@/lib/cn';
+import { useFloatingMenuPosition } from '@/lib/useFloatingMenuPosition';
 
 export interface TableContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   readonly children: React.ReactNode;
+  readonly scrollRegionLabel?: string;
+  readonly fitToViewport?: boolean;
+  readonly footer?: React.ReactNode;
 }
 
 export const TableContainer = React.forwardRef<HTMLDivElement, TableContainerProps>(
-  ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        'w-full overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs',
-        className,
-      )}
-      {...props}
-    >
-      <div className="w-full overflow-x-auto">{children}</div>
-    </div>
-  ),
+  ({ className, children, scrollRegionLabel, fitToViewport = false, footer, ...props }, ref) => {
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const footerRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+      const scrollArea = scrollAreaRef.current;
+      if (!fitToViewport || !scrollArea) return;
+
+      const main = scrollArea.closest('main') ?? document.body;
+      const footerElement = footerRef.current;
+      const resize = () => {
+        let top = 0;
+        for (
+          let element: HTMLElement | null = scrollArea;
+          element;
+          element = element.offsetParent as HTMLElement | null
+        ) {
+          top += element.offsetTop;
+        }
+        const bottomPadding = Number.parseFloat(getComputedStyle(main).paddingBottom) || 0;
+        const available =
+          window.innerHeight - top - (footerElement?.offsetHeight ?? 0) - bottomPadding - 4;
+        scrollArea.style.maxHeight = `${Math.max(160, available)}px`;
+      };
+
+      const observer = new ResizeObserver(resize);
+      observer.observe(main);
+      if (footerElement) observer.observe(footerElement);
+      for (
+        let element: HTMLElement | null = scrollArea;
+        element && element !== main;
+        element = element.parentElement
+      ) {
+        for (
+          let sibling = element.previousElementSibling;
+          sibling;
+          sibling = sibling.previousElementSibling
+        ) {
+          observer.observe(sibling);
+        }
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('resize', resize);
+        scrollArea.style.removeProperty('max-height');
+      };
+    }, [fitToViewport]);
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'w-full overflow-hidden rounded-3xl border border-[#E1E6EC] bg-white shadow-xs',
+          className,
+        )}
+        {...props}
+      >
+        <div
+          ref={scrollAreaRef}
+          className={cn(
+            'table-scrollbar w-full overflow-x-auto',
+            scrollRegionLabel &&
+              'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600',
+            fitToViewport && 'max-h-[65dvh] overflow-y-auto overscroll-y-contain',
+          )}
+          role={scrollRegionLabel ? 'region' : undefined}
+          aria-label={scrollRegionLabel}
+          tabIndex={scrollRegionLabel ? 0 : undefined}
+        >
+          {children}
+        </div>
+        {fitToViewport ? <div ref={footerRef}>{footer}</div> : footer}
+      </div>
+    );
+  },
 );
 TableContainer.displayName = 'TableContainer';
+
+export function TableRowMenu({
+  anchorRef,
+  popupRef,
+  className,
+  children,
+}: {
+  readonly anchorRef: React.RefObject<HTMLElement | null>;
+  readonly popupRef: React.RefObject<HTMLDivElement | null>;
+  readonly className?: string;
+  readonly children: React.ReactNode;
+}) {
+  const { mounted, menuCoords } = useFloatingMenuPosition({
+    isOpen: true,
+    triggerRef: anchorRef,
+    align: 'right',
+  });
+  if (!mounted || !menuCoords) return null;
+
+  const { left, top, openUpwards } = menuCoords;
+  return createPortal(
+    <div
+      ref={popupRef}
+      role="menu"
+      style={{
+        left: `clamp(8px, ${left}px - 11rem, 100vw - 11rem - 8px)`,
+        top,
+        maxHeight: openUpwards ? top - 8 : `calc(100dvh - ${top}px - 8px)`,
+      }}
+      className={cn(
+        'fixed z-50 w-44 overflow-y-auto',
+        openUpwards && '-translate-y-full',
+        className,
+      )}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+}
 
 export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
   readonly children: React.ReactNode;
